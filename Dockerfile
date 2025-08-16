@@ -1,34 +1,30 @@
 # Use the official Node.js 18 image
 FROM node:18-alpine AS base
 
-# Install dependencies only when needed
-FROM base AS deps
+# Rebuild the source code only when needed
+FROM base AS builder
 # Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-# Install dependencies based on the preferred package manager
+# Install ALL dependencies (production + dev) needed for building
 COPY package.json package-lock.json* ./
-# Copy Prisma schema for postinstall script
 COPY prisma ./prisma
-# Skip all scripts (including husky prepare and prisma postinstall) during install
-RUN npm ci --only=production --ignore-scripts
-# Run Prisma generate manually
+
+# Skip scripts during install to avoid Husky hooks
+ENV HUSKY=0
+RUN npm ci --ignore-scripts
+
+# Generate Prisma Client after dependencies are installed
 RUN npx prisma generate
 
-# Rebuild the source code only when needed
-FROM base AS builder
-WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
+# Copy source code
 COPY . .
-
-# Generate Prisma Client
-RUN npx prisma generate
 
 # Disable telemetry during the build
 ENV NEXT_TELEMETRY_DISABLED 1
 
-# Build the application
+# Build the application with all dependencies available
 RUN npm run build
 
 # Production image, copy all the files and run next
@@ -53,7 +49,7 @@ RUN chown nextjs:nodejs .next
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Copy Prisma files
+# Copy Prisma files for runtime
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 
