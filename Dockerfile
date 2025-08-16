@@ -11,9 +11,10 @@ WORKDIR /app
 COPY package.json package-lock.json* ./
 # Copy Prisma schema for postinstall script
 COPY prisma ./prisma
-# Skip Husky hooks during Docker build
-ENV HUSKY=0
-RUN npm ci --only=production
+# Skip all scripts (including husky prepare and prisma postinstall) during install
+RUN npm ci --only=production --ignore-scripts
+# Run Prisma generate manually
+RUN npx prisma generate
 
 # Rebuild the source code only when needed
 FROM base AS builder
