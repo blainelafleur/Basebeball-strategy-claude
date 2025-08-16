@@ -1,0 +1,300 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  FREE
+  PRO
+  TEAM
+  ADMIN
+}
+
+enum GameDifficulty {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+  EXPERT
+}
+
+enum AchievementType {
+  STREAK
+  ACCURACY
+  SPEED
+  COMPLETION
+  SOCIAL
+  SPECIAL
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  role          UserRole  @default(FREE)
+  
+  // Game Stats
+  points        Int       @default(0)
+  level         String    @default("Rookie")
+  gamesPlayed   Int       @default(0)
+  totalCorrect  Int       @default(0)
+  currentStreak Int       @default(0)
+  bestStreak    Int       @default(0)
+  
+  // Profile
+  bio           String?
+  favoriteTeam  String?
+  position      String?
+  experience    String?
+  
+  // Subscription
+  subscription  Subscription?
+  
+  // Relations
+  accounts      Account[]
+  sessions      Session[]
+  games         Game[]
+  achievements  UserAchievement[]
+  createdScenarios Scenario[] @relation("ScenarioCreator")
+  
+  // Social
+  friends       User[]    @relation("Friends")
+  friendOf      User[]    @relation("Friends")
+  sentChallenges Challenge[] @relation("ChallengeSender")
+  receivedChallenges Challenge[] @relation("ChallengeReceiver")
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  @@index([email])
+  @@index([role])
+  @@index([points])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Subscription {
+  id            String    @id @default(cuid())
+  userId        String    @unique
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  stripeCustomerId     String?   @unique
+  stripeSubscriptionId String?   @unique
+  stripePriceId        String?
+  stripeCurrentPeriodEnd DateTime?
+  
+  plan          UserRole  @default(FREE)
+  active        Boolean   @default(false)
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Scenario {
+  id            String    @id @default(cuid())
+  title         String
+  description   String    @db.Text
+  category      String    // pitcher, batter, fielder, baserunner
+  difficulty    GameDifficulty @default(BEGINNER)
+  
+  // Game Situation
+  inning        String
+  score         String
+  count         String?
+  runners       String
+  outs          Int?
+  weatherConditions String?
+  
+  // Choices and Outcomes
+  options       Json      // Array of choice options
+  bestChoice    String
+  explanations  Json      // Record of choice -> explanation
+  successRates  Json      // Record of choice -> success percentage
+  
+  // Enhanced Content
+  videoUrl      String?   // URL to instructional video
+  mlbExample    String?   // Real MLB example
+  tags          String[]  // Searchable tags
+  
+  // Metadata
+  createdById   String?
+  createdBy     User?     @relation("ScenarioCreator", fields: [createdById], references: [id])
+  isPublic      Boolean   @default(true)
+  timesPlayed   Int       @default(0)
+  averageScore  Float?
+  
+  // Relations
+  games         Game[]
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  @@index([category])
+  @@index([difficulty])
+  @@index([isPublic])
+  @@index([timesPlayed])
+}
+
+model Game {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  scenarioId      String
+  scenario        Scenario  @relation(fields: [scenarioId], references: [id])
+  
+  // Game Data
+  decision        String
+  success         Boolean
+  points          Int
+  responseTime    Float     // In seconds
+  isOptimal       Boolean   @default(false)
+  
+  // Context
+  difficulty      GameDifficulty
+  challengeId     String?   // If part of a challenge
+  
+  createdAt       DateTime  @default(now())
+  
+  @@index([userId])
+  @@index([scenarioId])
+  @@index([success])
+  @@index([createdAt])
+}
+
+model Achievement {
+  id          String          @id @default(cuid())
+  name        String          @unique
+  description String
+  type        AchievementType
+  icon        String?
+  
+  // Requirements
+  requirement Json            // Flexible requirement definition
+  points      Int             @default(0)
+  
+  // Relations
+  users       UserAchievement[]
+  
+  createdAt   DateTime        @default(now())
+}
+
+model UserAchievement {
+  id            String      @id @default(cuid())
+  userId        String
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievementId String
+  achievement   Achievement @relation(fields: [achievementId], references: [id])
+  
+  unlockedAt    DateTime    @default(now())
+  
+  @@unique([userId, achievementId])
+}
+
+model Challenge {
+  id          String    @id @default(cuid())
+  senderId    String
+  sender      User      @relation("ChallengeSender", fields: [senderId], references: [id])
+  receiverId  String
+  receiver    User      @relation("ChallengeReceiver", fields: [receiverId], references: [id])
+  
+  scenarioIds String[]  // Array of scenario IDs
+  status      String    @default("pending") // pending, accepted, completed, declined
+  
+  // Results (filled when completed)
+  senderScore    Int?
+  receiverScore  Int?
+  winnerId       String?
+  
+  expiresAt   DateTime?
+  createdAt   DateTime  @default(now())
+  completedAt DateTime?
+}
+
+model Leaderboard {
+  id          String    @id @default(cuid())
+  userId      String
+  category    String    // overall, pitcher, batter, fielder, baserunner, weekly, monthly
+  period      String    // all-time, weekly, monthly
+  score       Int
+  rank        Int
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  @@unique([userId, category, period])
+}
+
+model UserStats {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  
+  // Overall Stats
+  totalGames      Int      @default(0)
+  totalCorrect    Int      @default(0)
+  totalPoints     Int      @default(0)
+  averageResponseTime Float @default(0)
+  
+  // Position-specific stats
+  pitcherGames    Int      @default(0)
+  pitcherCorrect  Int      @default(0)
+  batterGames     Int      @default(0)
+  batterCorrect   Int      @default(0)
+  fielderGames    Int      @default(0)
+  fielderCorrect  Int      @default(0)
+  baserunnerGames Int      @default(0)
+  baserunnerCorrect Int    @default(0)
+  
+  // Streaks
+  currentStreak   Int      @default(0)
+  bestStreak      Int      @default(0)
+  
+  // Time-based stats
+  dailyGames      Int      @default(0)
+  weeklyGames     Int      @default(0)
+  monthlyGames    Int      @default(0)
+  
+  lastPlayedAt    DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
