@@ -113,7 +113,7 @@ export async function GET() {
       },
       where: {
         scenarioId: {
-          not: null,
+          not: undefined,
         },
       },
     });

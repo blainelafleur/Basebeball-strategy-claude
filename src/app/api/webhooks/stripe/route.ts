@@ -6,7 +6,7 @@ import Stripe from 'stripe';
 
 export async function POST(request: NextRequest) {
   const body = await request.text();
-  const headersList = headers();
+  const headersList = await headers();
   const signature = headersList.get('stripe-signature');
 
   if (!signature) {
@@ -92,7 +92,8 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
     update: {
       stripeSubscriptionId: subscription.id,
       stripePriceId: priceId,
-      stripeCurrentPeriodEnd: new Date(subscription.current_period_end * 1000),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      stripeCurrentPeriodEnd: new Date((subscription as any).current_period_end * 1000),
       plan: plan,
       active: subscription.status === 'active',
     },
@@ -101,7 +102,8 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
       stripeCustomerId: customerId,
       stripeSubscriptionId: subscription.id,
       stripePriceId: priceId,
-      stripeCurrentPeriodEnd: new Date(subscription.current_period_end * 1000),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      stripeCurrentPeriodEnd: new Date((subscription as any).current_period_end * 1000),
       plan: plan,
       active: subscription.status === 'active',
     },

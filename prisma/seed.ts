@@ -233,7 +233,10 @@ async function main() {
     await prisma.scenario.upsert({
       where: { id: scenario.id },
       update: {},
-      create: scenario,
+      create: {
+        ...scenario,
+        tags: JSON.stringify(scenario.tags), // Convert array to JSON string
+      },
     });
   }
 

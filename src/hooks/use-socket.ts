@@ -30,18 +30,21 @@ export function useSocket() {
       });
 
       // Set user data for socket
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const user = session.user as any;
       socket.auth = {
-        userId: session.user.id,
-        userName: session.user.name || session.user.email,
-        userRole: session.user.role || 'FREE',
+        userId: user.id,
+        userName: user.name || user.email,
+        userRole: user.role || 'FREE',
       };
 
       // Store user data in socket
       if (socket.connected) {
-        socket.data = {
-          userId: session.user.id!,
-          userName: session.user.name || session.user.email!,
-          userRole: session.user.role || 'FREE',
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (socket as any).data = {
+          userId: user.id,
+          userName: user.name || user.email,
+          userRole: user.role || 'FREE',
         };
       }
 
@@ -66,8 +69,8 @@ export function useSocket() {
         setCurrentRoom(room);
         setPlayers([
           {
-            id: session.user.id!,
-            name: session.user.name || session.user.email!,
+            id: user.id,
+            name: user.name || user.email,
             role: 'host',
             isReady: false,
             score: 0,

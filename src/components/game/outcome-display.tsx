@@ -102,18 +102,10 @@ export function OutcomeDisplay() {
           {/* AI Coach */}
           {currentScenario && (
             <AICoach
-              scenario={{
-                title: currentScenario.title,
-                description: currentScenario.description,
-                category: currentScenario.category,
-                difficulty: currentScenario.difficulty,
-                inning: currentScenario.inning,
-                score: currentScenario.score,
-                count: currentScenario.count,
-                runners: currentScenario.runners,
-                outs: currentScenario.outs,
-              }}
-              userChoice={lastOutcome.choice}
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              scenario={currentScenario as any}
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              userChoice={(lastOutcome as any).choice}
               isCorrect={lastOutcome.category === 'success'}
               explanation={lastOutcome.explanation}
             />

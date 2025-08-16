@@ -584,12 +584,11 @@ async function createAchievement(achievement: AchievementDefinition): Promise<vo
       id: achievement.id,
       name: achievement.name,
       description: achievement.description,
-      type: achievement.type,
-      category: achievement.category,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      type: achievement.type as any,
       icon: achievement.icon,
       points: achievement.points,
-      tier: achievement.tier.toUpperCase() as 'BRONZE' | 'SILVER' | 'GOLD' | 'DIAMOND',
-      isHidden: achievement.isHidden || false,
+      requirement: achievement.requirement,
     },
   });
 }

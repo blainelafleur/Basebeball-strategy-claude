@@ -41,7 +41,7 @@ export async function POST(request: Request) {
         points,
         responseTime,
         difficulty,
-        playerChoice,
+        decision: playerChoice,
         isOptimal,
       },
     });

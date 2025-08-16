@@ -5,7 +5,8 @@ export type UserRole = 'FREE' | 'PRO' | 'TEAM' | 'ADMIN';
 export function useRole() {
   const { data: session } = useSession();
 
-  const role = (session?.user?.role as UserRole) || 'FREE';
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const role = ((session?.user as any)?.role as UserRole) || 'FREE';
 
   const hasRole = (requiredRole: UserRole | UserRole[]) => {
     if (!session?.user) return false;

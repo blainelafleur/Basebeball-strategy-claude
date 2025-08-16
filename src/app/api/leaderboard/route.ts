@@ -10,17 +10,13 @@ export async function GET() {
       },
       orderBy: [{ points: 'desc' }, { gamesPlayed: 'desc' }],
       take: 50,
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        points: true,
-        level: true,
-        gamesPlayed: true,
-        correctAnswers: true,
-        currentStreak: true,
-        bestStreak: true,
-        avgResponseTime: true,
+      include: {
+        games: {
+          select: {
+            success: true,
+            responseTime: true,
+          },
+        },
       },
     });
 
@@ -129,85 +125,113 @@ export async function GET() {
       },
       orderBy: [{ bestStreak: 'desc' }, { currentStreak: 'desc' }, { points: 'desc' }],
       take: 50,
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        points: true,
-        level: true,
-        gamesPlayed: true,
-        correctAnswers: true,
-        currentStreak: true,
-        bestStreak: true,
-        avgResponseTime: true,
+      include: {
+        games: {
+          select: {
+            success: true,
+            responseTime: true,
+          },
+        },
       },
     });
 
     // Accuracy leaderboard (min 20 games)
-    const accuracy = await prisma.user
-      .findMany({
-        where: {
-          gamesPlayed: { gte: 20 },
-        },
-        orderBy: [{ correctAnswers: 'desc' }],
-        take: 100,
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          points: true,
-          level: true,
-          gamesPlayed: true,
-          correctAnswers: true,
-          currentStreak: true,
-          bestStreak: true,
-          avgResponseTime: true,
-        },
-      })
-      .then((users) =>
-        users
-          .map((user) => ({
-            ...user,
-            accuracy: user.gamesPlayed > 0 ? (user.correctAnswers / user.gamesPlayed) * 100 : 0,
-          }))
-          .sort((a, b) => b.accuracy - a.accuracy)
-          .slice(0, 50)
-      );
-
-    // Speed leaderboard (min 20 games, fastest average response time)
-    const speed = await prisma.user.findMany({
+    const accuracyUsers = await prisma.user.findMany({
       where: {
         gamesPlayed: { gte: 20 },
-        avgResponseTime: { gt: 0 },
       },
-      orderBy: [{ avgResponseTime: 'asc' }, { points: 'desc' }],
-      take: 50,
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        points: true,
-        level: true,
-        gamesPlayed: true,
-        correctAnswers: true,
-        currentStreak: true,
-        bestStreak: true,
-        avgResponseTime: true,
+      include: {
+        games: {
+          select: {
+            success: true,
+            responseTime: true,
+          },
+        },
       },
+      take: 100,
     });
+
+    const accuracy = accuracyUsers
+      .map((user) => {
+        const correctAnswers = user.games.filter((game) => game.success).length;
+        const accuracy = user.gamesPlayed > 0 ? (correctAnswers / user.gamesPlayed) * 100 : 0;
+        const avgResponseTime =
+          user.games.length > 0
+            ? user.games.reduce((sum, game) => sum + game.responseTime, 0) / user.games.length
+            : 0;
+        return {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          points: user.points,
+          level: user.level,
+          gamesPlayed: user.gamesPlayed,
+          correctAnswers,
+          currentStreak: user.currentStreak,
+          bestStreak: user.bestStreak,
+          avgResponseTime,
+          accuracy,
+        };
+      })
+      .sort((a, b) => b.accuracy - a.accuracy)
+      .slice(0, 50);
+
+    // Speed leaderboard (min 20 games, fastest average response time)
+    const speedUsers = await prisma.user.findMany({
+      where: {
+        gamesPlayed: { gte: 20 },
+      },
+      include: {
+        games: {
+          select: {
+            success: true,
+            responseTime: true,
+          },
+        },
+      },
+      take: 100,
+    });
+
+    const speed = speedUsers
+      .map((user) => {
+        const avgResponseTime =
+          user.games.length > 0
+            ? user.games.reduce((sum, game) => sum + game.responseTime, 0) / user.games.length
+            : 0;
+        return {
+          ...user,
+          avgResponseTime,
+        };
+      })
+      .filter((user) => user.avgResponseTime > 0)
+      .sort((a, b) => a.avgResponseTime - b.avgResponseTime)
+      .slice(0, 50);
 
     // Add ranks and format data
     const addRanks = (users: unknown[]) =>
-      users.map((user, index) => ({
-        ...user,
-        name: user.name || user.email,
-        accuracy:
-          user.gamesPlayed > 0
-            ? Math.round((user.correctAnswers / user.gamesPlayed) * 100 * 100) / 100
-            : 0,
-        avgResponseTime: Math.round((user.avgResponseTime || 0) * 100) / 100,
-        rank: index + 1,
-      }));
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      users.map((user: any, index: number) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const correctAnswers = user.games?.filter((game: any) => game.success).length || 0;
+        const avgResponseTime =
+          user.games?.length > 0
+            ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              user.games.reduce((sum: number, game: any) => sum + game.responseTime, 0) /
+              user.games.length
+            : user.avgResponseTime || 0;
+
+        return {
+          ...user,
+          name: user.name || user.email,
+          accuracy:
+            user.accuracy ||
+            (user.gamesPlayed > 0
+              ? Math.round((correctAnswers / user.gamesPlayed) * 100 * 100) / 100
+              : 0),
+          avgResponseTime: Math.round(avgResponseTime * 100) / 100,
+          rank: index + 1,
+        };
+      });
 
     return NextResponse.json({
       overall: addRanks(overall),
