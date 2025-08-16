@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import { Toaster } from '@/components/ui/sonner';
 import { AuthSessionProvider } from '@/components/providers/session-provider';
+import { AchievementProvider } from '@/components/achievements/achievement-context';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -24,8 +25,10 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} font-sans antialiased`}>
         <AuthSessionProvider>
-          {children}
-          <Toaster />
+          <AchievementProvider>
+            {children}
+            <Toaster />
+          </AchievementProvider>
         </AuthSessionProvider>
       </body>
     </html>

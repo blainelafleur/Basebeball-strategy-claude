@@ -6,7 +6,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -39,12 +39,12 @@ model Account {
   type              String
   provider          String
   providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
+  refresh_token     String?
+  access_token      String?
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String? @db.Text
+  id_token          String?
   session_state     String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -134,7 +134,7 @@ model Subscription {
 model Scenario {
   id            String    @id @default(cuid())
   title         String
-  description   String    @db.Text
+  description   String
   category      String    // pitcher, batter, fielder, baserunner
   difficulty    GameDifficulty @default(BEGINNER)
   
@@ -155,7 +155,7 @@ model Scenario {
   // Enhanced Content
   videoUrl      String?   // URL to instructional video
   mlbExample    String?   // Real MLB example
-  tags          String[]  // Searchable tags
+  tags          String    // JSON array of searchable tags
   
   // Metadata
   createdById   String?
@@ -238,7 +238,7 @@ model Challenge {
   receiverId  String
   receiver    User      @relation("ChallengeReceiver", fields: [receiverId], references: [id])
   
-  scenarioIds String[]  // Array of scenario IDs
+  scenarioIds String    // JSON array of scenario IDs
   status      String    @default("pending") // pending, accepted, completed, declined
   
   // Results (filled when completed)

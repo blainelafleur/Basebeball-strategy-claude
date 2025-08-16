@@ -3,11 +3,12 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useGameStore } from '@/lib/store';
+import { AICoach } from './ai-coach';
 import { motion } from 'framer-motion';
 import { CheckCircle, AlertCircle, XCircle, Target, Clock, TrendingUp } from 'lucide-react';
 
 export function OutcomeDisplay() {
-  const { showOutcome, lastOutcome, startNewScenario } = useGameStore();
+  const { showOutcome, lastOutcome, startNewScenario, currentScenario } = useGameStore();
 
   if (!showOutcome || !lastOutcome) {
     return null;
@@ -97,6 +98,26 @@ export function OutcomeDisplay() {
               for baseball success. Each choice has different risk-reward profiles.
             </p>
           </div>
+
+          {/* AI Coach */}
+          {currentScenario && (
+            <AICoach
+              scenario={{
+                title: currentScenario.title,
+                description: currentScenario.description,
+                category: currentScenario.category,
+                difficulty: currentScenario.difficulty,
+                inning: currentScenario.inning,
+                score: currentScenario.score,
+                count: currentScenario.count,
+                runners: currentScenario.runners,
+                outs: currentScenario.outs,
+              }}
+              userChoice={lastOutcome.choice}
+              isCorrect={lastOutcome.category === 'success'}
+              explanation={lastOutcome.explanation}
+            />
+          )}
 
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-3 pt-4">
