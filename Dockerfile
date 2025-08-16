@@ -53,6 +53,10 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 
+# Copy startup script for debugging
+COPY start.sh ./start.sh
+RUN chmod +x ./start.sh
+
 USER nextjs
 
 EXPOSE 8080
@@ -61,6 +65,5 @@ ENV PORT 8080
 ENV HOSTNAME "0.0.0.0"
 ENV NODE_ENV production
 
-# Server.js is created by next build from the standalone output
-# https://nextjs.org/docs/pages/api-reference/next-config-js/output
-CMD ["node", "server.js"]
+# Use startup script for debugging, then start server
+CMD ["./start.sh"]
