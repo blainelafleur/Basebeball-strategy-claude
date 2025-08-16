@@ -1,4 +1,8 @@
+# Baseball Strategy Master
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+
+🚀 **Railway Deployment Ready!** - Optimized for Railway deployment on port 8080.
 
 ## Getting Started
 
