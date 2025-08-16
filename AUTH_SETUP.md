@@ -27,16 +27,26 @@ NEXTAUTH_SECRET="CV7tbL7SfdCDBSnO21FfF7Havl+GtKlFkOj0GSoe2aM="
 Set these environment variables in Railway dashboard:
 
 ```bash
-# Database - Railway will provide PostgreSQL URL
+# Database - Railway will provide PostgreSQL URL automatically
 DATABASE_URL="postgresql://username:password@host:port/database"
 
-# NextAuth Configuration
-NEXTAUTH_URL="https://your-app.up.railway.app"
+# NextAuth Configuration (REQUIRED)
+NEXTAUTH_URL="https://your-actual-railway-domain.up.railway.app"
 NEXTAUTH_SECRET="CV7tbL7SfdCDBSnO21FfF7Havl+GtKlFkOj0GSoe2aM="
 
-# XAI API
+# XAI API for AI Coaching
 XAI_API_KEY="xai-PYHZ48n7C1AkKmJXaBlvVyjNGPwNGMQ6gKFp4XFQ3JlFFWcjwLcQMSVTisKMpjCWzvwFrCGq8eCzOIwL"
+
+# Google OAuth (OPTIONAL - Only add if you want Google sign-in)
+# GOOGLE_CLIENT_ID="your-google-client-id-from-console"
+# GOOGLE_CLIENT_SECRET="your-google-client-secret-from-console"
 ```
+
+**Important Notes:**
+
+- Replace `your-actual-railway-domain` with your real Railway domain
+- Google OAuth is optional - app works without it using email/password only
+- If you add Google OAuth, you must set BOTH CLIENT_ID and CLIENT_SECRET
 
 ## 🚀 Setup Steps
 

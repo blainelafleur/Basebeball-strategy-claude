@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,7 +17,16 @@ export default function SignInPage() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleAvailable, setIsGoogleAvailable] = useState(false);
   const router = useRouter();
+
+  // Check if Google OAuth is available
+  useEffect(() => {
+    fetch('/api/auth/config')
+      .then((res) => res.json())
+      .then((config) => setIsGoogleAvailable(config.google))
+      .catch(() => setIsGoogleAvailable(false));
+  }, []);
 
   const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,25 +74,29 @@ export default function SignInPage() {
           </p>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Google Sign In */}
-          <Button
-            variant="outline"
-            className="w-full"
-            onClick={handleGoogleSignIn}
-            disabled={isLoading}
-          >
-            <Chrome className="mr-2 h-4 w-4" />
-            Continue with Google
-          </Button>
+          {/* Google Sign In - Only show if configured */}
+          {isGoogleAvailable && (
+            <>
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={handleGoogleSignIn}
+                disabled={isLoading}
+              >
+                <Chrome className="mr-2 h-4 w-4" />
+                Continue with Google
+              </Button>
 
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <Separator className="w-full" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
-            </div>
-          </div>
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <Separator className="w-full" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
+                </div>
+              </div>
+            </>
+          )}
 
           {/* Email Sign In */}
           <form onSubmit={handleEmailSignIn} className="space-y-4">

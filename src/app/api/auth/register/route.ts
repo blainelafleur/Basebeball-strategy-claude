@@ -47,7 +47,29 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
   } catch (error) {
-    console.error('Registration error:', error);
+    console.error('Registration error:', {
+      error: error instanceof Error ? error.message : error,
+      stack: error instanceof Error ? error.stack : undefined,
+      timestamp: new Date().toISOString(),
+    });
+
+    // Check for common database errors
+    if (error instanceof Error) {
+      if (error.message.includes('Unique constraint')) {
+        return NextResponse.json({ error: 'User already exists with this email' }, { status: 400 });
+      }
+
+      if (error.message.includes('database')) {
+        console.error('Database connection issue during registration:', error.message);
+        return NextResponse.json(
+          {
+            error: 'Database connection error. Please try again later.',
+          },
+          { status: 500 }
+        );
+      }
+    }
+
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
