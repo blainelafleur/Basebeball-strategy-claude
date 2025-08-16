@@ -8,8 +8,6 @@ generator client {
 datasource db {
   provider = "sqlite"
   url      = env("DATABASE_URL")
-  // For Railway deployment, change to:
-  // provider = "postgresql"
 }
 
 enum UserRole {

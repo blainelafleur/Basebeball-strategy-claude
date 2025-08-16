@@ -11,5 +11,9 @@ echo "====================================="
 echo "Files in current directory:"
 ls -la
 
+# Run database migrations for PostgreSQL
+echo "Running database migrations..."
+npx prisma db push --force-reset
+
 echo "Starting server with node server.js..."
 exec node server.js

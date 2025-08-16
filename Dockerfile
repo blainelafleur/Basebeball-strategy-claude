@@ -15,6 +15,10 @@ COPY prisma ./prisma
 ENV HUSKY=0
 RUN npm ci --ignore-scripts
 
+# Use PostgreSQL schema for Railway production builds
+ARG NODE_ENV=production
+COPY prisma/schema.postgresql.prisma ./prisma/schema.prisma
+
 # Generate Prisma Client after dependencies are installed
 RUN npx prisma generate
 

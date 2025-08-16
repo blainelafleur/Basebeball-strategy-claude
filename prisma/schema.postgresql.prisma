@@ -1,0 +1,207 @@
+// PostgreSQL schema for Railway production deployment
+// This file is used during Railway builds
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  FREE
+  PRO
+  TEAM
+  ADMIN
+}
+
+enum GameDifficulty {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+  EXPERT
+}
+
+enum AchievementType {
+  STREAK
+  ACCURACY
+  SPEED
+  COMPLETION
+  SOCIAL
+  SPECIAL
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  passwordHash  String?   // For credential-based authentication
+  role          UserRole  @default(FREE)
+  
+  // Game Stats
+  points        Int       @default(0)
+  level         String    @default("Rookie")
+  gamesPlayed   Int       @default(0)
+  totalCorrect  Int       @default(0)
+  currentStreak Int       @default(0)
+  bestStreak    Int       @default(0)
+  
+  // Profile
+  bio           String?
+  favoriteTeam  String?
+  position      String?
+  experience    String?
+  
+  // Timestamps
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  // Relations
+  accounts      Account[]
+  sessions      Session[]
+  games         Game[]
+  achievements  UserAchievement[]
+  subscription  Subscription?
+  stats         UserStats?
+  sentFriendRequests     FriendRequest[] @relation("SenderUser")
+  receivedFriendRequests FriendRequest[] @relation("ReceiverUser")
+  sentFriends            Friendship[]    @relation("FriendshipSender")
+  receivedFriends        Friendship[]    @relation("FriendshipReceiver")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Game {
+  id            String         @id @default(cuid())
+  userId        String
+  scenarioId    String
+  decision      String
+  success       Boolean
+  points        Int
+  responseTime  Int            // in milliseconds
+  isOptimal     Boolean        @default(false)
+  difficulty    GameDifficulty
+  createdAt     DateTime       @default(now())
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model UserStats {
+  id                 String   @id @default(cuid())
+  userId             String   @unique
+  totalGameTime      Int      @default(0) // in minutes
+  averageResponseTime Float   @default(0)
+  bestCategory       String?
+  worstCategory      String?
+  lastActiveDate     DateTime @default(now())
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Achievement {
+  id          String            @id @default(cuid())
+  title       String
+  description String
+  icon        String
+  type        AchievementType
+  condition   String            // JSON string describing unlock condition
+  points      Int               @default(0)
+  rarity      String            @default("COMMON") // COMMON, RARE, EPIC, LEGENDARY
+  isHidden    Boolean           @default(false)
+  createdAt   DateTime          @default(now())
+  
+  userAchievements UserAchievement[]
+}
+
+model UserAchievement {
+  id            String    @id @default(cuid())
+  userId        String
+  achievementId String
+  unlockedAt    DateTime  @default(now())
+  progress      Float     @default(0) // 0-1 for partial progress
+  
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievement Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, achievementId])
+}
+
+model Subscription {
+  id                    String    @id @default(cuid())
+  userId                String    @unique
+  stripeCustomerId      String?   @unique
+  stripeSubscriptionId  String?   @unique
+  stripePriceId         String?
+  stripeCurrentPeriodEnd DateTime?
+  plan                  UserRole  @default(FREE)
+  active                Boolean   @default(false)
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model FriendRequest {
+  id         String   @id @default(cuid())
+  senderId   String
+  receiverId String
+  status     String   @default("PENDING") // PENDING, ACCEPTED, REJECTED
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  
+  sender   User @relation("SenderUser", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver User @relation("ReceiverUser", fields: [receiverId], references: [id], onDelete: Cascade)
+  
+  @@unique([senderId, receiverId])
+}
+
+model Friendship {
+  id        String   @id @default(cuid())
+  userId    String
+  friendId  String
+  createdAt DateTime @default(now())
+  
+  user   User @relation("FriendshipSender", fields: [userId], references: [id], onDelete: Cascade)
+  friend User @relation("FriendshipReceiver", fields: [friendId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, friendId])
+}
