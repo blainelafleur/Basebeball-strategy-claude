@@ -1,11 +1,13 @@
 import OpenAI from 'openai';
 
-if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY === 'placeholder') {
-  console.warn('OpenAI API key not configured. AI coaching features will be disabled.');
+if (!process.env.XAI_API_KEY || process.env.XAI_API_KEY === 'placeholder') {
+  console.warn('XAI API key not configured. AI coaching features will be disabled.');
 }
 
-export const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || 'placeholder',
+// XAI uses OpenAI-compatible API
+export const xai = new OpenAI({
+  apiKey: process.env.XAI_API_KEY || 'placeholder',
+  baseURL: 'https://api.x.ai/v1',
 });
 
 export interface CoachingRequest {
@@ -38,9 +40,9 @@ export interface CoachingResponse {
 }
 
 export async function getAICoaching(request: CoachingRequest): Promise<CoachingResponse> {
-  if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY === 'placeholder') {
+  if (!process.env.XAI_API_KEY || process.env.XAI_API_KEY === 'placeholder') {
     return {
-      feedback: 'AI coaching is not available. Please configure OpenAI API key.',
+      feedback: 'AI coaching is not available. Please configure XAI API key.',
       tips: ['Practice makes perfect!', 'Study game situations to improve decision-making.'],
       nextSteps: [
         'Try more scenarios in this category.',
@@ -79,8 +81,8 @@ Please provide personalized coaching feedback as a JSON object with these fields
 
 Keep the tone encouraging, educational, and professional. Focus on helping them understand the 'why' behind baseball strategy decisions.`;
 
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+    const completion = await xai.chat.completions.create({
+      model: 'grok-beta',
       messages: [
         {
           role: 'system',
@@ -114,7 +116,7 @@ Keep the tone encouraging, educational, and professional. Focus on helping them 
       };
     }
   } catch (error) {
-    console.error('Error getting AI coaching:', error);
+    console.error('Error getting XAI coaching:', error);
 
     // Provide fallback coaching based on the user's performance
     const fallbackFeedback = request.isCorrect
@@ -146,7 +148,7 @@ export async function generateScenarioSuggestions(userProfile: {
   recentPerformance: number;
   preferredCategory?: string;
 }): Promise<string[]> {
-  if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY === 'placeholder') {
+  if (!process.env.XAI_API_KEY || process.env.XAI_API_KEY === 'placeholder') {
     return [
       'Practice more scenarios in your weak areas',
       'Try scenarios one difficulty level higher',
@@ -165,8 +167,8 @@ Player Profile:
 
 Provide 3 specific scenario suggestions that would help them improve, considering their current skill level and areas for growth.`;
 
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+    const completion = await xai.chat.completions.create({
+      model: 'grok-beta',
       messages: [
         {
           role: 'system',
@@ -192,7 +194,7 @@ Provide 3 specific scenario suggestions that would help them improve, considerin
         .map((line) => line.replace(/^\d+\.?\s*/, '').trim());
     }
   } catch (error) {
-    console.error('Error generating scenario suggestions:', error);
+    console.error('Error generating XAI scenario suggestions:', error);
   }
 
   // Fallback suggestions

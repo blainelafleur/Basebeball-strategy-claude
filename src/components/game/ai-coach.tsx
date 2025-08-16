@@ -16,7 +16,7 @@ import {
   Crown,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import type { CoachingRequest, CoachingResponse } from '@/lib/openai';
+import type { CoachingRequest, CoachingResponse } from '@/lib/xai';
 
 interface AICoachProps {
   scenario: {
