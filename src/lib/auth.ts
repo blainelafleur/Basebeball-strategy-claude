@@ -3,7 +3,7 @@ import { PrismaAdapter } from '@auth/prisma-adapter';
 import GoogleProvider from 'next-auth/providers/google';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { prisma } from './prisma';
-// import bcrypt from 'bcryptjs'; // For future password hashing
+import bcrypt from 'bcryptjs';
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
@@ -35,9 +35,16 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        // For demo purposes, we'll allow any password
-        // In production, you'd verify the hashed password
-        // const isPasswordValid = await bcrypt.compare(credentials.password, user.passwordHash);
+        // Verify the hashed password
+        if (!user.passwordHash) {
+          return null; // User was created via OAuth, no password set
+        }
+
+        const isPasswordValid = await bcrypt.compare(credentials.password, user.passwordHash);
+
+        if (!isPasswordValid) {
+          return null;
+        }
 
         return {
           id: user.id,

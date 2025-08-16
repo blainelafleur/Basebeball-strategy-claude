@@ -11,7 +11,7 @@ export const prisma =
     log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
     datasources: {
       db: {
-        url: process.env.DATABASE_URL || 'file:./dev.db',
+        url: process.env.DATABASE_URL || 'file:./prisma/prisma/dev.db',
       },
     },
   });

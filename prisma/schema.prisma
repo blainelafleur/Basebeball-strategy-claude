@@ -8,6 +8,8 @@ generator client {
 datasource db {
   provider = "sqlite"
   url      = env("DATABASE_URL")
+  // For Railway deployment, change to:
+  // provider = "postgresql"
 }
 
 enum UserRole {
@@ -66,6 +68,7 @@ model User {
   email         String    @unique
   emailVerified DateTime?
   image         String?
+  passwordHash  String?   // For credential-based authentication
   role          UserRole  @default(FREE)
   
   // Game Stats
