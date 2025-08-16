@@ -4,7 +4,15 @@ import { authOptions } from '@/lib/auth';
 import { stripe, PRICE_IDS } from '@/lib/stripe';
 import { prisma } from '@/lib/prisma';
 
+// Force this route to be dynamic (runtime-only)
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: NextRequest) {
+  // Check if Stripe is properly initialized
+  if (!stripe) {
+    console.error('Stripe not initialized - missing STRIPE_SECRET_KEY');
+    return NextResponse.json({ error: 'Stripe not configured' }, { status: 500 });
+  }
   try {
     const session = await getServerSession(authOptions);
 

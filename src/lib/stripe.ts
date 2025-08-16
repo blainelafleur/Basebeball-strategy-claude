@@ -1,14 +1,15 @@
 import Stripe from 'stripe';
 
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error('STRIPE_SECRET_KEY is not set');
-}
+// Initialize Stripe conditionally to avoid build-time errors
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  apiVersion: '2024-11-20.acacia' as any,
-  typescript: true,
-});
+export const stripe = stripeSecretKey
+  ? new Stripe(stripeSecretKey, {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      apiVersion: '2024-11-20.acacia' as any,
+      typescript: true,
+    })
+  : null;
 
 export const PRICE_IDS = {
   PRO_MONTHLY: process.env.STRIPE_PRO_MONTHLY_PRICE_ID || 'price_pro_monthly',
