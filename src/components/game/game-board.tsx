@@ -5,6 +5,7 @@ import { PositionSelector } from './position-selector';
 import { ScenarioDisplay } from './scenario-display';
 import { OutcomeDisplay } from './outcome-display';
 import { BaseballField } from './baseball-field';
+import { FeatureShowcase } from './feature-showcase';
 import { useEffect } from 'react';
 
 export function GameBoard() {
@@ -49,6 +50,11 @@ export function GameBoard() {
           <div className="lg:col-span-4">
             <BaseballField />
           </div>
+        </div>
+
+        {/* Feature Showcase Section */}
+        <div className="mt-16">
+          <FeatureShowcase />
         </div>
       </div>
     </div>

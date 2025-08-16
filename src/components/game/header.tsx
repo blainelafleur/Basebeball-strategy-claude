@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/button';
 import { useSession, signOut } from 'next-auth/react';
 import { useRole } from '@/hooks/use-role';
 import Link from 'next/link';
+import { MainNav, MobileNav } from '@/components/navigation/main-nav';
 
 export function GameHeader() {
   const { playerStats } = useGameStore();
@@ -57,15 +58,19 @@ export function GameHeader() {
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           {/* Logo */}
-          <div className="flex items-center space-x-2">
-            <span className="text-2xl">⚾</span>
-            <h1 className="text-xl font-bold bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">
-              Baseball Strategy Master
-            </h1>
+          <div className="flex items-center space-x-4">
+            <Link href="/" className="flex items-center space-x-2">
+              <span className="text-2xl">⚾</span>
+              <h1 className="text-xl font-bold bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">
+                Baseball Strategy Master
+              </h1>
+            </Link>
+            <MainNav />
           </div>
 
-          {/* Stats and Auth */}
+          {/* Stats, Mobile Nav, and Auth */}
           <div className="flex items-center space-x-4">
+            <MobileNav />
             {/* Game Stats */}
             {stats.map((stat, index) => (
               <Badge
