@@ -11,6 +11,21 @@ echo "====================================="
 echo "Files in current directory:"
 ls -la
 
+# Verify we're using PostgreSQL schema
+echo "Verifying database configuration..."
+echo "Schema provider check:"
+grep -n "provider" ./prisma/schema.prisma || echo "No schema file found!"
+
+# Check database URL format
+if [[ $DATABASE_URL == postgresql://* ]]; then
+  echo "✅ PostgreSQL database URL detected"
+elif [[ $DATABASE_URL == file:* ]]; then
+  echo "❌ SQLite database URL detected - this should be PostgreSQL!"
+  exit 1
+else
+  echo "⚠️  Unknown database URL format: ${DATABASE_URL:0:20}..."
+fi
+
 # Run database setup for PostgreSQL (safe - no data loss)
 echo "Setting up database schema..."
 echo "Database URL: ${DATABASE_URL:0:20}..." # Show first 20 chars for debugging

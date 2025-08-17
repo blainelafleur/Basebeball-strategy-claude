@@ -17,10 +17,15 @@ RUN npm ci --ignore-scripts
 
 # Use PostgreSQL schema for Railway production builds
 ARG NODE_ENV=production
+COPY prisma ./prisma
+# Override with PostgreSQL schema for production
 COPY prisma/schema.postgresql.prisma ./prisma/schema.prisma
 
-# Generate Prisma Client after dependencies are installed
+# Generate Prisma Client with PostgreSQL schema
 RUN npx prisma generate
+
+# Verify the schema being used
+RUN echo "Using schema:" && head -10 ./prisma/schema.prisma
 
 # Copy source code
 COPY . .
@@ -56,9 +61,12 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 # Install Prisma CLI for migrations in production
 RUN npm install -g prisma
 
-# Copy Prisma files for runtime
-COPY --from=builder /app/prisma ./prisma
+# Copy PostgreSQL schema for production runtime
+COPY --from=builder /app/prisma/schema.postgresql.prisma ./prisma/schema.prisma
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+
+# Copy the original PostgreSQL schema file as well for reference
+COPY --from=builder /app/prisma/schema.postgresql.prisma ./prisma/schema.postgresql.prisma
 
 # Copy startup script for debugging
 COPY start.sh ./start.sh
