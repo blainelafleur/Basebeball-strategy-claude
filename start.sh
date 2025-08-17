@@ -99,12 +99,12 @@ fi
 # Always continue to start the server
 echo "Migration attempts completed."
 
-# Run database seed to ensure admin user is updated
-echo "Running database seed to update admin user..."
-if npm run db:seed 2>&1; then
-  echo "✅ Database seed completed - admin user updated"
+# Create admin user directly
+echo "Creating admin user..."
+if node create-admin.js 2>&1; then
+  echo "✅ Admin user created/updated successfully"
 else
-  echo "⚠️  Seed failed, but continuing - admin may need manual update"
+  echo "⚠️  Admin user creation failed, but continuing"
 fi
 
 echo "Starting server..."
