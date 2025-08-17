@@ -34,13 +34,32 @@ export class EmailService {
     }
 
     try {
-      const result = await this.resend.emails.send({
+      const emailData: {
+        from: string;
+        to: string | string[];
+        subject: string;
+        html?: string;
+        text?: string;
+      } = {
         from: template.from || config.email.fromEmail,
         to: template.to,
         subject: template.subject,
-        html: template.html,
-        text: template.text,
-      });
+      };
+
+      // At least one of html or text must be provided
+      if (template.html) {
+        emailData.html = template.html;
+      }
+      if (template.text) {
+        emailData.text = template.text;
+      }
+
+      // If neither html nor text is provided, use a default text
+      if (!template.html && !template.text) {
+        emailData.text = template.subject;
+      }
+
+      const result = await this.resend.emails.send(emailData);
 
       if (result.error) {
         console.error('Email send error:', result.error);
@@ -154,7 +173,11 @@ export class EmailService {
     });
   }
 
-  async sendAchievementUnlocked(userEmail: string, achievementName: string, description: string): Promise<boolean> {
+  async sendAchievementUnlocked(
+    userEmail: string,
+    achievementName: string,
+    description: string
+  ): Promise<boolean> {
     return this.sendEmail({
       to: userEmail,
       subject: `🏆 Achievement Unlocked: ${achievementName}`,
