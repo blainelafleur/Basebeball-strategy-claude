@@ -49,12 +49,25 @@ export class EmailService {
   }
 
   async sendEmail(template: EmailTemplate): Promise<boolean> {
-    const resend = await this.getResendClient();
+    const resendClient = await this.getResendClient();
     
-    if (!resend) {
+    if (!resendClient) {
       console.warn('Email service not configured - skipping email send');
       return false;
     }
+
+    // Type assertion since we know it's a Resend client if not null
+    const resend = resendClient as { 
+      emails: { 
+        send: (data: {
+          from: string;
+          to: string | string[];
+          subject: string;
+          html?: string;
+          text?: string;
+        }) => Promise<{ error?: unknown }> 
+      } 
+    };
 
     try {
       const baseEmailData = {
