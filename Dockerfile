@@ -79,4 +79,4 @@ ENV HOSTNAME "0.0.0.0"
 ENV NODE_ENV production
 
 # Use startup script for debugging, then start server
-CMD ["/bin/bash", "/app/start.sh"]
+CMD ["/bin/sh", "/app/start.sh"]
