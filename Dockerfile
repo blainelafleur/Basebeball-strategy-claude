@@ -68,7 +68,7 @@ COPY --from=builder /app/prisma/schema.postgresql.prisma ./prisma/schema.postgre
 
 # Copy startup script for debugging
 COPY start.sh ./start.sh
-RUN chmod +x ./start.sh
+RUN chmod +x ./start.sh && chown nextjs:nodejs ./start.sh
 
 USER nextjs
 
@@ -79,4 +79,4 @@ ENV HOSTNAME "0.0.0.0"
 ENV NODE_ENV production
 
 # Use startup script for debugging, then start server
-CMD ["./start.sh"]
+CMD ["/bin/bash", "/app/start.sh"]
