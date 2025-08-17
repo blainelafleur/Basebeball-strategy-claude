@@ -65,7 +65,10 @@ export class EmailService {
           subject: string;
           html?: string;
           text?: string;
-        }) => Promise<{ error?: unknown }> 
+        }) => Promise<{ 
+          error?: unknown;
+          data?: { id?: string };
+        }> 
       } 
     };
 
