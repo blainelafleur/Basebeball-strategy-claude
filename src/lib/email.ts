@@ -34,32 +34,43 @@ export class EmailService {
     }
 
     try {
-      const emailData: {
-        from: string;
-        to: string | string[];
-        subject: string;
-        html?: string;
-        text?: string;
-      } = {
+      const baseEmailData = {
         from: template.from || config.email.fromEmail,
         to: template.to,
         subject: template.subject,
       };
 
-      // At least one of html or text must be provided
-      if (template.html) {
-        emailData.html = template.html;
-      }
-      if (template.text) {
-        emailData.text = template.text;
-      }
+      let result;
 
-      // If neither html nor text is provided, use a default text
-      if (!template.html && !template.text) {
-        emailData.text = template.subject;
+      // Send with both HTML and text if both are provided
+      if (template.html && template.text) {
+        result = await this.resend.emails.send({
+          ...baseEmailData,
+          html: template.html,
+          text: template.text,
+        });
       }
-
-      const result = await this.resend.emails.send(emailData);
+      // Send with HTML only if only HTML is provided
+      else if (template.html) {
+        result = await this.resend.emails.send({
+          ...baseEmailData,
+          html: template.html,
+        });
+      }
+      // Send with text only if only text is provided
+      else if (template.text) {
+        result = await this.resend.emails.send({
+          ...baseEmailData,
+          text: template.text,
+        });
+      }
+      // Fallback to subject as text if neither is provided
+      else {
+        result = await this.resend.emails.send({
+          ...baseEmailData,
+          text: template.subject,
+        });
+      }
 
       if (result.error) {
         console.error('Email send error:', result.error);
