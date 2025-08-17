@@ -185,29 +185,30 @@ model UserStats {
 }
 
 model Achievement {
-  id          String            @id @default(cuid())
-  title       String
+  id          String          @id @default(cuid())
+  name        String          @unique
   description String
-  icon        String
   type        AchievementType
-  condition   String            // JSON string describing unlock condition
-  points      Int               @default(0)
-  rarity      String            @default("COMMON") // COMMON, RARE, EPIC, LEGENDARY
-  isHidden    Boolean           @default(false)
-  createdAt   DateTime          @default(now())
+  icon        String?
   
-  userAchievements UserAchievement[]
+  // Requirements
+  requirement Json            // Flexible requirement definition
+  points      Int             @default(0)
+  
+  // Relations
+  users       UserAchievement[]
+  
+  createdAt   DateTime        @default(now())
 }
 
 model UserAchievement {
-  id            String    @id @default(cuid())
+  id            String      @id @default(cuid())
   userId        String
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   achievementId String
-  unlockedAt    DateTime  @default(now())
-  progress      Float     @default(0) // 0-1 for partial progress
+  achievement   Achievement @relation(fields: [achievementId], references: [id])
   
-  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  achievement Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+  unlockedAt    DateTime    @default(now())
   
   @@unique([userId, achievementId])
 }
