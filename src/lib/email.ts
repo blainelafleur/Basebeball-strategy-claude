@@ -141,7 +141,7 @@ export class EmailService {
             <li>🏆 Unlock achievements as you improve</li>
           </ul>
           <p>
-            <a href="${config.appUrl}/game" 
+            <a href="${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/game" 
                style="background: #1e40af; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
               Start Your First Challenge
             </a>
@@ -157,7 +157,7 @@ export class EmailService {
         
         Thanks for joining Baseball Strategy Master! You're now ready to practice game situations, get AI coaching, track progress, and compete on leaderboards.
         
-        Start your first challenge: ${config.appUrl}/game
+        Start your first challenge: ${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/game
         
         Good luck on the diamond!
         The Baseball Strategy Team
@@ -213,7 +213,7 @@ export class EmailService {
             <li>✅ Priority support</li>
           </ul>
           <p>
-            <a href="${config.appUrl}/dashboard" 
+            <a href="${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/dashboard" 
                style="background: #059669; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
               Access Your Dashboard
             </a>
@@ -238,7 +238,7 @@ export class EmailService {
           <p>${description}</p>
           <p>Keep up the great work on your baseball strategy journey!</p>
           <p>
-            <a href="${config.appUrl}/achievements" 
+            <a href="${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/achievements" 
                style="background: #f59e0b; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
               View All Achievements
             </a>
