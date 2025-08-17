@@ -1,15 +1,19 @@
 import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
 async function updateAdminUser() {
-  console.log('🔧 Updating admin user for Railway deployment...');
+  console.log('🔧 Creating/updating admin user for Railway deployment...');
 
   try {
+    const adminEmail = 'blainelafleur@yahoo.com';
+    const adminPassword = 'Amanda11!';
+
     // Check if the user exists
     const existingUser = await prisma.user.findUnique({
       where: {
-        email: 'blainelafleur@yahoo.com',
+        email: adminEmail,
       },
     });
 
@@ -20,7 +24,7 @@ async function updateAdminUser() {
       // Update the user to ADMIN role while preserving everything else
       const updatedUser = await prisma.user.update({
         where: {
-          email: 'blainelafleur@yahoo.com',
+          email: adminEmail,
         },
         data: {
           role: 'ADMIN',
@@ -35,12 +39,30 @@ async function updateAdminUser() {
 
       return updatedUser;
     } else {
-      console.log('⚠️  User not found. This is expected on first deployment.');
-      console.log('💡 User will be created when they first sign up.');
-      return null;
+      console.log('⚠️  User not found. Creating new admin user...');
+
+      const hashedPassword = await bcrypt.hash(adminPassword, 12);
+
+      // Create the admin user
+      const newUser = await prisma.user.create({
+        data: {
+          email: adminEmail,
+          name: 'Blaine LaFleur',
+          role: 'ADMIN',
+          passwordHash: hashedPassword,
+        },
+      });
+
+      console.log('🎉 Admin user created successfully!');
+      console.log('📧 Email:', newUser.email);
+      console.log('👤 Name:', newUser.name);
+      console.log('🔰 Role:', newUser.role);
+      console.log('🔒 Password set for:', adminPassword);
+
+      return newUser;
     }
   } catch (error) {
-    console.error('❌ Error updating admin user:', error);
+    console.error('❌ Error creating/updating admin user:', error);
     // Don't throw error - let deployment continue
     return null;
   }

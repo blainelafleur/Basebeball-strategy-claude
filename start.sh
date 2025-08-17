@@ -101,7 +101,7 @@ echo "Migration attempts completed."
 
 # Run database seed to ensure admin user is updated
 echo "Running database seed to update admin user..."
-if npx tsx prisma/seed.ts 2>&1; then
+if npm run db:seed 2>&1; then
   echo "✅ Database seed completed - admin user updated"
 else
   echo "⚠️  Seed failed, but continuing - admin may need manual update"
