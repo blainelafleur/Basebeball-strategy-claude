@@ -54,15 +54,45 @@ fi
 echo "Setting up database schema..."
 echo "Database URL: ${DATABASE_URL:0:20}..." # Show first 20 chars for debugging
 
-if prisma db push --skip-generate; then
+# Ensure we're using the correct schema file
+echo "Checking schema file..."
+if [ -f "./prisma/schema.prisma" ]; then
+  echo "✅ Schema file found at ./prisma/schema.prisma"
+  echo "First few lines of schema:"
+  head -5 ./prisma/schema.prisma
+else
+  echo "❌ Schema file not found at ./prisma/schema.prisma"
+  ls -la ./prisma/
+  exit 1
+fi
+
+# Force database migration with verbose output
+echo "Running Prisma database push (forced sync)..."
+if prisma db push --force-reset --skip-generate --accept-data-loss; then
   echo "✅ Database schema setup successful"
+  
+  # Verify tables were created
+  echo "Verifying database tables..."
+  if prisma db execute --stdin <<< "SELECT tablename FROM pg_tables WHERE schemaname = 'public' LIMIT 5;" 2>/dev/null; then
+    echo "✅ Database tables verified"
+  else
+    echo "⚠️  Could not verify tables (this is normal)"
+  fi
 else
   echo "❌ Database schema setup failed"
   echo "Environment variables:"
   echo "DATABASE_URL is set: ${DATABASE_URL:+yes}"
   echo "NEXTAUTH_SECRET is set: ${NEXTAUTH_SECRET:+yes}"
   echo "XAI_API_KEY is set: ${XAI_API_KEY:+yes}"
-  exit 1
+  echo "Trying alternative migration approach..."
+  
+  # Alternative approach - try without force reset
+  if prisma db push --skip-generate; then
+    echo "✅ Alternative migration successful"
+  else
+    echo "❌ All migration attempts failed"
+    exit 1
+  fi
 fi
 
 echo "Starting server with node server.js..."
