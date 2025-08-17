@@ -1,4 +1,5 @@
 import { PrismaClient, GameDifficulty, AchievementType } from '@prisma/client';
+import { updateAdminUser } from './update-admin';
 
 const prisma = new PrismaClient();
 
@@ -243,6 +244,10 @@ async function main() {
   console.log('✅ Database seeded successfully!');
   console.log(`📊 Created ${achievements.length} achievements`);
   console.log(`🎮 Created ${scenarios.length} enhanced scenarios`);
+
+  // Update admin user for Railway deployment
+  console.log('\n🔧 Checking admin user...');
+  await updateAdminUser();
 }
 
 main()

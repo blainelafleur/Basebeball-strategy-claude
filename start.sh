@@ -97,7 +97,17 @@ else
 fi
 
 # Always continue to start the server
-echo "Migration attempts completed. Starting server..."
+echo "Migration attempts completed."
+
+# Run database seed to ensure admin user is updated
+echo "Running database seed to update admin user..."
+if npx tsx prisma/seed.ts 2>&1; then
+  echo "✅ Database seed completed - admin user updated"
+else
+  echo "⚠️  Seed failed, but continuing - admin may need manual update"
+fi
+
+echo "Starting server..."
 
 echo "Starting server with node server.js..."
 exec node server.js
