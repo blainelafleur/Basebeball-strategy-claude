@@ -5,7 +5,15 @@ echo "PORT: $PORT"
 echo "NODE_ENV: $NODE_ENV" 
 echo "HOSTNAME: $HOSTNAME"
 echo "PWD: $(pwd)"
+echo "RAILWAY_ENVIRONMENT: $RAILWAY_ENVIRONMENT"
 echo "====================================="
+
+echo "=== CRITICAL DATABASE DEBUG ==="
+echo "DATABASE_URL (first 40 chars): ${DATABASE_URL:0:40}..."
+echo "DATABASE_URL length: ${#DATABASE_URL}"
+echo "NEXTAUTH_SECRET length: ${#NEXTAUTH_SECRET}"
+echo "XAI_API_KEY length: ${#XAI_API_KEY}"
+echo "=============================="
 
 # List files to make sure we have everything
 echo "Files in current directory:"

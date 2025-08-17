@@ -4,6 +4,18 @@ import bcrypt from 'bcryptjs';
 
 export async function POST(request: NextRequest) {
   try {
+    // Debug database configuration
+    console.log('=== REGISTRATION DEBUG ===');
+    console.log('NODE_ENV:', process.env.NODE_ENV);
+    console.log('DATABASE_URL exists:', !!process.env.DATABASE_URL);
+    console.log(
+      'DATABASE_URL starts with postgresql:',
+      process.env.DATABASE_URL?.startsWith('postgresql://')
+    );
+    console.log('DATABASE_URL starts with file:', process.env.DATABASE_URL?.startsWith('file:'));
+    console.log('RAILWAY_ENVIRONMENT:', process.env.RAILWAY_ENVIRONMENT);
+    console.log('========================');
+
     const { email, password, name } = await request.json();
 
     if (!email || !password || !name) {
