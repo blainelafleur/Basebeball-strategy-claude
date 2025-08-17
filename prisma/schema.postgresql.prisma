@@ -99,6 +99,8 @@ model User {
   receivedFriendRequests FriendRequest[] @relation("ReceiverUser")
   sentFriends            Friendship[]    @relation("FriendshipSender")
   receivedFriends        Friendship[]    @relation("FriendshipReceiver")
+  sentChallenges         Challenge[]     @relation("ChallengeSender")
+  receivedChallenges     Challenge[]     @relation("ChallengeReceiver")
 }
 
 model VerificationToken {
@@ -252,4 +254,38 @@ model Friendship {
   friend User @relation("FriendshipReceiver", fields: [friendId], references: [id], onDelete: Cascade)
   
   @@unique([userId, friendId])
+}
+
+model Challenge {
+  id          String    @id @default(cuid())
+  senderId    String
+  sender      User      @relation("ChallengeSender", fields: [senderId], references: [id])
+  receiverId  String
+  receiver    User      @relation("ChallengeReceiver", fields: [receiverId], references: [id])
+  
+  scenarioIds String    // JSON array of scenario IDs
+  status      String    @default("pending") // pending, accepted, completed, declined
+  
+  // Results (filled when completed)
+  senderScore    Int?
+  receiverScore  Int?
+  winnerId       String?
+  
+  expiresAt   DateTime?
+  createdAt   DateTime  @default(now())
+  completedAt DateTime?
+}
+
+model Leaderboard {
+  id          String    @id @default(cuid())
+  userId      String
+  category    String    // overall, pitcher, batter, fielder, baserunner, weekly, monthly
+  period      String    // all-time, weekly, monthly
+  score       Int
+  rank        Int
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  @@unique([userId, category, period])
 }
