@@ -16,14 +16,30 @@ echo "Verifying database configuration..."
 echo "Schema provider check:"
 grep -n "provider" ./prisma/schema.prisma || echo "No schema file found!"
 
+# Validate environment variables
+echo "Environment variable validation:"
+if [ -z "$DATABASE_URL" ]; then
+  echo "❌ DATABASE_URL is not set!"
+  exit 1
+fi
+
+if [ -z "$NEXTAUTH_SECRET" ]; then
+  echo "❌ NEXTAUTH_SECRET is not set!"
+  exit 1
+fi
+
 # Check database URL format
 if [[ $DATABASE_URL == postgresql://* ]]; then
   echo "✅ PostgreSQL database URL detected"
+  echo "Database host: $(echo $DATABASE_URL | sed 's/.*@\([^:]*\).*/\1/')"
 elif [[ $DATABASE_URL == file:* ]]; then
   echo "❌ SQLite database URL detected - this should be PostgreSQL!"
+  echo "Production requires PostgreSQL, not SQLite"
   exit 1
 else
-  echo "⚠️  Unknown database URL format: ${DATABASE_URL:0:20}..."
+  echo "❌ Invalid database URL format: ${DATABASE_URL:0:30}..."
+  echo "Expected format: postgresql://user:pass@host:port/dbname"
+  exit 1
 fi
 
 # Run database setup for PostgreSQL (safe - no data loss)

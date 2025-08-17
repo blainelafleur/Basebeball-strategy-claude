@@ -9,16 +9,17 @@ WORKDIR /app
 
 # Install ALL dependencies (production + dev) needed for building
 COPY package.json package-lock.json* ./
-COPY prisma ./prisma
 
 # Skip scripts during install to avoid Husky hooks
 ENV HUSKY=0
 RUN npm ci --ignore-scripts
 
+# Copy source code FIRST
+COPY . .
+
 # Use PostgreSQL schema for Railway production builds
 ARG NODE_ENV=production
-COPY prisma ./prisma
-# Override with PostgreSQL schema for production
+# Override with PostgreSQL schema for production (after copying source)
 COPY prisma/schema.postgresql.prisma ./prisma/schema.prisma
 
 # Generate Prisma Client with PostgreSQL schema
@@ -26,9 +27,6 @@ RUN npx prisma generate
 
 # Verify the schema being used
 RUN echo "Using schema:" && head -10 ./prisma/schema.prisma
-
-# Copy source code
-COPY . .
 
 # Disable telemetry during the build
 ENV NEXT_TELEMETRY_DISABLED 1
