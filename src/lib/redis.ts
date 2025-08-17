@@ -99,7 +99,10 @@ export class CacheService {
     if (!this.redis) return null;
 
     try {
-      const results = await this.redis.zrevrange(leaderboard, start, end, { withScores: true });
+      const results = await this.redis.zrange(leaderboard, start, end, {
+        withScores: true,
+        rev: true, // This makes it equivalent to zrevrange
+      });
 
       // Parse results into readable format
       const leaderboardData: Array<{ member: string; score: number }> = [];
@@ -112,7 +115,7 @@ export class CacheService {
 
       return leaderboardData;
     } catch (error) {
-      console.error('Redis ZREVRANGE error:', error);
+      console.error('Redis ZRANGE error:', error);
       return null;
     }
   }
