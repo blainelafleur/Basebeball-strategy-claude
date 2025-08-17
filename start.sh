@@ -99,13 +99,8 @@ fi
 # Always continue to start the server
 echo "Migration attempts completed."
 
-# Create admin user directly
-echo "Creating admin user..."
-if node create-admin.js 2>&1; then
-  echo "✅ Admin user created/updated successfully"
-else
-  echo "⚠️  Admin user creation failed, but continuing"
-fi
+# Admin user creation now handled via API endpoint
+echo "Admin user can be created by visiting: /api/init-admin"
 
 echo "Starting server..."
 
