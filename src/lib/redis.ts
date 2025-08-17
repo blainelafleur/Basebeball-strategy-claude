@@ -1,22 +1,48 @@
-import { Redis } from '@upstash/redis';
-import { config } from './config';
+// Conditional Redis service to prevent build errors if not configured
+let redisClient: unknown = null;
+let redisInitialized = false;
 
-// Initialize Redis client for production caching and sessions
-export const redis =
-  config.upstash.redisUrl && config.upstash.redisToken
-    ? new Redis({
-        url: config.upstash.redisUrl,
-        token: config.upstash.redisToken,
-      })
-    : null;
+const initializeRedis = async () => {
+  if (redisInitialized) return redisClient;
+  
+  if (!process.env.REDIS_URL && !process.env.UPSTASH_REDIS_REST_URL) {
+    console.log('Redis not configured - caching and rate limiting disabled');
+    redisInitialized = true;
+    return null;
+  }
+
+  try {
+    if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
+      // Use Upstash Redis
+      const { Redis } = await import('@upstash/redis');
+      redisClient = new Redis({
+        url: process.env.UPSTASH_REDIS_REST_URL,
+        token: process.env.UPSTASH_REDIS_REST_TOKEN,
+      });
+    } else if (process.env.REDIS_URL) {
+      // Use regular Redis (Railway)
+      const Redis = await import('ioredis');
+      redisClient = new Redis.default(process.env.REDIS_URL);
+    }
+    
+    redisInitialized = true;
+    console.log('Redis service initialized');
+    return redisClient;
+  } catch (error) {
+    console.warn('Failed to initialize Redis:', error);
+    redisInitialized = true;
+    return null;
+  }
+};
 
 // Cache utilities
 export class CacheService {
   private static instance: CacheService;
-  private redis: Redis | null;
 
-  private constructor() {
-    this.redis = redis;
+  private constructor() {}
+
+  private async getRedisClient() {
+    return await initializeRedis();
   }
 
   static getInstance(): CacheService {
@@ -27,10 +53,11 @@ export class CacheService {
   }
 
   async get<T>(key: string): Promise<T | null> {
-    if (!this.redis) return null;
+    const redis = await this.getRedisClient();
+    if (!redis) return null;
 
     try {
-      const value = await this.redis.get(key);
+      const value = await redis.get(key);
       return value as T;
     } catch (error) {
       console.error('Redis GET error:', error);
@@ -39,13 +66,14 @@ export class CacheService {
   }
 
   async set(key: string, value: unknown, ttlSeconds?: number): Promise<boolean> {
-    if (!this.redis) return false;
+    const redis = await this.getRedisClient();
+    if (!redis) return false;
 
     try {
       if (ttlSeconds) {
-        await this.redis.setex(key, ttlSeconds, JSON.stringify(value));
+        await redis.setex(key, ttlSeconds, JSON.stringify(value));
       } else {
-        await this.redis.set(key, JSON.stringify(value));
+        await redis.set(key, JSON.stringify(value));
       }
       return true;
     } catch (error) {
@@ -55,10 +83,11 @@ export class CacheService {
   }
 
   async del(key: string): Promise<boolean> {
-    if (!this.redis) return false;
+    const redis = await this.getRedisClient();
+    if (!redis) return false;
 
     try {
-      await this.redis.del(key);
+      await redis.del(key);
       return true;
     } catch (error) {
       console.error('Redis DEL error:', error);
@@ -67,10 +96,11 @@ export class CacheService {
   }
 
   async exists(key: string): Promise<boolean> {
-    if (!this.redis) return false;
+    const redis = await this.getRedisClient();
+    if (!redis) return false;
 
     try {
-      const result = await this.redis.exists(key);
+      const result = await redis.exists(key);
       return result === 1;
     } catch (error) {
       console.error('Redis EXISTS error:', error);
@@ -80,10 +110,11 @@ export class CacheService {
 
   // Leaderboard operations
   async addToLeaderboard(leaderboard: string, userId: string, score: number): Promise<boolean> {
-    if (!this.redis) return false;
+    const redis = await this.getRedisClient();
+    if (!redis) return false;
 
     try {
-      await this.redis.zadd(leaderboard, { score, member: userId });
+      await redis.zadd(leaderboard, { score, member: userId });
       return true;
     } catch (error) {
       console.error('Redis ZADD error:', error);
@@ -96,10 +127,11 @@ export class CacheService {
     start = 0,
     end = 9
   ): Promise<Array<{ member: string; score: number }> | null> {
-    if (!this.redis) return null;
+    const redis = await this.getRedisClient();
+    if (!redis) return null;
 
     try {
-      const results = await this.redis.zrange(leaderboard, start, end, {
+      const results = await redis.zrange(leaderboard, start, end, {
         withScores: true,
         rev: true, // This makes it equivalent to zrevrange
       });
@@ -126,13 +158,14 @@ export class CacheService {
     windowSeconds: number,
     maxRequests: number
   ): Promise<{ allowed: boolean; remaining: number }> {
-    if (!this.redis) return { allowed: true, remaining: maxRequests };
+    const redis = await this.getRedisClient();
+    if (!redis) return { allowed: true, remaining: maxRequests };
 
     try {
-      const current = await this.redis.incr(key);
+      const current = await redis.incr(key);
 
       if (current === 1) {
-        await this.redis.expire(key, windowSeconds);
+        await redis.expire(key, windowSeconds);
       }
 
       const remaining = Math.max(0, maxRequests - current);

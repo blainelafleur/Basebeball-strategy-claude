@@ -1,8 +1,28 @@
-import { Resend } from 'resend';
-import { config } from './config';
+// Conditional email service to prevent build errors if not configured
+let resendClient: unknown = null;
+let emailInitialized = false;
 
-// Initialize Resend client
-const resend = config.email.resendApiKey ? new Resend(config.email.resendApiKey) : null;
+const initializeEmail = async () => {
+  if (emailInitialized) return resendClient;
+  
+  if (!process.env.RESEND_API_KEY) {
+    console.log('Email service not configured - email notifications disabled');
+    emailInitialized = true;
+    return null;
+  }
+
+  try {
+    const { Resend } = await import('resend');
+    resendClient = new Resend(process.env.RESEND_API_KEY);
+    emailInitialized = true;
+    console.log('Email service initialized');
+    return resendClient;
+  } catch (error) {
+    console.warn('Failed to initialize email service:', error);
+    emailInitialized = true;
+    return null;
+  }
+};
 
 export interface EmailTemplate {
   to: string | string[];
@@ -14,10 +34,11 @@ export interface EmailTemplate {
 
 export class EmailService {
   private static instance: EmailService;
-  private resend: Resend | null;
 
-  private constructor() {
-    this.resend = resend;
+  private constructor() {}
+
+  private async getResendClient() {
+    return await initializeEmail();
   }
 
   static getInstance(): EmailService {
@@ -28,14 +49,16 @@ export class EmailService {
   }
 
   async sendEmail(template: EmailTemplate): Promise<boolean> {
-    if (!this.resend) {
+    const resend = await this.getResendClient();
+    
+    if (!resend) {
       console.warn('Email service not configured - skipping email send');
       return false;
     }
 
     try {
       const baseEmailData = {
-        from: template.from || config.email.fromEmail,
+        from: template.from || process.env.FROM_EMAIL || 'noreply@baseballstrategy.com',
         to: template.to,
         subject: template.subject,
       };
@@ -44,7 +67,7 @@ export class EmailService {
 
       // Send with both HTML and text if both are provided
       if (template.html && template.text) {
-        result = await this.resend.emails.send({
+        result = await resend.emails.send({
           ...baseEmailData,
           html: template.html,
           text: template.text,
@@ -52,21 +75,21 @@ export class EmailService {
       }
       // Send with HTML only if only HTML is provided
       else if (template.html) {
-        result = await this.resend.emails.send({
+        result = await resend.emails.send({
           ...baseEmailData,
           html: template.html,
         });
       }
       // Send with text only if only text is provided
       else if (template.text) {
-        result = await this.resend.emails.send({
+        result = await resend.emails.send({
           ...baseEmailData,
           text: template.text,
         });
       }
       // Fallback to subject as text if neither is provided
       else {
-        result = await this.resend.emails.send({
+        result = await resend.emails.send({
           ...baseEmailData,
           text: template.subject,
         });

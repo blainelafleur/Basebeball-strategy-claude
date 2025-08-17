@@ -1,17 +1,41 @@
-import { S3Client, PutObjectCommand, DeleteObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { config } from './config';
+// Conditional imports to prevent build errors if AWS is not configured
+const hasAWSConfig = () => 
+  process.env.AWS_ACCESS_KEY_ID && 
+  process.env.AWS_SECRET_ACCESS_KEY;
 
-// Initialize S3 client
-const s3Client = config.aws.accessKeyId && config.aws.secretAccessKey 
-  ? new S3Client({
-      region: config.aws.region,
+// Lazy initialization of AWS SDK
+let s3Client: unknown = null;
+let awsInitialized = false;
+
+const initializeAWS = async () => {
+  if (awsInitialized) return s3Client;
+  
+  if (!hasAWSConfig()) {
+    console.log('AWS storage not configured - file upload disabled');
+    awsInitialized = true;
+    return null;
+  }
+
+  try {
+    const { S3Client } = await import('@aws-sdk/client-s3');
+    
+    s3Client = new S3Client({
+      region: process.env.AWS_REGION || 'us-east-1',
       credentials: {
-        accessKeyId: config.aws.accessKeyId,
-        secretAccessKey: config.aws.secretAccessKey,
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
       },
-    })
-  : null;
+    });
+    
+    awsInitialized = true;
+    console.log('AWS S3 storage initialized');
+    return s3Client;
+  } catch (error) {
+    console.warn('Failed to initialize AWS S3:', error);
+    awsInitialized = true;
+    return null;
+  }
+};
 
 export interface UploadResult {
   success: boolean;
@@ -21,12 +45,14 @@ export interface UploadResult {
 
 export class StorageService {
   private static instance: StorageService;
-  private s3: S3Client | null;
   private bucket: string;
 
   private constructor() {
-    this.s3 = s3Client;
-    this.bucket = config.aws.bucket;
+    this.bucket = process.env.AWS_S3_BUCKET || 'baseball-strategy-assets';
+  }
+
+  private async getS3Client() {
+    return await initializeAWS();
   }
 
   static getInstance(): StorageService {
@@ -42,11 +68,15 @@ export class StorageService {
     contentType: string = 'application/octet-stream',
     isPublic: boolean = false
   ): Promise<UploadResult> {
-    if (!this.s3) {
-      return { success: false, error: 'Storage service not configured' };
+    const s3 = await this.getS3Client();
+    
+    if (!s3) {
+      return { success: false, error: 'AWS S3 storage not configured' };
     }
 
     try {
+      const { PutObjectCommand } = await import('@aws-sdk/client-s3');
+      
       const command = new PutObjectCommand({
         Bucket: this.bucket,
         Key: key,
@@ -55,10 +85,10 @@ export class StorageService {
         ...(isPublic && { ACL: 'public-read' }),
       });
 
-      await this.s3.send(command);
+      await s3.send(command);
 
       const url = isPublic 
-        ? `https://${this.bucket}.s3.${config.aws.region}.amazonaws.com/${key}`
+        ? `https://${this.bucket}.s3.${process.env.AWS_REGION || 'us-east-1'}.amazonaws.com/${key}`
         : await this.getSignedUrl(key);
 
       return { success: true, url };
@@ -72,18 +102,22 @@ export class StorageService {
   }
 
   async deleteFile(key: string): Promise<boolean> {
-    if (!this.s3) {
-      console.warn('Storage service not configured');
+    const s3 = await this.getS3Client();
+    
+    if (!s3) {
+      console.warn('AWS S3 storage not configured');
       return false;
     }
 
     try {
+      const { DeleteObjectCommand } = await import('@aws-sdk/client-s3');
+      
       const command = new DeleteObjectCommand({
         Bucket: this.bucket,
         Key: key,
       });
 
-      await this.s3.send(command);
+      await s3.send(command);
       return true;
     } catch (error) {
       console.error('File delete error:', error);
@@ -92,17 +126,22 @@ export class StorageService {
   }
 
   async getSignedUrl(key: string, expiresIn: number = 3600): Promise<string | null> {
-    if (!this.s3) {
+    const s3 = await this.getS3Client();
+    
+    if (!s3) {
       return null;
     }
 
     try {
+      const { GetObjectCommand } = await import('@aws-sdk/client-s3');
+      const { getSignedUrl } = await import('@aws-sdk/s3-request-presigner');
+      
       const command = new GetObjectCommand({
         Bucket: this.bucket,
         Key: key,
       });
 
-      return await getSignedUrl(this.s3, command, { expiresIn });
+      return await getSignedUrl(s3, command, { expiresIn });
     } catch (error) {
       console.error('Signed URL error:', error);
       return null;
