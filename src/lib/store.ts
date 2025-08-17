@@ -170,10 +170,10 @@ export const useGameStore = create<GameState & GameActions>()(
                 },
               }));
             }
-            
+
             // Show achievement notifications
             if (data.achievements && data.achievements.length > 0) {
-              data.achievements.forEach((achievement: any) => {
+              data.achievements.forEach((achievement: { name: string; description: string }) => {
                 toast.success(`🏆 Achievement Unlocked: ${achievement.name}!`, {
                   description: achievement.description,
                 });
