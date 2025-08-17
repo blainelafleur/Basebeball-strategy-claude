@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { toast } from 'sonner';
 
 export interface Scenario {
   id: string;
@@ -97,7 +98,7 @@ export const useGameStore = create<GameState & GameActions>()(
         });
       },
 
-      makeDecision: (decision: string) => {
+      makeDecision: async (decision: string) => {
         const state = get();
         const scenario = state.currentScenario;
         const startTime = state.scenarioStartTime;
@@ -137,7 +138,58 @@ export const useGameStore = create<GameState & GameActions>()(
           decisionTime,
         };
 
-        get().updateStats(actualSuccess, pointsEarned);
+        // Save game completion to database
+        try {
+          const response = await fetch('/api/game/complete', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              scenarioId: scenario.id,
+              success: actualSuccess,
+              points: pointsEarned,
+              responseTime: decisionTime,
+              difficulty: 'INTERMEDIATE', // TODO: Get from scenario
+              category: state.selectedPosition,
+              playerChoice: decision,
+              isOptimal: isOptimalChoice,
+            }),
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            // Update local stats with server response
+            if (data.user) {
+              set((currentState) => ({
+                playerStats: {
+                  ...currentState.playerStats,
+                  points: data.user.points,
+                  streak: data.user.currentStreak,
+                  level: data.user.level || currentState.playerStats.level,
+                },
+              }));
+            }
+            
+            // Show achievement notifications
+            if (data.achievements && data.achievements.length > 0) {
+              data.achievements.forEach((achievement: any) => {
+                toast.success(`🏆 Achievement Unlocked: ${achievement.name}!`, {
+                  description: achievement.description,
+                });
+              });
+            }
+          } else {
+            console.warn('Failed to save game to database:', response.statusText);
+            // Fall back to local stats update
+            get().updateStats(actualSuccess, pointsEarned);
+          }
+        } catch (error) {
+          console.error('Error saving game:', error);
+          // Fall back to local stats update
+          get().updateStats(actualSuccess, pointsEarned);
+          toast.error('Failed to save game progress');
+        }
 
         set({
           showOutcome: true,

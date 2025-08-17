@@ -53,7 +53,7 @@ export async function POST(request: Request) {
         points: { increment: points },
         gamesPlayed: { increment: 1 },
         ...(success && {
-          correctAnswers: { increment: 1 },
+          totalCorrect: { increment: 1 },
           currentStreak: { increment: 1 },
         }),
         ...(!success && {

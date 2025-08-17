@@ -1,0 +1,170 @@
+import { S3Client, PutObjectCommand, DeleteObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { config } from './config';
+
+// Initialize S3 client
+const s3Client = config.aws.accessKeyId && config.aws.secretAccessKey 
+  ? new S3Client({
+      region: config.aws.region,
+      credentials: {
+        accessKeyId: config.aws.accessKeyId,
+        secretAccessKey: config.aws.secretAccessKey,
+      },
+    })
+  : null;
+
+export interface UploadResult {
+  success: boolean;
+  url?: string;
+  error?: string;
+}
+
+export class StorageService {
+  private static instance: StorageService;
+  private s3: S3Client | null;
+  private bucket: string;
+
+  private constructor() {
+    this.s3 = s3Client;
+    this.bucket = config.aws.bucket;
+  }
+
+  static getInstance(): StorageService {
+    if (!StorageService.instance) {
+      StorageService.instance = new StorageService();
+    }
+    return StorageService.instance;
+  }
+
+  async uploadFile(
+    file: Buffer | Uint8Array,
+    key: string,
+    contentType: string = 'application/octet-stream',
+    isPublic: boolean = false
+  ): Promise<UploadResult> {
+    if (!this.s3) {
+      return { success: false, error: 'Storage service not configured' };
+    }
+
+    try {
+      const command = new PutObjectCommand({
+        Bucket: this.bucket,
+        Key: key,
+        Body: file,
+        ContentType: contentType,
+        ...(isPublic && { ACL: 'public-read' }),
+      });
+
+      await this.s3.send(command);
+
+      const url = isPublic 
+        ? `https://${this.bucket}.s3.${config.aws.region}.amazonaws.com/${key}`
+        : await this.getSignedUrl(key);
+
+      return { success: true, url };
+    } catch (error) {
+      console.error('File upload error:', error);
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Upload failed' 
+      };
+    }
+  }
+
+  async deleteFile(key: string): Promise<boolean> {
+    if (!this.s3) {
+      console.warn('Storage service not configured');
+      return false;
+    }
+
+    try {
+      const command = new DeleteObjectCommand({
+        Bucket: this.bucket,
+        Key: key,
+      });
+
+      await this.s3.send(command);
+      return true;
+    } catch (error) {
+      console.error('File delete error:', error);
+      return false;
+    }
+  }
+
+  async getSignedUrl(key: string, expiresIn: number = 3600): Promise<string | null> {
+    if (!this.s3) {
+      return null;
+    }
+
+    try {
+      const command = new GetObjectCommand({
+        Bucket: this.bucket,
+        Key: key,
+      });
+
+      return await getSignedUrl(this.s3, command, { expiresIn });
+    } catch (error) {
+      console.error('Signed URL error:', error);
+      return null;
+    }
+  }
+
+  // Helper methods for common upload types
+  async uploadScenarioImage(imageBuffer: Buffer, scenarioId: string, imageType: string): Promise<UploadResult> {
+    const extension = imageType.split('/')[1] || 'jpg';
+    const key = `scenarios/${scenarioId}/image.${extension}`;
+    
+    return this.uploadFile(imageBuffer, key, imageType, true);
+  }
+
+  async uploadScenarioVideo(videoBuffer: Buffer, scenarioId: string): Promise<UploadResult> {
+    const key = `scenarios/${scenarioId}/video.mp4`;
+    
+    return this.uploadFile(videoBuffer, key, 'video/mp4', true);
+  }
+
+  async uploadUserAvatar(imageBuffer: Buffer, userId: string, imageType: string): Promise<UploadResult> {
+    const extension = imageType.split('/')[1] || 'jpg';
+    const key = `users/${userId}/avatar.${extension}`;
+    
+    return this.uploadFile(imageBuffer, key, imageType, true);
+  }
+
+  generateUploadKey(category: string, id: string, filename: string): string {
+    const timestamp = Date.now();
+    const cleanFilename = filename.replace(/[^a-zA-Z0-9.-]/g, '_');
+    return `${category}/${id}/${timestamp}_${cleanFilename}`;
+  }
+}
+
+export const storageService = StorageService.getInstance();
+
+// File upload validation
+export const validateFileUpload = (file: File, maxSizeMB: number = 10, allowedTypes: string[] = []) => {
+  const errors: string[] = [];
+
+  // Check file size
+  if (file.size > maxSizeMB * 1024 * 1024) {
+    errors.push(`File size must be less than ${maxSizeMB}MB`);
+  }
+
+  // Check file type
+  if (allowedTypes.length > 0 && !allowedTypes.includes(file.type)) {
+    errors.push(`File type must be one of: ${allowedTypes.join(', ')}`);
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors,
+  };
+};
+
+// Common file type validators
+export const ImageFileValidator = (file: File) => 
+  validateFileUpload(file, 5, ['image/jpeg', 'image/png', 'image/gif', 'image/webp']);
+
+export const VideoFileValidator = (file: File) => 
+  validateFileUpload(file, 100, ['video/mp4', 'video/mpeg', 'video/quicktime']);
+
+export const DocumentFileValidator = (file: File) => 
+  validateFileUpload(file, 10, ['application/pdf', 'text/plain', 'application/msword']);

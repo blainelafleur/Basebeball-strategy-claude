@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useGameStore } from '@/lib/store';
-import { scenarios } from '@/lib/scenarios';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 
 const positions = [
@@ -35,17 +35,41 @@ const positions = [
 
 export function PositionSelector() {
   const { selectedPosition, selectPosition, setCurrentScenario } = useGameStore();
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handlePositionSelect = (positionId: string) => {
+  const handlePositionSelect = async (positionId: string) => {
     selectPosition(positionId);
+    setIsLoading(true);
 
-    // Load scenario after a short delay for smooth UX
-    setTimeout(() => {
-      const scenario = scenarios[positionId];
-      if (scenario) {
-        setCurrentScenario(scenario);
+    try {
+      // Fetch scenarios for the selected position
+      const response = await fetch(`/api/scenarios?category=${positionId}`);
+      
+      if (response.ok) {
+        const data = await response.json();
+        const scenarios = data.scenarios;
+        
+        if (scenarios && scenarios.length > 0) {
+          // Select a random scenario from the available ones
+          const randomScenario = scenarios[Math.floor(Math.random() * scenarios.length)];
+          
+          // Load scenario after a short delay for smooth UX
+          setTimeout(() => {
+            setCurrentScenario(randomScenario);
+            setIsLoading(false);
+          }, 500);
+        } else {
+          console.warn('No scenarios found for position:', positionId);
+          setIsLoading(false);
+        }
+      } else {
+        console.error('Failed to fetch scenarios');
+        setIsLoading(false);
       }
-    }, 500);
+    } catch (error) {
+      console.error('Error fetching scenarios:', error);
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -72,6 +96,7 @@ export function PositionSelector() {
                     : 'hover:bg-muted hover:scale-105'
                 }`}
                 onClick={() => handlePositionSelect(position.id)}
+                disabled={isLoading}
               >
                 <span className="text-3xl">{position.icon}</span>
                 <div className="text-center">
