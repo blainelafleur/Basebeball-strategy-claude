@@ -94,7 +94,7 @@ export class StorageService {
         ? `https://${this.bucket}.s3.${process.env.AWS_REGION || 'us-east-1'}.amazonaws.com/${key}`
         : await this.getSignedUrl(key);
 
-      return { success: true, url };
+      return { success: true, url: url || undefined };
     } catch (error) {
       console.error('File upload error:', error);
       return { 
