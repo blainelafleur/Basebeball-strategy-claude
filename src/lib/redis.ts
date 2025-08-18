@@ -53,8 +53,11 @@ export class CacheService {
   }
 
   async get<T>(key: string): Promise<T | null> {
-    const redis = await this.getRedisClient();
-    if (!redis) return null;
+    const redisClient = await this.getRedisClient();
+    if (!redisClient) return null;
+
+    // Type assertion for Redis client interface
+    const redis = redisClient as { get: (key: string) => Promise<unknown> };
 
     try {
       const value = await redis.get(key);
@@ -66,8 +69,14 @@ export class CacheService {
   }
 
   async set(key: string, value: unknown, ttlSeconds?: number): Promise<boolean> {
-    const redis = await this.getRedisClient();
-    if (!redis) return false;
+    const redisClient = await this.getRedisClient();
+    if (!redisClient) return false;
+
+    // Type assertion for Redis client interface
+    const redis = redisClient as {
+      set: (key: string, value: string) => Promise<unknown>;
+      setex: (key: string, seconds: number, value: string) => Promise<unknown>;
+    };
 
     try {
       if (ttlSeconds) {
@@ -83,8 +92,11 @@ export class CacheService {
   }
 
   async del(key: string): Promise<boolean> {
-    const redis = await this.getRedisClient();
-    if (!redis) return false;
+    const redisClient = await this.getRedisClient();
+    if (!redisClient) return false;
+
+    // Type assertion for Redis client interface
+    const redis = redisClient as { del: (key: string) => Promise<unknown> };
 
     try {
       await redis.del(key);
@@ -96,8 +108,11 @@ export class CacheService {
   }
 
   async exists(key: string): Promise<boolean> {
-    const redis = await this.getRedisClient();
-    if (!redis) return false;
+    const redisClient = await this.getRedisClient();
+    if (!redisClient) return false;
+
+    // Type assertion for Redis client interface
+    const redis = redisClient as { exists: (key: string) => Promise<number> };
 
     try {
       const result = await redis.exists(key);
@@ -110,8 +125,13 @@ export class CacheService {
 
   // Leaderboard operations
   async addToLeaderboard(leaderboard: string, userId: string, score: number): Promise<boolean> {
-    const redis = await this.getRedisClient();
-    if (!redis) return false;
+    const redisClient = await this.getRedisClient();
+    if (!redisClient) return false;
+
+    // Type assertion for Redis client interface
+    const redis = redisClient as {
+      zadd: (key: string, scoreAndMember: { score: number; member: string }) => Promise<unknown>;
+    };
 
     try {
       await redis.zadd(leaderboard, { score, member: userId });
@@ -127,8 +147,13 @@ export class CacheService {
     start = 0,
     end = 9
   ): Promise<Array<{ member: string; score: number }> | null> {
-    const redis = await this.getRedisClient();
-    if (!redis) return null;
+    const redisClient = await this.getRedisClient();
+    if (!redisClient) return null;
+
+    // Type assertion for Redis client interface
+    const redis = redisClient as {
+      zrange: (key: string, start: number, end: number, options: { withScores: boolean; rev: boolean }) => Promise<unknown[]>;
+    };
 
     try {
       const results = await redis.zrange(leaderboard, start, end, {
@@ -158,8 +183,14 @@ export class CacheService {
     windowSeconds: number,
     maxRequests: number
   ): Promise<{ allowed: boolean; remaining: number }> {
-    const redis = await this.getRedisClient();
-    if (!redis) return { allowed: true, remaining: maxRequests };
+    const redisClient = await this.getRedisClient();
+    if (!redisClient) return { allowed: true, remaining: maxRequests };
+
+    // Type assertion for Redis client interface
+    const redis = redisClient as {
+      incr: (key: string) => Promise<number>;
+      expire: (key: string, seconds: number) => Promise<unknown>;
+    };
 
     try {
       const current = await redis.incr(key);
