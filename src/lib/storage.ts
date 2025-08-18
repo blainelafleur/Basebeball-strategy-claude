@@ -68,11 +68,14 @@ export class StorageService {
     contentType: string = 'application/octet-stream',
     isPublic: boolean = false
   ): Promise<UploadResult> {
-    const s3 = await this.getS3Client();
+    const s3Client = await this.getS3Client();
     
-    if (!s3) {
+    if (!s3Client) {
       return { success: false, error: 'AWS S3 storage not configured' };
     }
+
+    // Type assertion for S3 client interface
+    const s3 = s3Client as { send: (command: unknown) => Promise<unknown> };
 
     try {
       const { PutObjectCommand } = await import('@aws-sdk/client-s3');
@@ -102,12 +105,15 @@ export class StorageService {
   }
 
   async deleteFile(key: string): Promise<boolean> {
-    const s3 = await this.getS3Client();
+    const s3Client = await this.getS3Client();
     
-    if (!s3) {
+    if (!s3Client) {
       console.warn('AWS S3 storage not configured');
       return false;
     }
+
+    // Type assertion for S3 client interface
+    const s3 = s3Client as { send: (command: unknown) => Promise<unknown> };
 
     try {
       const { DeleteObjectCommand } = await import('@aws-sdk/client-s3');
@@ -126,9 +132,9 @@ export class StorageService {
   }
 
   async getSignedUrl(key: string, expiresIn: number = 3600): Promise<string | null> {
-    const s3 = await this.getS3Client();
+    const s3Client = await this.getS3Client();
     
-    if (!s3) {
+    if (!s3Client) {
       return null;
     }
 
@@ -141,7 +147,7 @@ export class StorageService {
         Key: key,
       });
 
-      return await getSignedUrl(s3, command, { expiresIn });
+      return await getSignedUrl(s3Client, command, { expiresIn });
     } catch (error) {
       console.error('Signed URL error:', error);
       return null;
