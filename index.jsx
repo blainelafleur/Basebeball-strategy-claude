@@ -684,7 +684,15 @@ const SEASON_STAGES=[
   {name:"World Series",emoji:"👑",games:1,diff:3,color:"#f59e0b"},
 ];
 const SEASON_TOTAL=SEASON_STAGES.reduce((s,st)=>s+st.games*3,0);
-const DEFAULT = {pts:0,str:0,bs:0,gp:0,co:0,ps:{},achs:[],cl:[],ds:0,lastDay:null,todayPlayed:0,todayDate:null,sp:0,isPro:false,onboarded:false,soundOn:true,recentWrong:[],dailyDone:false,dailyDate:null,streakFreezes:0,survivalBest:0,ageGroup:"11-12",displayName:"",teamCode:"",seasonGame:0,seasonCorrect:0,seasonComplete:false};
+const FIELD_THEMES=[
+  {id:"default",name:"Classic",emoji:"🏟️",grass:["#52c46a","#44b45c","#38a24e","#2d8a42"],dirt:["#dab07a","#c49462"],sky:"#0c1520",wall:["#1a6030","#28843e"],fence:"#facc15",inGrass:"#48b85e",mound:["#cca068","#aa8450"],warn:"#b0905e",unlock:null,desc:"The original"},
+  {id:"night",name:"Night Game",emoji:"🌙",grass:["#3a8a4e","#308a44","#26703a","#1c5a30"],dirt:["#c09068","#a87a55"],sky:"#040a14",wall:["#102818","#1a4028"],fence:"#e0b010",inGrass:"#308a40",mound:["#b08050","#906840"],warn:"#907048",unlock:{type:"gp",val:25},desc:"Under the lights"},
+  {id:"sunny",name:"Sunny Day",emoji:"☀️",grass:["#62d880","#54c86c","#46b85e","#38a850"],dirt:["#e8c48a","#d0ac72"],sky:"#0e2040",wall:["#1f7040","#30a050"],fence:"#fcd934",inGrass:"#56d06c",mound:["#dab880","#c0a068"],warn:"#c0a070",unlock:{type:"gp",val:50},desc:"Perfect weather"},
+  {id:"dome",name:"The Dome",emoji:"🏛️",grass:["#40a855","#389848","#2e8840","#247838"],dirt:["#c8a470","#b09060"],sky:"#14142a",wall:["#2a2a4e","#3a3a5e"],fence:"#8080ff",inGrass:"#389848",mound:["#b89060","#987848"],warn:"#988060",unlock:{type:"ds",val:10},desc:"Indoor arena"},
+  {id:"retro",name:"Retro Park",emoji:"📻",grass:["#6a9a50","#5c8a46","#4e7a3c","#407032"],dirt:["#c8a878","#b09060"],sky:"#181410",wall:["#3a3020","#504030"],fence:"#d0a860",inGrass:"#5a8a45",mound:["#b89868","#987850"],warn:"#a89070",unlock:{type:"cl",val:30},desc:"Old-timey charm"},
+];
+function themeOk(th,s){if(!th.unlock)return true;const{type:t,val:v}=th.unlock;if(t==="gp")return s.gp>=v;if(t==="ds")return s.ds>=v;if(t==="cl")return(s.cl?.length||0)>=v;return false;}
+const DEFAULT = {pts:0,str:0,bs:0,gp:0,co:0,ps:{},achs:[],cl:[],ds:0,lastDay:null,todayPlayed:0,todayDate:null,sp:0,isPro:false,onboarded:false,soundOn:true,recentWrong:[],dailyDone:false,dailyDate:null,streakFreezes:0,survivalBest:0,ageGroup:"11-12",displayName:"",teamCode:"",seasonGame:0,seasonCorrect:0,seasonComplete:false,fieldTheme:"default"};
 
 // Streak flame visual — grows with daily streak length
 function getFlame(ds){
@@ -871,7 +879,8 @@ function useSound() {
 }
 
 // Field SVG — Bright, fun, kid-friendly baseball field
-function Field({runners=[],outcome=null,ak=0,anim=null}){
+function Field({runners=[],outcome=null,ak=0,anim=null,theme=null}){
+  const t=theme||FIELD_THEMES[0];
   const on=n=>runners.includes(n);
   // Coords: Home(200,282) 1B(284,206) 2B(200,140) 3B(116,206) Mound(200,218)
   // Player sprite — chunky, readable, fun
@@ -903,25 +912,25 @@ function Field({runners=[],outcome=null,ak=0,anim=null}){
     <svg viewBox="0 0 400 310" style={{width:"100%",maxWidth:420,display:"block",margin:"0 auto"}}>
       <defs>
         <radialGradient id="grs" cx="50%" cy="78%" r="62%">
-          <stop offset="0%" stopColor="#52c46a"/>
-          <stop offset="35%" stopColor="#44b45c"/>
-          <stop offset="70%" stopColor="#38a24e"/>
-          <stop offset="100%" stopColor="#2d8a42"/>
+          <stop offset="0%" stopColor={t.grass[0]}/>
+          <stop offset="35%" stopColor={t.grass[1]}/>
+          <stop offset="70%" stopColor={t.grass[2]}/>
+          <stop offset="100%" stopColor={t.grass[3]}/>
         </radialGradient>
         <linearGradient id="drt" x1=".2" y1="0" x2=".8" y2="1">
-          <stop offset="0%" stopColor="#dab07a"/>
-          <stop offset="100%" stopColor="#c49462"/>
+          <stop offset="0%" stopColor={t.dirt[0]}/>
+          <stop offset="100%" stopColor={t.dirt[1]}/>
         </linearGradient>
         <linearGradient id="wal" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#1a6030"/>
-          <stop offset="100%" stopColor="#28843e"/>
+          <stop offset="0%" stopColor={t.wall[0]}/>
+          <stop offset="100%" stopColor={t.wall[1]}/>
         </linearGradient>
         <filter id="gl"><feGaussianBlur stdDeviation="1.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
         <clipPath id="fc"><path d="M200,292 L32,100 Q32,42 200,42 Q368,42 368,100 Z"/></clipPath>
       </defs>
 
       {/* === DARK BACKGROUND === */}
-      <rect width="400" height="310" fill="#0c1520"/>
+      <rect width="400" height="310" fill={t.sky}/>
 
       {/* === COMPACT SKY — just wall top + tiny sliver === */}
       {/* Stars — just a few */}
@@ -930,10 +939,10 @@ function Field({runners=[],outcome=null,ak=0,anim=null}){
       {/* === OUTFIELD WALL === */}
       <path d="M20,86 Q20,26 200,26 Q380,26 380,86 L376,92 Q376,34 200,34 Q24,34 24,92 Z" fill="url(#wal)" stroke="#0d3318" strokeWidth=".5"/>
       {/* Bright yellow fence cap */}
-      <path d="M20,86 Q20,26 200,26 Q380,26 380,86" fill="none" stroke="#facc15" strokeWidth="2.8"/>
+      <path d="M20,86 Q20,26 200,26 Q380,26 380,86" fill="none" stroke={t.fence} strokeWidth="2.8"/>
 
       {/* === WARNING TRACK === */}
-      <path d="M24,92 Q24,38 200,38 Q376,38 376,92 L368,100 Q368,48 200,48 Q32,48 32,100 Z" fill="#b0905e" opacity=".5"/>
+      <path d="M24,92 Q24,38 200,38 Q376,38 376,92 L368,100 Q368,48 200,48 Q32,48 32,100 Z" fill={t.warn} opacity=".5"/>
 
       {/* === OUTFIELD GRASS === */}
       <path d="M200,292 L32,100 Q32,48 200,48 Q368,48 368,100 Z" fill="url(#grs)"/>
@@ -950,7 +959,7 @@ function Field({runners=[],outcome=null,ak=0,anim=null}){
       <polygon points="200,282 284,206 200,140 116,206" fill="url(#drt)"/>
 
       {/* === INFIELD GRASS (slightly brighter than outfield) === */}
-      <polygon points="200,260 260,214 200,172 140,214" fill="#48b85e"/>
+      <polygon points="200,260 260,214 200,172 140,214" fill={t.inGrass}/>
 
       {/* === BASEPATH CHALK === */}
       {[[200,282,284,206],[284,206,200,140],[200,140,116,206],[116,206,200,282]].map(([x1,y1,x2,y2],i)=>
@@ -964,7 +973,7 @@ function Field({runners=[],outcome=null,ak=0,anim=null}){
       <circle cx="116" cy="206" r="12" fill="url(#drt)"/>
 
       {/* === MOUND === */}
-      <ellipse cx="200" cy="218" rx="15" ry="7.5" fill="#cca068" stroke="#aa8450" strokeWidth=".4"/>
+      <ellipse cx="200" cy="218" rx="15" ry="7.5" fill={t.mound[0]} stroke={t.mound[1]} strokeWidth=".4"/>
       <rect x="196.5" y="216" width="7" height="3" rx="1" fill="white" opacity=".9"/>
 
       {/* === HOME PLATE & BOXES === */}
@@ -1036,6 +1045,28 @@ function Board({sit}){
   </div>);
 }
 
+// Coach Mascot — friendly baseball character with expressions
+const COACH_LINES={
+  success:["Perfect call, slugger!","That's big-league thinking!","You nailed it!","Pro-level decision!","Coach is impressed!","Textbook play!"],
+  warning:["Not bad! Close one.","Good instinct, almost there!","Decent call — let's learn why.","You're on the right track!","Solid effort!"],
+  danger:["Hey, that's how we learn!","Every pro struck out first.","Let's break this down.","Good try — check the tip!","No worries, you'll get it!"]
+};
+function Coach({mood="neutral",msg=null}){
+  const face=mood==="success"?"😄":mood==="warning"?"🤔":"😮";
+  const bg=mood==="success"?"rgba(34,197,94,.06)":mood==="warning"?"rgba(245,158,11,.06)":"rgba(239,68,68,.06)";
+  const bc=mood==="success"?"rgba(34,197,94,.15)":mood==="warning"?"rgba(245,158,11,.15)":"rgba(239,68,68,.15)";
+  const tc=mood==="success"?"#22c55e":mood==="warning"?"#f59e0b":"#ef4444";
+  if(!msg)return null;
+  return(<div style={{display:"flex",alignItems:"flex-start",gap:10,background:bg,border:`1px solid ${bc}`,borderRadius:12,padding:"10px 12px",marginBottom:8,animation:"sd .35s ease-out"}}>
+    <div style={{width:40,height:40,borderRadius:10,background:"linear-gradient(135deg,#1a1a2e,#16213e)",border:"2px solid rgba(245,158,11,.3)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0}}>{face}</div>
+    <div style={{flex:1}}>
+      <div style={{fontSize:9,color:"#f59e0b",fontWeight:700,textTransform:"uppercase",letterSpacing:1,marginBottom:2}}>Coach says...</div>
+      <div style={{fontSize:13,fontWeight:600,color:tc,lineHeight:1.4}}>{msg}</div>
+    </div>
+  </div>);
+}
+function getCoachLine(cat){const lines=COACH_LINES[cat]||COACH_LINES.danger;return lines[Math.floor(Math.random()*lines.length)];}
+
 const DIFF_TAG = [{l:"Rookie",c:"#22c55e"},{l:"Intermediate",c:"#f59e0b"},{l:"Advanced",c:"#ef4444"}];
 
 export default function App(){
@@ -1055,6 +1086,8 @@ export default function App(){
   const[stats,setStats]=useState(DEFAULT);
   const[lvlUp,setLvlUp]=useState(null);
   const[aiLoading,setAiLoading]=useState(false);
+  const[coachMsg,setCoachMsg]=useState(null);
+  const[parentGate,setParentGate]=useState(false);
   const[aiMode,setAiMode]=useState(false); // true when playing AI-generated scenario
   const[dailyMode,setDailyMode]=useState(false); // true when playing daily diamond challenge
   const[seasonMode,setSeasonMode]=useState(false);
@@ -1211,7 +1244,7 @@ export default function App(){
     // Speed Round bonus: +1 pt per second remaining
     let speedBonus=0;
     if(speedMode&&isOpt&&timer>0){speedBonus=timer;pts+=speedBonus;}
-    setFo(cat);setAk(k=>k+1);snd.play(isOpt?'correct':rate>=55?'near':'wrong');
+    setFo(cat);setAk(k=>k+1);snd.play(isOpt?'correct':rate>=55?'near':'wrong');setCoachMsg(getCoachLine(cat));
     const o={cat,isOpt,exp:sc.explanations[idx],bestExp:sc.explanations[sc.best],bestOpt:sc.options[sc.best],concept:sc.concept,pts,chosen:sc.options[idx],rate,anim:sc.anim,speedBonus,timeLeft:timer};
     setOd(o);
     // Track speed round result
@@ -1254,7 +1287,7 @@ export default function App(){
   },[choice,sc,pos,snd,checkAch,stats.pts,dailyMode,speedMode,timer,speedNext,survivalMode,survivalRun,survivalNext,seasonMode]);
 
   const next=useCallback(()=>{setLvlUp(null);if(speedMode){speedNext()}else if(survivalMode){survivalNext()}else if(seasonMode){seasonNext()}else if(dailyMode){goHome()}else{startGame(pos,aiMode)}},[pos,startGame,aiMode,dailyMode,speedMode,speedNext,survivalMode,survivalNext,seasonMode,seasonNext,goHome]);
-  const goHome=useCallback(()=>{setScreen("home");setPos(null);setSc(null);setChoice(null);setOd(null);setFo(null);setPanel(null);setLvlUp(null);setDailyMode(false);setSpeedMode(false);setSpeedRound(null);setSurvivalMode(false);setSurvivalRun(null);setFielderTrack(null);setChallengeMode(false);setSeasonMode(false);if(timerRef.current)clearTimeout(timerRef.current)},[]);
+  const goHome=useCallback(()=>{setScreen("home");setPos(null);setSc(null);setChoice(null);setOd(null);setFo(null);setPanel(null);setLvlUp(null);setCoachMsg(null);setDailyMode(false);setSpeedMode(false);setSpeedRound(null);setSurvivalMode(false);setSurvivalRun(null);setFielderTrack(null);setChallengeMode(false);setSeasonMode(false);if(timerRef.current)clearTimeout(timerRef.current)},[]);
   const finishOnboard=useCallback(()=>{setStats(p=>({...p,onboarded:true,todayDate:new Date().toDateString()}));setScreen("home")},[]);
   
   const lvl=getLvl(stats.pts);const nxt=getNxt(stats.pts);
@@ -1497,6 +1530,7 @@ export default function App(){
               <button onClick={()=>setPanel(panel==='concepts'?null:'concepts')} style={{flex:"1 1 22%",background:"rgba(59,130,246,.05)",border:"1px solid rgba(59,130,246,.12)",borderRadius:10,padding:"8px 4px",color:"#3b82f6",fontSize:10,fontWeight:600,cursor:"pointer",minHeight:38}}>🧠 {(stats.cl?.length||0)}</button>
               <button onClick={()=>setPanel(panel==='stats'?null:'stats')} style={{flex:"1 1 22%",background:"rgba(34,197,94,.05)",border:"1px solid rgba(34,197,94,.12)",borderRadius:10,padding:"8px 4px",color:"#22c55e",fontSize:10,fontWeight:600,cursor:"pointer",minHeight:38}}>📊 Stats</button>
               <button onClick={()=>setPanel(panel==='progress'?null:'progress')} style={{flex:"1 1 22%",background:"rgba(168,85,247,.05)",border:"1px solid rgba(168,85,247,.12)",borderRadius:10,padding:"8px 4px",color:"#a855f7",fontSize:10,fontWeight:600,cursor:"pointer",minHeight:38}}>📈 Map</button>
+              <button onClick={()=>setPanel(panel==='cosmetics'?null:'cosmetics')} style={{flex:"1 1 22%",background:"rgba(236,72,153,.05)",border:"1px solid rgba(236,72,153,.12)",borderRadius:10,padding:"8px 4px",color:"#ec4899",fontSize:10,fontWeight:600,cursor:"pointer",minHeight:38}}>🎨 Theme</button>
               <button onClick={()=>setPanel(panel==='lb'?null:'lb')} style={{flex:"1 1 100%",background:"rgba(234,179,8,.05)",border:"1px solid rgba(234,179,8,.12)",borderRadius:10,padding:"6px 4px",color:"#eab308",fontSize:10,fontWeight:600,cursor:"pointer",minHeight:34}}>🏆 Leaderboard</button>
             </div>
           </div>}
@@ -1588,6 +1622,25 @@ export default function App(){
                 <span style={{fontSize:10,color:"#6b7280"}}>{e.acc}%</span>
               </div>
             ))}
+          </div>}
+
+          {panel==='cosmetics'&&<div style={{...card,marginBottom:12}}>
+            <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:14,color:"#ec4899",letterSpacing:1,marginBottom:6}}>FIELD THEMES</div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6}}>
+              {FIELD_THEMES.map(th=>{const unlocked=themeOk(th,stats);const active=stats.fieldTheme===th.id;return(
+                <button key={th.id} onClick={()=>{if(unlocked){setStats(p=>({...p,fieldTheme:th.id}));snd.play('tap')}}}
+                  style={{background:active?"rgba(236,72,153,.08)":unlocked?"rgba(255,255,255,.02)":"rgba(255,255,255,.01)",border:`1.5px solid ${active?"#ec4899":unlocked?"rgba(255,255,255,.08)":"rgba(255,255,255,.03)"}`,borderRadius:10,padding:"10px 8px",cursor:unlocked?"pointer":"default",textAlign:"center",opacity:unlocked?1:.45,transition:"all .2s",position:"relative"}}>
+                  <div style={{fontSize:22,marginBottom:2}}>{th.emoji}</div>
+                  <div style={{fontSize:11,fontWeight:700,color:active?"#ec4899":"white"}}>{th.name}</div>
+                  <div style={{fontSize:9,color:"#6b7280",marginTop:1}}>{th.desc}</div>
+                  {!unlocked&&th.unlock&&<div style={{fontSize:8,color:"#f59e0b",marginTop:3,fontWeight:600}}>
+                    {th.unlock.type==="gp"?`🔒 Play ${th.unlock.val} games`:th.unlock.type==="ds"?`🔒 ${th.unlock.val}-day streak`:th.unlock.type==="cl"?`🔒 Learn ${th.unlock.val} concepts`:"🔒 Locked"}
+                  </div>}
+                  {active&&<div style={{fontSize:8,color:"#ec4899",marginTop:2,fontWeight:700}}>ACTIVE</div>}
+                </button>
+              )})}
+            </div>
+            <div style={{textAlign:"center",marginTop:8,fontSize:9,color:"#6b7280"}}>Earn themes through milestones — no purchase needed!</div>
           </div>}
 
           {panel==='limit'&&<div style={{...card,marginBottom:12,textAlign:"center",borderColor:"rgba(245,158,11,.2)"}}>
@@ -1747,7 +1800,57 @@ export default function App(){
             <button onClick={()=>{const v=!stats.soundOn;setStats(p=>({...p,soundOn:v}));snd.setEnabled(v)}} style={{...ghost,fontSize:10}}>{stats.soundOn?"🔊 Sound On":"🔇 Sound Off"}</button>
             <span style={{color:"#374151"}}>·</span>
             <button onClick={()=>{const groups=AGE_GROUPS.map(a=>a.id);const cur=groups.indexOf(stats.ageGroup);const next=groups[(cur+1)%groups.length];setStats(p=>({...p,ageGroup:next}))}} style={{...ghost,fontSize:10}}>🎂 {stats.ageGroup}</button>
+            <span style={{color:"#374151"}}>·</span>
+            <button onClick={()=>{
+              if(parentGate){setPanel(panel==='parent'?null:'parent');return;}
+              const a=Math.floor(Math.random()*10)+5;const b=Math.floor(Math.random()*10)+3;
+              const answer=prompt(`Parent Gate: What is ${a} × ${b}?`);
+              if(answer&&parseInt(answer)===a*b){setParentGate(true);setPanel('parent')}
+            }} style={{...ghost,fontSize:10}}>👪 Parent Report</button>
           </div>
+
+          {panel==='parent'&&parentGate&&<div style={{...card,marginBottom:12,marginTop:8}}>
+            <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:14,color:"#8b5cf6",letterSpacing:1,marginBottom:8}}>PARENT PROGRESS REPORT</div>
+            <div style={{background:"rgba(139,92,246,.04)",border:"1px solid rgba(139,92,246,.12)",borderRadius:10,padding:"10px 12px",marginBottom:10}}>
+              <div style={{fontSize:14,fontWeight:700,color:"#8b5cf6",marginBottom:4}}>
+                {stats.displayName||"Your player"} learned {(stats.cl||[]).length} baseball concept{(stats.cl||[]).length!==1?"s":""} so far!
+              </div>
+              <div style={{fontSize:11,color:"#9ca3af",lineHeight:1.5}}>
+                They've played {stats.gp} scenarios with {acc}% accuracy and a best streak of {stats.bs} correct in a row.
+                {stats.ds>0?` Currently on a ${stats.ds}-day daily streak!`:" Encourage them to play daily to build a streak!"}
+              </div>
+            </div>
+            <div style={{fontSize:11,fontWeight:700,color:"#6b7280",marginBottom:6}}>ACCURACY BY POSITION</div>
+            <div style={{display:"flex",flexDirection:"column",gap:4,marginBottom:10}}>
+              {ALL_POS.map(p=>{const s=stats.ps[p];const m=POS_META[p];const pAcc=s&&s.p>0?Math.round((s.c/s.p)*100):null;return(
+                <div key={p} style={{display:"flex",alignItems:"center",gap:8}}>
+                  <span style={{fontSize:14,width:20}}>{m.emoji}</span>
+                  <span style={{fontSize:11,fontWeight:600,width:60}}>{m.label}</span>
+                  <div style={{flex:1,height:6,background:"rgba(255,255,255,.03)",borderRadius:3,overflow:"hidden"}}>
+                    <div style={{height:"100%",width:`${pAcc||0}%`,background:pAcc>=70?"#22c55e":pAcc>=50?"#f59e0b":"#ef4444",borderRadius:3,transition:"width .5s"}}/>
+                  </div>
+                  <span style={{fontSize:10,fontWeight:700,color:pAcc!=null?(pAcc>=70?"#22c55e":pAcc>=50?"#f59e0b":"#ef4444"):"#4b5563",width:35,textAlign:"right"}}>{pAcc!=null?`${pAcc}%`:"—"}</span>
+                </div>
+              )})}
+            </div>
+            <div style={{fontSize:11,fontWeight:700,color:"#6b7280",marginBottom:4}}>CONCEPTS MASTERED</div>
+            <div style={{display:"flex",flexWrap:"wrap",gap:3,marginBottom:10,maxHeight:120,overflowY:"auto"}}>
+              {(stats.cl||[]).length===0?<span style={{fontSize:10,color:"#4b5563"}}>None yet — keep playing!</span>:
+                (stats.cl||[]).map((c,i)=><span key={i} style={{background:"rgba(59,130,246,.06)",border:"1px solid rgba(59,130,246,.1)",borderRadius:6,padding:"2px 6px",fontSize:9,color:"#93c5fd"}}>{c}</span>)}
+            </div>
+            <div style={{fontSize:11,fontWeight:700,color:"#6b7280",marginBottom:4}}>ACHIEVEMENTS</div>
+            <div style={{display:"flex",flexWrap:"wrap",gap:4,marginBottom:10}}>
+              {ACHS.map(a=>{const earned=(stats.achs||[]).includes(a.id);return(
+                <span key={a.id} style={{fontSize:16,opacity:earned?1:.2,cursor:"default"}} title={`${a.n}${earned?" (earned)":""}`}>{a.e}</span>
+              )})}
+            </div>
+            <div style={{background:"rgba(255,255,255,.02)",border:"1px solid rgba(255,255,255,.04)",borderRadius:8,padding:"8px 10px"}}>
+              <div style={{fontSize:10,color:"#6b7280",lineHeight:1.5}}>
+                <strong>Summary:</strong> {stats.gp} total games · {(stats.cl||[]).length} concepts · {(stats.achs||[]).length}/{ACHS.length} achievements · Level: {lvl.n}
+                {stats.ds>=7?" · Building great daily habits!":stats.ds>=3?" · Daily routine forming!":""}
+              </div>
+            </div>
+          </div>}
         </div>}
 
         {/* PLAYING */}
@@ -1787,7 +1890,7 @@ export default function App(){
           </div>}
 
           <div style={{background:"rgba(0,0,0,.25)",borderRadius:12,padding:6,marginBottom:8,border:"1px solid rgba(255,255,255,.03)"}}>
-            <Field runners={sc.situation.runners} outcome={fo} ak={ak} anim={od?.isOpt?sc.anim:null}/>
+            <Field runners={sc.situation.runners} outcome={fo} ak={ak} anim={od?.isOpt?sc.anim:null} theme={FIELD_THEMES.find(th=>th.id===stats.fieldTheme)||FIELD_THEMES[0]}/>
             <div style={{marginTop:3}}><Board sit={sc.situation}/></div>
           </div>
 
@@ -1833,6 +1936,8 @@ export default function App(){
               {stats.str>1&&od.isOpt&&<span style={{background:"rgba(249,115,22,.08)",color:"#f97316",padding:"2px 10px",borderRadius:14,fontSize:11,fontWeight:800,border:"1px solid rgba(249,115,22,.15)"}}>🔥 {stats.str}</span>}
             </div>
           </div>
+
+          <Coach mood={od.cat} msg={coachMsg}/>
 
           <div style={{background:od.cat==="success"?"rgba(34,197,94,.03)":od.cat==="warning"?"rgba(245,158,11,.03)":"rgba(239,68,68,.03)",border:`1px solid ${od.cat==="success"?"rgba(34,197,94,.12)":od.cat==="warning"?"rgba(245,158,11,.12)":"rgba(239,68,68,.12)"}`,borderRadius:12,padding:12,borderLeft:`3px solid ${od.cat==="success"?"#22c55e":od.cat==="warning"?"#f59e0b":"#ef4444"}`}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
