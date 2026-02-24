@@ -670,8 +670,21 @@ function getNxt(p){for(const l of LEVELS)if(p<l.min)return l;return null;}
 
 const DAILY_FREE = 15;
 const STORAGE_KEY = "bsm_v5";
+const LB_KEY = "bsm_lb";
+function getWeek(){const d=new Date();const jan1=new Date(d.getFullYear(),0,1);return Math.ceil(((d-jan1)/86400000+jan1.getDay()+1)/7)+"-"+d.getFullYear();}
+const BASEBALL_NAMES=["Slugger","Ace","Rookie","MVP","Clutch","Hammer","Flash","Blaze","Storm","Thunder","Captain","Dash","Nitro","Phoenix","Cobra","Falcon","Eagle","Mustang","Raptor","Viking"];
 const AGE_GROUPS=[{id:"6-8",label:"Ages 6-8",desc:"Basic concepts, simple language",maxDiff:1},{id:"9-10",label:"Ages 9-10",desc:"Force plays, cutoffs, stealing",maxDiff:2},{id:"11-12",label:"Ages 11-12",desc:"Full situational awareness",maxDiff:3},{id:"13+",label:"Ages 13+",desc:"Advanced strategy & sabermetrics",maxDiff:3}];
-const DEFAULT = {pts:0,str:0,bs:0,gp:0,co:0,ps:{},achs:[],cl:[],ds:0,lastDay:null,todayPlayed:0,todayDate:null,sp:0,isPro:false,onboarded:false,soundOn:true,recentWrong:[],dailyDone:false,dailyDate:null,streakFreezes:0,survivalBest:0,ageGroup:"11-12"};
+const SEASON_STAGES=[
+  {name:"Spring Training",emoji:"🌴",games:2,diff:1,color:"#22c55e"},
+  {name:"Opening Day",emoji:"🎉",games:1,diff:1,color:"#3b82f6"},
+  {name:"Regular Season",emoji:"⚾",games:3,diff:2,color:"#f59e0b"},
+  {name:"All-Star Break",emoji:"🌟",games:1,diff:2,color:"#a855f7"},
+  {name:"Pennant Race",emoji:"🔥",games:2,diff:3,color:"#ef4444"},
+  {name:"Playoffs",emoji:"🏆",games:2,diff:3,color:"#eab308"},
+  {name:"World Series",emoji:"👑",games:1,diff:3,color:"#f59e0b"},
+];
+const SEASON_TOTAL=SEASON_STAGES.reduce((s,st)=>s+st.games*3,0);
+const DEFAULT = {pts:0,str:0,bs:0,gp:0,co:0,ps:{},achs:[],cl:[],ds:0,lastDay:null,todayPlayed:0,todayDate:null,sp:0,isPro:false,onboarded:false,soundOn:true,recentWrong:[],dailyDone:false,dailyDate:null,streakFreezes:0,survivalBest:0,ageGroup:"11-12",displayName:"",teamCode:"",seasonGame:0,seasonCorrect:0,seasonComplete:false};
 
 // Streak flame visual — grows with daily streak length
 function getFlame(ds){
@@ -1044,6 +1057,7 @@ export default function App(){
   const[aiLoading,setAiLoading]=useState(false);
   const[aiMode,setAiMode]=useState(false); // true when playing AI-generated scenario
   const[dailyMode,setDailyMode]=useState(false); // true when playing daily diamond challenge
+  const[seasonMode,setSeasonMode]=useState(false);
   // Speed Round state
   const[speedMode,setSpeedMode]=useState(false);
   const[speedRound,setSpeedRound]=useState(null); // {round,total,results:[],startTime}
@@ -1057,10 +1071,29 @@ export default function App(){
 
   const abortRef=useRef(null);
 
+  const[challengeMode,setChallengeMode]=useState(false);
+  const[challengeId,setChallengeId]=useState(null);
   // Load
-  useEffect(()=>{(async()=>{try{const r=await window.storage.get(STORAGE_KEY);if(r?.value){const d=JSON.parse(r.value);setStats({...DEFAULT,...d});snd.setEnabled(d.soundOn!==false);if(d.onboarded)setScreen("home");else setScreen("onboard");} else setScreen("onboard");}catch{setScreen("onboard")}})()},[]);
+  useEffect(()=>{(async()=>{try{const r=await window.storage.get(STORAGE_KEY);if(r?.value){const d=JSON.parse(r.value);setStats({...DEFAULT,...d});snd.setEnabled(d.soundOn!==false);if(d.onboarded)setScreen("home");else setScreen("onboard");} else setScreen("onboard");}catch{setScreen("onboard")}
+    // Check for challenge in URL
+    const hash=window.location.hash;if(hash.startsWith("#challenge=")){const cid=hash.slice(11);setChallengeId(cid);window.location.hash="";}
+  })()},[]);
   // Save
   useEffect(()=>{(async()=>{try{await window.storage.set(STORAGE_KEY,JSON.stringify(stats))}catch{}})()},[stats]);
+  // Leaderboard: update weekly entry
+  const[lbData,setLbData]=useState({week:"",entries:[]});
+  useEffect(()=>{(async()=>{try{const r=await window.storage.get(LB_KEY);if(r?.value)setLbData(JSON.parse(r.value))}catch{}})()},[]);
+  useEffect(()=>{if(!stats.displayName||!stats.gp)return;
+    const week=getWeek();
+    setLbData(prev=>{
+      const entries=(prev.week===week?prev.entries:[]).filter(e=>e.name!==stats.displayName);
+      entries.push({name:stats.displayName,pts:stats.pts,acc:stats.gp>0?Math.round((stats.co/stats.gp)*100):0,streak:stats.ds,gp:stats.gp});
+      entries.sort((a,b)=>b.pts-a.pts);
+      const next={week,entries:entries.slice(0,20)};
+      (async()=>{try{await window.storage.set(LB_KEY,JSON.stringify(next))}catch{}})();
+      return next;
+    });
+  },[stats.pts,stats.displayName]);
   // Daily tracking with streak freeze support
   useEffect(()=>{const today=new Date().toDateString();if(stats.todayDate&&stats.todayDate!==today){
     const yesterday=new Date(Date.now()-86400000).toDateString();
@@ -1086,6 +1119,22 @@ export default function App(){
     }
     setStats(p=>({...p,todayPlayed:0,todayDate:today,ds:newDs,streakFreezes:newFreezes,lastDay:p.todayDate,dailyDone:p.dailyDate===today?p.dailyDone:false,dailyDate:today}));
   }},[stats.todayDate]);
+
+  // Handle challenge links
+  useEffect(()=>{
+    if(!challengeId||screen!=="home")return;
+    const allSc=Object.entries(SCENARIOS).flatMap(([p,arr])=>arr.map(s=>({...s,_pos:p})));
+    const sc=allSc.find(s=>s.id===challengeId);
+    if(sc){setChallengeMode(true);setPos(sc._pos);setSc(sc);setChoice(null);setOd(null);setRi(-1);setFo(null);setShowC(false);setLvlUp(null);setShowExp(true);setScreen("play");sc.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80)});setChallengeId(null);}
+    else setChallengeId(null);
+  },[challengeId,screen]);
+
+  const shareChallenge=useCallback(()=>{
+    if(!sc)return;
+    const url=`${window.location.origin}${window.location.pathname}#challenge=${sc.id}`;
+    if(navigator.clipboard)navigator.clipboard.writeText(url).then(()=>setToast({e:"📎",n:"Link Copied!",d:"Send to a friend to challenge them"}));
+    setTimeout(()=>setToast(null),3000);
+  },[sc]);
 
   const totalSc=Object.values(SCENARIOS).reduce((s,a)=>s+a.length,0);
   const remaining=DAILY_FREE-stats.todayPlayed;
@@ -1178,7 +1227,8 @@ export default function App(){
         recentWrong:isOpt?(p.recentWrong||[]):[...(p.recentWrong||[]),sc.concept].slice(-5),
         todayPlayed:(p.todayDate===today?p.todayPlayed:0)+1,todayDate:today,
         sp:isOpt?(p.sp||0)+1:0,
-        dailyDone:dailyMode?true:p.dailyDone,dailyDate:dailyMode?today:(p.dailyDate||today)};
+        dailyDone:dailyMode?true:p.dailyDone,dailyDate:dailyMode?today:(p.dailyDate||today),
+        seasonCorrect:seasonMode&&isOpt?(p.seasonCorrect||0)+1:(p.seasonCorrect||0)};
       ns.achs=checkAch(ns);
       const newLvl=getLvl(ns.pts);
       if(newLvl.n!==prevLvl.n){setTimeout(()=>{setLvlUp(newLvl);snd.play('lvl')},600)}
@@ -1201,10 +1251,10 @@ export default function App(){
     }else{
       setTimeout(()=>{setScreen("outcome");setTimeout(()=>setShowC(true),400);},350);
     }
-  },[choice,sc,pos,snd,checkAch,stats.pts,dailyMode,speedMode,timer,speedNext,survivalMode,survivalRun,survivalNext]);
+  },[choice,sc,pos,snd,checkAch,stats.pts,dailyMode,speedMode,timer,speedNext,survivalMode,survivalRun,survivalNext,seasonMode]);
 
-  const next=useCallback(()=>{setLvlUp(null);if(speedMode){speedNext()}else if(survivalMode){survivalNext()}else if(dailyMode){goHome()}else{startGame(pos,aiMode)}},[pos,startGame,aiMode,dailyMode,speedMode,speedNext,survivalMode,survivalNext,goHome]);
-  const goHome=useCallback(()=>{setScreen("home");setPos(null);setSc(null);setChoice(null);setOd(null);setFo(null);setPanel(null);setLvlUp(null);setDailyMode(false);setSpeedMode(false);setSpeedRound(null);setSurvivalMode(false);setSurvivalRun(null);setFielderTrack(null);if(timerRef.current)clearTimeout(timerRef.current)},[]);
+  const next=useCallback(()=>{setLvlUp(null);if(speedMode){speedNext()}else if(survivalMode){survivalNext()}else if(seasonMode){seasonNext()}else if(dailyMode){goHome()}else{startGame(pos,aiMode)}},[pos,startGame,aiMode,dailyMode,speedMode,speedNext,survivalMode,survivalNext,seasonMode,seasonNext,goHome]);
+  const goHome=useCallback(()=>{setScreen("home");setPos(null);setSc(null);setChoice(null);setOd(null);setFo(null);setPanel(null);setLvlUp(null);setDailyMode(false);setSpeedMode(false);setSpeedRound(null);setSurvivalMode(false);setSurvivalRun(null);setFielderTrack(null);setChallengeMode(false);setSeasonMode(false);if(timerRef.current)clearTimeout(timerRef.current)},[]);
   const finishOnboard=useCallback(()=>{setStats(p=>({...p,onboarded:true,todayDate:new Date().toDateString()}));setScreen("home")},[]);
   
   const lvl=getLvl(stats.pts);const nxt=getNxt(stats.pts);
@@ -1291,6 +1341,36 @@ export default function App(){
     s.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80);});
   },[survivalRun,getRand]);
 
+  // Season Mode helpers
+  const getSeasonStage=useCallback((gameNum)=>{
+    let count=0;
+    for(const st of SEASON_STAGES){const stTotal=st.games*3;if(gameNum<count+stTotal)return{...st,progress:gameNum-count,stTotal};count+=stTotal;}
+    return{...SEASON_STAGES[SEASON_STAGES.length-1],progress:0,stTotal:3};
+  },[]);
+
+  const startSeason=useCallback(()=>{
+    if(atLimit){setPanel('limit');return;}
+    snd.play('tap');setSeasonMode(true);setSpeedMode(false);setDailyMode(false);setSurvivalMode(false);setAiMode(false);
+    const stage=getSeasonStage(stats.seasonGame);
+    const p=ALL_POS[stats.seasonGame%ALL_POS.length];setPos(p);
+    const pool=(SCENARIOS[p]||[]).filter(s=>s.diff<=stage.diff);
+    const s=pool.length>0?pool[Math.floor(Math.random()*pool.length)]:getRand(p);
+    setSc(s);setChoice(null);setOd(null);setRi(-1);setFo(null);setShowC(false);setLvlUp(null);setShowExp(true);
+    setScreen("play");s.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80);});
+  },[atLimit,snd,stats.seasonGame,getSeasonStage,getRand]);
+
+  const seasonNext=useCallback(()=>{
+    const nextGame=stats.seasonGame+1;
+    if(nextGame>=SEASON_TOTAL){setStats(p=>({...p,seasonComplete:true}));goHome();return;}
+    setStats(p=>({...p,seasonGame:nextGame}));
+    const stage=getSeasonStage(nextGame);
+    const p=ALL_POS[nextGame%ALL_POS.length];setPos(p);
+    const pool=(SCENARIOS[p]||[]).filter(s=>s.diff<=stage.diff);
+    const s=pool.length>0?pool[Math.floor(Math.random()*pool.length)]:getRand(p);
+    setSc(s);setChoice(null);setOd(null);setRi(-1);setFo(null);setShowC(false);
+    setScreen("play");s.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80);});
+  },[stats.seasonGame,getSeasonStage,getRand,goHome]);
+
   // Shared styles
   const card={background:"rgba(255,255,255,.025)",border:"1px solid rgba(255,255,255,.05)",borderRadius:14,padding:14};
   const btn=(bg,c)=>({background:bg,color:c||"white",border:"none",borderRadius:12,padding:"14px",fontSize:15,fontWeight:700,cursor:"pointer",width:"100%",letterSpacing:.3,minHeight:48});
@@ -1347,6 +1427,12 @@ export default function App(){
                 <div><div style={{fontSize:14,fontWeight:700}}>{it.t}</div><div style={{fontSize:12,color:"#6b7280",lineHeight:1.4}}>{it.d}</div></div>
               </div>
             ))}
+          </div>
+          <div style={{maxWidth:300,margin:"0 auto 20px"}}>
+            <div style={{fontSize:11,color:"#6b7280",textTransform:"uppercase",letterSpacing:1,fontWeight:700,marginBottom:6,textAlign:"center"}}>Your Player Name</div>
+            <input value={stats.displayName} onChange={e=>setStats(p=>({...p,displayName:e.target.value.slice(0,15)}))}
+              placeholder={BASEBALL_NAMES[Math.floor(Math.random()*BASEBALL_NAMES.length)]}
+              style={{width:"100%",background:"rgba(255,255,255,.04)",border:"1.5px solid rgba(255,255,255,.1)",borderRadius:10,padding:"10px 12px",color:"white",fontSize:14,textAlign:"center",outline:"none",marginBottom:12}}/>
           </div>
           <div style={{maxWidth:300,margin:"0 auto 20px",textAlign:"left"}}>
             <div style={{fontSize:11,color:"#6b7280",textTransform:"uppercase",letterSpacing:1,fontWeight:700,marginBottom:6,textAlign:"center"}}>How old are you?</div>
@@ -1406,11 +1492,12 @@ export default function App(){
                 </div>}
               </div>
             )})()}
-            <div style={{display:"flex",gap:8,marginTop:10}}>
-              <button onClick={()=>setPanel(panel==='ach'?null:'ach')} style={{flex:1,background:"rgba(245,158,11,.05)",border:"1px solid rgba(245,158,11,.12)",borderRadius:10,padding:"8px 4px",color:"#f59e0b",fontSize:11,fontWeight:600,cursor:"pointer",minHeight:40}}>🏅 {(stats.achs||[]).length}/{ACHS.length}</button>
-              <button onClick={()=>setPanel(panel==='concepts'?null:'concepts')} style={{flex:1,background:"rgba(59,130,246,.05)",border:"1px solid rgba(59,130,246,.12)",borderRadius:10,padding:"8px 4px",color:"#3b82f6",fontSize:11,fontWeight:600,cursor:"pointer",minHeight:40}}>🧠 {(stats.cl?.length||0)} concepts</button>
-              <button onClick={()=>setPanel(panel==='stats'?null:'stats')} style={{flex:1,background:"rgba(34,197,94,.05)",border:"1px solid rgba(34,197,94,.12)",borderRadius:10,padding:"8px 4px",color:"#22c55e",fontSize:11,fontWeight:600,cursor:"pointer",minHeight:40}}>📊 Stats</button>
-              <button onClick={()=>setPanel(panel==='progress'?null:'progress')} style={{flex:1,background:"rgba(168,85,247,.05)",border:"1px solid rgba(168,85,247,.12)",borderRadius:10,padding:"8px 4px",color:"#a855f7",fontSize:11,fontWeight:600,cursor:"pointer",minHeight:40}}>📈 Map</button>
+            <div style={{display:"flex",gap:6,marginTop:10,flexWrap:"wrap"}}>
+              <button onClick={()=>setPanel(panel==='ach'?null:'ach')} style={{flex:"1 1 22%",background:"rgba(245,158,11,.05)",border:"1px solid rgba(245,158,11,.12)",borderRadius:10,padding:"8px 4px",color:"#f59e0b",fontSize:10,fontWeight:600,cursor:"pointer",minHeight:38}}>🏅 {(stats.achs||[]).length}/{ACHS.length}</button>
+              <button onClick={()=>setPanel(panel==='concepts'?null:'concepts')} style={{flex:"1 1 22%",background:"rgba(59,130,246,.05)",border:"1px solid rgba(59,130,246,.12)",borderRadius:10,padding:"8px 4px",color:"#3b82f6",fontSize:10,fontWeight:600,cursor:"pointer",minHeight:38}}>🧠 {(stats.cl?.length||0)}</button>
+              <button onClick={()=>setPanel(panel==='stats'?null:'stats')} style={{flex:"1 1 22%",background:"rgba(34,197,94,.05)",border:"1px solid rgba(34,197,94,.12)",borderRadius:10,padding:"8px 4px",color:"#22c55e",fontSize:10,fontWeight:600,cursor:"pointer",minHeight:38}}>📊 Stats</button>
+              <button onClick={()=>setPanel(panel==='progress'?null:'progress')} style={{flex:"1 1 22%",background:"rgba(168,85,247,.05)",border:"1px solid rgba(168,85,247,.12)",borderRadius:10,padding:"8px 4px",color:"#a855f7",fontSize:10,fontWeight:600,cursor:"pointer",minHeight:38}}>📈 Map</button>
+              <button onClick={()=>setPanel(panel==='lb'?null:'lb')} style={{flex:"1 1 100%",background:"rgba(234,179,8,.05)",border:"1px solid rgba(234,179,8,.12)",borderRadius:10,padding:"6px 4px",color:"#eab308",fontSize:10,fontWeight:600,cursor:"pointer",minHeight:34}}>🏆 Leaderboard</button>
             </div>
           </div>}
 
@@ -1484,6 +1571,25 @@ export default function App(){
             </div>
           </div>}
 
+          {panel==='lb'&&<div style={{...card,marginBottom:12}}>
+            <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:14,color:"#eab308",letterSpacing:1,marginBottom:2}}>LEADERBOARD</div>
+            <div style={{fontSize:9,color:"#6b7280",marginBottom:8}}>Week {lbData.week} · Resets weekly · Play on same device to compete</div>
+            {!stats.displayName&&<div style={{background:"rgba(234,179,8,.06)",border:"1px solid rgba(234,179,8,.15)",borderRadius:10,padding:"8px 10px",marginBottom:8}}>
+              <div style={{fontSize:11,color:"#eab308",marginBottom:4}}>Set a display name to appear on the leaderboard:</div>
+              <input value={stats.displayName} onChange={e=>setStats(p=>({...p,displayName:e.target.value.slice(0,15)}))}
+                placeholder="Enter your name..." style={{width:"100%",background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.1)",borderRadius:8,padding:"6px 10px",color:"white",fontSize:12,outline:"none"}}/>
+            </div>}
+            {lbData.entries.length===0&&<div style={{textAlign:"center",padding:"12px 0",color:"#4b5563",fontSize:11}}>No entries yet this week. Play to get on the board!</div>}
+            {lbData.entries.map((e,i)=>(
+              <div key={i} style={{display:"flex",alignItems:"center",gap:8,padding:"6px 8px",background:e.name===stats.displayName?"rgba(234,179,8,.06)":"rgba(255,255,255,.01)",borderRadius:8,marginBottom:3,border:e.name===stats.displayName?"1px solid rgba(234,179,8,.15)":"1px solid transparent"}}>
+                <span style={{fontSize:14,fontWeight:800,color:i===0?"#eab308":i===1?"#94a3b8":i===2?"#b45309":"#4b5563",width:22,textAlign:"center"}}>{i===0?"🥇":i===1?"🥈":i===2?"🥉":i+1}</span>
+                <span style={{flex:1,fontSize:12,fontWeight:e.name===stats.displayName?700:500,color:e.name===stats.displayName?"#eab308":"#d1d5db"}}>{e.name}</span>
+                <span style={{fontSize:11,color:"#f59e0b",fontWeight:700}}>{e.pts} pts</span>
+                <span style={{fontSize:10,color:"#6b7280"}}>{e.acc}%</span>
+              </div>
+            ))}
+          </div>}
+
           {panel==='limit'&&<div style={{...card,marginBottom:12,textAlign:"center",borderColor:"rgba(245,158,11,.2)"}}>
             <div style={{fontSize:32,marginBottom:6}}>⏰</div>
             <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:18,color:"#f59e0b",letterSpacing:1}}>DAILY LIMIT REACHED</div>
@@ -1512,6 +1618,30 @@ export default function App(){
                   </div>
                 </div>
                 {!done&&<div style={{color:"#f59e0b",fontSize:20,flexShrink:0,cursor:"pointer"}}>▶</div>}
+              </div>
+            </div>
+          );})()}
+
+          {/* Season Mode */}
+          {(()=>{const stage=getSeasonStage(stats.seasonGame);const pct=Math.round((stats.seasonGame/SEASON_TOTAL)*100);return(
+            <div onClick={stats.seasonComplete?()=>setStats(p=>({...p,seasonGame:0,seasonCorrect:0,seasonComplete:false})):startSeason} style={{background:"linear-gradient(135deg,rgba(245,158,11,.06),rgba(234,179,8,.03))",border:"1px solid rgba(245,158,11,.15)",borderRadius:14,padding:"12px 14px",cursor:"pointer",marginBottom:12}}>
+              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:6}}>
+                <div style={{display:"flex",alignItems:"center",gap:8}}>
+                  <span style={{fontSize:22}}>{stats.seasonComplete?"🏆":stage.emoji}</span>
+                  <div>
+                    <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:14,color:"#f59e0b",letterSpacing:1}}>{stats.seasonComplete?"SEASON COMPLETE!":stage.name.toUpperCase()}</div>
+                    <div style={{fontSize:10,color:"#9ca3af"}}>{stats.seasonComplete?`${stats.seasonCorrect}/${SEASON_TOTAL} optimal · New season?`:`Game ${stats.seasonGame+1} of ${SEASON_TOTAL}`}</div>
+                  </div>
+                </div>
+                <span style={{fontSize:11,fontWeight:700,color:stage.color}}>{pct}%</span>
+              </div>
+              <div style={{height:4,background:"rgba(255,255,255,.03)",borderRadius:2,overflow:"hidden"}}>
+                <div style={{height:"100%",width:`${pct}%`,background:`linear-gradient(90deg,#22c55e,${stage.color})`,borderRadius:2,transition:"width .5s"}}/>
+              </div>
+              <div style={{display:"flex",gap:4,marginTop:6,overflow:"hidden"}}>
+                {SEASON_STAGES.map((st,i)=>{let before=0;for(let j=0;j<i;j++)before+=SEASON_STAGES[j].games*3;const active=stats.seasonGame>=before;return(
+                  <div key={i} style={{flex:st.games,height:3,borderRadius:2,background:active?st.color:"rgba(255,255,255,.04)",transition:"all .3s"}} title={st.name}/>
+                )})}
               </div>
             </div>
           );})()}
@@ -1598,7 +1728,21 @@ export default function App(){
             <span>1️⃣ Pick position</span><span>2️⃣ Read the play</span><span>3️⃣ Make the call</span><span>4️⃣ Learn why</span>
           </div>
 
-          {/* Settings row */}
+          {/* Team & Settings */}
+          <div style={{marginTop:12,background:"rgba(255,255,255,.01)",border:"1px solid rgba(255,255,255,.04)",borderRadius:12,padding:"10px 12px"}}>
+            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
+              <span style={{fontSize:14}}>👥</span>
+              <span style={{fontSize:11,fontWeight:700,color:"#6b7280"}}>TEAM</span>
+              {stats.teamCode&&<span style={{fontSize:10,color:"#3b82f6",background:"rgba(59,130,246,.08)",padding:"1px 6px",borderRadius:4}}>Code: {stats.teamCode}</span>}
+            </div>
+            {!stats.teamCode?<div style={{display:"flex",gap:6}}>
+              <button onClick={()=>{const code=Math.random().toString(36).slice(2,6).toUpperCase();setStats(p=>({...p,teamCode:code}))}} style={{flex:1,background:"rgba(59,130,246,.06)",border:"1px solid rgba(59,130,246,.15)",borderRadius:8,padding:"6px",color:"#3b82f6",fontSize:10,fontWeight:600,cursor:"pointer"}}>Create Team</button>
+              <button onClick={()=>{const code=prompt("Enter team code:");if(code)setStats(p=>({...p,teamCode:code.toUpperCase().slice(0,4)}))}} style={{flex:1,background:"rgba(34,197,94,.06)",border:"1px solid rgba(34,197,94,.15)",borderRadius:8,padding:"6px",color:"#22c55e",fontSize:10,fontWeight:600,cursor:"pointer"}}>Join Team</button>
+            </div>:<div style={{display:"flex",gap:6}}>
+              <button onClick={()=>{if(navigator.clipboard)navigator.clipboard.writeText(stats.teamCode);setToast({e:"📎",n:"Code Copied!",d:`Share "${stats.teamCode}" with teammates`});setTimeout(()=>setToast(null),3000)}} style={{flex:1,background:"rgba(59,130,246,.06)",border:"1px solid rgba(59,130,246,.15)",borderRadius:8,padding:"6px",color:"#3b82f6",fontSize:10,fontWeight:600,cursor:"pointer"}}>📎 Share Code</button>
+              <button onClick={()=>setStats(p=>({...p,teamCode:""}))} style={{background:"rgba(239,68,68,.06)",border:"1px solid rgba(239,68,68,.15)",borderRadius:8,padding:"6px 10px",color:"#ef4444",fontSize:10,fontWeight:600,cursor:"pointer"}}>Leave</button>
+            </div>}
+          </div>
           <div style={{display:"flex",justifyContent:"center",gap:8,marginTop:8,flexWrap:"wrap",alignItems:"center"}}>
             <button onClick={()=>{const v=!stats.soundOn;setStats(p=>({...p,soundOn:v}));snd.setEnabled(v)}} style={{...ghost,fontSize:10}}>{stats.soundOn?"🔊 Sound On":"🔇 Sound Off"}</button>
             <span style={{color:"#374151"}}>·</span>
@@ -1624,6 +1768,7 @@ export default function App(){
               {survivalMode&&<span style={{background:"rgba(168,85,247,.15)",border:"1px solid rgba(168,85,247,.25)",borderRadius:7,padding:"2px 7px",fontSize:9,fontWeight:700,color:"#a855f7"}}>💀 #{survivalRun?survivalRun.count+1:1}</span>}
               {speedMode&&<span style={{background:"rgba(239,68,68,.15)",border:"1px solid rgba(239,68,68,.25)",borderRadius:7,padding:"2px 7px",fontSize:9,fontWeight:700,color:"#ef4444"}}>⚡ {speedRound?speedRound.round+1:1}/5</span>}
               {dailyMode&&<span style={{background:"rgba(245,158,11,.15)",border:"1px solid rgba(245,158,11,.25)",borderRadius:7,padding:"2px 7px",fontSize:9,fontWeight:700,color:"#f59e0b"}}>💎 Daily · 2x XP</span>}
+              {seasonMode&&(()=>{const st=getSeasonStage(stats.seasonGame);return <span style={{background:`${st.color}15`,border:`1px solid ${st.color}25`,borderRadius:7,padding:"2px 7px",fontSize:9,fontWeight:700,color:st.color}}>{st.emoji} {st.name}</span>})()}
               {aiMode&&<span style={{background:"rgba(168,85,247,.15)",border:"1px solid rgba(168,85,247,.25)",borderRadius:7,padding:"2px 7px",fontSize:9,fontWeight:700,color:"#a855f7"}}>🤖 AI</span>}
               <span style={{fontSize:9,color:DIFF_TAG[(sc.diff||1)-1].c}}>{"⭐".repeat(sc.diff||1)}</span>
               <span style={{background:`${POS_META[pos].color}15`,border:`1px solid ${POS_META[pos].color}25`,borderRadius:7,padding:"2px 7px",fontSize:10,fontWeight:700,color:POS_META[pos].color}}>{POS_META[pos].emoji} {POS_META[pos].label}</span>
@@ -1710,8 +1855,9 @@ export default function App(){
           </div>}
 
           <button onClick={next} style={{...btn(dailyMode?"linear-gradient(135deg,#d97706,#f59e0b)":"linear-gradient(135deg,#2563eb,#3b82f6)"),...{marginTop:12,boxShadow:dailyMode?"0 4px 12px rgba(245,158,11,.25)":"0 4px 12px rgba(37,99,235,.25)"}}}>{dailyMode?"Back to Home →":"Next Challenge →"}</button>
-          <div style={{textAlign:"center",marginTop:3}}>
+          <div style={{display:"flex",justifyContent:"center",gap:8,marginTop:6}}>
             <button onClick={goHome} style={ghost}>Change Position</button>
+            <button onClick={shareChallenge} style={{...ghost,color:"#3b82f6"}}>📎 Challenge a Friend</button>
           </div>
 
           {/* Pro upsell (non-annoying, after outcome) */}
