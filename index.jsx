@@ -1103,6 +1103,10 @@ export default function App(){
   const snd=useSound();
 
   const abortRef=useRef(null);
+  const speedNextRef=useRef(null);
+  const survivalNextRef=useRef(null);
+  const seasonNextRef=useRef(null);
+  const goHomeRef=useRef(null);
 
   const[challengeMode,setChallengeMode]=useState(false);
   const[challengeId,setChallengeId]=useState(null);
@@ -1270,7 +1274,7 @@ export default function App(){
     if(dailyMode)setTimeout(()=>snd.play('daily'),400);
     if(speedMode){
       // Speed mode: brief feedback then auto-advance
-      setTimeout(()=>{setScreen("outcome");setTimeout(()=>{setShowC(true);setTimeout(()=>speedNext(),1200)},200)},250);
+      setTimeout(()=>{setScreen("outcome");setTimeout(()=>{setShowC(true);setTimeout(()=>speedNextRef.current?.(),1200)},200)},250);
     }else if(survivalMode){
       if(!isOpt){
         // Wrong answer — update best and show game over
@@ -1279,15 +1283,16 @@ export default function App(){
         setTimeout(()=>setScreen("survivalOver"),500);
       }else{
         // Correct — brief feedback then next
-        setTimeout(()=>{setScreen("outcome");setTimeout(()=>{setShowC(true);setTimeout(()=>survivalNext(),1200)},200)},250);
+        setTimeout(()=>{setScreen("outcome");setTimeout(()=>{setShowC(true);setTimeout(()=>survivalNextRef.current?.(),1200)},200)},250);
       }
     }else{
       setTimeout(()=>{setScreen("outcome");setTimeout(()=>setShowC(true),400);},350);
     }
-  },[choice,sc,pos,snd,checkAch,stats.pts,dailyMode,speedMode,timer,speedNext,survivalMode,survivalRun,survivalNext,seasonMode]);
+  },[choice,sc,pos,snd,checkAch,stats.pts,dailyMode,speedMode,timer,survivalMode,survivalRun,seasonMode]);
 
-  const next=useCallback(()=>{setLvlUp(null);if(speedMode){speedNext()}else if(survivalMode){survivalNext()}else if(seasonMode){seasonNext()}else if(dailyMode){goHome()}else{startGame(pos,aiMode)}},[pos,startGame,aiMode,dailyMode,speedMode,speedNext,survivalMode,survivalNext,seasonMode,seasonNext,goHome]);
   const goHome=useCallback(()=>{setScreen("home");setPos(null);setSc(null);setChoice(null);setOd(null);setFo(null);setPanel(null);setLvlUp(null);setCoachMsg(null);setDailyMode(false);setSpeedMode(false);setSpeedRound(null);setSurvivalMode(false);setSurvivalRun(null);setFielderTrack(null);setChallengeMode(false);setSeasonMode(false);if(timerRef.current)clearTimeout(timerRef.current)},[]);
+  goHomeRef.current=goHome;
+  const next=useCallback(()=>{setLvlUp(null);if(speedMode){speedNextRef.current?.()}else if(survivalMode){survivalNextRef.current?.()}else if(seasonMode){seasonNextRef.current?.()}else if(dailyMode){goHomeRef.current?.()}else{startGame(pos,aiMode)}},[pos,startGame,aiMode,dailyMode,speedMode,survivalMode,seasonMode]);
   const finishOnboard=useCallback(()=>{setStats(p=>({...p,onboarded:true,todayDate:new Date().toDateString()}));setScreen("home")},[]);
   
   const lvl=getLvl(stats.pts);const nxt=getNxt(stats.pts);
@@ -1345,6 +1350,7 @@ export default function App(){
     setTimer(15);setScreen("play");
     s.options.forEach((_,i)=>{setTimeout(()=>setRi(i),80+i*60);});
   },[speedRound,getRand]);
+  speedNextRef.current=speedNext;
 
   // Survival Mode flow
   const startSurvival=useCallback(()=>{
@@ -1373,6 +1379,7 @@ export default function App(){
     setScreen("play");
     s.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80);});
   },[survivalRun,getRand]);
+  survivalNextRef.current=survivalNext;
 
   // Season Mode helpers
   const getSeasonStage=useCallback((gameNum)=>{
@@ -1394,7 +1401,7 @@ export default function App(){
 
   const seasonNext=useCallback(()=>{
     const nextGame=stats.seasonGame+1;
-    if(nextGame>=SEASON_TOTAL){setStats(p=>({...p,seasonComplete:true}));goHome();return;}
+    if(nextGame>=SEASON_TOTAL){setStats(p=>({...p,seasonComplete:true}));goHomeRef.current?.();return;}
     setStats(p=>({...p,seasonGame:nextGame}));
     const stage=getSeasonStage(nextGame);
     const p=ALL_POS[nextGame%ALL_POS.length];setPos(p);
@@ -1402,7 +1409,8 @@ export default function App(){
     const s=pool.length>0?pool[Math.floor(Math.random()*pool.length)]:getRand(p);
     setSc(s);setChoice(null);setOd(null);setRi(-1);setFo(null);setShowC(false);
     setScreen("play");s.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80);});
-  },[stats.seasonGame,getSeasonStage,getRand,goHome]);
+  },[stats.seasonGame,getSeasonStage,getRand]);
+  seasonNextRef.current=seasonNext;
 
   // Shared styles
   const card={background:"rgba(255,255,255,.025)",border:"1px solid rgba(255,255,255,.05)",borderRadius:14,padding:14};
