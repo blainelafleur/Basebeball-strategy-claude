@@ -386,6 +386,15 @@ const ACHS=[
   {id:"daily7",n:"Weekly Warrior",d:"7-day streak",e:"🗓️",ck:s=>(s.ds||0)>=7},
   {id:"perf5",n:"Perfect Inning",d:"5 optimal in one session",e:"💯",ck:s=>(s.sp||0)>=5},
 ];
+function achProgress(id,s){
+  const map={first:[s.gp,1],s3:[Math.min(s.str,3),3],s5:[Math.min(s.str,5),5],s10:[Math.min(s.str,10),10],
+    g10:[Math.min(s.gp,10),10],g25:[Math.min(s.gp,25),25],g50:[Math.min(s.gp,50),50],g100:[Math.min(s.gp,100),100],
+    a80:[s.gp>=10?Math.min(Math.round((s.co/Math.max(s.gp,1))*100),100):Math.min(s.gp,10),s.gp>=10?80:10],
+    util:[ALL_POS.filter(p=>(s.ps[p]?.p||0)>=1).length,5],
+    c10:[Math.min(s.cl?.length||0,10),10],c20:[Math.min(s.cl?.length||0,20),20],
+    daily3:[Math.min(s.ds||0,3),3],daily7:[Math.min(s.ds||0,7),7],perf5:[Math.min(s.sp||0,5),5]};
+  return map[id]||[0,1];
+}
 function getLvl(p){for(let i=LEVELS.length-1;i>=0;i--)if(p>=LEVELS[i].min)return LEVELS[i];return LEVELS[0];}
 function getNxt(p){for(const l of LEVELS)if(p<l.min)return l;return null;}
 
@@ -567,6 +576,11 @@ function useSound() {
       else if(t==='wrong'){const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.type='sawtooth';o.frequency.setValueAtTime(250,n);o.frequency.exponentialRampToValueAtTime(150,n+.2);g.gain.setValueAtTime(.06,n);g.gain.exponentialRampToValueAtTime(.001,n+.25);o.start(n);o.stop(n+.25)}
       else if(t==='ach'){[523,659,784,1047].forEach((f,i)=>{const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.type='sine';o.frequency.setValueAtTime(f,n+i*.09);g.gain.setValueAtTime(.09,n+i*.09);g.gain.exponentialRampToValueAtTime(.001,n+i*.09+.25);o.start(n+i*.09);o.stop(n+i*.09+.25)})}
       else if(t==='lvl'){[392,523,659,784,1047].forEach((f,i)=>{const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.type='triangle';o.frequency.setValueAtTime(f,n+i*.12);g.gain.setValueAtTime(.1,n+i*.12);g.gain.exponentialRampToValueAtTime(.001,n+i*.12+.35);o.start(n+i*.12);o.stop(n+i*.12+.35)})}
+      else if(t==='streak'){[523,659,784,1047,1319].forEach((f,i)=>{const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.type='sine';o.frequency.setValueAtTime(f,n+i*.08);g.gain.setValueAtTime(.12,n+i*.08);g.gain.exponentialRampToValueAtTime(.001,n+i*.08+.3);o.start(n+i*.08);o.stop(n+i*.08+.3)})}
+      else if(t==='daily'){[659,784,1047,784,1047,1319].forEach((f,i)=>{const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.type='triangle';o.frequency.setValueAtTime(f,n+i*.1);g.gain.setValueAtTime(.1,n+i*.1);g.gain.exponentialRampToValueAtTime(.001,n+i*.1+.25);o.start(n+i*.1);o.stop(n+i*.1+.25)})}
+      else if(t==='tick'){const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.type='square';o.frequency.setValueAtTime(1200,n);g.gain.setValueAtTime(.04,n);g.gain.exponentialRampToValueAtTime(.001,n+.04);o.start(n);o.stop(n+.04)}
+      else if(t==='elimination'){[400,300,200,150].forEach((f,i)=>{const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.type='sawtooth';o.frequency.setValueAtTime(f,n+i*.15);g.gain.setValueAtTime(.07,n+i*.15);g.gain.exponentialRampToValueAtTime(.001,n+i*.15+.2);o.start(n+i*.15);o.stop(n+i*.15+.2)})}
+      else if(t==='near'){[600,500,600].forEach((f,i)=>{const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.type='triangle';o.frequency.setValueAtTime(f,n+i*.06);g.gain.setValueAtTime(.07,n+i*.06);g.gain.exponentialRampToValueAtTime(.001,n+i*.06+.12);o.start(n+i*.06);o.stop(n+i*.06+.12)})}
     }catch{}
   },[getCtx]);
   return{play,setEnabled:(v)=>{enabled.current=v}};
@@ -796,7 +810,7 @@ export default function App(){
     // Check for streak milestone celebration
     if(STREAK_MILESTONES.includes(newDs)&&newDs>stats.ds){
       const fl=getFlame(newDs);
-      setTimeout(()=>{setLvlUp({e:fl.icon,n:`${newDs}-Day Streak!`,c:fl.color});snd.play('lvl')},800);
+      setTimeout(()=>{setLvlUp({e:fl.icon,n:`${newDs}-Day Streak!`,c:fl.color});snd.play('streak')},800);
     }
     setStats(p=>({...p,todayPlayed:0,todayDate:today,ds:newDs,streakFreezes:newFreezes,lastDay:p.todayDate,dailyDone:p.dailyDate===today?p.dailyDone:false,dailyDate:today}));
   }},[stats.todayDate]);
@@ -870,7 +884,7 @@ export default function App(){
     // Speed Round bonus: +1 pt per second remaining
     let speedBonus=0;
     if(speedMode&&isOpt&&timer>0){speedBonus=timer;pts+=speedBonus;}
-    setFo(cat);setAk(k=>k+1);snd.play(isOpt?'correct':'wrong');
+    setFo(cat);setAk(k=>k+1);snd.play(isOpt?'correct':rate>=55?'near':'wrong');
     const o={cat,isOpt,exp:sc.explanations[idx],bestExp:sc.explanations[sc.best],bestOpt:sc.options[sc.best],concept:sc.concept,pts,chosen:sc.options[idx],rate,anim:sc.anim,speedBonus,timeLeft:timer};
     setOd(o);
     // Track speed round result
@@ -892,12 +906,14 @@ export default function App(){
       if(newLvl.n!==prevLvl.n){setTimeout(()=>{setLvlUp(newLvl);snd.play('lvl')},600)}
       return ns;
     });
+    if(dailyMode)setTimeout(()=>snd.play('daily'),400);
     if(speedMode){
       // Speed mode: brief feedback then auto-advance
       setTimeout(()=>{setScreen("outcome");setTimeout(()=>{setShowC(true);setTimeout(()=>speedNext(),1200)},200)},250);
     }else if(survivalMode){
       if(!isOpt){
         // Wrong answer — update best and show game over
+        snd.play('elimination');
         setStats(p=>({...p,survivalBest:Math.max(p.survivalBest||0,(survivalRun?.count||0)+1)}));
         setTimeout(()=>setScreen("survivalOver"),500);
       }else{
@@ -927,6 +943,7 @@ export default function App(){
   // Speed Round timer
   useEffect(()=>{
     if(speedMode&&screen==="play"&&choice===null&&!aiLoading&&timer>0){
+      if(timer<=5)snd.play('tick');
       timerRef.current=setTimeout(()=>setTimer(t=>t-1),1000);
       return()=>clearTimeout(timerRef.current);
     }
@@ -935,7 +952,7 @@ export default function App(){
       const wrongIdx=sc?[0,1,2,3].filter(i=>i!==sc.best)[0]:0;
       handleChoice(wrongIdx);
     }
-  },[speedMode,screen,choice,aiLoading,timer,sc,handleChoice]);
+  },[speedMode,screen,choice,aiLoading,timer,sc,handleChoice,snd]);
 
   // Speed Round flow
   const startSpeedRound=useCallback(()=>{
@@ -998,8 +1015,8 @@ export default function App(){
 
   // Shared styles
   const card={background:"rgba(255,255,255,.025)",border:"1px solid rgba(255,255,255,.05)",borderRadius:14,padding:14};
-  const btn=(bg,c)=>({background:bg,color:c||"white",border:"none",borderRadius:12,padding:"12px",fontSize:14,fontWeight:700,cursor:"pointer",width:"100%",letterSpacing:.3});
-  const ghost={background:"none",border:"none",color:"#6b7280",fontSize:12,cursor:"pointer",padding:6};
+  const btn=(bg,c)=>({background:bg,color:c||"white",border:"none",borderRadius:12,padding:"14px",fontSize:15,fontWeight:700,cursor:"pointer",width:"100%",letterSpacing:.3,minHeight:48});
+  const ghost={background:"none",border:"none",color:"#6b7280",fontSize:13,cursor:"pointer",padding:"8px 12px",minHeight:40};
 
   if(screen==="loading")return(<div style={{minHeight:"100vh",background:"#0a0f1a",display:"flex",alignItems:"center",justifyContent:"center"}}><div style={{textAlign:"center"}}><div style={{fontSize:48,marginBottom:8}}>⚾</div><div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:24,color:"#f59e0b",letterSpacing:2}}>LOADING...</div></div></div>);
 
@@ -1038,7 +1055,7 @@ export default function App(){
         </div>
       </div>}
 
-      <div style={{maxWidth:640,margin:"0 auto",padding:"10px 12px"}}>
+      <div style={{maxWidth:640,margin:"0 auto",padding:"10px 16px"}}>
         
         {/* ONBOARDING */}
         {screen==="onboard"&&<div style={{textAlign:"center",padding:"60px 20px 40px"}}>
@@ -1049,7 +1066,7 @@ export default function App(){
             {[{e:"🎯",t:"Choose wisely",d:"Read the situation and pick the best strategy"},{e:"💡",t:"Learn the WHY",d:"Every answer teaches real MLB strategy"},{e:"📈",t:"Level up",d:"Track your progress from Rookie to Hall of Fame"}].map((it,i)=>(
               <div key={i} style={{display:"flex",gap:10,alignItems:"center",textAlign:"left",background:"rgba(255,255,255,.02)",borderRadius:10,padding:"10px 12px"}}>
                 <span style={{fontSize:24,flexShrink:0}}>{it.e}</span>
-                <div><div style={{fontSize:13,fontWeight:700}}>{it.t}</div><div style={{fontSize:11,color:"#6b7280"}}>{it.d}</div></div>
+                <div><div style={{fontSize:14,fontWeight:700}}>{it.t}</div><div style={{fontSize:12,color:"#6b7280",lineHeight:1.4}}>{it.d}</div></div>
               </div>
             ))}
           </div>
@@ -1099,10 +1116,11 @@ export default function App(){
                 </div>}
               </div>
             )})()}
-            <div style={{display:"flex",gap:5,marginTop:8}}>
-              <button onClick={()=>setPanel(panel==='ach'?null:'ach')} style={{flex:1,background:"rgba(245,158,11,.05)",border:"1px solid rgba(245,158,11,.12)",borderRadius:8,padding:"5px",color:"#f59e0b",fontSize:10,fontWeight:600,cursor:"pointer"}}>🏅 {(stats.achs||[]).length}/{ACHS.length}</button>
-              <button onClick={()=>setPanel(panel==='concepts'?null:'concepts')} style={{flex:1,background:"rgba(59,130,246,.05)",border:"1px solid rgba(59,130,246,.12)",borderRadius:8,padding:"5px",color:"#3b82f6",fontSize:10,fontWeight:600,cursor:"pointer"}}>🧠 {(stats.cl?.length||0)} concepts</button>
-              <button onClick={()=>setPanel(panel==='stats'?null:'stats')} style={{flex:1,background:"rgba(34,197,94,.05)",border:"1px solid rgba(34,197,94,.12)",borderRadius:8,padding:"5px",color:"#22c55e",fontSize:10,fontWeight:600,cursor:"pointer"}}>📊 Stats</button>
+            <div style={{display:"flex",gap:8,marginTop:10}}>
+              <button onClick={()=>setPanel(panel==='ach'?null:'ach')} style={{flex:1,background:"rgba(245,158,11,.05)",border:"1px solid rgba(245,158,11,.12)",borderRadius:10,padding:"8px 4px",color:"#f59e0b",fontSize:11,fontWeight:600,cursor:"pointer",minHeight:40}}>🏅 {(stats.achs||[]).length}/{ACHS.length}</button>
+              <button onClick={()=>setPanel(panel==='concepts'?null:'concepts')} style={{flex:1,background:"rgba(59,130,246,.05)",border:"1px solid rgba(59,130,246,.12)",borderRadius:10,padding:"8px 4px",color:"#3b82f6",fontSize:11,fontWeight:600,cursor:"pointer",minHeight:40}}>🧠 {(stats.cl?.length||0)} concepts</button>
+              <button onClick={()=>setPanel(panel==='stats'?null:'stats')} style={{flex:1,background:"rgba(34,197,94,.05)",border:"1px solid rgba(34,197,94,.12)",borderRadius:10,padding:"8px 4px",color:"#22c55e",fontSize:11,fontWeight:600,cursor:"pointer",minHeight:40}}>📊 Stats</button>
+              <button onClick={()=>setPanel(panel==='progress'?null:'progress')} style={{flex:1,background:"rgba(168,85,247,.05)",border:"1px solid rgba(168,85,247,.12)",borderRadius:10,padding:"8px 4px",color:"#a855f7",fontSize:11,fontWeight:600,cursor:"pointer",minHeight:40}}>📈 Map</button>
             </div>
           </div>}
 
@@ -1110,10 +1128,16 @@ export default function App(){
           {panel==='ach'&&<div style={{...card,marginBottom:12}}>
             <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:14,color:"#f59e0b",letterSpacing:1,marginBottom:6}}>ACHIEVEMENTS</div>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:5}}>
-              {ACHS.map(a=>{const e=(stats.achs||[]).includes(a.id);return(
-                <div key={a.id} style={{background:e?"rgba(245,158,11,.04)":"rgba(255,255,255,.01)",border:`1px solid ${e?"rgba(245,158,11,.12)":"rgba(255,255,255,.03)"}`,borderRadius:8,padding:"5px 7px",opacity:e?1:.4}}>
-                  <div style={{display:"flex",alignItems:"center",gap:4}}><span style={{fontSize:12}}>{a.e}</span><span style={{fontSize:10,fontWeight:700,color:e?"#f59e0b":"#6b7280"}}>{a.n}</span></div>
+              {ACHS.map(a=>{const earned=(stats.achs||[]).includes(a.id);const[cur,tgt]=achProgress(a.id,stats);const pct=Math.min(100,Math.round((cur/tgt)*100));return(
+                <div key={a.id} style={{background:earned?"rgba(245,158,11,.04)":"rgba(255,255,255,.01)",border:`1px solid ${earned?"rgba(245,158,11,.12)":"rgba(255,255,255,.03)"}`,borderRadius:8,padding:"5px 7px",opacity:earned?1:.55}}>
+                  <div style={{display:"flex",alignItems:"center",gap:4}}><span style={{fontSize:12}}>{a.e}</span><span style={{fontSize:10,fontWeight:700,color:earned?"#f59e0b":"#6b7280"}}>{a.n}</span></div>
                   <div style={{fontSize:8,color:"#6b7280",marginTop:1}}>{a.d}</div>
+                  {!earned&&<div style={{marginTop:3}}>
+                    <div style={{height:3,background:"rgba(255,255,255,.04)",borderRadius:2,overflow:"hidden"}}>
+                      <div style={{height:"100%",width:`${pct}%`,background:"linear-gradient(90deg,#f59e0b55,#f59e0b)",borderRadius:2,transition:"width .5s"}}/>
+                    </div>
+                    <div style={{fontSize:7,color:"#6b7280",marginTop:1,textAlign:"right"}}>{cur}/{tgt}</div>
+                  </div>}
                 </div>
               )})}
             </div>
@@ -1138,6 +1162,35 @@ export default function App(){
                   </div>
                 </div>
               )})}
+            </div>
+          </div>}
+
+          {panel==='progress'&&<div style={{...card,marginBottom:12}}>
+            <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:14,color:"#a855f7",letterSpacing:1,marginBottom:6}}>CONCEPT MASTERY MAP</div>
+            {ALL_POS.map(p=>{
+              const m=POS_META[p];const concepts=(SCENARIOS[p]||[]).map(s=>s.concept);
+              const learned=(stats.cl||[]).filter(c=>concepts.includes(c));
+              const pct=concepts.length>0?Math.round((learned.length/concepts.length)*100):0;
+              return(<div key={p} style={{marginBottom:8}}>
+                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:3}}>
+                  <div style={{display:"flex",alignItems:"center",gap:5}}>
+                    <span style={{fontSize:14}}>{m.emoji}</span>
+                    <span style={{fontSize:11,fontWeight:700,color:m.color}}>{m.label}</span>
+                  </div>
+                  <span style={{fontSize:10,color:pct>=80?"#22c55e":pct>=40?"#f59e0b":"#6b7280",fontWeight:700}}>{learned.length}/{concepts.length} ({pct}%)</span>
+                </div>
+                <div style={{height:6,background:"rgba(255,255,255,.03)",borderRadius:3,overflow:"hidden",marginBottom:2}}>
+                  <div style={{height:"100%",width:`${pct}%`,background:`linear-gradient(90deg,${m.color}88,${m.color})`,borderRadius:3,transition:"width .5s"}}/>
+                </div>
+                <div style={{display:"flex",flexWrap:"wrap",gap:2}}>
+                  {concepts.map((c,i)=>{const has=(stats.cl||[]).includes(c);return(
+                    <div key={i} title={c} style={{width:8,height:8,borderRadius:2,background:has?m.color:"rgba(255,255,255,.06)",border:`1px solid ${has?m.color+"60":"rgba(255,255,255,.08)"}`,transition:"all .3s"}}/>
+                  )})}
+                </div>
+              </div>);
+            })}
+            <div style={{marginTop:6,textAlign:"center",fontSize:10,color:"#6b7280"}}>
+              Total: {(stats.cl||[]).length}/{Object.values(SCENARIOS).flat().length} concepts mastered
             </div>
           </div>}
 
@@ -1175,15 +1228,15 @@ export default function App(){
 
           {/* Game Modes */}
           {stats.gp>=3&&<div style={{display:"flex",gap:8,marginBottom:12}}>
-            <div onClick={startSpeedRound} style={{flex:1,background:"linear-gradient(135deg,rgba(239,68,68,.08),rgba(220,38,38,.04))",border:"1px solid rgba(239,68,68,.2)",borderRadius:12,padding:"12px 10px",textAlign:"center",cursor:"pointer"}}>
-              <div style={{fontSize:20,marginBottom:2}}>⚡</div>
-              <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:13,color:"#ef4444",letterSpacing:1}}>SPEED ROUND</div>
-              <div style={{fontSize:9,color:"#9ca3af",marginTop:2}}>5 scenarios · 15s timer</div>
+            <div onClick={startSpeedRound} style={{flex:1,background:"linear-gradient(135deg,rgba(239,68,68,.08),rgba(220,38,38,.04))",border:"1px solid rgba(239,68,68,.2)",borderRadius:14,padding:"16px 12px",textAlign:"center",cursor:"pointer",minHeight:48}}>
+              <div style={{fontSize:22,marginBottom:3}}>⚡</div>
+              <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:14,color:"#ef4444",letterSpacing:1}}>SPEED ROUND</div>
+              <div style={{fontSize:10,color:"#9ca3af",marginTop:3}}>5 scenarios · 15s timer</div>
             </div>
-            <div onClick={startSurvival} style={{flex:1,background:"linear-gradient(135deg,rgba(168,85,247,.08),rgba(124,58,237,.04))",border:"1px solid rgba(168,85,247,.2)",borderRadius:12,padding:"12px 10px",textAlign:"center",cursor:"pointer"}}>
-              <div style={{fontSize:20,marginBottom:2}}>💀</div>
-              <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:13,color:"#a855f7",letterSpacing:1}}>SURVIVAL</div>
-              <div style={{fontSize:9,color:"#9ca3af",marginTop:2}}>Until you miss{stats.survivalBest>0?` · Best: ${stats.survivalBest}`:""}</div>
+            <div onClick={startSurvival} style={{flex:1,background:"linear-gradient(135deg,rgba(168,85,247,.08),rgba(124,58,237,.04))",border:"1px solid rgba(168,85,247,.2)",borderRadius:14,padding:"16px 12px",textAlign:"center",cursor:"pointer",minHeight:48}}>
+              <div style={{fontSize:22,marginBottom:3}}>💀</div>
+              <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:14,color:"#a855f7",letterSpacing:1}}>SURVIVAL</div>
+              <div style={{fontSize:10,color:"#9ca3af",marginTop:3}}>Until you miss{stats.survivalBest>0?` · Best: ${stats.survivalBest}`:""}</div>
             </div>
           </div>}
 
@@ -1249,7 +1302,7 @@ export default function App(){
 
         {screen==="play"&&!aiLoading&&sc&&<div>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
-            <button onClick={goHome} style={{background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.06)",borderRadius:7,padding:"3px 8px",fontSize:10,color:"#6b7280",cursor:"pointer"}}>← Back</button>
+            <button onClick={goHome} style={{background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.06)",borderRadius:8,padding:"6px 12px",fontSize:11,color:"#6b7280",cursor:"pointer",minHeight:32}}>← Back</button>
             <div style={{display:"flex",gap:4,alignItems:"center"}}>
               {survivalMode&&<span style={{background:"rgba(168,85,247,.15)",border:"1px solid rgba(168,85,247,.25)",borderRadius:7,padding:"2px 7px",fontSize:9,fontWeight:700,color:"#a855f7"}}>💀 #{survivalRun?survivalRun.count+1:1}</span>}
               {speedMode&&<span style={{background:"rgba(239,68,68,.15)",border:"1px solid rgba(239,68,68,.25)",borderRadius:7,padding:"2px 7px",fontSize:9,fontWeight:700,color:"#ef4444"}}>⚡ {speedRound?speedRound.round+1:1}/5</span>}
@@ -1277,11 +1330,11 @@ export default function App(){
           </div>
 
           <div style={{...card,marginBottom:8,padding:12}}>
-            <h3 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:16,letterSpacing:1,color:"#f59e0b",marginBottom:3}}>{sc.title}</h3>
-            <p style={{fontSize:12.5,lineHeight:1.5,color:"#d1d5db"}}>{sc.description}</p>
+            <h3 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:18,letterSpacing:1,color:"#f59e0b",marginBottom:4}}>{sc.title}</h3>
+            <p style={{fontSize:14,lineHeight:1.55,color:"#d1d5db"}}>{sc.description}</p>
           </div>
 
-          <div style={{display:"flex",flexDirection:"column",gap:5}}>
+          <div style={{display:"flex",flexDirection:"column",gap:10}}>
             {sc.options.map((opt,i)=>{
               const vis=ri>=i;const sel=choice===i;
               let bg="rgba(255,255,255,.02)",bd="rgba(255,255,255,.05)";
@@ -1289,10 +1342,10 @@ export default function App(){
               if(choice!==null&&i===sc.best&&!sel){bg="rgba(34,197,94,.04)";bd="rgba(34,197,94,.3)"}
               return(
                 <button key={i} onClick={()=>{snd.play('tap');handleChoice(i)}} disabled={choice!==null}
-                  style={{background:bg,border:`1.5px solid ${bd}`,borderRadius:10,padding:"10px 10px",cursor:choice!==null?"default":"pointer",transition:"all .2s",opacity:vis?1:0,transform:vis?"translateX(0)":"translateX(-10px)",textAlign:"left",width:"100%",color:"white",fontSize:12.5,lineHeight:1.35,display:"flex",alignItems:"flex-start",gap:7}}>
-                  <span style={{width:20,height:20,borderRadius:6,flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",
+                  style={{background:bg,border:`1.5px solid ${bd}`,borderRadius:12,padding:"14px 12px",cursor:choice!==null?"default":"pointer",transition:"all .2s",opacity:vis?1:0,transform:vis?"translateX(0)":"translateX(-10px)",textAlign:"left",width:"100%",color:"white",fontSize:14,lineHeight:1.4,display:"flex",alignItems:"flex-start",gap:8,minHeight:48}}>
+                  <span style={{width:24,height:24,borderRadius:7,flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",
                     background:sel?(od?.cat==="success"?"#22c55e":od?.cat==="warning"?"#f59e0b":"#ef4444"):choice!==null&&i===sc.best?"#22c55e":"rgba(255,255,255,.04)",
-                    color:sel||( choice!==null&&i===sc.best)?"white":"#6b7280",fontSize:9,fontWeight:800,transition:"all .25s"}}>
+                    color:sel||( choice!==null&&i===sc.best)?"white":"#6b7280",fontSize:10,fontWeight:800,transition:"all .25s"}}>
                     {sel?(od?.isOpt?"✓":"✗"):choice!==null&&i===sc.best?"✓":i+1}
                   </span>
                   <span style={{flex:1}}>{opt}</span>
@@ -1305,7 +1358,7 @@ export default function App(){
 
         {/* OUTCOME */}
         {screen==="outcome"&&od&&<div>
-          <button onClick={goHome} style={{background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.06)",borderRadius:7,padding:"3px 8px",fontSize:10,color:"#6b7280",cursor:"pointer",marginBottom:8}}>← Home</button>
+          <button onClick={goHome} style={{background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.06)",borderRadius:8,padding:"6px 12px",fontSize:11,color:"#6b7280",cursor:"pointer",marginBottom:8,minHeight:32}}>← Home</button>
 
           <div style={{textAlign:"center",marginBottom:10,padding:"8px 0"}}>
             <div style={{fontSize:44,marginBottom:2}}>{od.isOpt?"🎯":od.cat==="warning"?"🤔":"📚"}</div>
@@ -1321,22 +1374,22 @@ export default function App(){
 
           <div style={{background:od.cat==="success"?"rgba(34,197,94,.03)":od.cat==="warning"?"rgba(245,158,11,.03)":"rgba(239,68,68,.03)",border:`1px solid ${od.cat==="success"?"rgba(34,197,94,.12)":od.cat==="warning"?"rgba(245,158,11,.12)":"rgba(239,68,68,.12)"}`,borderRadius:12,padding:12,borderLeft:`3px solid ${od.cat==="success"?"#22c55e":od.cat==="warning"?"#f59e0b":"#ef4444"}`}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-              <div><div style={{fontSize:8,color:"#6b7280",textTransform:"uppercase",letterSpacing:1,fontWeight:700}}>Your Choice</div><div style={{fontSize:11.5,fontWeight:700,color:"white",marginTop:1}}>"{od.chosen}"</div></div>
-              <button onClick={()=>setShowExp(!showExp)} style={{background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.06)",borderRadius:5,padding:"2px 7px",fontSize:9,color:"#6b7280",cursor:"pointer"}}>{showExp?"▼":"▶"}</button>
+              <div><div style={{fontSize:9,color:"#6b7280",textTransform:"uppercase",letterSpacing:1,fontWeight:700}}>Your Choice</div><div style={{fontSize:13,fontWeight:700,color:"white",marginTop:2}}>"{od.chosen}"</div></div>
+              <button onClick={()=>setShowExp(!showExp)} style={{background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.06)",borderRadius:6,padding:"4px 10px",fontSize:10,color:"#6b7280",cursor:"pointer",minHeight:32}}>{showExp?"▼":"▶"}</button>
             </div>
-            {showExp&&<p style={{fontSize:12.5,lineHeight:1.45,color:"#d1d5db",marginTop:6}}>{od.exp}</p>}
+            {showExp&&<p style={{fontSize:14,lineHeight:1.5,color:"#d1d5db",marginTop:6}}>{od.exp}</p>}
           </div>
 
-          {!od.isOpt&&<div style={{background:"rgba(34,197,94,.02)",border:"1px solid rgba(34,197,94,.1)",borderRadius:12,padding:12,marginTop:6,borderLeft:"3px solid #22c55e"}}>
-            <div style={{fontSize:8,color:"#22c55e",textTransform:"uppercase",letterSpacing:1,fontWeight:700,marginBottom:2}}>✅ Best Strategy</div>
-            <div style={{fontSize:11.5,fontWeight:700,color:"white",marginBottom:3}}>"{od.bestOpt}"</div>
-            {showExp&&<p style={{fontSize:12.5,lineHeight:1.45,color:"#d1d5db"}}>{od.bestExp}</p>}
+          {!od.isOpt&&<div style={{background:"rgba(34,197,94,.02)",border:"1px solid rgba(34,197,94,.1)",borderRadius:12,padding:12,marginTop:8,borderLeft:"3px solid #22c55e"}}>
+            <div style={{fontSize:9,color:"#22c55e",textTransform:"uppercase",letterSpacing:1,fontWeight:700,marginBottom:3}}>✅ Best Strategy</div>
+            <div style={{fontSize:13,fontWeight:700,color:"white",marginBottom:4}}>"{od.bestOpt}"</div>
+            {showExp&&<p style={{fontSize:14,lineHeight:1.5,color:"#d1d5db"}}>{od.bestExp}</p>}
           </div>}
 
-          {showC&&<div style={{background:"linear-gradient(135deg,rgba(59,130,246,.04),rgba(168,85,247,.04))",border:"1px solid rgba(59,130,246,.12)",borderRadius:12,padding:10,marginTop:10,textAlign:"center"}}>
-            <div style={{fontSize:14,marginBottom:1}}>💡</div>
-            <div style={{fontSize:8,color:"#60a5fa",textTransform:"uppercase",letterSpacing:1,fontWeight:700,marginBottom:2}}>Key Concept</div>
-            <p style={{fontSize:12.5,fontWeight:600,color:"white",lineHeight:1.4}}>{od.concept}</p>
+          {showC&&<div style={{background:"linear-gradient(135deg,rgba(59,130,246,.04),rgba(168,85,247,.04))",border:"1px solid rgba(59,130,246,.12)",borderRadius:12,padding:12,marginTop:10,textAlign:"center"}}>
+            <div style={{fontSize:16,marginBottom:2}}>💡</div>
+            <div style={{fontSize:9,color:"#60a5fa",textTransform:"uppercase",letterSpacing:1,fontWeight:700,marginBottom:3}}>Key Concept</div>
+            <p style={{fontSize:14,fontWeight:600,color:"white",lineHeight:1.45}}>{od.concept}</p>
           </div>}
 
           <button onClick={next} style={{...btn(dailyMode?"linear-gradient(135deg,#d97706,#f59e0b)":"linear-gradient(135deg,#2563eb,#3b82f6)"),...{marginTop:12,boxShadow:dailyMode?"0 4px 12px rgba(245,158,11,.25)":"0 4px 12px rgba(37,99,235,.25)"}}}>{dailyMode?"Back to Home →":"Next Challenge →"}</button>
