@@ -391,7 +391,32 @@ function getNxt(p){for(const l of LEVELS)if(p<l.min)return l;return null;}
 
 const DAILY_FREE = 15;
 const STORAGE_KEY = "bsm_v5";
-const DEFAULT = {pts:0,str:0,bs:0,gp:0,co:0,ps:{},achs:[],cl:[],ds:0,lastDay:null,todayPlayed:0,todayDate:null,sp:0,isPro:false,onboarded:false,soundOn:true,recentWrong:[]};
+const DEFAULT = {pts:0,str:0,bs:0,gp:0,co:0,ps:{},achs:[],cl:[],ds:0,lastDay:null,todayPlayed:0,todayDate:null,sp:0,isPro:false,onboarded:false,soundOn:true,recentWrong:[],dailyDone:false,dailyDate:null,streakFreezes:0,survivalBest:0};
+
+// Streak flame visual — grows with daily streak length
+function getFlame(ds){
+  if(ds>=100)return{icon:"🔷",label:"LEGENDARY",color:"#38bdf8",glow:"rgba(56,189,248,.3)",size:22};
+  if(ds>=50)return{icon:"💜",label:"EPIC",color:"#a855f7",glow:"rgba(168,85,247,.3)",size:20};
+  if(ds>=30)return{icon:"🔵",label:"BLUE FLAME",color:"#3b82f6",glow:"rgba(59,130,246,.3)",size:19};
+  if(ds>=14)return{icon:"🔥",label:"ON FIRE",color:"#ef4444",glow:"rgba(239,68,68,.25)",size:18};
+  if(ds>=7)return{icon:"🔥",label:"HOT",color:"#f97316",glow:"rgba(249,115,22,.2)",size:16};
+  if(ds>=3)return{icon:"🔥",label:"WARM",color:"#f59e0b",glow:"rgba(245,158,11,.15)",size:14};
+  return{icon:"🔥",label:"",color:"#f97316",glow:"none",size:12};
+}
+const STREAK_MILESTONES=[7,14,30,50,100];
+
+// Daily Diamond Play — deterministic scenario based on date
+function getDailyScenario(){
+  const today=new Date().toDateString();
+  // Simple hash: sum char codes of date string
+  let hash=0;for(let i=0;i<today.length;i++)hash=((hash<<5)-hash+today.charCodeAt(i))|0;
+  hash=Math.abs(hash);
+  // Flatten all scenarios into one pool
+  const allSc=Object.entries(SCENARIOS).flatMap(([pos,arr])=>arr.map(s=>({...s,_pos:pos})));
+  const idx=hash%allSc.length;
+  // Also pick a secondary based on different hash for variety across days
+  return allSc[idx];
+}
 
 // ============================================================================
 // AI SCENARIO GENERATION — calls Claude API for personalized content
@@ -733,6 +758,15 @@ export default function App(){
   const[lvlUp,setLvlUp]=useState(null);
   const[aiLoading,setAiLoading]=useState(false);
   const[aiMode,setAiMode]=useState(false); // true when playing AI-generated scenario
+  const[dailyMode,setDailyMode]=useState(false); // true when playing daily diamond challenge
+  // Speed Round state
+  const[speedMode,setSpeedMode]=useState(false);
+  const[speedRound,setSpeedRound]=useState(null); // {round,total,results:[],startTime}
+  const[timer,setTimer]=useState(15);
+  const timerRef=useRef(null);
+  // Survival Mode state
+  const[survivalMode,setSurvivalMode]=useState(false);
+  const[survivalRun,setSurvivalRun]=useState(null); // {count,pts,concepts[]}
   const snd=useSound();
 
   const abortRef=useRef(null);
@@ -741,8 +775,31 @@ export default function App(){
   useEffect(()=>{(async()=>{try{const r=await window.storage.get(STORAGE_KEY);if(r?.value){const d=JSON.parse(r.value);setStats({...DEFAULT,...d});snd.setEnabled(d.soundOn!==false);if(d.onboarded)setScreen("home");else setScreen("onboard");} else setScreen("onboard");}catch{setScreen("onboard")}})()},[]);
   // Save
   useEffect(()=>{(async()=>{try{await window.storage.set(STORAGE_KEY,JSON.stringify(stats))}catch{}})()},[stats]);
-  // Daily tracking
-  useEffect(()=>{const today=new Date().toDateString();if(stats.todayDate&&stats.todayDate!==today){setStats(p=>({...p,todayPlayed:0,todayDate:today,ds:p.lastDay===new Date(Date.now()-86400000).toDateString()?p.ds+1:1,lastDay:p.todayDate}))}},[stats.todayDate]);
+  // Daily tracking with streak freeze support
+  useEffect(()=>{const today=new Date().toDateString();if(stats.todayDate&&stats.todayDate!==today){
+    const yesterday=new Date(Date.now()-86400000).toDateString();
+    const twoDaysAgo=new Date(Date.now()-2*86400000).toDateString();
+    const wasYesterday=stats.lastDay===yesterday;
+    // Check if streak would break (missed yesterday but played day before)
+    const wouldBreak=!wasYesterday&&stats.ds>0;
+    // If missed only 1 day and have a freeze, use it
+    const missedOneDay=!wasYesterday&&stats.lastDay===twoDaysAgo&&stats.streakFreezes>0&&stats.ds>0;
+    let newDs,newFreezes=stats.streakFreezes;
+    if(wasYesterday){newDs=stats.ds+1}
+    else if(missedOneDay){newDs=stats.ds;newFreezes=stats.streakFreezes-1;
+      // Show "Streak Saved!" toast
+      setTimeout(()=>{setToast({e:"🧊",n:"Streak Saved!",d:`Used a streak freeze. ${newFreezes} remaining.`});setTimeout(()=>setToast(null),3500)},500);
+    }else{newDs=1}
+    // Award a streak freeze every 7-day milestone (max 3)
+    const prev7=Math.floor(stats.ds/7);const new7=Math.floor(newDs/7);
+    if(new7>prev7&&newFreezes<3)newFreezes=Math.min(3,newFreezes+(new7-prev7));
+    // Check for streak milestone celebration
+    if(STREAK_MILESTONES.includes(newDs)&&newDs>stats.ds){
+      const fl=getFlame(newDs);
+      setTimeout(()=>{setLvlUp({e:fl.icon,n:`${newDs}-Day Streak!`,c:fl.color});snd.play('lvl')},800);
+    }
+    setStats(p=>({...p,todayPlayed:0,todayDate:today,ds:newDs,streakFreezes:newFreezes,lastDay:p.todayDate,dailyDone:p.dailyDate===today?p.dailyDone:false,dailyDate:today}));
+  }},[stats.todayDate]);
 
   const totalSc=Object.values(SCENARIOS).reduce((s,a)=>s+a.length,0);
   const remaining=DAILY_FREE-stats.todayPlayed;
@@ -756,9 +813,18 @@ export default function App(){
     setHist(h=>({...h,[p]:[...(h[p]||[]),s.id].slice(-pool.length+1)}));return s;
   },[hist]);
 
+  const startDaily=useCallback(()=>{
+    if(stats.dailyDone&&stats.dailyDate===new Date().toDateString())return;
+    const daily=getDailyScenario();
+    snd.play('tap');setPos(daily._pos);setChoice(null);setOd(null);setRi(-1);setFo(null);setShowC(false);setLvlUp(null);setShowExp(true);
+    setDailyMode(true);setAiMode(false);setAiLoading(false);
+    setSc(daily);setScreen("play");
+    daily.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80);});
+  },[snd,stats.dailyDone,stats.dailyDate]);
+
   const startGame=useCallback(async(p,forceAI=false)=>{
     if(atLimit){setPanel('limit');return;}
-    snd.play('tap');setPos(p);setChoice(null);setOd(null);setRi(-1);setFo(null);setShowC(false);setLvlUp(null);setShowExp(true);
+    snd.play('tap');setPos(p);setChoice(null);setOd(null);setRi(-1);setFo(null);setShowC(false);setLvlUp(null);setShowExp(true);setDailyMode(false);
     
     // Determine if we should use AI
     const pool=SCENARIOS[p]||[];const seen=hist[p]||[];
@@ -800,9 +866,17 @@ export default function App(){
     if(choice!==null||!sc)return;setChoice(idx);
     const isOpt=idx===sc.best;const rate=sc.rates[idx];const cat=isOpt?"success":rate>=55?"warning":"danger";
     let pts=isOpt?15:rate>=55?8:rate>=35?4:2;
+    if(dailyMode)pts*=2; // 2x XP for Daily Diamond Play
+    // Speed Round bonus: +1 pt per second remaining
+    let speedBonus=0;
+    if(speedMode&&isOpt&&timer>0){speedBonus=timer;pts+=speedBonus;}
     setFo(cat);setAk(k=>k+1);snd.play(isOpt?'correct':'wrong');
-    const o={cat,isOpt,exp:sc.explanations[idx],bestExp:sc.explanations[sc.best],bestOpt:sc.options[sc.best],concept:sc.concept,pts,chosen:sc.options[idx],rate,anim:sc.anim};
+    const o={cat,isOpt,exp:sc.explanations[idx],bestExp:sc.explanations[sc.best],bestOpt:sc.options[sc.best],concept:sc.concept,pts,chosen:sc.options[idx],rate,anim:sc.anim,speedBonus,timeLeft:timer};
     setOd(o);
+    // Track speed round result
+    if(speedMode)setSpeedRound(sr=>sr?{...sr,results:[...sr.results,{isOpt,pts,speedBonus,timeLeft:timer,concept:sc.concept,pos}]}:sr);
+    // Track survival run result
+    if(survivalMode)setSurvivalRun(sr=>sr?{...sr,count:sr.count+1,pts:sr.pts+pts,concepts:[...sr.concepts,sc.concept]}:sr);
     const prevLvl=getLvl(stats.pts);
     setStats(p=>{
       const today=new Date().toDateString();
@@ -811,17 +885,32 @@ export default function App(){
         cl:isOpt&&!p.cl?.includes(sc.concept)?[...(p.cl||[]),sc.concept]:(p.cl||[]),
         recentWrong:isOpt?(p.recentWrong||[]):[...(p.recentWrong||[]),sc.concept].slice(-5),
         todayPlayed:(p.todayDate===today?p.todayPlayed:0)+1,todayDate:today,
-        sp:isOpt?(p.sp||0)+1:0};
+        sp:isOpt?(p.sp||0)+1:0,
+        dailyDone:dailyMode?true:p.dailyDone,dailyDate:dailyMode?today:(p.dailyDate||today)};
       ns.achs=checkAch(ns);
       const newLvl=getLvl(ns.pts);
       if(newLvl.n!==prevLvl.n){setTimeout(()=>{setLvlUp(newLvl);snd.play('lvl')},600)}
       return ns;
     });
-    setTimeout(()=>{setScreen("outcome");setTimeout(()=>setShowC(true),400);},350);
-  },[choice,sc,pos,snd,checkAch,stats.pts]);
+    if(speedMode){
+      // Speed mode: brief feedback then auto-advance
+      setTimeout(()=>{setScreen("outcome");setTimeout(()=>{setShowC(true);setTimeout(()=>speedNext(),1200)},200)},250);
+    }else if(survivalMode){
+      if(!isOpt){
+        // Wrong answer — update best and show game over
+        setStats(p=>({...p,survivalBest:Math.max(p.survivalBest||0,(survivalRun?.count||0)+1)}));
+        setTimeout(()=>setScreen("survivalOver"),500);
+      }else{
+        // Correct — brief feedback then next
+        setTimeout(()=>{setScreen("outcome");setTimeout(()=>{setShowC(true);setTimeout(()=>survivalNext(),1200)},200)},250);
+      }
+    }else{
+      setTimeout(()=>{setScreen("outcome");setTimeout(()=>setShowC(true),400);},350);
+    }
+  },[choice,sc,pos,snd,checkAch,stats.pts,dailyMode,speedMode,timer,speedNext,survivalMode,survivalRun,survivalNext]);
 
-  const next=useCallback(()=>{setLvlUp(null);startGame(pos,aiMode)},[pos,startGame,aiMode]);
-  const goHome=useCallback(()=>{setScreen("home");setPos(null);setSc(null);setChoice(null);setOd(null);setFo(null);setPanel(null);setLvlUp(null)},[]);
+  const next=useCallback(()=>{setLvlUp(null);if(speedMode){speedNext()}else if(survivalMode){survivalNext()}else if(dailyMode){goHome()}else{startGame(pos,aiMode)}},[pos,startGame,aiMode,dailyMode,speedMode,speedNext,survivalMode,survivalNext,goHome]);
+  const goHome=useCallback(()=>{setScreen("home");setPos(null);setSc(null);setChoice(null);setOd(null);setFo(null);setPanel(null);setLvlUp(null);setDailyMode(false);setSpeedMode(false);setSpeedRound(null);setSurvivalMode(false);setSurvivalRun(null);if(timerRef.current)clearTimeout(timerRef.current)},[]);
   const finishOnboard=useCallback(()=>{setStats(p=>({...p,onboarded:true,todayDate:new Date().toDateString()}));setScreen("home")},[]);
   
   const lvl=getLvl(stats.pts);const nxt=getNxt(stats.pts);
@@ -834,6 +923,78 @@ export default function App(){
     if(screen==="outcome"&&(e.key==="Enter"||e.key===" ")){e.preventDefault();next()}
     if(e.key==="Escape")goHome();
   };window.addEventListener("keydown",h);return()=>window.removeEventListener("keydown",h)},[screen,choice,aiLoading,handleChoice,next,goHome]);
+
+  // Speed Round timer
+  useEffect(()=>{
+    if(speedMode&&screen==="play"&&choice===null&&!aiLoading&&timer>0){
+      timerRef.current=setTimeout(()=>setTimer(t=>t-1),1000);
+      return()=>clearTimeout(timerRef.current);
+    }
+    if(speedMode&&screen==="play"&&choice===null&&timer<=0){
+      // Time's up — pick a random wrong answer
+      const wrongIdx=sc?[0,1,2,3].filter(i=>i!==sc.best)[0]:0;
+      handleChoice(wrongIdx);
+    }
+  },[speedMode,screen,choice,aiLoading,timer,sc,handleChoice]);
+
+  // Speed Round flow
+  const startSpeedRound=useCallback(()=>{
+    if(atLimit){setPanel('limit');return;}
+    snd.play('tap');
+    setSpeedMode(true);setDailyMode(false);setAiMode(false);
+    const positions=[...ALL_POS].sort(()=>Math.random()-.5);
+    setSpeedRound({round:0,total:5,results:[],startTime:Date.now(),positions});
+    // Start first round
+    const p=positions[0];setPos(p);
+    const s=getRand(p);setSc(s);
+    setChoice(null);setOd(null);setRi(-1);setFo(null);setShowC(false);setLvlUp(null);setShowExp(true);
+    setTimer(15);setScreen("play");
+    s.options.forEach((_,i)=>{setTimeout(()=>setRi(i),80+i*60);});
+  },[snd,atLimit,getRand]);
+
+  const speedNext=useCallback(()=>{
+    if(!speedRound)return;
+    const nextRound=speedRound.round+1;
+    if(nextRound>=speedRound.total){
+      // Speed round complete — show results
+      setScreen("speedResults");return;
+    }
+    const p=speedRound.positions[nextRound%speedRound.positions.length];
+    setPos(p);
+    const s=getRand(p);setSc(s);
+    setChoice(null);setOd(null);setRi(-1);setFo(null);setShowC(false);
+    setSpeedRound(sr=>({...sr,round:nextRound}));
+    setTimer(15);setScreen("play");
+    s.options.forEach((_,i)=>{setTimeout(()=>setRi(i),80+i*60);});
+  },[speedRound,getRand]);
+
+  // Survival Mode flow
+  const startSurvival=useCallback(()=>{
+    if(atLimit){setPanel('limit');return;}
+    snd.play('tap');
+    setSurvivalMode(true);setSpeedMode(false);setDailyMode(false);setAiMode(false);
+    setSurvivalRun({count:0,pts:0,concepts:[]});
+    // Pick random position and scenario (start at diff 1)
+    const p=ALL_POS[Math.floor(Math.random()*ALL_POS.length)];setPos(p);
+    const pool=(SCENARIOS[p]||[]).filter(s=>s.diff<=1);
+    const s=pool.length>0?pool[Math.floor(Math.random()*pool.length)]:getRand(p);
+    setSc(s);setChoice(null);setOd(null);setRi(-1);setFo(null);setShowC(false);setLvlUp(null);setShowExp(true);
+    setScreen("play");
+    s.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80);});
+  },[snd,atLimit,getRand]);
+
+  const survivalNext=useCallback(()=>{
+    if(!survivalRun)return;
+    const count=survivalRun.count+1;
+    // Increase difficulty as you progress: 1-3→diff1, 4-6→diff2, 7+→diff3
+    const targetDiff=count<3?1:count<6?2:3;
+    const p=ALL_POS[Math.floor(Math.random()*ALL_POS.length)];setPos(p);
+    const pool=(SCENARIOS[p]||[]).filter(s=>s.diff<=targetDiff);
+    const s=pool.length>0?pool[Math.floor(Math.random()*pool.length)]:getRand(p);
+    setSc(s);setChoice(null);setOd(null);setRi(-1);setFo(null);setShowC(false);
+    setScreen("play");
+    s.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80);});
+  },[survivalRun,getRand]);
 
   // Shared styles
   const card={background:"rgba(255,255,255,.025)",border:"1px solid rgba(255,255,255,.05)",borderRadius:14,padding:14};
@@ -870,6 +1031,7 @@ export default function App(){
         </div>
         <div style={{display:"flex",gap:3,alignItems:"center",flexWrap:"wrap",justifyContent:"flex-end"}}>
           <span style={{background:"#f59e0b15",border:"1px solid #f59e0b25",borderRadius:7,padding:"2px 7px",fontSize:10,fontWeight:700,color:"#f59e0b"}}>🏆{stats.pts}</span>
+          {stats.ds>0&&(()=>{const fl=getFlame(stats.ds);return <span style={{background:`${fl.color}12`,border:`1px solid ${fl.color}22`,borderRadius:7,padding:"2px 7px",fontSize:10,fontWeight:700,color:fl.color,boxShadow:stats.ds>=7?`0 0 8px ${fl.glow}`:"none"}}>{fl.icon}{stats.ds}d</span>})()}
           {stats.str>0&&<span style={{background:"#f9731615",border:"1px solid #f9731625",borderRadius:7,padding:"2px 7px",fontSize:10,fontWeight:700,color:"#f97316"}}>🔥{stats.str}</span>}
           {!stats.isPro&&<span style={{background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.06)",borderRadius:7,padding:"2px 7px",fontSize:10,fontWeight:600,color:"#6b7280"}}>{remaining>0?`${remaining} left`:""}</span>}
           <span style={{background:`${lvl.c}12`,border:`1px solid ${lvl.c}25`,borderRadius:7,padding:"2px 7px",fontSize:10,fontWeight:700,color:lvl.c}}>{lvl.e}{lvl.n}</span>
@@ -917,7 +1079,26 @@ export default function App(){
                 <div style={{height:"100%",width:`${prog}%`,background:`linear-gradient(90deg,${lvl.c},${nxt.c})`,borderRadius:2,transition:"width .5s"}}/>
               </div>
             </div>}
-            {stats.ds>0&&<div style={{textAlign:"center",marginTop:6,fontSize:10,color:"#f97316",fontWeight:600}}>📅 {stats.ds}-day streak!</div>}
+            {stats.ds>0&&(()=>{const fl=getFlame(stats.ds);const nextMile=STREAK_MILESTONES.find(m=>m>stats.ds);return(
+              <div style={{marginTop:8,background:`${fl.color}08`,border:`1px solid ${fl.color}15`,borderRadius:10,padding:"8px 10px"}}>
+                <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>
+                  <span style={{fontSize:fl.size}}>{fl.icon}</span>
+                  <span style={{fontSize:13,fontWeight:800,color:fl.color}}>{stats.ds}-day streak{fl.label?` · ${fl.label}`:""}</span>
+                  <span style={{fontSize:fl.size}}>{fl.icon}</span>
+                </div>
+                {nextMile&&<div style={{marginTop:5}}>
+                  <div style={{display:"flex",justifyContent:"space-between",fontSize:8,color:"#6b7280",marginBottom:2}}>
+                    <span>{stats.ds} days</span><span>{nextMile}-day milestone</span>
+                  </div>
+                  <div style={{height:3,background:"rgba(255,255,255,.03)",borderRadius:2,overflow:"hidden"}}>
+                    <div style={{height:"100%",width:`${(stats.ds/nextMile)*100}%`,background:`linear-gradient(90deg,${fl.color},${getFlame(nextMile).color})`,borderRadius:2,transition:"width .5s"}}/>
+                  </div>
+                </div>}
+                {stats.streakFreezes>0&&<div style={{textAlign:"center",marginTop:4,fontSize:9,color:"#6b7280"}}>
+                  🧊 {stats.streakFreezes} streak freeze{stats.streakFreezes>1?"s":""} available
+                </div>}
+              </div>
+            )})()}
             <div style={{display:"flex",gap:5,marginTop:8}}>
               <button onClick={()=>setPanel(panel==='ach'?null:'ach')} style={{flex:1,background:"rgba(245,158,11,.05)",border:"1px solid rgba(245,158,11,.12)",borderRadius:8,padding:"5px",color:"#f59e0b",fontSize:10,fontWeight:600,cursor:"pointer"}}>🏅 {(stats.achs||[]).length}/{ACHS.length}</button>
               <button onClick={()=>setPanel(panel==='concepts'?null:'concepts')} style={{flex:1,background:"rgba(59,130,246,.05)",border:"1px solid rgba(59,130,246,.12)",borderRadius:8,padding:"5px",color:"#3b82f6",fontSize:10,fontWeight:600,cursor:"pointer"}}>🧠 {(stats.cl?.length||0)} concepts</button>
@@ -966,6 +1147,44 @@ export default function App(){
             <p style={{fontSize:12,color:"#9ca3af",marginTop:4,marginBottom:10}}>You've played all {DAILY_FREE} free scenarios today. Come back tomorrow or go Pro for unlimited play!</p>
             <button onClick={()=>{setStats(p=>({...p,isPro:true}));setPanel(null);snd.play('ach')}} style={{...btn("linear-gradient(135deg,#d97706,#f59e0b)"),...{maxWidth:260,margin:"0 auto",boxShadow:"0 4px 15px rgba(245,158,11,.3)"}}}>⭐ Go Pro — Unlimited Play</button>
             <div style={{fontSize:9,color:"#6b7280",marginTop:6}}>$4.99/mo or $29.99/year</div>
+          </div>}
+
+          {/* Daily Diamond Play */}
+          {(()=>{const today=new Date().toDateString();const done=stats.dailyDone&&stats.dailyDate===today;const daily=getDailyScenario();const dm=POS_META[daily._pos];return(
+            <div style={{marginBottom:12,background:done?"rgba(34,197,94,.04)":"linear-gradient(135deg,rgba(245,158,11,.08),rgba(234,179,8,.04))",border:`1.5px solid ${done?"rgba(34,197,94,.2)":"rgba(245,158,11,.25)"}`,borderRadius:14,padding:14,position:"relative",overflow:"hidden"}}
+              onClick={done?undefined:startDaily}>
+              <div style={{position:"absolute",top:0,right:0,width:120,height:120,background:"radial-gradient(circle at 80% 20%,rgba(245,158,11,.12),transparent 70%)"}}/>
+              <div style={{display:"flex",alignItems:"center",gap:12,position:"relative"}}>
+                <div style={{width:48,height:48,borderRadius:12,background:done?"rgba(34,197,94,.1)":"linear-gradient(135deg,#d97706,#f59e0b)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:24,flexShrink:0}}>
+                  {done?"✅":"💎"}
+                </div>
+                <div style={{flex:1}}>
+                  <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:2}}>
+                    <span style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:15,letterSpacing:1,color:done?"#22c55e":"#f59e0b"}}>DAILY DIAMOND PLAY</span>
+                    {!done&&<span style={{background:"rgba(245,158,11,.15)",border:"1px solid rgba(245,158,11,.25)",borderRadius:6,padding:"1px 6px",fontSize:9,fontWeight:800,color:"#f59e0b"}}>2x XP</span>}
+                  </div>
+                  <div style={{fontSize:11,color:done?"#6b7280":"#d1d5db",lineHeight:1.3}}>
+                    {done?"Completed! Come back tomorrow for a new challenge."
+                      :<>{dm.emoji} {daily.title} · <span style={{color:DIFF_TAG[(daily.diff||1)-1].c}}>{"⭐".repeat(daily.diff||1)}</span></>}
+                  </div>
+                </div>
+                {!done&&<div style={{color:"#f59e0b",fontSize:20,flexShrink:0,cursor:"pointer"}}>▶</div>}
+              </div>
+            </div>
+          );})()}
+
+          {/* Game Modes */}
+          {stats.gp>=3&&<div style={{display:"flex",gap:8,marginBottom:12}}>
+            <div onClick={startSpeedRound} style={{flex:1,background:"linear-gradient(135deg,rgba(239,68,68,.08),rgba(220,38,38,.04))",border:"1px solid rgba(239,68,68,.2)",borderRadius:12,padding:"12px 10px",textAlign:"center",cursor:"pointer"}}>
+              <div style={{fontSize:20,marginBottom:2}}>⚡</div>
+              <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:13,color:"#ef4444",letterSpacing:1}}>SPEED ROUND</div>
+              <div style={{fontSize:9,color:"#9ca3af",marginTop:2}}>5 scenarios · 15s timer</div>
+            </div>
+            <div onClick={startSurvival} style={{flex:1,background:"linear-gradient(135deg,rgba(168,85,247,.08),rgba(124,58,237,.04))",border:"1px solid rgba(168,85,247,.2)",borderRadius:12,padding:"12px 10px",textAlign:"center",cursor:"pointer"}}>
+              <div style={{fontSize:20,marginBottom:2}}>💀</div>
+              <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:13,color:"#a855f7",letterSpacing:1}}>SURVIVAL</div>
+              <div style={{fontSize:9,color:"#9ca3af",marginTop:2}}>Until you miss{stats.survivalBest>0?` · Best: ${stats.survivalBest}`:""}</div>
+            </div>
           </div>}
 
           {/* Position grid */}
@@ -1032,11 +1251,25 @@ export default function App(){
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
             <button onClick={goHome} style={{background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.06)",borderRadius:7,padding:"3px 8px",fontSize:10,color:"#6b7280",cursor:"pointer"}}>← Back</button>
             <div style={{display:"flex",gap:4,alignItems:"center"}}>
+              {survivalMode&&<span style={{background:"rgba(168,85,247,.15)",border:"1px solid rgba(168,85,247,.25)",borderRadius:7,padding:"2px 7px",fontSize:9,fontWeight:700,color:"#a855f7"}}>💀 #{survivalRun?survivalRun.count+1:1}</span>}
+              {speedMode&&<span style={{background:"rgba(239,68,68,.15)",border:"1px solid rgba(239,68,68,.25)",borderRadius:7,padding:"2px 7px",fontSize:9,fontWeight:700,color:"#ef4444"}}>⚡ {speedRound?speedRound.round+1:1}/5</span>}
+              {dailyMode&&<span style={{background:"rgba(245,158,11,.15)",border:"1px solid rgba(245,158,11,.25)",borderRadius:7,padding:"2px 7px",fontSize:9,fontWeight:700,color:"#f59e0b"}}>💎 Daily · 2x XP</span>}
               {aiMode&&<span style={{background:"rgba(168,85,247,.15)",border:"1px solid rgba(168,85,247,.25)",borderRadius:7,padding:"2px 7px",fontSize:9,fontWeight:700,color:"#a855f7"}}>🤖 AI</span>}
               <span style={{fontSize:9,color:DIFF_TAG[(sc.diff||1)-1].c}}>{"⭐".repeat(sc.diff||1)}</span>
               <span style={{background:`${POS_META[pos].color}15`,border:`1px solid ${POS_META[pos].color}25`,borderRadius:7,padding:"2px 7px",fontSize:10,fontWeight:700,color:POS_META[pos].color}}>{POS_META[pos].emoji} {POS_META[pos].label}</span>
             </div>
           </div>
+
+          {/* Speed Round timer bar */}
+          {speedMode&&choice===null&&<div style={{marginBottom:6}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:2}}>
+              <span style={{fontSize:9,fontWeight:700,color:timer<=5?"#ef4444":timer<=10?"#f59e0b":"#22c55e"}}>⏱ {timer}s</span>
+              <span style={{fontSize:9,color:"#6b7280"}}>+{timer} speed bonus</span>
+            </div>
+            <div style={{height:4,background:"rgba(255,255,255,.03)",borderRadius:2,overflow:"hidden"}}>
+              <div style={{height:"100%",width:`${(timer/15)*100}%`,background:timer<=5?"#ef4444":timer<=10?"#f59e0b":"#22c55e",borderRadius:2,transition:"width 1s linear"}}/>
+            </div>
+          </div>}
 
           <div style={{background:"rgba(0,0,0,.25)",borderRadius:12,padding:6,marginBottom:8,border:"1px solid rgba(255,255,255,.03)"}}>
             <Field runners={sc.situation.runners} outcome={fo} ak={ak} anim={od?.isOpt?sc.anim:null}/>
@@ -1080,7 +1313,8 @@ export default function App(){
               {od.isOpt?"PERFECT STRATEGY!":od.cat==="warning"?"NOT BAD!":"LEARNING MOMENT"}
             </h2>
             <div style={{display:"flex",justifyContent:"center",gap:5,flexWrap:"wrap"}}>
-              {od.pts>0&&<span style={{background:"rgba(34,197,94,.08)",color:"#22c55e",padding:"2px 10px",borderRadius:14,fontSize:11,fontWeight:800,border:"1px solid rgba(34,197,94,.15)"}}>+{od.pts} pts</span>}
+              {od.pts>0&&<span style={{background:"rgba(34,197,94,.08)",color:"#22c55e",padding:"2px 10px",borderRadius:14,fontSize:11,fontWeight:800,border:"1px solid rgba(34,197,94,.15)"}}>+{od.pts} pts{dailyMode?" (2x)":""}{od.speedBonus>0?` (+${od.speedBonus} speed)`:""}</span>}
+              {dailyMode&&<span style={{background:"rgba(245,158,11,.08)",color:"#f59e0b",padding:"2px 10px",borderRadius:14,fontSize:11,fontWeight:800,border:"1px solid rgba(245,158,11,.15)"}}>💎 Daily Done!</span>}
               {stats.str>1&&od.isOpt&&<span style={{background:"rgba(249,115,22,.08)",color:"#f97316",padding:"2px 10px",borderRadius:14,fontSize:11,fontWeight:800,border:"1px solid rgba(249,115,22,.15)"}}>🔥 {stats.str}</span>}
             </div>
           </div>
@@ -1105,7 +1339,7 @@ export default function App(){
             <p style={{fontSize:12.5,fontWeight:600,color:"white",lineHeight:1.4}}>{od.concept}</p>
           </div>}
 
-          <button onClick={next} style={{...btn("linear-gradient(135deg,#2563eb,#3b82f6)"),...{marginTop:12,boxShadow:"0 4px 12px rgba(37,99,235,.25)"}}}>Next Challenge →</button>
+          <button onClick={next} style={{...btn(dailyMode?"linear-gradient(135deg,#d97706,#f59e0b)":"linear-gradient(135deg,#2563eb,#3b82f6)"),...{marginTop:12,boxShadow:dailyMode?"0 4px 12px rgba(245,158,11,.25)":"0 4px 12px rgba(37,99,235,.25)"}}}>{dailyMode?"Back to Home →":"Next Challenge →"}</button>
           <div style={{textAlign:"center",marginTop:3}}>
             <button onClick={goHome} style={ghost}>Change Position</button>
           </div>
@@ -1116,6 +1350,68 @@ export default function App(){
             <div style={{fontSize:10,color:"#9ca3af",marginTop:2}}>Go Pro for unlimited play, advanced stats & no ads</div>
           </div>}
         </div>}
+
+        {/* SURVIVAL GAME OVER */}
+        {screen==="survivalOver"&&survivalRun&&(()=>{
+          const count=survivalRun.count;const best=Math.max(stats.survivalBest||0,count);const isNewBest=count>=(stats.survivalBest||0)&&count>0;
+          return(<div style={{textAlign:"center",padding:"30px 0"}}>
+            <div style={{fontSize:56,marginBottom:8}}>💀</div>
+            <h2 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:30,letterSpacing:2,color:"#ef4444",marginBottom:4}}>GAME OVER</h2>
+            <p style={{color:"#9ca3af",fontSize:12,marginBottom:16}}>You survived {count} scenario{count!==1?"s":""}!</p>
+            {isNewBest&&<div style={{background:"rgba(245,158,11,.08)",border:"1px solid rgba(245,158,11,.2)",borderRadius:10,padding:"8px 16px",display:"inline-block",marginBottom:12}}>
+              <span style={{fontSize:13,fontWeight:800,color:"#f59e0b"}}>🏆 NEW PERSONAL BEST!</span>
+            </div>}
+            <div style={{display:"flex",justifyContent:"space-around",maxWidth:300,margin:"0 auto 16px"}}>
+              {[{v:count,l:"Survived",c:"#a855f7"},{v:survivalRun.pts,l:"Points",c:"#f59e0b"},{v:best,l:"Best Ever",c:"#22c55e"}].map((s,i)=>(
+                <div key={i}><div style={{fontSize:22,fontWeight:800,color:s.c}}>{s.v}</div><div style={{fontSize:9,color:"#6b7280",marginTop:1}}>{s.l}</div></div>
+              ))}
+            </div>
+            {od&&<div style={{...card,textAlign:"left",marginBottom:12}}>
+              <div style={{fontSize:9,color:"#ef4444",fontWeight:700,textTransform:"uppercase",letterSpacing:1,marginBottom:3}}>What ended your run</div>
+              <p style={{fontSize:12,color:"#d1d5db",lineHeight:1.4,marginBottom:4}}>{od.exp}</p>
+              <div style={{fontSize:9,color:"#22c55e",fontWeight:700,textTransform:"uppercase",letterSpacing:1,marginBottom:2}}>Best strategy</div>
+              <p style={{fontSize:12,color:"#d1d5db",lineHeight:1.4}}>"{od.bestOpt}" — {od.bestExp}</p>
+            </div>}
+            <button onClick={startSurvival} style={{...btn("linear-gradient(135deg,#7c3aed,#a855f7)"),...{marginBottom:6,boxShadow:"0 4px 12px rgba(168,85,247,.25)"}}}>💀 Try Again</button>
+            <button onClick={goHome} style={{...btn("rgba(255,255,255,.06)"),...{fontSize:12}}}>← Back to Home</button>
+          </div>);
+        })()}
+
+        {/* SPEED ROUND RESULTS */}
+        {screen==="speedResults"&&speedRound&&(()=>{
+          const r=speedRound.results;
+          const correct=r.filter(x=>x.isOpt).length;
+          const totalPts=r.reduce((s,x)=>s+x.pts,0);
+          const totalBonus=r.reduce((s,x)=>s+x.speedBonus,0);
+          const elapsed=Math.round((Date.now()-speedRound.startTime)/1000);
+          const grade=correct>=5?"S":correct>=4?"A":correct>=3?"B":correct>=2?"C":"D";
+          const gradeColor={S:"#a855f7",A:"#22c55e",B:"#3b82f6",C:"#f59e0b",D:"#ef4444"}[grade];
+          return(<div>
+            <div style={{textAlign:"center",padding:"20px 0 10px"}}>
+              <div style={{fontSize:48,marginBottom:4}}>⚡</div>
+              <h2 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:28,letterSpacing:2,color:"#ef4444",marginBottom:4}}>SPEED ROUND COMPLETE!</h2>
+              <div style={{display:"inline-block",background:`${gradeColor}15`,border:`2px solid ${gradeColor}`,borderRadius:12,padding:"4px 20px",marginBottom:8}}>
+                <span style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:36,color:gradeColor}}>GRADE: {grade}</span>
+              </div>
+            </div>
+            <div style={{display:"flex",justifyContent:"space-around",textAlign:"center",marginBottom:12}}>
+              {[{v:`${correct}/5`,l:"Correct",c:"#22c55e"},{v:totalPts,l:"Points",c:"#f59e0b"},{v:`+${totalBonus}`,l:"Speed Bonus",c:"#ef4444"},{v:`${elapsed}s`,l:"Time",c:"#3b82f6"}].map((s,i)=>(
+                <div key={i}><div style={{fontSize:20,fontWeight:800,color:s.c}}>{s.v}</div><div style={{fontSize:9,color:"#6b7280",marginTop:1}}>{s.l}</div></div>
+              ))}
+            </div>
+            <div style={{display:"flex",flexDirection:"column",gap:4,marginBottom:12}}>
+              {r.map((res,i)=>(
+                <div key={i} style={{display:"flex",alignItems:"center",gap:8,background:res.isOpt?"rgba(34,197,94,.04)":"rgba(239,68,68,.04)",border:`1px solid ${res.isOpt?"rgba(34,197,94,.12)":"rgba(239,68,68,.12)"}`,borderRadius:8,padding:"6px 10px"}}>
+                  <span style={{fontSize:14}}>{res.isOpt?"✅":"❌"}</span>
+                  <span style={{fontSize:12,flex:1,color:"#d1d5db"}}>{POS_META[res.pos]?.emoji} {res.concept}</span>
+                  <span style={{fontSize:10,fontWeight:700,color:res.isOpt?"#22c55e":"#ef4444"}}>+{res.pts}</span>
+                </div>
+              ))}
+            </div>
+            <button onClick={startSpeedRound} style={{...btn("linear-gradient(135deg,#dc2626,#ef4444)"),...{marginBottom:6,boxShadow:"0 4px 12px rgba(239,68,68,.25)"}}}>⚡ Play Again</button>
+            <button onClick={goHome} style={{...btn("rgba(255,255,255,.06)"),...{fontSize:12}}}>← Back to Home</button>
+          </div>);
+        })()}
       </div>
 
       <style>{`
