@@ -358,15 +358,204 @@ const SCENARIOS = {
       best:2,explanations:["A 3-run lead doesn't need your best arm. Save him.","Smart thinking — but you still need a competent reliever.","Correct! The setup man can handle a 3-run lead. Save the closer for a 1-run game tomorrow.","Freshest isn't always best in the 9th. Use the setup man who's built for high leverage."],
       rates:[35,50,85,45],concept:"Save your closer for tight games — setup men can handle comfortable leads",anim:"strike"},
   ],
+  catcher: [
+    {id:"ct1",title:"Pitch Calling — Full Count",diff:2,cat:"pitch-calling",
+      description:"Runner on 2nd, 2 outs, full count 3-2. The batter has struck out twice on breaking balls today. What do you call?",
+      situation:{inning:"Bot 5",outs:2,count:"3-2",runners:[2],score:[3,2]},
+      options:["Fastball — don't walk him","Slider low and away — he's been chasing","Changeup — keep him guessing","Curveball in the dirt — try to get him to chase"],
+      best:1,explanations:["A fastball on 3-2 is predictable. Good hitters sit fastball in this count.","He's struck out twice on breaking balls — go back to the well. Make him prove he can lay off.","A changeup that misses is ball four. Too risky with a runner in scoring position.","Curveball in the dirt on 3-2 risks a wild pitch advancing the runner to 3rd on ball four."],
+      rates:[45,85,35,30],concept:"Use a hitter's weakness even in full counts — pattern recognition wins",anim:"strikeout"},
+    {id:"ct2",title:"Blocking a Pitch in the Dirt",diff:1,cat:"blocking",
+      description:"Runner on 3rd, 1 out, tie game. Your pitcher just threw a curveball in the dirt. How do you block it?",
+      situation:{inning:"Bot 7",outs:1,count:"1-2",runners:[3],score:[2,2]},
+      options:["Drop to both knees and center your body on the ball","Reach out and try to catch it with your mitt","Stay standing and swipe at it","Turn sideways to create a wider wall"],
+      best:0,explanations:["Textbook! Drop to knees, tuck chin, center body on ball, keep it in front. Runner stays at 3rd.","Trying to backhand a ball in the dirt often leads to it squirting away. Block first, catch second.","Staying standing leaves a huge gap underneath. The ball will roll to the backstop.","Turning sideways can deflect the ball unpredictably. Square up and smother it."],
+      rates:[85,30,15,40],concept:"Block first, catch second — keep your body centered behind the ball in the dirt",anim:"catch"},
+    {id:"ct3",title:"Steal Attempt at 2nd",diff:2,cat:"throwing",
+      description:"Fast runner on 1st takes off for 2nd on the pitch. Fastball, good location. What's your play?",
+      situation:{inning:"Top 3",outs:0,count:"0-1",runners:[1],score:[1,0]},
+      options:["Fire to 2nd immediately","Pump fake, then throw","Hold the ball — don't risk a wild throw","Throw to the pitcher for a rundown"],
+      best:0,explanations:["Quick transfer, strong throw to 2nd! A 1.9-second pop time gives you the best chance to nail him.","Pump fakes work in football. In baseball they just waste time — the runner is already sliding.","Holding lets him take 2nd for free. Trust your arm.","The runner is already at 2nd by the time the pitcher gets involved. Throw through to the bag."],
+      rates:[85,25,30,20],concept:"Quick transfer and pop time under 2.0 seconds is the key to throwing out runners",anim:"throwHome"},
+    {id:"ct4",title:"Framing a Borderline Pitch",diff:2,cat:"framing",
+      description:"Your pitcher just threw a fastball that caught the outside corner — barely. It could go either way. How do you frame it?",
+      situation:{inning:"Top 6",outs:1,count:"2-2",runners:[],score:[3,1]},
+      options:["Hold your glove completely still right where you caught it","Pull the mitt toward the center of the zone subtly","Stab at the ball dramatically to show it was a strike","Stand up immediately — show confidence it was a strike"],
+      best:1,explanations:["Holding still is okay, but a subtle pull can help sell the pitch without being obvious.","The best framers 'stick and pull' — catch it cleanly and gently bring it toward the zone. Studies show this adds 20+ called strikes per season.","Stabbing is obvious and umpires hate it. It screams 'I know that was a ball.'","Standing up tells the umpire you're already moving on — but it can also look like you're lobbying."],
+      rates:[55,85,15,35],concept:"Elite framing is subtle — catch, stick, and gently guide toward the zone",anim:"strike"},
+    {id:"ct5",title:"Pitch Calling — Leadoff Hitter",diff:1,cat:"pitch-calling",
+      description:"Top of the 1st inning, nobody on. Leadoff hitter is a contact guy who slaps singles. What's your game plan?",
+      situation:{inning:"Top 1",outs:0,count:"0-0",runners:[],score:[0,0]},
+      options:["Start with a first-pitch fastball for a strike","Curveball to surprise him","Pitch around him — he's not a power threat","Changeup low to induce a groundball"],
+      best:0,explanations:["Get ahead! First-pitch strikes put the at-bat in the pitcher's control. 0-1 counts favor the pitcher significantly.","Risky to start with off-speed — if he's patient, you're behind 1-0 immediately.","Never pitch around a leadoff hitter. Don't put a free runner on base.","Changeups are great — but on the first pitch, the hitter doesn't have a timing reference yet."],
+      rates:[85,40,15,50],concept:"Getting strike one against leadoff hitters sets the tone for the entire inning",anim:"strike"},
+    {id:"ct6",title:"Pop-Up Coverage",diff:1,cat:"defense",
+      description:"High pop-up near home plate! It's drifting toward the 1st base dugout. Whose ball is it?",
+      situation:{inning:"Bot 4",outs:1,count:"0-1",runners:[],score:[1,0]},
+      options:["It's the catcher's ball — rip off your mask and get under it","Let the first baseman take it — he has a better angle","Call for the pitcher to catch it","Wait and see who gets there first"],
+      best:0,explanations:["That's your ball! Toss your mask AWAY from the play, turn your back to the field, and track the spin. Catchers own all pop-ups near home.","The first baseman would be running away from the ball. You're already facing the right direction.","Pitchers rarely catch pop-ups. This is the catcher's domain.","Waiting causes collisions and dropped balls. Someone has to take charge — and that's you."],
+      rates:[85,35,15,20],concept:"Catchers own pop-ups near home — toss mask away, turn to the infield, and take charge",anim:"catch"},
+    {id:"ct7",title:"Squeeze Play Defense",diff:3,cat:"defense",
+      description:"Runner on 3rd, 1 out, close game. You notice the batter squaring to bunt as the pitch is delivered. It's a squeeze play!",
+      situation:{inning:"Bot 7",outs:1,count:"1-0",runners:[3],score:[4,3]},
+      options:["Call for a pitchout right now","Charge the bunt and fire home","Catch the pitch and tag the runner at home","Tell the pitcher to throw high and tight — bust the squeeze"],
+      best:3,explanations:["You can't call a pitchout mid-delivery — the pitch is already on the way.","If you charge before the bunt, you leave home plate uncovered.","If it's a good bunt, the ball is on the ground — you can't just catch it at home.","High and tight makes the bunt almost impossible. The runner is committed and dead to rights. This is how you kill a squeeze."],
+      rates:[15,35,30,85],concept:"The best squeeze defense is pitching high and inside — it's nearly impossible to bunt",anim:"strike"},
+    {id:"ct8",title:"Pitch Calling — Power Hitter",diff:2,cat:"pitch-calling",
+      description:"Cleanup hitter, known for pulling inside pitches. Count is 1-1. How do you attack him?",
+      situation:{inning:"Bot 3",outs:0,count:"1-1",runners:[1],score:[2,1]},
+      options:["Fastball inside — challenge him","Slider away — make him reach","Changeup inside — he'll pull it foul","Curveball right down the middle — surprise him"],
+      best:1,explanations:["He thrives on inside pitches. Don't feed his strength.","Work the outer half! If he pulls everything, make him beat you the other way. Most power hitters are weakest on pitches away.","Inside changeup still gives him something to turn on.","Hanging a curve over the plate to a power hitter? That's a souvenir in the stands."],
+      rates:[25,85,45,15],concept:"Pitch away from a pull hitter's strength — make them beat you the opposite way",anim:"strike"},
+    {id:"ct9",title:"Runner on 3rd — Throw Down to 2nd",diff:3,cat:"throwing",
+      description:"Runner on 3rd, 1 out. Your pitcher just struck out the batter. Do you throw down to 2nd base?",
+      situation:{inning:"Top 5",outs:2,count:"-",runners:[3],score:[2,1]},
+      options:["Throw to 2nd — routine play after a strikeout","Hold the ball — the runner on 3rd might go","Fake the throw to 2nd to freeze the runner","Throw back to the pitcher quickly"],
+      best:1,explanations:["Never throw to 2nd with a runner on 3rd! If the throw gets away or the runner breaks, he scores.","Smart! With a runner on 3rd, hold the ball. Any throw is a chance for a mistake and a free run.","A fake throw can work but it's risky if the runner doesn't freeze.","Throwing back to the pitcher is safe, but be aware of the runner's lead."],
+      rates:[10,85,45,55],concept:"Never make an unnecessary throw with a runner on 3rd — any error scores a run",anim:"catch"},
+    {id:"ct10",title:"Pitch Calling — Two Strikes",diff:2,cat:"pitch-calling",
+      description:"Count is 0-2. The batter has been late on fastballs all night. Runner on 1st. What do you call?",
+      situation:{inning:"Top 6",outs:1,count:"0-2",runners:[1],score:[3,2]},
+      options:["Fastball up and in — he can't catch up to it","Waste a pitch in the dirt, then come back with heat","Slider on the outside corner — finish him","Changeup — change his eye level"],
+      best:1,explanations:["He's late on fastballs, but don't groove one. 0-2 gives you room to expand.","Perfect! Waste one to expand the zone, THEN finish him. You have two strikes to play with — use that advantage.","Going right for the corner on 0-2 is a mistake if you miss back over the plate.","Changeup is fine but you want to set up the put-away pitch with a ball first."],
+      rates:[45,85,50,55],concept:"On 0-2, waste a pitch to expand the zone — then go for the strikeout",anim:"strikeout"},
+    {id:"ct11",title:"Communication — Positioning",diff:1,cat:"defense",
+      description:"Left-handed pull hitter at the plate. Your infielders haven't shifted. What do you do?",
+      situation:{inning:"Bot 2",outs:0,count:"0-0",runners:[],score:[0,0]},
+      options:["Nothing — fielders should know their positioning","Signal the infield to shift toward the pull side","Call time and physically walk out to reposition them","Yell positioning adjustments from behind the plate"],
+      best:3,explanations:["As catcher, YOU are the field general. You can see the whole field — take charge.","Subtle signals might not be seen or understood in-game.","Calling time slows the game and tips off the batter about the upcoming shift.","Catchers are the field generals! Quick verbal calls to shift the defense are your job. You see the whole field."],
+      rates:[20,45,40,85],concept:"The catcher is the field general — direct defensive positioning from behind the plate",anim:"catch"},
+    {id:"ct12",title:"Passed Ball Prevention",diff:2,cat:"blocking",
+      description:"Runner on 2nd, 2 outs, pitcher's count 1-2. Your pitcher wants to throw a hard curveball. How do you set up?",
+      situation:{inning:"Bot 8",outs:2,count:"1-2",runners:[2],score:[5,4]},
+      options:["Set up normally and react to the bounce","Pre-shift your weight forward, ready to drop and block","Set the target low to keep the pitch down","Move your target up — don't risk a pitch in the dirt"],
+      best:1,explanations:["Reacting after the ball bounces is too late. You need to anticipate.","Get your weight forward and be READY to block before the pitch. Great catchers expect to block curveballs in the dirt. Prevention starts before the pitch.","A low target is fine, but you need body preparation, not just glove positioning.","Moving the target up might cause the pitcher to leave the curve flat — a mistake to hit."],
+      rates:[30,85,45,25],concept:"Anticipate the block before the pitch — pre-shift weight and be ready for dirt",anim:"catch"},
+  ],
+  famous: [
+    {id:"fp1",title:"Jeter's Flip Play",diff:3,cat:"famous",
+      description:"2001 ALDS, Game 3. Runner rounding 3rd heading home. The throw from right field sails up the first base line — way off target. You're the shortstop. What do you do?",
+      situation:{inning:"Bot 7",outs:1,count:"-",runners:[3],score:[1,0]},
+      options:["Let the first baseman handle it — it's his side","Cut the throw off and relay home","Sprint to the first base line and shovel-flip to the catcher","Call for the ball and throw home yourself"],
+      best:2,explanations:["The first baseman can't reach it in time. The runner scores easily.","A standard cutoff relay takes too long — the runner beats it home.","This is THE play! Jeter sprinted from shortstop to the first base line, grabbed the overthrow, and backhanded a shovel-flip to the catcher — nailing Jeremy Giambi. Baseball's greatest hustle play.","You're 150 feet away. By the time you field and throw, the run scores."],
+      rates:[10,35,85,25],concept:"Great plays happen when you anticipate — Jeter's hustle and instinct created the impossible",anim:"throwHome"},
+    {id:"fp2",title:"Merkle's Boner",diff:2,cat:"famous",
+      description:"1908, Giants vs Cubs. Bottom 9th, tie game. Your teammate singles — the winning run appears to score from 3rd! But you were the runner on 1st. What must you do?",
+      situation:{inning:"Bot 9",outs:1,count:"-",runners:[1,3],score:[1,1]},
+      options:["Run toward 2nd base and touch the bag","Celebrate with your teammates — the game is over!","Run to the dugout — the fans are storming the field","Stay at 1st base — you didn't need to advance"],
+      best:0,explanations:["Correct! You MUST touch 2nd base for the run to count. In 1908, Fred Merkle didn't — the Cubs got the ball, touched 2nd, and Merkle was a force out. The run was nullified.","Celebrating cost Fred Merkle his legacy. The run didn't count because he never touched 2nd.","Leaving the field is abandoning the play. The defense can appeal and you're out.","If a base ahead of you is open, you have no force — but by rule, runners must advance on a game-winning hit for the run to count."],
+      rates:[85,10,10,20],concept:"Always touch the next base — Merkle's mistake in 1908 changed a pennant race",anim:"advance"},
+    {id:"fp3",title:"Baez's Rundown Magic",diff:3,cat:"famous",
+      description:"2021 Cubs vs Pirates. You're Javy Baez on 1st. The batter grounds out but you get caught in a rundown between 1st and 2nd. What's your strategy?",
+      situation:{inning:"Top 3",outs:1,count:"-",runners:[1],score:[2,1]},
+      options:["Give up and get tagged — save energy","Run full speed toward 2nd to force a bad throw","Stay in the rundown as long as possible to let the other runner score","Make the fielders throw as many times as possible — force an error"],
+      best:3,explanations:["Never give up! Rundowns create chaos.","Running full speed at one fielder doesn't create enough confusion.","Good thinking — but the key is actively FORCING errors, not just surviving.","Baez made the Pirates throw 6 times, running back and forth, drawing TWO throwing errors. He ended up safe at 2nd AND a run scored. Chaos wins."],
+      rates:[10,30,50,85],concept:"In a rundown, make them throw — every throw is a chance for an error",anim:"advance"},
+    {id:"fp4",title:"The Hidden Ball Trick",diff:2,cat:"famous",
+      description:"You're the first baseman. The runner on 1st just took a lead. Your pitcher is on the rubber. How do you execute the hidden ball trick?",
+      situation:{inning:"Top 5",outs:0,count:"-",runners:[1],score:[3,2]},
+      options:["Keep the ball in your glove and tag the runner when he leads off","Ask the pitcher to pretend to have the ball while you keep it","Wait for the pitcher to step OFF the rubber, then tag the runner","Call time and tag the runner during the timeout"],
+      best:2,explanations:["If the pitcher is on the rubber, this is a balk. The pitcher MUST have the ball when on the rubber.","This is a balk! The pitcher cannot be on the rubber without the ball.","The pitcher MUST step off the rubber for this to be legal. Once off, you can tag the unsuspecting runner. This is the only legal way to pull it off.","You can't tag a runner during a timeout — the ball is dead."],
+      rates:[25,15,85,10],concept:"The hidden ball trick only works if the pitcher is OFF the rubber — otherwise it's a balk",anim:"safe"},
+    {id:"fp5",title:"Lonnie Smith Gets Deked",diff:3,cat:"famous",
+      description:"1991 World Series, Game 7. You're Lonnie Smith on 1st. The batter drives a ball to deep left-center gap. You're running on contact. But as you round 2nd, the middle infielders fake a double play. What should you do?",
+      situation:{inning:"Bot 8",outs:0,count:"-",runners:[1],score:[0,0]},
+      options:["Stop and check if the ball was fielded","Keep running full speed — the ball was hit to the outfield","Hesitate briefly then continue to 3rd","Dive back to 2nd — it might be a line drive out"],
+      best:1,explanations:["Stopping is exactly what happened — Lonnie Smith hesitated, and it cost the Braves the winning run in Game 7 of the World Series.","Never stop running on a gap hit! The ball is clearly in the outfield. Trust your eyes and ears, not the infielders. Smith should have scored easily.","Even a brief hesitation costs critical seconds. That hesitation kept Smith at 3rd instead of scoring.","You saw the ball hit — it was a gap shot. Don't fall for the fake."],
+      rates:[15,85,30,10],concept:"Watch the ball, not the fielders — dekes only work if you take your eyes off the play",anim:"score"},
+    {id:"fp6",title:"The Suicide Squeeze",diff:2,cat:"famous",
+      description:"Runner on 3rd, 1 out, tie game in the 8th. You're the batter. The coach gives the squeeze sign. The runner will break for home as the pitcher starts his motion. What's your job?",
+      situation:{inning:"Bot 8",outs:1,count:"1-1",runners:[3],score:[3,3]},
+      options:["Bunt the ball ANYWHERE in fair territory — just get it down","Swing away — surprise the defense","Fake the bunt and let the runner steal home","Bunt only if the pitch is in the strike zone"],
+      best:0,explanations:["On a suicide squeeze, the runner is COMMITTED. Your ONLY job is to get the bunt down — anywhere, any pitch, even in the dirt. The runner is dead if you don't bunt.","Swinging means the catcher has a clear throw to nail the runner at home.","A fake bunt leaves your runner hung out to dry — he's already sprinting.","On a suicide squeeze, you bunt EVERYTHING. The runner is already committed. If you take a pitch, he's out by 20 feet."],
+      rates:[85,5,10,25],concept:"On a suicide squeeze, bunt EVERYTHING — the runner is committed to scoring",anim:"bunt"},
+    {id:"fp7",title:"Walk-Off Balk",diff:3,cat:"famous",
+      description:"Bottom 9th, tie game, bases loaded, 1 out. You're a runner on 3rd. The pitcher starts his windup, then stops mid-motion. What happens?",
+      situation:{inning:"Bot 9",outs:1,count:"2-1",runners:[1,2,3],score:[5,5]},
+      options:["Nothing — play continues","It's a balk — all runners advance one base, you score!","The pitch doesn't count — redo it","It depends on whether the batter swung"],
+      best:1,explanations:["A pitcher cannot stop mid-motion — that's always a balk.","Correct! A balk awards every runner one free base. With the bases loaded and a runner on 3rd, the winning run scores on a walk-off balk! It's rare but it happens.","Balks are not do-overs. The runners advance immediately.","A balk is called regardless of what the batter does. It's about the pitcher's illegal motion."],
+      rates:[15,85,20,30],concept:"A balk advances all runners one base — with bases loaded, that's a run",anim:"score"},
+    {id:"fp8",title:"Bonds — Intentional Walk with Bases Loaded",diff:3,cat:"famous",
+      description:"1998. Barry Bonds at the plate, bases loaded, 2 outs. You're the opposing manager. The Diamondbacks chose to intentionally walk Bonds, forcing in a run. When might this make sense?",
+      situation:{inning:"Bot 9",outs:2,count:"0-0",runners:[1,2,3],score:[8,6]},
+      options:["It never makes sense — you just gave them a free run","Only if you're up by more than 1 run AND the next batter is much weaker","Only in extra innings","Only if Bonds has already homered in the game"],
+      best:1,explanations:["It's counterintuitive but sometimes the math works. Buck Showalter did it when up by 2.","Exactly! If you're up 8-6 with bases loaded, walking Bonds makes it 8-7 but you face a weaker hitter. A Bonds grand slam makes it 10-8 — game over. Sometimes the intentional walk is the right risk.","Extra innings have nothing to do with this decision — it's about run prevention math.","His earlier at-bats don't change the math. It's about expected runs."],
+      rates:[30,85,20,25],concept:"Sometimes giving up 1 run to avoid giving up 4 is the smart play — think expected value",anim:"walk"},
+    {id:"fp9",title:"Three Men on Third",diff:2,cat:"famous",
+      description:"1926 — Babe Ruth, Lou Gehrig, and a runner are all somehow near 3rd base at the same time. You're the third baseman with the ball. Who do you tag?",
+      situation:{inning:"Bot 7",outs:1,count:"-",runners:[1,2,3],score:[3,3]},
+      options:["Tag Babe Ruth first — he's the biggest star","Tag the runner closest to home plate","Tag the runner who was originally on 3rd — they have the right to the base","Tag all of them just to be safe"],
+      best:2,explanations:["Star power doesn't matter in the rules. Tag the right runner.","The runner closest to home isn't necessarily the one you need. Think about who has the right to the base.","Correct! The lead runner (originally on 3rd) has the RIGHT to the base. The other two runners are trespassers. Tag the runners who don't belong — they're the outs.","Tagging all of them works, but you need to know WHY. Only the runners without the right to the base are out."],
+      rates:[20,35,85,50],concept:"The lead runner has the right to the base — tag the others, they're trespassing",anim:"safe"},
+    {id:"fp10",title:"Maddux Pitch Sequencing",diff:3,cat:"famous",
+      description:"You're Greg Maddux — the greatest pitch sequencer ever. Bottom of the 7th, facing a power hitter. He's seen mostly fastballs from you. Count is 2-1. What do you throw?",
+      situation:{inning:"Bot 7",outs:1,count:"2-1",runners:[],score:[2,0]},
+      options:["Fastball on the inside corner — your best pitch","Changeup — make him way out front","Cutter that looks like a fastball but moves","Two-seam sinker for a ground ball"],
+      best:2,explanations:["He's timing your fastball now. Throwing it again is predictable.","Changeup on 2-1 when behind is risky — if you miss, it's 3-1.","Maddux mastered the cutter for exactly this reason. It looks like a fastball out of the hand, but cuts 3-4 inches at the last moment. The batter swings where the ball WAS. Pure genius.","A sinker could work, but the cutter's deception is what made Maddux legendary."],
+      rates:[40,45,85,55],concept:"Maddux's genius: throw pitches that LOOK like one thing but DO another — deception over velocity",anim:"groundout"},
+  ],
+  rules: [
+    {id:"rl1",title:"Infield Fly Rule",diff:2,cat:"rules",
+      description:"Runners on 1st and 2nd, 1 out. The batter pops up to shallow left field. The umpire raises his hand and yells 'Infield fly!' What does this mean?",
+      situation:{inning:"Bot 4",outs:1,count:"1-0",runners:[1,2],score:[2,1]},
+      options:["The batter is automatically out, runners can advance at their own risk","The play is dead — nobody moves","The fielder MUST catch it or it's an error","The runners must tag up like a regular fly ball"],
+      best:0,explanations:["Correct! The infield fly rule protects runners from a fielder intentionally dropping the pop-up to turn a double play. Batter is out whether caught or not — runners can advance at their risk.","The ball is still live! Runners can advance at their own risk.","The rule doesn't require a catch — the batter is out either way.","They don't have to tag up because the batter is already called out. But they CAN stay on base safely."],
+      rates:[85,20,25,40],concept:"Infield fly rule: batter is out, ball is live, runners advance at own risk — prevents trick double plays",anim:"flyout"},
+    {id:"rl2",title:"What's a Balk?",diff:2,cat:"rules",
+      description:"Runner on 1st base. The pitcher comes set, then flinches his shoulder toward home plate but doesn't throw. What's the call?",
+      situation:{inning:"Top 3",outs:0,count:"1-1",runners:[1],score:[0,0]},
+      options:["No call — he didn't actually pitch","Balk! The runner gets 2nd base","Strike — any motion toward home counts","Ball — failed pitch attempt"],
+      best:1,explanations:["Any motion toward home that doesn't result in a pitch is a balk when runners are on base.","Once a pitcher starts his motion toward home, he MUST deliver the pitch. Any flinch, stop, or fake is a balk. The runner advances one base.","It's not a strike because the ball was never thrown.","It's not counted as a ball either — it's a balk, which is its own category."],
+      rates:[25,85,15,20],concept:"Any start-and-stop motion by the pitcher with runners on base is a balk — one free base",anim:"advance"},
+    {id:"rl3",title:"Dropped Third Strike",diff:2,cat:"rules",
+      description:"2 outs, nobody on base. The pitcher throws strike three, but the ball bounces in the dirt and gets past the catcher. What can the batter do?",
+      situation:{inning:"Top 7",outs:2,count:"0-2",runners:[],score:[3,1]},
+      options:["Nothing — strikeout, he's automatically out","Run to first! If the catcher doesn't throw him out, he's safe","Only run if the umpire signals","Ask the umpire for another pitch"],
+      best:1,explanations:["With less than 2 outs AND a runner on 1st, you'd be right. But with 2 outs or 1st base empty, the dropped 3rd strike rule is in effect.","On a dropped third strike with 2 outs (or no runner on 1st), the batter becomes a runner! Sprint to first. If the catcher's throw doesn't beat you, you're safe.","The umpire doesn't signal — you need to KNOW the rule and react immediately.","There's no do-over for a dropped third strike. Know the rule and RUN."],
+      rates:[30,85,20,10],concept:"Dropped third strike: with 2 outs or 1st base empty, the batter can run to first",anim:"advance"},
+    {id:"rl4",title:"Appeal Play — Missing a Base",diff:3,cat:"rules",
+      description:"Runner on 1st takes off on contact. Ball is hit deep to center — off the wall! The runner rounds 2nd but barely misses touching the bag. He reaches 3rd. Can the defense do anything?",
+      situation:{inning:"Bot 5",outs:1,count:"-",runners:[1],score:[3,3]},
+      options:["Nothing — the play is over","Appeal! Throw to 2nd base and the runner is out","They can only appeal between innings","The runner has to go back and touch 2nd"],
+      best:1,explanations:["The defense absolutely can appeal a missed base — it's one of the most missed rules in baseball.","The defensive team can 'appeal' by throwing to 2nd base while it's still a live ball. If the umpire saw the runner miss the bag, he's OUT. This has decided real MLB games.","Appeals can happen at any time while the ball is live — not just between innings.","Once the runner is at 3rd, he can't go back. The defense must appeal."],
+      rates:[20,85,15,30],concept:"The defense can appeal a missed base — always touch every bag, even in the heat of the play",anim:"safe"},
+    {id:"rl5",title:"Obstruction vs Interference",diff:3,cat:"rules",
+      description:"Runner heading to 3rd base. The third baseman is standing in the baseline waiting for the throw, but doesn't have the ball yet. The runner has to go around him. What's the call?",
+      situation:{inning:"Top 6",outs:0,count:"-",runners:[2],score:[2,1]},
+      options:["Nothing — the fielder has the right to the baseline","Obstruction on the fielder — runner gets the base","Interference on the runner — runner is out","The runner should have slid"],
+      best:1,explanations:["A fielder only has the right to the baseline when fielding the ball or in possession of it.","Obstruction! A fielder without the ball cannot block the baseline. The runner is awarded at least 3rd base. In the 2013 World Series, this call ended Game 3.","Interference is called on the RUNNER, not the fielder. This is obstruction.","Sliding doesn't matter. The fielder illegally blocked the path."],
+      rates:[25,85,15,20],concept:"Obstruction: fielders can't block the baseline without the ball — runners get the base",anim:"advance"},
+    {id:"rl6",title:"Designated Hitter Rule",diff:1,cat:"rules",
+      description:"You're managing an American League team. Your pitcher is due up 4th in the batting order. What's your option?",
+      situation:{inning:"Top 1",outs:0,count:"-",runners:[],score:[0,0]},
+      options:["The pitcher must bat — that's the rule","Use a designated hitter (DH) to bat in the pitcher's spot","Pinch hit for the pitcher every time he's due up","Let a fielder bat twice"],
+      best:1,explanations:["In the AL (and now universally since 2022), the DH replaces the pitcher in the batting order.","The designated hitter (DH) bats in place of the pitcher. Since 2022, both AL and NL use the DH. The pitcher never has to bat.","Pinch hitting removes the pitcher from the game. The DH stays in the lineup all game.","A player can only occupy one spot in the batting order."],
+      rates:[15,85,30,10],concept:"The designated hitter (DH) bats for the pitcher — universal in MLB since 2022",anim:"strike"},
+    {id:"rl7",title:"Ground Rule Double",diff:1,cat:"rules",
+      description:"Runner on 1st, 1 out. The batter hits a screaming line drive that bounces once in fair territory, then hops over the outfield fence. Where do the runners end up?",
+      situation:{inning:"Bot 6",outs:1,count:"2-1",runners:[1],score:[1,2]},
+      options:["Home run! Both runners score","Runner goes to 3rd, batter gets 2nd — ground rule double","Runner scores, batter gets 2nd","Batter returns to hit again — do-over"],
+      best:1,explanations:["A ball that bounces over the fence is NOT a home run — it's a ground rule double.","A ground rule double awards all runners exactly two bases from where they were. Runner on 1st goes to 3rd. Batter stops at 2nd. Even if the runner could have scored, he only gets two bases.","The runner on 1st only advances to 3rd — two bases from 1st base, not home.","There's no do-over. The ground rule double stands."],
+      rates:[20,85,30,10],concept:"Ground rule double: all runners advance exactly two bases — even if they could have scored",anim:"advance"},
+    {id:"rl8",title:"Tag Up on a Fly Ball",diff:1,cat:"rules",
+      description:"Runner on 3rd, 1 out. The batter hits a deep fly ball to center field. The runner wants to score after the catch. What MUST he do?",
+      situation:{inning:"Bot 8",outs:1,count:"1-0",runners:[3],score:[2,3]},
+      options:["Start running as soon as the ball is hit","Wait on the base until the fielder CATCHES the ball, then run","Wait until the umpire signals","He can't advance on a fly ball"],
+      best:1,explanations:["Leaving early means the defense can throw to 3rd for an appeal out.","The runner must 'tag up' — keep his foot on 3rd base until the ball is CAUGHT, then sprint home. If he leaves early and the defense appeals, he's out.","There's no special umpire signal — you have to watch the catch yourself.","Runners absolutely can advance after a catch — that's the whole point of a sacrifice fly."],
+      rates:[25,85,15,10],concept:"Tag up: on a fly ball, touch your base until the catch is made, THEN you can advance",anim:"score"},
+  ],
 };
 
-const ALL_POS = ["pitcher","batter","fielder","baserunner","manager"];
+const ALL_POS = ["pitcher","batter","catcher","fielder","baserunner","manager"];
 const POS_META = {
   pitcher:{label:"Pitcher",emoji:"⚾",color:"#ef4444",bg:"linear-gradient(135deg,#7f1d1d,#991b1b,#dc2626)",desc:"Control the game from the mound",icon:"🔥"},
   batter:{label:"Batter",emoji:"💪",color:"#3b82f6",bg:"linear-gradient(135deg,#1e3a5f,#1e40af,#3b82f6)",desc:"Drive in runs when it counts",icon:"⚡"},
   fielder:{label:"Fielder",emoji:"🧤",color:"#22c55e",bg:"linear-gradient(135deg,#14532d,#166534,#22c55e)",desc:"Make the plays that win games",icon:"🛡️"},
   baserunner:{label:"Runner",emoji:"🏃",color:"#f59e0b",bg:"linear-gradient(135deg,#78350f,#92400e,#d97706)",desc:"Run smart, score runs",icon:"💨"},
+  catcher:{label:"Catcher",emoji:"🎭",color:"#06b6d4",bg:"linear-gradient(135deg,#164e63,#155e75,#0891b2)",desc:"Call the game behind the plate",icon:"🛡️"},
   manager:{label:"Manager",emoji:"📋",color:"#a855f7",bg:"linear-gradient(135deg,#3b0764,#581c87,#7c3aed)",desc:"Make championship decisions",icon:"🧠"},
+  famous:{label:"Famous Play",emoji:"🏟️",color:"#eab308",bg:"linear-gradient(135deg,#713f12,#854d0e,#ca8a04)",desc:"Legendary moments in baseball history",icon:"⭐"},
+  rules:{label:"Rule IQ",emoji:"📖",color:"#f472b6",bg:"linear-gradient(135deg,#831843,#9d174d,#db2777)",desc:"Know the rules that decide games",icon:"📐"},
 };
 const LEVELS=[{n:"Rookie",min:0,c:"#94a3b8",e:"🌱"},{n:"Varsity",min:75,c:"#3b82f6",e:"⭐"},{n:"All-Star",min:200,c:"#f59e0b",e:"🌟"},{n:"MVP",min:400,c:"#ef4444",e:"🏆"},{n:"Hall of Fame",min:700,c:"#a855f7",e:"👑"}];
 const ACHS=[
@@ -379,7 +568,7 @@ const ACHS=[
   {id:"g50",n:"Scholar",d:"Play 50 scenarios",e:"🏅",ck:s=>s.gp>=50},
   {id:"g100",n:"Veteran",d:"Play 100 scenarios",e:"💎",ck:s=>s.gp>=100},
   {id:"a80",n:"Sharp Eye",d:"80%+ accuracy (10+ games)",e:"🎯",ck:s=>s.gp>=10&&(s.co/s.gp)>=0.8},
-  {id:"util",n:"Utility Player",d:"Play all 5 positions",e:"🔄",ck:s=>ALL_POS.every(p=>(s.ps[p]?.p||0)>=1)},
+  {id:"util",n:"Utility Player",d:"Play all 6 positions",e:"🔄",ck:s=>ALL_POS.every(p=>(s.ps[p]?.p||0)>=1)},
   {id:"c10",n:"Baseball Brain",d:"Learn 10 concepts",e:"🧠",ck:s=>(s.cl?.length||0)>=10},
   {id:"c20",n:"Professor",d:"Learn 20 concepts",e:"📖",ck:s=>(s.cl?.length||0)>=20},
   {id:"daily3",n:"3-Day Streak",d:"Play 3 days in a row",e:"📅",ck:s=>(s.ds||0)>=3},
@@ -390,7 +579,7 @@ function achProgress(id,s){
   const map={first:[s.gp,1],s3:[Math.min(s.str,3),3],s5:[Math.min(s.str,5),5],s10:[Math.min(s.str,10),10],
     g10:[Math.min(s.gp,10),10],g25:[Math.min(s.gp,25),25],g50:[Math.min(s.gp,50),50],g100:[Math.min(s.gp,100),100],
     a80:[s.gp>=10?Math.min(Math.round((s.co/Math.max(s.gp,1))*100),100):Math.min(s.gp,10),s.gp>=10?80:10],
-    util:[ALL_POS.filter(p=>(s.ps[p]?.p||0)>=1).length,5],
+    util:[ALL_POS.filter(p=>(s.ps[p]?.p||0)>=1).length,ALL_POS.length],
     c10:[Math.min(s.cl?.length||0,10),10],c20:[Math.min(s.cl?.length||0,20),20],
     daily3:[Math.min(s.ds||0,3),3],daily7:[Math.min(s.ds||0,7),7],perf5:[Math.min(s.sp||0,5),5]};
   return map[id]||[0,1];
@@ -400,7 +589,8 @@ function getNxt(p){for(const l of LEVELS)if(p<l.min)return l;return null;}
 
 const DAILY_FREE = 15;
 const STORAGE_KEY = "bsm_v5";
-const DEFAULT = {pts:0,str:0,bs:0,gp:0,co:0,ps:{},achs:[],cl:[],ds:0,lastDay:null,todayPlayed:0,todayDate:null,sp:0,isPro:false,onboarded:false,soundOn:true,recentWrong:[],dailyDone:false,dailyDate:null,streakFreezes:0,survivalBest:0};
+const AGE_GROUPS=[{id:"6-8",label:"Ages 6-8",desc:"Basic concepts, simple language",maxDiff:1},{id:"9-10",label:"Ages 9-10",desc:"Force plays, cutoffs, stealing",maxDiff:2},{id:"11-12",label:"Ages 11-12",desc:"Full situational awareness",maxDiff:3},{id:"13+",label:"Ages 13+",desc:"Advanced strategy & sabermetrics",maxDiff:3}];
+const DEFAULT = {pts:0,str:0,bs:0,gp:0,co:0,ps:{},achs:[],cl:[],ds:0,lastDay:null,todayPlayed:0,todayDate:null,sp:0,isPro:false,onboarded:false,soundOn:true,recentWrong:[],dailyDone:false,dailyDate:null,streakFreezes:0,survivalBest:0,ageGroup:"11-12"};
 
 // Streak flame visual — grows with daily streak length
 function getFlame(ds){
@@ -819,13 +1009,15 @@ export default function App(){
   const remaining=DAILY_FREE-stats.todayPlayed;
   const atLimit=remaining<=0&&!stats.isPro;
   
+  const maxDiff=(AGE_GROUPS.find(a=>a.id===stats.ageGroup)||AGE_GROUPS[2]).maxDiff;
   const getRand=useCallback((p)=>{
-    const pool=SCENARIOS[p]||[];const seen=hist[p]||[];
-    const unseen=pool.filter(s=>!seen.includes(s.id));
-    const avail=unseen.length>0?unseen:pool;
+    const pool=(SCENARIOS[p]||[]).filter(s=>s.diff<=maxDiff);const fallback=SCENARIOS[p]||[];
+    const src=pool.length>0?pool:fallback;const seen=hist[p]||[];
+    const unseen=src.filter(s=>!seen.includes(s.id));
+    const avail=unseen.length>0?unseen:src;
     const s=avail[Math.floor(Math.random()*avail.length)];
-    setHist(h=>({...h,[p]:[...(h[p]||[]),s.id].slice(-pool.length+1)}));return s;
-  },[hist]);
+    setHist(h=>({...h,[p]:[...(h[p]||[]),s.id].slice(-src.length+1)}));return s;
+  },[hist,maxDiff]);
 
   const startDaily=useCallback(()=>{
     if(stats.dailyDone&&stats.dailyDate===new Date().toDateString())return;
@@ -1070,6 +1262,18 @@ export default function App(){
               </div>
             ))}
           </div>
+          <div style={{maxWidth:300,margin:"0 auto 20px",textAlign:"left"}}>
+            <div style={{fontSize:11,color:"#6b7280",textTransform:"uppercase",letterSpacing:1,fontWeight:700,marginBottom:6,textAlign:"center"}}>How old are you?</div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6}}>
+              {AGE_GROUPS.map(ag=>(
+                <button key={ag.id} onClick={()=>setStats(p=>({...p,ageGroup:ag.id}))}
+                  style={{background:stats.ageGroup===ag.id?"rgba(245,158,11,.12)":"rgba(255,255,255,.02)",border:`1.5px solid ${stats.ageGroup===ag.id?"#f59e0b":"rgba(255,255,255,.06)"}`,borderRadius:10,padding:"10px 8px",cursor:"pointer",color:stats.ageGroup===ag.id?"#f59e0b":"#9ca3af",textAlign:"center",transition:"all .2s"}}>
+                  <div style={{fontSize:13,fontWeight:700}}>{ag.label}</div>
+                  <div style={{fontSize:10,color:stats.ageGroup===ag.id?"rgba(245,158,11,.7)":"#4b5563",marginTop:2}}>{ag.desc}</div>
+                </button>
+              ))}
+            </div>
+          </div>
           <button onClick={finishOnboard} style={{...btn("linear-gradient(135deg,#d97706,#f59e0b)"),...{boxShadow:"0 4px 15px rgba(245,158,11,.3)",maxWidth:300}}}>Let's Play! →</button>
         </div>}
 
@@ -1078,7 +1282,7 @@ export default function App(){
           <div style={{textAlign:"center",padding:"20px 0 14px"}}>
             <div style={{fontSize:48,marginBottom:4}}>⚾</div>
             <h1 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:32,letterSpacing:2,color:"#f59e0b",lineHeight:1,marginBottom:4}}>STRATEGY MASTER</h1>
-            <p style={{color:"#6b7280",fontSize:12,maxWidth:340,margin:"0 auto"}}>{totalSc} scenarios · 5 positions · Real MLB strategy</p>
+            <p style={{color:"#6b7280",fontSize:12,maxWidth:340,margin:"0 auto"}}>{totalSc} scenarios · 6 positions · Real MLB strategy</p>
           </div>
 
           {/* Stats card */}
@@ -1240,6 +1444,20 @@ export default function App(){
             </div>
           </div>}
 
+          {/* Special Modes — Famous Plays & Rule IQ */}
+          {stats.gp>=5&&<div style={{display:"flex",gap:8,marginBottom:12}}>
+            <div onClick={()=>startGame("famous")} style={{flex:1,background:"linear-gradient(135deg,rgba(234,179,8,.06),rgba(202,138,4,.03))",border:"1px solid rgba(234,179,8,.2)",borderRadius:14,padding:"14px 10px",cursor:"pointer",textAlign:"center",minHeight:48}}>
+              <div style={{fontSize:22,marginBottom:3}}>🏟️</div>
+              <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:13,color:"#eab308",letterSpacing:1}}>FAMOUS PLAYS</div>
+              <div style={{fontSize:10,color:"#9ca3af",marginTop:2}}>{SCENARIOS.famous?.length||0} legendary moments</div>
+            </div>
+            <div onClick={()=>startGame("rules")} style={{flex:1,background:"linear-gradient(135deg,rgba(244,114,182,.06),rgba(219,39,119,.03))",border:"1px solid rgba(244,114,182,.2)",borderRadius:14,padding:"14px 10px",cursor:"pointer",textAlign:"center",minHeight:48}}>
+              <div style={{fontSize:22,marginBottom:3}}>📖</div>
+              <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:13,color:"#f472b6",letterSpacing:1}}>RULE IQ</div>
+              <div style={{fontSize:10,color:"#9ca3af",marginTop:2}}>{SCENARIOS.rules?.length||0} rules to master</div>
+            </div>
+          </div>}
+
           {/* Position grid */}
           <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:12,color:"#6b7280",marginBottom:6,letterSpacing:2}}>CHOOSE YOUR POSITION</div>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
@@ -1283,9 +1501,11 @@ export default function App(){
             <span>1️⃣ Pick position</span><span>2️⃣ Read the play</span><span>3️⃣ Make the call</span><span>4️⃣ Learn why</span>
           </div>
 
-          {/* Sound toggle */}
-          <div style={{textAlign:"center",marginTop:8}}>
+          {/* Settings row */}
+          <div style={{display:"flex",justifyContent:"center",gap:8,marginTop:8,flexWrap:"wrap",alignItems:"center"}}>
             <button onClick={()=>{const v=!stats.soundOn;setStats(p=>({...p,soundOn:v}));snd.setEnabled(v)}} style={{...ghost,fontSize:10}}>{stats.soundOn?"🔊 Sound On":"🔇 Sound Off"}</button>
+            <span style={{color:"#374151"}}>·</span>
+            <button onClick={()=>{const groups=AGE_GROUPS.map(a=>a.id);const cur=groups.indexOf(stats.ageGroup);const next=groups[(cur+1)%groups.length];setStats(p=>({...p,ageGroup:next}))}} style={{...ghost,fontSize:10}}>🎂 {stats.ageGroup}</button>
           </div>
         </div>}
 
