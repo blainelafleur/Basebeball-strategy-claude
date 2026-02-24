@@ -79,6 +79,12 @@ const SCENARIOS = {
       options:["Let it rip — throw your hardest","Start with off-speed to surprise","Fastball for strike — establish the zone","Pitch out of the zone to start"],
       best:2,explanations:["Adrenaline makes you overthrow, losing control. Channel the energy.","Surprise isn't needed first pitch of the season.","Smart! Establish the strike zone early. Controlled aggression beats wild energy.","Nibbling pitch 1 of the season sets a bad tone."],
       rates:[40,35,85,25],concept:"Channel adrenaline into controlled aggression — establish the strike zone early",anim:"strike"},
+    {id:"p13",title:"Covering First Base",diff:1,cat:"defense",
+      description:"Ground ball hit to the first baseman. He fields it but he's too far from the bag to step on it himself. What do you do as the pitcher?",
+      situation:{inning:"Bot 2",outs:0,count:"1-0",runners:[],score:[1,0]},
+      options:["Stay on the mound — that's the first baseman's job","Sprint to first base to take the throw","Run toward home plate to back up","Watch and see what happens"],
+      best:1,explanations:["Covering first on ground balls is ALWAYS the pitcher's responsibility.","Pitchers MUST cover first base on any ground ball to the right side. Sprint to the bag, catch the toss, touch first. This is a basic but critical responsibility that gets ignored in youth baseball.","Backing up home is for overthrows, not routine plays.","Watching gets nobody out. Move your feet!"],
+      rates:[10,85,20,15],concept:"Pitchers must cover 1st base on ground balls to the right side — sprint to the bag!",anim:"groundout"},
   ],
   batter: [
     {id:"b1",title:"RBI Opportunity",diff:1,cat:"situational",
@@ -153,6 +159,12 @@ const SCENARIOS = {
       options:["Swing hard — need a big hit","Shorten up and put the ball in play","Sit on one pitch and guess right","Take — pray for a walk"],
       best:1,explanations:["Overswinging with 2 strikes leads to strikeouts. Keep your season alive.","In elimination situations, shorten your swing and find a way to keep the at-bat alive. Contact creates chaos.","Guessing wrong ends your season.","A walk only loads the bases. You still need a hit."],
       rates:[25,80,35,30],concept:"With your back against the wall, shorten up and make contact — keep the line moving",anim:"hit"},
+    {id:"b13",title:"Which Pitch to Expect",diff:1,cat:"basic",
+      description:"You're a young batter stepping up to the plate for the first time in the game. You don't know anything about this pitcher yet. What should you look for?",
+      situation:{inning:"Top 1",outs:0,count:"0-0",runners:[],score:[0,0]},
+      options:["Look for a fastball — most pitchers throw fastballs first","Close your eyes and swing hard","Wait for a slow pitch — they're easier to hit","Guess curveball"],
+      best:0,explanations:["Most pitchers throw fastballs 60%+ of the time. Until you see what a pitcher has, look for the most common pitch — the fastball. Be ready to hit it!","Never close your eyes! Watch the ball all the way.","You can't control what the pitcher throws. Be ready for the most likely pitch.","Guessing curveball on the first pitch you ever see from a pitcher is too specific."],
+      rates:[85,5,30,20],concept:"Look fastball first — it's the most common pitch. React to everything else",anim:"hit"},
   ],
   fielder: [
     {id:"f1",title:"Double Play Chance",diff:1,cat:"infield",
@@ -295,6 +307,12 @@ const SCENARIOS = {
       options:["Sprint home!","Wait — too risky with 2 outs","See where the ball goes first","Only go if it gets past the catcher"],
       best:0,explanations:["Any ball that bounces well in front of the plate is your chance. Be aggressive from 3rd with 2 outs!","With 2 outs, the risk-reward heavily favors going.","By the time you see, the catcher has recovered.","It bounced 5 feet in front — it WILL get away at least briefly. Go!"],
       rates:[85,20,35,50],concept:"On wild pitches with a runner on 3rd, react immediately — don't wait and watch",anim:"score"},
+    {id:"r12",title:"Running Through First Base",diff:1,cat:"basic",
+      description:"You hit a ground ball to shortstop. It's going to be close at first base. How should you run through the bag?",
+      situation:{inning:"Top 2",outs:0,count:"0-0",runners:[],score:[0,0]},
+      options:["Run full speed straight through the bag","Slow down before the bag to hit it perfectly","Dive headfirst into first base","Round the bag toward second"],
+      best:0,explanations:["Run THROUGH first base at full speed! You're allowed to overrun 1st base without being tagged out (as long as you turn right/foul territory). Never slow down.","Slowing down loses time. The difference between safe and out is often 0.1 seconds.","NEVER dive headfirst into 1st base — it's slower than running through. You lose momentum.","Only round the bag if the ball gets through to the outfield. On a ground ball, run straight through."],
+      rates:[85,15,10,35],concept:"Run full speed through 1st base — you can overrun it safely in foul territory",anim:"advance"},
   ],
   manager: [
     {id:"m1",title:"Intentional Walk",diff:2,cat:"late-game",
@@ -357,6 +375,18 @@ const SCENARIOS = {
       options:["Use the closer","Save him for a closer game","Use a setup man","Use whoever's freshest"],
       best:2,explanations:["A 3-run lead doesn't need your best arm. Save him.","Smart thinking — but you still need a competent reliever.","Correct! The setup man can handle a 3-run lead. Save the closer for a 1-run game tomorrow.","Freshest isn't always best in the 9th. Use the setup man who's built for high leverage."],
       rates:[35,50,85,45],concept:"Save your closer for tight games — setup men can handle comfortable leads",anim:"strike"},
+    {id:"m11",title:"When to Call Timeout",diff:1,cat:"in-game",
+      description:"Your pitcher just gave up back-to-back singles. He's shaking his head on the mound. The cleanup hitter is up. What do you do?",
+      situation:{inning:"Top 5",outs:0,count:"-",runners:[1,2],score:[4,2]},
+      options:["Let him figure it out — he's a competitor","Visit the mound to slow things down and refocus him","Immediately pull him for a reliever","Yell encouragement from the dugout"],
+      best:1,explanations:["Good competitors can lose focus. A visit slows the game and resets the mental clock.","A mound visit breaks the opponent's momentum, gives your pitcher a breather, and lets you remind him of the game plan. Sometimes all a pitcher needs is a moment to breathe.","Back-to-back singles aren't a crisis. Save the bullpen unless he's clearly done.","Yelling from the dugout doesn't slow the game or provide real support."],
+      rates:[25,85,30,20],concept:"Mound visits break momentum and refocus your pitcher — use them strategically",anim:"strike"},
+    {id:"m12",title:"Batting Order Basics",diff:1,cat:"lineup",
+      description:"You're setting your lineup. Where should your fastest player who gets on base a lot bat?",
+      situation:{inning:"Top 1",outs:0,count:"-",runners:[],score:[0,0]},
+      options:["Leadoff (1st)","3rd in the order","Cleanup (4th)","9th (last)"],
+      best:0,explanations:["Leadoff! Your fastest, highest-OBP player bats first. Their job is to get on base and score. The leadoff hitter gets the most at-bats over a season.","3rd is traditionally for your best all-around hitter, not necessarily the fastest.","Cleanup is for your power hitter — the one who drives in runs, not steals bases.","9th is usually your weakest hitter (or a second leadoff in NL before universal DH)."],
+      rates:[85,35,20,15],concept:"Leadoff hitter = speed + on-base ability. They set the table for the whole lineup",anim:"advance"},
   ],
   catcher: [
     {id:"ct1",title:"Pitch Calling — Full Count",diff:2,cat:"pitch-calling",
@@ -544,6 +574,56 @@ const SCENARIOS = {
       best:1,explanations:["Leaving early means the defense can throw to 3rd for an appeal out.","The runner must 'tag up' — keep his foot on 3rd base until the ball is CAUGHT, then sprint home. If he leaves early and the defense appeals, he's out.","There's no special umpire signal — you have to watch the catch yourself.","Runners absolutely can advance after a catch — that's the whole point of a sacrifice fly."],
       rates:[25,85,15,10],concept:"Tag up: on a fly ball, touch your base until the catch is made, THEN you can advance",anim:"score"},
   ],
+  counts: [
+    {id:"cn1",title:"0-0: First Pitch Approach (Batter)",diff:1,cat:"counts",
+      description:"You're the batter. Count is 0-0. The pitcher has been throwing first-pitch fastballs all game. What's your approach?",
+      situation:{inning:"Bot 3",outs:0,count:"0-0",runners:[],score:[1,1]},
+      options:["Sit on the fastball and swing aggressively","Take the first pitch no matter what","Bunt for a surprise hit","Choke up and just make contact"],
+      best:0,explanations:["MLB hitters bat .340 on first pitches they swing at. If you KNOW it's a fastball, be aggressive! Jumping on first-pitch fastballs is how you take advantage of pitcher patterns.","Always taking first pitches makes you predictable and puts you behind.","Bunting on the first pitch wastes the advantage of knowing what's coming.","Just making contact wastes the advantage. If you know fastball, drive it."],
+      rates:[85,35,20,40],concept:"Hitting 0-0: if you know what's coming, be aggressive — hitters bat .340 on first pitches",anim:"hit"},
+    {id:"cn2",title:"0-2: Pitcher's Count (Batter)",diff:2,cat:"counts",
+      description:"You're behind 0-2. The pitcher has dominated this at-bat. What's your strategy?",
+      situation:{inning:"Top 5",outs:1,count:"0-2",runners:[1],score:[2,3]},
+      options:["Protect the plate — shorten your swing, fight off tough pitches","Swing for the fences — make him pay if he makes a mistake","Take the next pitch — he'll probably waste one","Bunt — surprise the defense"],
+      best:0,explanations:["Down 0-2, your job is to survive. Shorten up, foul off borderline pitches, and wait for a mistake. MLB hitters bat only .167 on 0-2 counts — be defensive.","Swinging big on 0-2 leads to strikeouts. The pitcher has the advantage.","Good pitchers don't always waste on 0-2 — many go right after you. Be ready.","A 0-2 bunt is desperation. Just compete with a shortened approach."],
+      rates:[85,15,40,20],concept:"Down 0-2, become a fighter — shorten your swing and protect the plate (.167 BA in 0-2)",anim:"strike"},
+    {id:"cn3",title:"3-1: Hitter's Count",diff:2,cat:"counts",
+      description:"Count is 3-1, you're the batter. A ball four puts you on base. The pitcher needs a strike. What's your approach?",
+      situation:{inning:"Bot 6",outs:1,count:"3-1",runners:[2],score:[3,4]},
+      options:["Sit on your pitch and crush it — hitters bat .340 on 3-1","Take the pitch — get to a full count","Swing at anything close — you don't want to strike out","Protect — shorten up like you're behind in the count"],
+      best:0,explanations:["3-1 is the best hitter's count in baseball! The pitcher MUST throw a strike. Look for your pitch in your zone and drive it. MLB hitters bat .340+ on 3-1.","Why give away your best advantage? 3-1 is YOUR count.","Swinging at anything close isn't selective enough. LOOK for your pitch.","You don't need to protect on 3-1 — you have the leverage. Be aggressive."],
+      rates:[85,35,30,20],concept:"3-1 is the hitter's best count (.340+ BA) — the pitcher must come to you, sit on your pitch",anim:"hit"},
+    {id:"cn4",title:"1-2: Pitcher's Strategy",diff:2,cat:"counts",
+      description:"You're the pitcher. Count is 1-2 on a slugger. You're ahead — one more strike gets him. What do you throw?",
+      situation:{inning:"Top 4",outs:0,count:"1-2",runners:[],score:[2,0]},
+      options:["Fastball right down the middle — challenge him","Slider just off the plate — expand the zone","Changeup in the dirt — make him chase","Same pitch you just threw — repeat it"],
+      best:1,explanations:["Down the middle on 1-2 is a gift. You're ahead — use that leverage.","Expand the zone! On 1-2, throw to spots where the hitter THINKS it's a strike but it's actually a ball. Chase pitches get strikeouts.","In the dirt is too obvious — most hitters won't chase that far down on 1-2.","Repeating the same pitch is predictable. Mix it up."],
+      rates:[15,85,45,30],concept:"1-2 counts: expand the zone with chase pitches just off the plate — make the hitter swing at balls",anim:"strikeout"},
+    {id:"cn5",title:"2-0: Pitcher in Trouble",diff:2,cat:"counts",
+      description:"You're the pitcher. Behind 2-0 to a good hitter. You need a strike. What's your play?",
+      situation:{inning:"Bot 3",outs:1,count:"2-0",runners:[],score:[1,1]},
+      options:["Fastball — your most command-able pitch for a strike","Breaking ball — surprise him","Nibble the corners — don't give him anything to hit","Changeup low — steal a strike"],
+      best:0,explanations:["On 2-0, throw your best strike. Fastballs have the highest strike rate. You NEED to get back in the count. Don't try to be cute — be accurate.","Breaking balls are harder to control. On 2-0, command is everything.","Nibbling risks falling 3-0 which is even worse. Attack the zone.","Changeup on 2-0 is risky — if it misses, you're 3-0."],
+      rates:[85,25,30,40],concept:"Behind 2-0, throw your best fastball for a strike — command beats trickery when you're behind",anim:"strike"},
+    {id:"cn6",title:"Full Count: 3-2 with 2 Outs",diff:3,cat:"counts",
+      description:"Full count 3-2, 2 outs, runner on 1st. You're the batter. The runner is going on the pitch. What's your approach?",
+      situation:{inning:"Bot 7",outs:2,count:"3-2",runners:[1],score:[3,4]},
+      options:["Swing at anything close — can't take strike 3","Be selective — wait for YOUR pitch in YOUR zone","Take the pitch — if it's a ball, you walk","Swing for extra bases to drive in the runner"],
+      best:1,explanations:["Swinging at everything leads to weak contact on bad pitches.","Even on 3-2 with 2 outs, be selective within the zone. You don't need to swing at balls. LOOK for a pitch you can drive. The runner is going, so contact puts him in scoring position.","You can't just take on 3-2 — if it catches the corner, you're out looking.","Trying to do too much leads to overswinging. Just find a good pitch and put a good swing on it."],
+      rates:[30,85,25,35],concept:"Full count discipline: be aggressively selective — swing at strikes, lay off balls, even with 2 strikes",anim:"hit"},
+    {id:"cn7",title:"First Pitch After a Walk (Pitcher)",diff:1,cat:"counts",
+      description:"You just walked the previous batter. New batter up. What should your first pitch be?",
+      situation:{inning:"Top 5",outs:0,count:"0-0",runners:[1],score:[2,2]},
+      options:["A careful pitch on the corner — don't fall behind again","A first-pitch strike — get ahead immediately","A pitchout to check the runner","Whatever you're most comfortable with"],
+      best:1,explanations:["Being too careful after a walk often leads to another walk. Attack the zone.","After a walk, the most important thing is getting ahead on the new batter. Throw a strike. Pitchers who throw first-pitch strikes after walks cut their walk rate dramatically.","A pitchout on 0-0 puts you behind immediately.","Comfort is secondary — the game situation demands a strike."],
+      rates:[35,85,15,40],concept:"After a walk, throw strike one immediately — getting ahead prevents walk snowballs",anim:"strike"},
+    {id:"cn8",title:"2-2: Even Count Battle",diff:2,cat:"counts",
+      description:"Count is 2-2. Both sides have fought hard this at-bat. You're the pitcher. What's your approach to get the strikeout?",
+      situation:{inning:"Bot 8",outs:1,count:"2-2",runners:[2,3],score:[4,3]},
+      options:["Your best pitch, best location — trust your stuff","Something he hasn't seen this at-bat","The same sequence that got you to 2-2","A fastball up to set up a breaking ball next pitch"],
+      best:1,explanations:["Your best pitch is predictable if he's seen it multiple times this at-bat.","Change the eye level and the look! On 2-2, show something different. If you've been throwing low, go up. If fastballs, throw off-speed. The element of surprise gets strikeouts.","Repeating sequences is predictable for good hitters.","Setting up a next pitch works, but you might not GET a next pitch — this could be ball three."],
+      rates:[40,85,30,45],concept:"On 2-2, change the hitter's eye level — show something he hasn't seen this at-bat",anim:"strikeout"},
+  ],
 };
 
 const ALL_POS = ["pitcher","batter","catcher","fielder","baserunner","manager"];
@@ -556,6 +636,7 @@ const POS_META = {
   manager:{label:"Manager",emoji:"📋",color:"#a855f7",bg:"linear-gradient(135deg,#3b0764,#581c87,#7c3aed)",desc:"Make championship decisions",icon:"🧠"},
   famous:{label:"Famous Play",emoji:"🏟️",color:"#eab308",bg:"linear-gradient(135deg,#713f12,#854d0e,#ca8a04)",desc:"Legendary moments in baseball history",icon:"⭐"},
   rules:{label:"Rule IQ",emoji:"📖",color:"#f472b6",bg:"linear-gradient(135deg,#831843,#9d174d,#db2777)",desc:"Know the rules that decide games",icon:"📐"},
+  counts:{label:"Count IQ",emoji:"🔢",color:"#14b8a6",bg:"linear-gradient(135deg,#134e4a,#115e59,#0d9488)",desc:"Master every count in baseball",icon:"📊"},
 };
 const LEVELS=[{n:"Rookie",min:0,c:"#94a3b8",e:"🌱"},{n:"Varsity",min:75,c:"#3b82f6",e:"⭐"},{n:"All-Star",min:200,c:"#f59e0b",e:"🌟"},{n:"MVP",min:400,c:"#ef4444",e:"🏆"},{n:"Hall of Fame",min:700,c:"#a855f7",e:"👑"}];
 const ACHS=[
@@ -968,6 +1049,7 @@ export default function App(){
   const[speedRound,setSpeedRound]=useState(null); // {round,total,results:[],startTime}
   const[timer,setTimer]=useState(15);
   const timerRef=useRef(null);
+  const[fielderTrack,setFielderTrack]=useState(null); // null=all, "infield", "outfield"
   // Survival Mode state
   const[survivalMode,setSurvivalMode]=useState(false);
   const[survivalRun,setSurvivalRun]=useState(null); // {count,pts,concepts[]}
@@ -1009,15 +1091,19 @@ export default function App(){
   const remaining=DAILY_FREE-stats.todayPlayed;
   const atLimit=remaining<=0&&!stats.isPro;
   
+  const INFIELD_CATS=["infield","plays"];const OUTFIELD_CATS=["outfield"];
   const maxDiff=(AGE_GROUPS.find(a=>a.id===stats.ageGroup)||AGE_GROUPS[2]).maxDiff;
   const getRand=useCallback((p)=>{
-    const pool=(SCENARIOS[p]||[]).filter(s=>s.diff<=maxDiff);const fallback=SCENARIOS[p]||[];
+    let raw=SCENARIOS[p]||[];
+    if(p==="fielder"&&fielderTrack==="infield")raw=raw.filter(s=>INFIELD_CATS.includes(s.cat)||!OUTFIELD_CATS.includes(s.cat));
+    if(p==="fielder"&&fielderTrack==="outfield")raw=raw.filter(s=>OUTFIELD_CATS.includes(s.cat)||!INFIELD_CATS.includes(s.cat));
+    const pool=raw.filter(s=>s.diff<=maxDiff);const fallback=raw;
     const src=pool.length>0?pool:fallback;const seen=hist[p]||[];
     const unseen=src.filter(s=>!seen.includes(s.id));
     const avail=unseen.length>0?unseen:src;
     const s=avail[Math.floor(Math.random()*avail.length)];
     setHist(h=>({...h,[p]:[...(h[p]||[]),s.id].slice(-src.length+1)}));return s;
-  },[hist,maxDiff]);
+  },[hist,maxDiff,fielderTrack]);
 
   const startDaily=useCallback(()=>{
     if(stats.dailyDone&&stats.dailyDate===new Date().toDateString())return;
@@ -1118,7 +1204,7 @@ export default function App(){
   },[choice,sc,pos,snd,checkAch,stats.pts,dailyMode,speedMode,timer,speedNext,survivalMode,survivalRun,survivalNext]);
 
   const next=useCallback(()=>{setLvlUp(null);if(speedMode){speedNext()}else if(survivalMode){survivalNext()}else if(dailyMode){goHome()}else{startGame(pos,aiMode)}},[pos,startGame,aiMode,dailyMode,speedMode,speedNext,survivalMode,survivalNext,goHome]);
-  const goHome=useCallback(()=>{setScreen("home");setPos(null);setSc(null);setChoice(null);setOd(null);setFo(null);setPanel(null);setLvlUp(null);setDailyMode(false);setSpeedMode(false);setSpeedRound(null);setSurvivalMode(false);setSurvivalRun(null);if(timerRef.current)clearTimeout(timerRef.current)},[]);
+  const goHome=useCallback(()=>{setScreen("home");setPos(null);setSc(null);setChoice(null);setOd(null);setFo(null);setPanel(null);setLvlUp(null);setDailyMode(false);setSpeedMode(false);setSpeedRound(null);setSurvivalMode(false);setSurvivalRun(null);setFielderTrack(null);if(timerRef.current)clearTimeout(timerRef.current)},[]);
   const finishOnboard=useCallback(()=>{setStats(p=>({...p,onboarded:true,todayDate:new Date().toDateString()}));setScreen("home")},[]);
   
   const lvl=getLvl(stats.pts);const nxt=getNxt(stats.pts);
@@ -1444,17 +1530,22 @@ export default function App(){
             </div>
           </div>}
 
-          {/* Special Modes — Famous Plays & Rule IQ */}
-          {stats.gp>=5&&<div style={{display:"flex",gap:8,marginBottom:12}}>
-            <div onClick={()=>startGame("famous")} style={{flex:1,background:"linear-gradient(135deg,rgba(234,179,8,.06),rgba(202,138,4,.03))",border:"1px solid rgba(234,179,8,.2)",borderRadius:14,padding:"14px 10px",cursor:"pointer",textAlign:"center",minHeight:48}}>
+          {/* Special Modes — Famous Plays, Rule IQ, Count IQ */}
+          {stats.gp>=5&&<div style={{display:"flex",gap:8,marginBottom:12,flexWrap:"wrap"}}>
+            <div onClick={()=>startGame("famous")} style={{flex:"1 1 30%",minWidth:90,background:"linear-gradient(135deg,rgba(234,179,8,.06),rgba(202,138,4,.03))",border:"1px solid rgba(234,179,8,.2)",borderRadius:14,padding:"14px 10px",cursor:"pointer",textAlign:"center",minHeight:48}}>
               <div style={{fontSize:22,marginBottom:3}}>🏟️</div>
-              <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:13,color:"#eab308",letterSpacing:1}}>FAMOUS PLAYS</div>
-              <div style={{fontSize:10,color:"#9ca3af",marginTop:2}}>{SCENARIOS.famous?.length||0} legendary moments</div>
+              <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:12,color:"#eab308",letterSpacing:1}}>FAMOUS</div>
+              <div style={{fontSize:9,color:"#9ca3af",marginTop:2}}>{SCENARIOS.famous?.length||0} plays</div>
             </div>
-            <div onClick={()=>startGame("rules")} style={{flex:1,background:"linear-gradient(135deg,rgba(244,114,182,.06),rgba(219,39,119,.03))",border:"1px solid rgba(244,114,182,.2)",borderRadius:14,padding:"14px 10px",cursor:"pointer",textAlign:"center",minHeight:48}}>
+            <div onClick={()=>startGame("rules")} style={{flex:"1 1 30%",minWidth:90,background:"linear-gradient(135deg,rgba(244,114,182,.06),rgba(219,39,119,.03))",border:"1px solid rgba(244,114,182,.2)",borderRadius:14,padding:"14px 10px",cursor:"pointer",textAlign:"center",minHeight:48}}>
               <div style={{fontSize:22,marginBottom:3}}>📖</div>
-              <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:13,color:"#f472b6",letterSpacing:1}}>RULE IQ</div>
-              <div style={{fontSize:10,color:"#9ca3af",marginTop:2}}>{SCENARIOS.rules?.length||0} rules to master</div>
+              <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:12,color:"#f472b6",letterSpacing:1}}>RULES</div>
+              <div style={{fontSize:9,color:"#9ca3af",marginTop:2}}>{SCENARIOS.rules?.length||0} rules</div>
+            </div>
+            <div onClick={()=>startGame("counts")} style={{flex:"1 1 30%",minWidth:90,background:"linear-gradient(135deg,rgba(20,184,166,.06),rgba(13,148,136,.03))",border:"1px solid rgba(20,184,166,.2)",borderRadius:14,padding:"14px 10px",cursor:"pointer",textAlign:"center",minHeight:48}}>
+              <div style={{fontSize:22,marginBottom:3}}>🔢</div>
+              <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:12,color:"#14b8a6",letterSpacing:1}}>COUNTS</div>
+              <div style={{fontSize:9,color:"#9ca3af",marginTop:2}}>{SCENARIOS.counts?.length||0} counts</div>
             </div>
           </div>}
 
@@ -1462,17 +1553,23 @@ export default function App(){
           <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:12,color:"#6b7280",marginBottom:6,letterSpacing:2}}>CHOOSE YOUR POSITION</div>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
             {ALL_POS.map(p=>{const m=POS_META[p];const ps=stats.ps[p];const a=ps&&ps.p>0?Math.round((ps.c/ps.p)*100):null;return(
-              <div key={p} onClick={()=>startGame(p)} style={{background:m.bg,borderRadius:14,padding:"16px 12px",cursor:"pointer",transition:"all .2s",textAlign:"center",border:"2px solid transparent",position:"relative",overflow:"hidden"}}
-                onMouseEnter={e=>{e.currentTarget.style.transform="scale(1.03)";e.currentTarget.style.borderColor=`${m.color}50`}}
-                onMouseLeave={e=>{e.currentTarget.style.transform="scale(1)";e.currentTarget.style.borderColor="transparent"}}>
-                <div style={{position:"absolute",top:0,left:0,right:0,bottom:0,background:"radial-gradient(circle at 30% 20%,rgba(255,255,255,.07),transparent 60%)"}}/>
-                <div style={{position:"relative"}}>
-                  <div style={{fontSize:32,marginBottom:2}}>{m.emoji}</div>
-                  <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:18,letterSpacing:1.5}}>{m.label.toUpperCase()}</div>
-                  <div style={{fontSize:10,color:"rgba(255,255,255,.55)",marginTop:2}}>{m.desc}</div>
-                  <div style={{fontSize:9,color:"rgba(255,255,255,.35)",marginTop:3}}>{SCENARIOS[p].length} scenarios</div>
-                  {a!==null&&<div style={{fontSize:9,color:"rgba(255,255,255,.6)",marginTop:2}}>{a}% · {ps.p} played</div>}
+              <div key={p} style={{position:"relative"}}>
+                <div onClick={()=>{if(p==="fielder")setFielderTrack(null);startGame(p)}} style={{background:m.bg,borderRadius:14,padding:"16px 12px",cursor:"pointer",transition:"all .2s",textAlign:"center",border:"2px solid transparent",position:"relative",overflow:"hidden"}}
+                  onMouseEnter={e=>{e.currentTarget.style.transform="scale(1.03)";e.currentTarget.style.borderColor=`${m.color}50`}}
+                  onMouseLeave={e=>{e.currentTarget.style.transform="scale(1)";e.currentTarget.style.borderColor="transparent"}}>
+                  <div style={{position:"absolute",top:0,left:0,right:0,bottom:0,background:"radial-gradient(circle at 30% 20%,rgba(255,255,255,.07),transparent 60%)"}}/>
+                  <div style={{position:"relative"}}>
+                    <div style={{fontSize:32,marginBottom:2}}>{m.emoji}</div>
+                    <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:18,letterSpacing:1.5}}>{m.label.toUpperCase()}</div>
+                    <div style={{fontSize:10,color:"rgba(255,255,255,.55)",marginTop:2}}>{m.desc}</div>
+                    <div style={{fontSize:9,color:"rgba(255,255,255,.35)",marginTop:3}}>{SCENARIOS[p]?.length||0} scenarios</div>
+                    {a!==null&&<div style={{fontSize:9,color:"rgba(255,255,255,.6)",marginTop:2}}>{a}% · {ps.p} played</div>}
+                  </div>
                 </div>
+                {p==="fielder"&&<div style={{display:"flex",gap:4,marginTop:4}}>
+                  <button onClick={()=>{setFielderTrack("infield");startGame("fielder")}} style={{flex:1,background:"rgba(34,197,94,.06)",border:"1px solid rgba(34,197,94,.15)",borderRadius:8,padding:"4px",color:"#22c55e",fontSize:9,fontWeight:700,cursor:"pointer"}}>🥊 Infield</button>
+                  <button onClick={()=>{setFielderTrack("outfield");startGame("fielder")}} style={{flex:1,background:"rgba(34,197,94,.06)",border:"1px solid rgba(34,197,94,.15)",borderRadius:8,padding:"4px",color:"#22c55e",fontSize:9,fontWeight:700,cursor:"pointer"}}>🌿 Outfield</button>
+                </div>}
               </div>
             )})}
           </div>
