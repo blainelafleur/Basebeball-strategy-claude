@@ -338,11 +338,11 @@ const SCENARIOS = {
       description:"Bot 7th, runner on 2nd, 2 outs, tied 3-3. First base is open. An intentional walk puts the tying run on first and gives you a force play at any base.",
       situation:{inning:"Bot 7",outs:2,count:"-",runners:[2],score:[3,3]},
       options:["Walk him — set up the force play","Pitch to him — don't put extra runners on","Walk only if the next batter is weaker","Pitch carefully but don't walk him intentionally"],
-      best:0,explanations:["Walking the batter to put runners on 1st and 2nd creates a force play at second, third, and first. On any ground ball, you can get the force out at any base instead of needing a tag. The force play is much easier to execute than a tag play. Plus, any ground ball becomes a potential double play.","Pitching to this batter without the force play means a ground ball to the left side requires a tag at third — much harder than a force.","The next batter's stats matter, but the force play advantage is valuable regardless.","Pitching carefully often leads to unintentional walks on 3-2 counts — just walk him on purpose and be ready."],
+      best:0,explanations:["Walking the batter to put runners on 1st and 2nd creates a force play at second, third, and first. On any ground ball, you can get the force out at any base instead of needing a tag. The force play is much easier to execute than a tag play.","Pitching to this batter without the force play means a ground ball to the left side requires a tag at third — much harder than a force.","The next batter's stats matter, but the force play advantage is valuable regardless.","Pitching carefully often leads to unintentional walks on 3-2 counts — just walk him on purpose and be ready."],
       rates:[85,30,40,35],concept:"Walk a batter to set up the force play — force outs are easier than tag plays",anim:"walk"},
     {id:"p54",title:"Lefty-Righty Walk Advantage",diff:2,cat:"strategy",
-      description:"Top of the 6th, runner on 1st, 1 out, up 5-4. A tough left-handed hitter is at the plate. The next batter is a right-handed hitter. You're a right-handed pitcher.",
-      situation:{inning:"Top 6",outs:1,count:"-",runners:[1],score:[5,4]},
+      description:"Top of the 6th, runner on 1st, 1 out, tied 4-4. A tough left-handed hitter (.320 avg) is at the plate. The next batter is a right-handed hitter (.210 avg). You're a right-handed pitcher.",
+      situation:{inning:"Top 6",outs:1,count:"-",runners:[1],score:[4,4]},
       options:["Walk the lefty to face the righty — platoon advantage","Pitch to the lefty — don't put another runner on","Pitch carefully to the lefty — don't give him anything good","Only walk him if he gets ahead in the count"],
       best:0,explanations:["As a righty, you have a natural advantage against right-handed hitters — your breaking balls move AWAY from them, which is harder to hit. Walking the lefty to face the righty gives you the platoon advantage AND sets up a double play.","Pitching to a tough lefty as a righty means your breaking balls move INTO his hitting zone — toward him, not away. That's dangerous.","Pitching carefully often leads to walks anyway, but on a 3-2 count with a full count battle. Just walk him cleanly.","Waiting to decide until the count develops wastes pitches and risks giving up a hit."],
       rates:[85,30,40,25],concept:"Walk a tough opposite-hand hitter to face a same-hand hitter — use the platoon advantage",anim:"walk"},
@@ -400,10 +400,10 @@ const SCENARIOS = {
       explSimple:["On a hit-and-run, you HAVE to swing because the runner is already running. If you don't swing, he could get thrown out.","You can't wait for a good pitch — the runner is counting on you to swing!","The coach said hit-and-run, not bunt. Do what the coach says.","Just try to hit the ball — you don't need to hit it hard, just make contact."],
       rates:[85,30,40,20],concept:"On a hit-and-run, your job is to swing and make contact — protect the runner",anim:"hit"},
     {id:"b4",title:"Smart Aggression",diff:2,cat:"approach",
-      description:"Leadoff, never faced this pitcher. Coach says 'see some pitches.' First pitch is a fastball right down the middle.",
+      description:"It's your first at-bat and you're feeling out the pitcher. First pitch is a fastball right down the middle.",
       situation:{inning:"Top 1",outs:0,count:"0-0",runners:[],score:[0,0]},
-      options:["Take it — see what he has","Swing — be aggressive on strikes","Bunt for a hit","Take until you see a strike"],
-      best:1,explanations:["Seeing pitches is nice, but a meatball down the middle is the most hittable pitch you'll see.","Smart aggression! MLB hitters who swing at first-pitch strikes bat .340+.","Bunting a meatball wastes a gift.","That IS a strike. You're already in trouble at 0-1."],
+      options:["Take it — see what he has","Swing — be aggressive on strikes","Bunt for a hit","Take until you get a strike"],
+      best:1,explanations:["Seeing pitches is nice, but a meatball down the middle is the most hittable pitch you'll see. Being patient doesn't mean taking every pitch — it means being ready when you get your pitch.","Smart aggression! MLB hitters who swing at first-pitch strikes bat .340+. Being selectively aggressive means pouncing on hittable pitches in the zone.","Bunting a meatball wastes a gift.","That IS a strike. You're already in trouble at 0-1. Being patient means waiting for YOUR pitch, not watching strikes go by."],
       explSimple:["Watching pitches is fine, but if the ball is right down the middle, you should swing!","Yes! If the pitch is right there to hit, go for it. A good hitter swings at good pitches.","Bunting a pitch that's easy to hit is a waste. Swing away!","That pitch was already a strike. Now you're behind in the count."],
       rates:[45,85,30,35],concept:"Be selectively aggressive — attack hittable pitches in the zone",anim:"hit"},
     {id:"b5",title:"Advancing the Runner",diff:1,cat:"situational",
@@ -431,8 +431,8 @@ const SCENARIOS = {
       description:"Pinch hitting, bottom 9th, runner on 2nd, 2 outs, down by 1. You haven't batted all game. Pitcher throws 95.",
       situation:{inning:"Bot 9",outs:2,count:"0-0",runners:[2],score:[3,4]},
       options:["Take the first pitch to time his speed","Swing if it's hittable","Ambush a specific pitch","Bunt"],
-      best:0,explanations:["Coming in cold against 95mph, you need to time him. One pitch of timing is invaluable.","Your timing will be off against 95mph without any at-bats.","Ambushing requires locked-in timing you don't have.","Bunting with 2 outs and a runner on 2nd makes no sense."],
-      rates:[80,40,45,5],concept:"As a pinch hitter, take the first pitch to time the pitcher's velocity",anim:"strike"},
+      best:0,explanations:["Coming in cold against 95mph, you need to time him. Taking one pitch gives you a read on his velocity and movement. But stay ready — if he grooves one, be prepared to adjust.","Your timing will be off against 95mph without any at-bats. It's a close call, but seeing one pitch helps more than it hurts.","Ambushing requires locked-in timing you don't have yet.","Bunting with 2 outs and a runner on 2nd makes no sense."],
+      rates:[70,60,45,5],concept:"As a pinch hitter, taking the first pitch to time the pitcher's velocity is usually smart — but stay ready",anim:"strike"},
     {id:"b9",title:"Infield Playing In",diff:2,cat:"situational",
       description:"Runner on 3rd, 1 out. Infield drawn in. Count 2-2.",
       situation:{inning:"Bot 6",outs:1,count:"2-2",runners:[3],score:[2,3]},
@@ -483,8 +483,8 @@ const SCENARIOS = {
       description:"Top of the 3rd, score is 1-0, you're the leadoff hitter starting the inning. Nobody on, nobody out. The pitcher's been sharp — only 1 hit so far.",
       situation:{inning:"Top 3",outs:0,count:"0-0",runners:[],score:[0,1]},
       options:["Work the count — see pitches and get on base","Swing at the first pitch to catch him off guard","Bunt for a hit to get something started","Swing for the fences — a homer ties it"],
-      best:0,explanations:["As a leadoff hitter, your #1 job is getting on base. See some pitches, work the count, and look for a walk or a good pitch to hit. Getting on base starts rallies!","First-pitch swinging can work sometimes, but against a sharp pitcher, you want to make him throw pitches and look for patterns.","Bunting when the defense isn't expecting it can work, but it's low-percentage as a first choice. Working the count gives you more options.","Swinging for the fences as the leadoff hitter is selfish. Get on base and let your teammates drive you in."],
-      rates:[85,40,35,15],concept:"Leadoff hitters start rallies — get on base any way you can",anim:"walk"},
+      best:0,explanations:["As a leadoff hitter, your #1 job is getting on base. See some pitches, work the count, and look for a walk or a good pitch to hit. Getting on base starts rallies! Working the count doesn't mean taking every pitch — it means being patient but ready when you get your pitch.","First-pitch swinging can work, especially if you spot a pitch in your zone. Against a sharp pitcher though, seeing a pitch or two first helps you find his patterns.","Bunting when the defense isn't expecting it can work, but it's low-percentage as a first choice. Working the count gives you more options.","Swinging for the fences as the leadoff hitter is selfish. Get on base and let your teammates drive you in."],
+      rates:[75,60,35,15],concept:"Leadoff hitters start rallies — get on base any way you can",anim:"walk"},
     {id:"b17",title:"Infield In — Fly or Ground?",diff:2,cat:"situational",
       description:"Bot 7th, runner on 3rd, 1 out, tied 4-4. Infield is playing in to cut off the run at home. Count is 1-1 against a sinkerball pitcher.",
       situation:{inning:"Bot 7",outs:1,count:"1-1",runners:[3],score:[4,4]},
@@ -623,7 +623,7 @@ const SCENARIOS = {
       description:"Top of the 9th, runner on 3rd, 1 out, down 5-4. Suicide squeeze is on. The pitcher throws a fastball HIGH AND INSIDE — almost at your face. The runner is already running.",
       situation:{inning:"Top 9",outs:1,count:"1-0",runners:[3],score:[4,5]},
       options:["Bunt it anyway — the runner needs you","Bail out — protect yourself from the pitch","Swing at it — maybe you can hit it","Duck and hope the pitch goes to the backstop"],
-      best:0,explanations:["On a suicide squeeze, you bunt NO MATTER WHAT. Even a pitch up and in — get your bat on it. Stick the bat head up high, angle it toward the ground, and deaden the ball. Your teammate is sprinting home counting on you. Even a foul ball keeps the play alive.","Bailing out leaves the runner completely exposed between 3rd and home. He'll be tagged out easily.","Swinging at a high-and-in pitch on a squeeze defeats the purpose. You need the ball on the ground, not hit in the air.","Ducking means the runner is dead. On a squeeze, the batter MUST attempt to bunt."],
+      best:0,explanations:["On a suicide squeeze, you bunt NO MATTER WHAT. Even a pitch up and in — get your bat on it. Stick the bat head up high, angle it toward the ground, and deaden the ball. Your teammate is sprinting home counting on you. Even a foul ball keeps the play alive. (Safety note: if a pitch is truly at your head, protect yourself first — but this one is just high and inside, still buntable.)","Bailing out leaves the runner completely exposed between 3rd and home. He'll be tagged out easily.","Swinging at a high-and-in pitch on a squeeze defeats the purpose. You need the ball on the ground, not hit in the air.","Ducking means the runner is dead. On a squeeze, the batter MUST attempt to bunt."],
       rates:[85,10,15,5],concept:"On a suicide squeeze, bunt the ball no matter where it's thrown — your teammate's safety depends on you",anim:"bunt"},
     {id:"b40",title:"Power Hitter Asked to Bunt",diff:3,cat:"plays",
       description:"Bot 5th, runner on 2nd, nobody out, tied 2-2. You're the #4 hitter — cleanup — with 15 home runs. The coach shockingly calls for a sacrifice bunt. What do you think?",
@@ -697,8 +697,8 @@ const SCENARIOS = {
       description:"Top of the 1st, your first at-bat of the game. You've never faced this pitcher before. Your teammates haven't given you any intel.",
       situation:{inning:"Top 1",outs:0,count:"0-0",runners:[],score:[0,0]},
       options:["Take the first pitch — see what he has","Look for a fastball and be ready to swing","Swing at the first pitch — surprise him","Watch from the dugout first, then adjust"],
-      best:0,explanations:["Your first at-bat against an unknown pitcher is a scouting mission. Take the first pitch to see his velocity, movement, and arm slot. Watch how his fastball moves, how hard he throws, where his release point is. This information makes your NEXT at-bat much more dangerous.","Looking fastball first isn't bad, but you don't even know how hard he throws yet. See a pitch first.","Swinging at the first pitch against an unknown pitcher is guessing blind. Get some data first.","You can't watch from the dugout during your own at-bat. You ARE the first data point."],
-      rates:[85,50,25,10],concept:"First at-bat against an unknown pitcher, take a pitch — gather data for your next at-bat",anim:"strike"},
+      best:0,explanations:["Your first at-bat against an unknown pitcher is a scouting mission. Take the first pitch to see his velocity, movement, and arm slot. This information makes your NEXT at-bat much more dangerous. Working the count doesn't mean taking every pitch — it means being patient but ready when you get your pitch.","Looking fastball first isn't bad — if you spot a hittable pitch, being ready to swing is smart hitting. But against a total unknown, seeing one pitch first helps.","Swinging at the first pitch against an unknown pitcher is guessing blind. Get some data first.","You can't watch from the dugout during your own at-bat. You ARE the first data point."],
+      rates:[75,60,25,10],concept:"First at-bat against an unknown pitcher, take a pitch — gather data for your next at-bat",anim:"strike"},
     {id:"b52",title:"In a Slump — What to Adjust",diff:2,cat:"adjustments",
       description:"Bot 6th, you're 0-for-your-last-12 over three games. Your confidence is low. You keep popping up and grounding out weakly. Runner on 1st, 1 out.",
       situation:{inning:"Bot 6",outs:1,count:"0-0",runners:[1],score:[2,2]},
@@ -764,10 +764,10 @@ const SCENARIOS = {
       best:0,explanations:["With nobody on base, throw to first! There's no force play anywhere else. Field the ball cleanly, set your feet, and make a strong throw to first base for the out. Simple, fundamental baseball.","There's no runner going to second — nobody's on base! Throwing there accomplishes nothing.","Holding the ball lets the batter reach first safely. Make the play!","Tagging second base doesn't create an out — there's no force play. The batter is running to first."],
       rates:[85,5,10,5],concept:"With nobody on base, every ground ball goes to first — know where to throw before the ball is hit",anim:"groundout"},
     {id:"f17",title:"Bases Loaded — Throw Home",diff:2,cat:"infield",
-      description:"Top of the 3rd, bases loaded, 1 out, up 5-3. You're the second baseman. Hard ground ball hit right at you.",
-      situation:{inning:"Top 3",outs:1,count:"-",runners:[1,2,3],score:[5,3]},
+      description:"Top of the 3rd, bases loaded, 1 out, up 5-4. You're the second baseman. Hard ground ball hit right at you.",
+      situation:{inning:"Top 3",outs:1,count:"-",runners:[1,2,3],score:[5,4]},
       options:["Throw home for the force out","Step on second and throw to first — double play","Throw to first for the sure out","Flip to the shortstop at second"],
-      best:0,explanations:["With bases loaded and 1 out, throwing home gets the force out AND prevents a run. After the catcher catches it, he can throw to first for the double play. Protecting the plate is priority #1.","The double play at second-first gets two outs but lets the runner on third score. You're giving up a run.","Throwing to first only gets one out and lets a run score from third.","Flipping to second gets a force out but lets the run score. Throw home first!"],
+      best:0,explanations:["With bases loaded and 1 out, throwing home gets the force out AND prevents a run. After the catcher catches it, he can throw to first for the double play. Protecting the plate is priority #1 with a 1-run lead.","The double play at second-first gets two outs but lets the runner on third score — that ties the game. With a 1-run lead, you can't give up that run.","Throwing to first only gets one out and lets a run score from third.","Flipping to second gets a force out but lets the run score. Throw home first!"],
       rates:[85,50,20,40],concept:"With bases loaded, throw home first — prevent the run and set up the double play",anim:"throwHome"},
     {id:"f20",title:"Fast Runner — Can You Turn Two?",diff:3,cat:"infield",
       description:"Bot 5th, runner on 1st, nobody out, tied 3-3. The runner is their fastest player. Ground ball to second — you flip to short to start the DP.",
@@ -779,8 +779,8 @@ const SCENARIOS = {
       description:"Bot 3rd, runner on 2nd, nobody out, tied 1-1. You're the second baseman. Should you play at double play depth even though there's no runner on first?",
       situation:{inning:"Bot 3",outs:0,count:"-",runners:[2],score:[1,1]},
       options:["Double play depth — get the runner at third on a ground ball","Normal depth — maximize your range","Play in — cut off the run at home","Split the difference — shade toward 2nd a bit"],
-      best:1,explanations:["There's no double play available with only a runner on 2nd — there's no force at third base.","With a runner on 2nd and nobody out, play at normal depth. Your job is to get outs. If the ball is hit to you, throw to first for the out. Glance at the runner on second, but he's not your primary concern — getting the batter out is.","Playing in with a runner on 2nd and nobody out is too aggressive — you give up too much range.","Shading toward 2nd isn't needed without a runner on first."],
-      rates:[20,85,30,35],concept:"With only a runner on 2nd, play normal depth — there's no DP available without a runner on first",anim:"groundout"},
+      best:1,explanations:["No conventional double play is available with only a runner on 2nd — there's no force at third base.","With a runner on 2nd and nobody out, play at normal depth. Your job is to get outs. If the ball is hit to you, throw to first for the out. Glance at the runner on second, but he's not your primary concern — getting the batter out is.","Playing in with a runner on 2nd and nobody out is too aggressive — you give up too much range.","Shading toward 2nd isn't needed without a runner on first."],
+      rates:[20,85,30,35],concept:"With only a runner on 2nd, play normal depth — no conventional DP is available without a runner on first",anim:"groundout"},
     {id:"f60",title:"Rundown — How Many Throws?",diff:2,cat:"communication",
       description:"Top of the 6th, runner caught in a rundown between first and second. You're the second baseman with the ball. The first baseman is at first. How do you handle this?",
       situation:{inning:"Top 6",outs:0,count:"-",runners:[1],score:[3,3]},
@@ -806,11 +806,11 @@ const SCENARIOS = {
       best:0,explanations:["Exactly right! When the first baseman charges a bunt, the second baseman MUST hustle over to cover first base. This is your responsibility on every bunt play — get there fast and give the fielder a target!","The pitcher might field the bunt, but then who does he throw to at first? Someone has to be on the bag, and that someone is you. The pitcher can't cover first AND field the bunt.","The shortstop covers second base on this play, not you. Your job is first base. If you both go to second, nobody covers first and the batter gets a free base.","Waiting and watching is the worst thing you can do on a bunt play. Everything happens fast — you need to be sprinting toward first the instant you see the bunt go down. Hesitation means the runner is safe."],
       rates:[85,20,25,10],concept:"On a bunt play when the first baseman charges, the second baseman must sprint over to cover first base — hesitation means a free base.",anim:"bunt"},
     {id:"2b4",title:"Relay From Right Field",diff:2,cat:"fielder",
-      description:"You're the second baseman. Runner on first, one out, and the batter hits a line drive into the right field gap. The ball rolls to the wall. The runner from first is rounding second and heading to third. You're the relay man — where do you position yourself?",
+      description:"You're the second baseman. Runner on first, one out, and the batter hits a line drive into the right field gap. The ball rolls to the wall. The runner from first is rounding second and heading to third — and he looks like he might keep going. You're the relay man — where do you position yourself?",
       situation:{inning:"Bot 6",outs:1,count:"0-0",runners:[1],score:[4,3]},
       options:["Line yourself up between the right fielder and third base, arms up, calling for the ball","Line up between the right fielder and home plate","Stay near second base and let the shortstop handle the relay","Run out toward right field to get as close to the outfielder as possible"],
-      best:0,explanations:["Perfect relay positioning! You line up between the right fielder and third base because that's where the lead runner is going. Put your arms up high so the outfielder can see you, and listen for your teammates telling you where to throw.","The runner is heading to third, not home, so lining up toward home plate sends the ball in the wrong direction. Always line up toward the base where the lead runner is heading.","The second baseman IS the relay man on balls hit to right field. The shortstop covers second base. If you don't go out for the relay, the outfielder has to make a long throw all by himself.","Going too far toward the outfielder defeats the purpose. You want to be about halfway so you can catch the throw and quickly relay it to third. If you're too deep, you're just an extra step that slows things down."],
-      rates:[85,30,15,20],concept:"On a relay from right field, the second baseman lines up between the outfielder and the base where the lead runner is heading, arms up for a target.",anim:"advance"},
+      best:1,explanations:["Lining up to third can work if the runner clearly stops there, but your default should always be toward home. Preventing runs is the priority, and your teammates can yell to redirect you if needed.","Perfect relay positioning! Your default is always to line up between the outfielder and home plate. Preventing the run is the #1 priority. Put your arms up high so the outfielder can see you, and listen for your teammates — they'll tell you where to throw. If the runner stops at third, you can cut it and hold.","The second baseman IS the relay man on balls hit to right field. The shortstop covers second base. If you don't go out for the relay, the outfielder has to make a long throw all by himself.","Going too far toward the outfielder defeats the purpose. You want to be about halfway so you can catch the throw and quickly relay it. If you're too deep, you're just an extra step that slows things down."],
+      rates:[55,85,15,20],concept:"On a relay from right field, the second baseman lines up between the outfielder and home plate — preventing runs is always the default priority.",anim:"advance"},
     {id:"2b5",title:"Tag Play at Second Base",diff:2,cat:"fielder",
       description:"You're the second baseman covering second base on a steal attempt. The runner on first takes off for second, and the catcher fires a strong throw. The ball is coming to you on the shortstop side of the bag. How do you apply the tag?",
       situation:{inning:"Top 2",outs:0,count:"1-2",runners:[1],score:[0,0]},
@@ -912,11 +912,11 @@ const SCENARIOS = {
       best:0,explanations:["You've got the best angle! Going back on a pop fly, you can see it in front of you the whole way. The left fielder charging in has to look up and run forward, which is much harder. Shortstops have priority on these tweeners — call it loud and early!","The left fielder is running in, which means the ball is over his head at first and then dropping in front of him — a very tough play. You're going out to it, which is a much easier catch. Take charge!","The third baseman would have to range a long way to his left for this ball. You're already drifting back and have a natural path to it. Plus, the shortstop is generally the captain of the infield on pop flies.","Never leave a pop fly uncalled! When nobody calls it, players crash into each other or the ball drops between them. Someone MUST take charge. Communication prevents collisions and errors."],
       rates:[88,25,20,10],concept:"On shallow outfield pop flies, the shortstop going back has a better angle than the outfielder charging in — call it loudly and take charge.",anim:"catch"},
     {id:"ss5",title:"Relay Man to Left-Center",diff:2,cat:"fielder",
-      description:"You're the shortstop. Runner on first, one out. The batter hits a deep fly ball to left-center field that drops and rolls to the wall. The runner from first is being waved around second toward third. You need to be the relay man. Where do you go?",
+      description:"You're the shortstop. Runner on first, one out. The batter hits a deep fly ball to left-center field that drops and rolls to the wall. The runner from first is rounding second and heading for third — and he might keep going. You need to be the relay man. Where do you go?",
       situation:{inning:"Top 6",outs:1,count:"0-0",runners:[1],score:[3,4]},
-      options:["Run out to line up between the left-center fielder and third base, arms up high so the outfielder can see you","Line up between the outfielder and home plate","Stay at shortstop position and let the third baseman handle it","Go to second base in case the batter tries to stretch it to a double"],
-      best:0,explanations:["Great relay work! You line up between the outfielder and the base where the lead runner is heading — that's third. Put your arms up high so the outfielder has a target, and listen to your teammates yelling which base to throw to. Relay plays save runs!","The runner is going to third, not home, so you need to line up toward third base. If the play develops and the runner rounds third, your teammates will yell 'Home!' and you can redirect the throw, but start lined up to third.","The third baseman needs to be at third base to receive the throw and tag the runner! He can't be out doing the relay. The shortstop is always the relay man on balls hit to the left side of the outfield.","The second baseman or another infielder can cover second. Your priority as shortstop on a deep left-center hit is to get out there as the relay man. Without a relay, the outfielder has to make an impossible long throw."],
-      rates:[85,25,15,20],concept:"On hits to left-center, the shortstop is the relay man — line up between the outfielder and the base where the lead runner is heading, arms up.",anim:"advance"},
+      options:["Run out to line up between the left-center fielder and third base, arms up high so the outfielder can see you","Line up between the outfielder and home plate, arms up","Stay at shortstop position and let the third baseman handle it","Go to second base in case the batter tries to stretch it to a double"],
+      best:1,explanations:["Lining up to third can work if the runner clearly stops, but your default should always be toward home. Preventing runs is the priority, and your teammates can yell to redirect you if needed.","Perfect relay positioning! Your default is always to line up between the outfielder and home plate — preventing runs is the #1 priority. Put your arms up high so the outfielder has a target, and listen to your teammates. They'll tell you where to throw. If the runner stops at third, you can cut it and hold.","The third baseman needs to be at third base to receive the throw! He can't be out doing the relay. The shortstop is always the relay man on balls hit to the left side of the outfield.","The second baseman or another infielder can cover second. Your priority as shortstop on a deep left-center hit is to get out there as the relay man. Without a relay, the outfielder has to make an impossible long throw."],
+      rates:[55,85,15,20],concept:"On relay plays, the default alignment is toward home plate — preventing runs is always the priority.",anim:"advance"},
     {id:"ss6",title:"Do-Or-Die With Runner on Third",diff:3,cat:"fielder",
       description:"You're the shortstop. Runner on third, one out, tie game in the bottom of the last inning. The batter hits a slow chopper toward you — not hit hard, and the runner on third is breaking for home the moment the ball is hit. This is a do-or-die play. What do you do?",
       situation:{inning:"Bot 7",outs:1,count:"0-0",runners:[3],score:[4,4]},
@@ -1003,7 +1003,7 @@ const SCENARIOS = {
       situation:{inning:"Top 6",outs:1,count:"2-1",runners:[1],score:[4,3]},
       options:["Throw to third base to try to get the lead runner","Throw to second base to hold the batter at first","Throw home just in case the runner tries to score","Throw to first base to keep the batter honest"],
       best:0,explanations:["The lead runner is the most dangerous baserunner. If you can gun him down at third, you get the second out and take away a scoring threat. That's the high-value play.","The batter already has a single and is unlikely to try for second on a ball hit right at you. Throwing to second base wastes time while the lead runner takes third easily.","The runner is only going to third, not home. Throwing home lets the batter move up to second and gives nobody a chance at an out.","Throwing to first makes no sense since the batter is already safe on the hit. You'd be ignoring the advancing lead runner completely."],
-      rates:[80,40,15,10],concept:"Always target the lead runner — getting the out on the most advanced baserunner takes away the biggest scoring threat.",anim:"throwHome"},
+      rates:[80,40,15,10],concept:"Always target the lead runner — getting the out on the most advanced baserunner takes away the biggest scoring threat.",anim:"catch"},
     {id:"cf4",title:"Back Up the Play",diff:1,cat:"fielder",
       description:"You're the center fielder. With a runner on second and one out, a ground ball is hit to the shortstop. The shortstop fields it cleanly and throws to first base for the out. You notice nobody is behind the left fielder's area.",
       situation:{inning:"Bot 2",outs:1,count:"1-1",runners:[2],score:[0,0]},
@@ -1119,9 +1119,9 @@ const SCENARIOS = {
     {id:"lf7",title:"Sun in Your Eyes",diff:3,cat:"fielder",
       description:"You're the left fielder. Bottom of the 2nd in an afternoon game. The sun is low and directly in your eyes when you look toward home plate. A high fly ball is hit your way and you immediately lose it in the sun. You know it's somewhere above you.",
       situation:{inning:"Bot 2",outs:0,count:"1-0",runners:[],score:[0,0]},
-      options:["Use your glove to shade the sun while tracking the ball with your other eye","Turn your head sideways and try to pick up the ball's shadow on the grass","Put your sunglasses down, shift your head to find the ball out of the sun's glare, and get under it","Close your eyes and put your glove up where you think it will land"],
-      best:2,explanations:["Using your glove to shade works sometimes, but if you commit your glove too early you might block your own view of the ball at the last second. It's a backup technique, not the best first option.","Looking for the ball's shadow is creative but unreliable — shadows shift depending on the sun angle and the grass, and it doesn't help you judge the ball's height.","Dropping your sunglasses, shifting your angle to find the ball outside the sun's glare, and repositioning is the best technique. Sunglasses are made for exactly this situation, and changing your angle often lets you see the ball clearly.","Closing your eyes and guessing is never a good idea. The ball could hit you in the face. You need to find a way to track it."],
-      rates:[45,15,82,10],concept:"In the sun, use your sunglasses and shift your angle to find the ball outside the glare — never just guess where it is.",anim:"flyout"},
+      options:["Use your glove to shade the sun while tracking the ball","Turn your head sideways and try to pick up the ball's shadow on the grass","Put your sunglasses down, shift your head to find the ball out of the sun's glare, and get under it","Close your eyes and put your glove up where you think it will land"],
+      best:2,explanations:["Using your glove to shade works and is a solid backup technique. Every outfielder should know the glove-shield method — raise your glove to block the sun while tracking the ball. If you don't have sunglasses, this is your go-to move.","Looking for the ball's shadow is creative but unreliable — shadows shift depending on the sun angle and the grass, and it doesn't help you judge the ball's height.","Dropping your sunglasses, shifting your angle to find the ball outside the sun's glare, and repositioning is the best technique when you have sunglasses. But the glove-shield is a strong backup — use both together if needed.","Closing your eyes and guessing is never a good idea. The ball could hit you in the face. You need to find a way to track it."],
+      rates:[70,15,85,10],concept:"In the sun, use sunglasses AND the glove-shield technique — sunglasses are primary, glove-up is your always-available backup.",anim:"flyout"},
     {id:"lf8",title:"Dive or Play Safe",diff:3,cat:"fielder",
       description:"You're in left field. Top of the 8th, your team leads 6-3. Runner on first, two outs. The batter hits a sinking line drive to your left. You can probably catch it with a full dive, but if you miss, the ball rolls to the wall and at least one run scores — maybe two.",
       situation:{inning:"Top 8",outs:2,count:"0-1",runners:[1],score:[6,3]},
@@ -1141,7 +1141,7 @@ const SCENARIOS = {
       description:"Top of the 4th, bases loaded, 1 out, down 4-2. You're the first baseman. Hard ground ball hit right at you, 15 feet from the bag.",
       situation:{inning:"Top 4",outs:1,count:"-",runners:[1,2,3],score:[2,4]},
       options:["Step on first, throw home for the double play","Step on first, throw to second for the double play","Throw home first, then cover first after","Step on first — one out is enough"],
-      best:0,explanations:["With bases loaded, step on first (that's out #2), then fire home where the catcher tags the runner from third (out #3 if he hasn't scored). This is the 3-2 double play — two outs AND you prevent a run.","Throwing to second after stepping on first gets two outs but lets the runner from 3rd score.","Throwing home first requires a tag, not a force. Stepping on first is the easy first out, then throw home.","One out is never enough when you can get two. With bases loaded and you near the bag, the double play is right there."],
+      best:0,explanations:["With bases loaded, step on first (that's out #2), then fire home where the catcher steps on home plate for the force out (out #3 if he hasn't scored). This is the 3-2 double play — two outs AND you prevent a run.","Throwing to second after stepping on first gets two outs but lets the runner from 3rd score.","Throwing home first requires the catcher to step on the plate for a force. Stepping on first is the easy first out, then throw home.","One out is never enough when you can get two. With bases loaded and you near the bag, the double play is right there."],
       rates:[85,45,30,20],concept:"Bases loaded, ball hit to the first baseman — step on first, then throw home to prevent the run",anim:"doubleplay"},
     {id:"f32",title:"Let It Through or Cut It Off?",diff:3,cat:"outfield",
       description:"Bot 8th, runner on 2nd, 1 out, up 6-5. Single to right. Runner from 2nd is heading home. You're the cutoff man. The throw from right field is coming — the runner is going to be close at home.",
@@ -1201,7 +1201,7 @@ const SCENARIOS = {
       description:"You're the first baseman. Runner on first, one out, ground ball hit right at you. The runner is going on the pitch. You field the ball cleanly about eight feet in front of the bag. The shortstop is covering second base.",
       situation:{inning:"Top 7",outs:1,count:"0-1",runners:[1],score:[4,4]},
       options:["Throw to the shortstop at second base for the force out, then sprint back to first and get ready for the return throw","Tag first base yourself first, then throw to second to try to get the runner","Hold the ball and just tag first base for the one sure out","Throw to second base and let the pitcher cover first for the return throw"],
-      best:0,explanations:["That's the 3-6-3 double play! Throw to the shortstop at second for the first out, then hustle back to the bag for the return throw from the shortstop. It's one of the hardest double plays in baseball, but it ends the inning in a tie game.","Tagging first base first means the force is removed at second — now the shortstop has to tag the runner, not just the base. The runner was already going, so he's close to second and might slide in safely. Get the lead runner first.","One out is okay, but in a tie game in the 7th inning, a double play ends the inning and keeps the score tied. You have a chance for two outs — take it.","The pitcher covering first is less reliable than you getting back to the bag yourself. The 3-6-3 is your play to make — you know where the bag is and you're the best at receiving throws at first base."],
+      best:0,explanations:["That's the 3-6-3 double play! Throw to the shortstop at second for the first out, then hustle back to the bag for the return throw from the shortstop. It's one of the hardest double plays in baseball, but it ends the inning in a tie game.","Tagging first base first removes the force at second — without the force, it becomes a TAG play, which is fundamentally harder. The shortstop now has to tag the runner instead of just touching the base. Get the lead runner first while the force is still on.","One out is okay, but in a tie game in the 7th inning, a double play ends the inning and keeps the score tied. You have a chance for two outs — take it.","The pitcher covering first is less reliable than you getting back to the bag yourself. The 3-6-3 is your play to make — you know where the bag is and you're the best at receiving throws at first base."],
       rates:[85,30,40,35],concept:"The 3-6-3 double play requires quick feet — throw to the shortstop at second, then sprint back to first for the return throw.",anim:"doubleplay"},
     {id:"1b7",title:"Foul Ball Communication Near First",diff:1,cat:"fielder",
       description:"You're at first base. The batter pops a foul ball high in the air between first base and the dugout on the home team side. The second baseman is running over, the pitcher is drifting toward the area, and the ball is drifting toward the stands.",
@@ -1266,7 +1266,7 @@ const SCENARIOS = {
       situation:{inning:"Top 4",outs:1,count:"2-2",runners:[1],score:[2,1]},
       options:["Fire a strong throw to third base on a line to try to nail the runner","Throw to second base to keep the batter from advancing","Hold the ball and jog it back in to the cutoff man","Throw home in case the runner doesn't stop at third"],
       best:0,explanations:["You have a clean field and a strong arm. Throwing to third base to get the advancing runner is the high-value play. Getting an out here stops a runner from reaching scoring position.","Throwing to second lets the runner take third base for free. The batter already has a single — the dangerous runner is the one heading to third.","Holding the ball and jogging it in is playing too safe. You have a chance to get an out, and that's always worth taking when you field the ball cleanly.","The runner is going to third, not home. Throwing home wastes your arm and lets the runner take third easily while accomplishing nothing."],
-      rates:[85,30,15,10],concept:"Right fielders with strong arms can keep runners from going first-to-third — that throw takes away a scoring-position runner.",anim:"throwHome"},
+      rates:[85,30,15,10],concept:"Right fielders with strong arms can keep runners from going first-to-third — that throw takes away a scoring-position runner.",anim:"catch"},
     {id:"rf2",title:"Stop First-to-Third",diff:1,cat:"fielder",
       description:"You're in right field. A ground ball single comes through the infield and rolls toward you. There's a runner on first base who is a fast runner. Your coach always says the right fielder's most important job is preventing first-to-third advances.",
       situation:{inning:"Bot 5",outs:0,count:"1-1",runners:[1],score:[3,3]},
@@ -1357,8 +1357,8 @@ const SCENARIOS = {
       description:"You're the third baseman. Bottom of the 6th, runner on first, one out. The batter squares to bunt and drops it about 15 feet in front of home plate. The ball is rolling slowly toward you on the grass.",
       situation:{inning:"Bot 6",outs:1,count:"1-0",runners:[1],score:[4,3]},
       options:["Charge hard, field with bare hand, throw to first","Wait for it to come to you, field with glove, throw to first","Charge hard, field with glove, throw to second for the lead runner","Let the catcher handle it and cover third"],
-      best:0,explanations:["Charging aggressively and bare-handing the slow roller lets you get rid of the ball quickly for the out at first. This is the textbook third baseman play on a bunt.","Waiting lets the batter reach safely. On slow rollers you must attack the ball, not let it come to you.","Trying for the lead runner at second after charging forward is a very tough throw with little momentum. You'll likely get nobody out.","The catcher has to come too far out — this is clearly in your zone. Letting it go means the batter reaches easily."],
-      rates:[88,25,30,10],concept:"On bunts, the third baseman charges aggressively and bare-hands when needed to get the out at first.",anim:"bunt"},
+      best:0,explanations:["Charging aggressively and bare-handing the slow roller lets you get rid of the ball quickly for the out at first. This is the textbook third baseman play on a bunt.","Waiting lets the batter reach safely. On slow rollers you must attack the ball, not let it come to you.","Trying for the lead runner at second is the ideal play if you can execute it — getting the lead runner is always better. But after charging forward on a bunt, you've lost momentum toward second, making it a very tough throw.","The catcher has to come too far out — this is clearly in your zone. Letting it go means the batter reaches easily."],
+      rates:[88,25,45,10],concept:"On bunts, the third baseman charges aggressively and bare-hands when needed to get the out at first.",anim:"bunt"},
     {id:"3b2",title:"Bare-Hand Roller",diff:2,cat:"fielder",
       description:"You're at third base. Top of the 3rd, nobody on, two outs. The batter chops a slow roller that dies on the infield grass about 20 feet from you. It's barely moving and the batter is fast — he's already halfway to first.",
       situation:{inning:"Top 3",outs:2,count:"0-1",runners:[],score:[1,1]},
@@ -1739,9 +1739,9 @@ const SCENARIOS = {
     {id:"r54",title:"Ground Rule Double — Where Do I Go?",diff:2,cat:"rules",
       description:"Top of the 5th, you're on 1st, nobody out. The batter ropes a line drive that bounces in fair territory and then hops over the outfield fence. The umpire signals ground rule double.",
       situation:{inning:"Top 5",outs:0,count:"-",runners:[1],score:[1,3]},
-      options:["Sprint home — the ball went over the fence","Advance to third only","Advance to second only — you were on first"],
-      best:1,explanations:["You can't score from first on a ground rule double. The rule gives you exactly two bases from where you were when the ball was hit.","On a ground rule double, all runners are awarded two bases from where they were when the ball was pitched. You were on first, so you advance two bases to third. The batter advances to second. You can't score from first on a ground rule double — only two bases.","Two bases from first is third, not second. You advance two bases."],
-      rates:[15,85,10],concept:"On a ground rule double, all runners advance exactly two bases from where they started",anim:"advance"},
+      options:["Sprint home — the ball went over the fence","Advance to third only","Advance to second only — you were on first","Stay at first base — the ground rule double only advances the batter"],
+      best:1,explanations:["You can't score from first on a ground rule double. The rule gives you exactly two bases from where you were when the ball was hit.","On a ground rule double, all runners are awarded two bases from where they were when the ball was pitched. You were on first, so you advance two bases to third. The batter advances to second. You can't score from first on a ground rule double — only two bases.","Two bases from first is third, not second. You advance two bases.","A ground rule double awards ALL runners two bases from where they were at the time of the pitch, not just the batter. You advance from first to third."],
+      rates:[15,85,10,10],concept:"On a ground rule double, all runners advance exactly two bases from where they started",anim:"advance"},
     {id:"r55",title:"Obstruction — Fielder in My Way",diff:3,cat:"rules",
       description:"Bot 7th, you're on 2nd, 1 out. The batter singles to left. You sprint toward third, but the third baseman is standing in the baseline without the ball — blocking your path!",
       situation:{inning:"Bot 7",outs:1,count:"-",runners:[2],score:[3,3]},
@@ -1763,7 +1763,7 @@ const SCENARIOS = {
   ],
   manager: [
     {id:"m1",title:"Intentional Walk",diff:2,cat:"late-game",
-      description:"Bottom 9th, runner on 2nd, 1 out, up by 1. The .310 hitter is up. .245 hitter (35 HRs) on deck.",
+      description:"Bottom 9th, runner on 2nd, 1 out, up by 1. The .310 hitter is up. .220 hitter (8 HRs) on deck.",
       situation:{inning:"Bot 9",outs:1,count:"-",runners:[2],score:[5,4]},
       options:["Walk him — set up the DP","Pitch to him","Walk both — load bases","Bring in a new pitcher"],
       best:0,explanations:["Walking the .310 hitter sets up a force at every base + potential DP. The .245 hitter strikes out more.","Pitching to a .310 hitter in a 1-run 9th is risky.","Loading bases means any walk/HBP/error scores the tying run.","A cold reliever with runners on is worse."],
@@ -2035,7 +2035,7 @@ const SCENARIOS = {
       best:0,explanations:["The .320 hitter bats 3rd — he's your best all-around hitter who gets on base and drives in runs. The .250 power hitter bats 4th (cleanup) — his job is to drive in the runners that the 1-2-3 hitters got on base. The 4-hole is for raw power; the 3-hole is for consistency + power.","The power hitter's lower average means he gets on base less. He's better suited to drive in runners from the cleanup spot.","This isn't traditional, though some modern analytics support the best hitter batting 2nd. The traditional answer is 3rd and 4th.","Comfort matters, but lineup construction follows strategic principles for a reason."],
       rates:[85,25,40,15],concept:"Your best hitter bats 3rd (consistency), your best power hitter bats 4th (cleanup, drives in runs)",anim:"hit"},
     {id:"m44",title:"Pitcher Batting — 8th or 9th?",diff:2,cat:"lineup",
-      description:"In leagues where pitchers bat, where should the pitcher hit in the order — 8th or 9th?",
+      description:"In leagues where pitchers still bat (youth, some college, and international play), where should the pitcher hit in the order — 8th or 9th?",
       situation:{inning:"Top 1",outs:0,count:"-",runners:[],score:[0,0]},
       options:["9th — he's the weakest hitter","8th — so the leadoff hitter is like a second leadoff in the 9th spot","It doesn't matter — he'll make an out either way","Wherever the pitcher feels comfortable"],
       best:0,explanations:["Traditionally, the pitcher bats 9th because he's the weakest hitter. His job is simple: don't hurt the team. If he can bunt, that's a bonus. The 9th spot gets the fewest at-bats, which minimizes the damage of having a weak hitter in the lineup.","Batting the pitcher 8th is a strategy some managers use (Tony La Russa popularized it), but it's controversial. The standard approach is 9th.","It does matter — proper lineup construction maximizes scoring opportunities.","Pitchers should focus on pitching. Bat them 9th and let them focus on what they're good at."],
@@ -2119,7 +2119,7 @@ const SCENARIOS = {
       options:["Run out and yell at the other team — defend your players","Hold your team back — stay calm and don't escalate","Let your players handle it — they're adults","Argue with the umpire to eject the pitcher"],
       best:1,explanations:["Running out and yelling escalates the situation. Brawls lead to ejections and suspensions that hurt YOUR team.","Stay calm and hold your team back. Bench-clearing incidents look dramatic but they HURT teams — ejections, suspensions, and injuries from brawls damage your roster for future games. Protect your players by keeping them on the bench. Let the umpires handle the discipline. Your team wins by winning the game, not by fighting.","Letting it escalate can result in your best players getting ejected or suspended.","Arguing for an ejection might happen naturally, but your first priority is keeping your team out of trouble."],
       rates:[15,85,10,35],concept:"In heated situations, hold your team back — ejections and suspensions hurt more than the other team's pitcher",anim:"freeze"},
-    {id:"f43",title:"Infield In — Cut Off the Run",diff:1,cat:"positioning",
+    {id:"m58",title:"Infield In — Cut Off the Run",diff:1,cat:"positioning",
       description:"Bot 7th, runner on 3rd, less than 2 outs, tied 3-3. You're the manager. Should you bring the infield in to cut off the run at home?",
       situation:{inning:"Bot 7",outs:1,count:"-",runners:[3],score:[3,3]},
       options:["Infield in — stop the run from scoring","Infield back — get the out and worry about the run later","Play normal depth — balanced approach","Only bring the corners in"],
@@ -2149,7 +2149,7 @@ const SCENARIOS = {
       description:"Your pitcher just threw a fastball that caught the outside corner — barely. It could go either way. How do you frame it?",
       situation:{inning:"Top 6",outs:1,count:"2-2",runners:[],score:[3,1]},
       options:["Hold your glove completely still right where you caught it","Pull the mitt toward the center of the zone subtly","Stab at the ball dramatically to show it was a strike","Stand up immediately — show confidence it was a strike"],
-      best:1,explanations:["Holding still is okay, but a subtle pull can help sell the pitch without being obvious.","The best framers 'stick and pull' — catch it cleanly and gently bring it toward the zone. Studies show this adds 20+ called strikes per season.","Stabbing is obvious and umpires hate it. It screams 'I know that was a ball.'","Standing up tells the umpire you're already moving on — but it can also look like you're lobbying."],
+      best:1,explanations:["Holding still is solid framing, especially in high-leverage situations. But on a routine borderline pitch like this, a subtle pull can help sell it without being obvious.","On a borderline pitch in a normal count, the best framers 'stick and pull' — catch it cleanly and gently bring it toward the zone. Studies show this adds 20+ called strikes per season. The subtle pull works best when the umpire isn't hyper-focused on your glove.","Stabbing is obvious and umpires hate it. It screams 'I know that was a ball.'","Standing up tells the umpire you're already moving on — but it can also look like you're lobbying."],
       rates:[55,85,15,35],concept:"Elite framing is subtle — catch, stick, and gently guide toward the zone",anim:"strike"},
     {id:"ct5",title:"Pitch Calling — Leadoff Hitter",diff:1,cat:"pitch-calling",
       description:"Top of the 1st inning, nobody on. Leadoff hitter is a contact guy who slaps singles. What's your game plan?",
@@ -2164,11 +2164,11 @@ const SCENARIOS = {
       best:0,explanations:["That's your ball! Toss your mask AWAY from the play, turn your back to the field, and track the spin. Catchers own all pop-ups near home.","The first baseman would be running away from the ball. You're already facing the right direction.","Pitchers rarely catch pop-ups. This is the catcher's domain.","Waiting causes collisions and dropped balls. Someone has to take charge — and that's you."],
       rates:[85,35,15,20],concept:"Catchers own pop-ups near home — toss mask away, turn to the infield, and take charge",anim:"catch"},
     {id:"ct7",title:"Squeeze Play Defense",diff:3,cat:"defense",
-      description:"Runner on 3rd, 1 out, close game. You notice the batter squaring to bunt as the pitch is delivered. It's a squeeze play!",
+      description:"Runner on 3rd, 1 out, close game. You notice the batter's hands shift on the bat and the runner on third is leaning hard. You suspect a squeeze play is coming on the next pitch.",
       situation:{inning:"Bot 7",outs:1,count:"1-0",runners:[3],score:[4,3]},
-      options:["Call for a pitchout right now","Charge the bunt and fire home","Catch the pitch and tag the runner at home","Tell the pitcher to throw high and tight — bust the squeeze"],
-      best:3,explanations:["You can't call a pitchout mid-delivery — the pitch is already on the way.","If you charge before the bunt, you leave home plate uncovered.","If it's a good bunt, the ball is on the ground — you can't just catch it at home.","High and tight makes the bunt almost impossible. The runner is committed and dead to rights. This is how you kill a squeeze."],
-      rates:[15,35,30,85],concept:"The best squeeze defense is pitching high and inside — it's nearly impossible to bunt",anim:"strike"},
+      options:["Call for a pitchout to catch the runner","Charge the bunt and fire home","Set up normally and react to whatever happens","Signal the pitcher to throw high and tight — bust the squeeze"],
+      best:3,explanations:["A pitchout can catch the runner, but if the batter doesn't bunt, you've just thrown a ball for no reason. It also doesn't make the bunt harder if they do squeeze.","If you charge before the bunt, you leave home plate uncovered. You need to stay back.","Reacting is too passive when you've spotted the squeeze coming. You have the advantage of reading it early — use it.","High and tight makes the bunt almost impossible. The runner is committed and dead to rights. This is how you kill a squeeze — a pitch up and in is nearly unbuntable."],
+      rates:[40,20,25,85],concept:"The best squeeze defense is pitching high and inside — it's nearly impossible to bunt",anim:"strike"},
     {id:"ct8",title:"Pitch Calling — Power Hitter",diff:2,cat:"pitch-calling",
       description:"Cleanup hitter, known for pulling inside pitches. Count is 1-1. How do you attack him?",
       situation:{inning:"Bot 3",outs:0,count:"1-1",runners:[1],score:[2,1]},
@@ -2176,7 +2176,7 @@ const SCENARIOS = {
       best:1,explanations:["He thrives on inside pitches. Don't feed his strength.","Work the outer half! If he pulls everything, make him beat you the other way. Most power hitters are weakest on pitches away.","Inside changeup still gives him something to turn on.","Hanging a curve over the plate to a power hitter? That's a souvenir in the stands."],
       rates:[25,85,45,15],concept:"Pitch away from a pull hitter's strength — make them beat you the opposite way",anim:"strike"},
     {id:"ct9",title:"Runner on 3rd — Throw Down to 2nd",diff:3,cat:"throwing",
-      description:"Runner on 3rd, 1 out. Your pitcher just struck out the batter. Do you throw down to 2nd base?",
+      description:"Runner on 3rd, 2 outs. Your pitcher just struck out the batter. Do you throw down to 2nd base?",
       situation:{inning:"Top 5",outs:2,count:"-",runners:[3],score:[2,1]},
       options:["Throw to 2nd — routine play after a strikeout","Hold the ball — the runner on 3rd might go","Fake the throw to 2nd to freeze the runner","Throw back to the pitcher quickly"],
       best:1,explanations:["Never throw to 2nd with a runner on 3rd! If the throw gets away or the runner breaks, he scores.","Smart! With a runner on 3rd, hold the ball. Any throw is a chance for a mistake and a free run.","A fake throw can work but it's risky if the runner doesn't freeze.","Throwing back to the pitcher is safe, but be aware of the runner's lead."],
@@ -2287,8 +2287,8 @@ const SCENARIOS = {
       description:"You're the catcher. Full count, two outs, bases loaded. Your pitcher throws a fastball that catches the outside corner just below the letters. It's borderline — could go either way. The umpire hasn't made the call yet.",
       situation:{inning:"Bot 5",outs:2,count:"3-2",runners:[1,2,3],score:[5,4]},
       options:["Hold your glove perfectly still right where you caught it and keep your body quiet — let the umpire see the location","Quickly jerk your glove toward the center of the strike zone to make it look like a strike","Stand up immediately and start walking back to the dugout like you know it's strike three","Pull the ball down into the zone since it was a little high"],
-      best:0,explanations:["This is elite framing! A quiet glove and still body tell the umpire you received the ball exactly where you expected it — right on the corner. Subtle presentation is the key to getting borderline calls.","Jerking your glove is called 'stabbing' and umpires hate it. It actually makes a strike look like a ball because the sudden movement tells the umpire the pitch missed your target and you're trying to trick them.","Walking away is disrespectful to the umpire and might cost you calls later in the game. It also makes you look like you're trying too hard to sell it, which backfires.","Pulling the ball down makes it obvious the pitch was high. Good framing means holding the ball where it was caught, not moving it to where you wish it had been."],
-      rates:[88,20,15,30],concept:"Great pitch framing means a quiet glove and still body — hold the ball where you caught it and let the umpire see the location.",anim:"strikeout"},
+      best:0,explanations:["This is elite framing for a high-leverage moment! Full count, bases loaded, two outs — the umpire is watching your glove like a hawk. Any movement looks like you're trying to fool him. A quiet glove and still body tell the umpire you received the ball exactly where you expected it. In big moments, stillness is more convincing than pulling.","Jerking your glove is called 'stabbing' and umpires hate it. In a bases-loaded, full-count moment, the umpire is extra alert — any sudden movement screams 'I know that was a ball.'","Walking away is disrespectful to the umpire and might cost you calls later in the game. It also makes you look like you're trying too hard to sell it, which backfires.","Pulling the ball down makes it obvious the pitch was high. In a big moment like this, the umpire is watching closely — hold the ball where it was caught."],
+      rates:[88,20,15,30],concept:"In high-leverage moments, stillness beats pulling — the umpire is watching your glove closely, and quiet presentation is more convincing.",anim:"strikeout"},
     {id:"ct18",title:"Mound Visit Decision",diff:3,cat:"catcher",
       description:"You're the catcher. Your pitcher has walked two batters in a row and just threw three straight balls to the next hitter. He looks frustrated and is rushing his delivery. The pitching coach glances at you from the dugout.",
       situation:{inning:"Top 6",outs:0,count:"3-0",runners:[1,2],score:[6,4]},
@@ -2320,7 +2320,7 @@ const SCENARIOS = {
       description:"1908, Giants vs Cubs. Bottom 9th, tie game. Your teammate singles — the winning run appears to score from 3rd! But you were the runner on 1st. What must you do?",
       situation:{inning:"Bot 9",outs:1,count:"-",runners:[1,3],score:[1,1]},
       options:["Run toward 2nd base and touch the bag","Celebrate with your teammates — the game is over!","Run to the dugout — the fans are storming the field","Stay at 1st base — you didn't need to advance"],
-      best:0,explanations:["Correct! You MUST touch 2nd base for the run to count. In 1908, Fred Merkle didn't — the Cubs got the ball, touched 2nd, and Merkle was a force out. The run was nullified.","Celebrating cost Fred Merkle his legacy. The run didn't count because he never touched 2nd.","Leaving the field is abandoning the play. The defense can appeal and you're out.","If a base ahead of you is open, you have no force — but by rule, runners must advance on a game-winning hit for the run to count."],
+      best:0,explanations:["Correct! You MUST touch 2nd base for the run to count. In 1908, Fred Merkle didn't — the Cubs got the ball, touched 2nd, and Merkle was a force out. The run was nullified.","Celebrating cost Fred Merkle his legacy. The run didn't count because he never touched 2nd.","Leaving the field is abandoning the play. The defense can appeal and you're out.","The force at second still existed because Merkle was forced to advance when the batter hit the ball. You MUST touch second base — without it, you can be forced out and the run doesn't count."],
       rates:[85,10,10,20],concept:"Always touch the next base — Merkle's mistake in 1908 changed a pennant race",anim:"advance"},
     {id:"fp3",title:"Baez's Rundown Magic",diff:3,cat:"famous",
       description:"2021 Cubs vs Pirates. You're Javy Baez on 1st. The batter grounds out but you get caught in a rundown between 1st and 2nd. What's your strategy?",
@@ -2403,7 +2403,7 @@ const SCENARIOS = {
       best:1,explanations:["A fielder only has the right to the baseline when fielding the ball or in possession of it.","Obstruction! A fielder without the ball cannot block the baseline. The runner is awarded at least 3rd base. In the 2013 World Series, this call ended Game 3.","Interference is called on the RUNNER, not the fielder. This is obstruction.","Sliding doesn't matter. The fielder illegally blocked the path."],
       rates:[25,85,15,20],concept:"Obstruction: fielders can't block the baseline without the ball — runners get the base",anim:"advance"},
     {id:"rl6",title:"Designated Hitter Rule",diff:1,cat:"rules",
-      description:"You're managing an American League team. Your pitcher is due up 4th in the batting order. What's your option?",
+      description:"Your team's pitcher is due up 4th in the batting order. What's your option?",
       situation:{inning:"Top 1",outs:0,count:"-",runners:[],score:[0,0]},
       options:["The pitcher must bat — that's the rule","Use a designated hitter (DH) to bat in the pitcher's spot","Pinch hit for the pitcher every time he's due up","Let a fielder bat twice"],
       best:1,explanations:["In the AL (and now universally since 2022), the DH replaces the pitcher in the batting order.","The designated hitter (DH) bats in place of the pitcher. Since 2022, both AL and NL use the DH. The pitcher never has to bat.","Pinch hitting removes the pitcher from the game. The DH stays in the lineup all game.","A player can only occupy one spot in the batting order."],
@@ -2789,54 +2789,76 @@ function Confetti({active}){
 function Field({runners=[],outcome=null,ak=0,anim=null,theme=null,avatar=null,pos=null}){
   const t=theme||FIELD_THEMES[0];
   const on=n=>runners.includes(n);
-  // Coords: Home(200,282) 1B(284,206) 2B(200,140) 3B(116,206) Mound(200,218)
-  // Player sprite — chunky, readable, fun
-  const Guy=({x,y,jersey="#2563eb",cap="#1d4ed8",o=1,ring=false,bat=false,mask=false,batColor="#c8a060"})=>(
+  // Coords: Home(200,290) 1B(290,210) 2B(200,135) 3B(110,210) Mound(200,218)
+  // Player sprite — 40% smaller, pose-aware with distinct silhouettes per pose
+  const Guy=({x,y,jersey="#2563eb",cap="#1d4ed8",pants="#eee",o=1,ring=false,bat=false,mask=false,batColor="#c8a060",pose="stand"})=>{
+    const p=pose;const showBat=bat||p==="batter";const showMask=mask||p==="catcher";
+    // Each pose gets a unique body transform for silhouette distinction
+    const pxf=p==="runner"?" rotate(15)":p==="catcher"?" translate(0,8)":p==="pitcher"?" rotate(-8)":p==="batter"?" rotate(-8)":p==="infielder"?" translate(0,3)":"";
+    // Catcher squat lowers head & cap
+    const hy=p==="catcher"?-12:-16;
+    return(
     <g transform={`translate(${x},${y})`} opacity={o}>
-      {ring&&<><circle r="24" fill="none" stroke="#f59e0b" strokeWidth="2.8" opacity=".6"><animate attributeName="r" values="24;28;24" dur="1.3s" repeatCount="indefinite"/><animate attributeName="opacity" values=".6;.2;.6" dur="1.3s" repeatCount="indefinite"/></circle><circle r="24" fill="rgba(245,158,11,.06)"/></>}
-      {/* Ground shadow */}
-      <ellipse cy="18" rx="10" ry="3.5" fill="rgba(0,0,0,.2)"/>
-      {/* Shoes */}
-      <rect x="-7.5" y="13" width="6" height="4" rx="1.5" fill="#222"/>
-      <rect x="1.5" y="13" width="6" height="4" rx="1.5" fill="#222"/>
-      {/* Legs */}
-      <rect x="-7" y="5" width="6" height="10" rx="2" fill="#eee"/>
-      <rect x="1" y="5" width="6" height="10" rx="2" fill="#e4e4e4"/>
-      {/* Body */}
-      <rect x="-9" y="-10" width="18" height="17" rx="4" fill={jersey} stroke="rgba(255,255,255,.2)" strokeWidth=".8"/>
-      {/* Jersey number */}
-      <text x="0" y="2" textAnchor="middle" fontSize="7" fill="rgba(255,255,255,.15)" fontWeight="900" fontFamily="monospace">8</text>
-      {/* Arms */}
-      <rect x="-13" y="-8" width="5" height="10" rx="2" fill={jersey}/>
-      <rect x="8" y="-8" width="5" height="10" rx="2" fill={jersey}/>
-      {/* Hands */}
-      <circle cx="-10.5" cy="4" r="2.5" fill="#e8c4a0"/>
-      <circle cx="10.5" cy="4" r="2.5" fill="#e8c4a0"/>
-      {/* Head */}
-      <circle cy="-16" r="8" fill="#e8c4a0"/>
-      {/* Face — eyes + smile */}
-      <circle cx="-3" cy="-17" r="1.2" fill="#333"/>
-      <circle cx="3" cy="-17" r="1.2" fill="#333"/>
-      <path d="M-2.5,-13.5 Q0,-11.5 2.5,-13.5" fill="none" stroke="#a0785a" strokeWidth=".8" strokeLinecap="round"/>
-      {/* Cap */}
-      <ellipse cy="-21" rx="9.5" ry="4" fill={cap}/>
-      <rect x="-9.5" y="-23" width="19" height="5" rx="3" fill={cap}/>
-      <rect x="-2" y="-17" width="12" height="3" rx="1.5" fill={cap} opacity=".6"/>
-      {/* Catcher mask */}
-      {mask&&<><rect x="-6.5" y="-15" width="13" height="10" rx="2" fill="none" stroke="#555" strokeWidth="1" opacity=".6"/><line x1="-5" y1="-12" x2="5" y2="-12" stroke="#555" strokeWidth=".6" opacity=".4"/><line x1="-5" y1="-9" x2="5" y2="-9" stroke="#555" strokeWidth=".6" opacity=".4"/></>}
-      {/* Bat */}
-      {bat&&<><line x1="8" y1="-8" x2="20" y2="-28" stroke={batColor} strokeWidth="3" strokeLinecap="round"/><line x1="19.5" y1="-27.5" x2="22.5" y2="-33" stroke={batColor} strokeWidth="4.5" strokeLinecap="round" opacity=".8"/></>}
+      {ring&&<><circle r="16" fill="none" stroke="#f59e0b" strokeWidth="2" opacity=".6"><animate attributeName="r" values="16;19;16" dur="1.3s" repeatCount="indefinite"/><animate attributeName="opacity" values=".6;.2;.6" dur="1.3s" repeatCount="indefinite"/></circle><circle r="16" fill="rgba(245,158,11,.06)"/></>}
+      <g transform={`scale(0.6)${pxf}`}>
+        <ellipse cy="18" rx="10" ry="3.5" fill="rgba(0,0,0,.25)"/>
+        {/* Feet — wider for catcher/batter/infielder; pitcher left foot raised */}
+        <rect x={p==="catcher"?-9:p==="infielder"||p==="batter"?-8:-7.5} y={p==="pitcher"?8:13} width="6" height="4" rx="1.5" fill="#222"/>
+        <rect x={p==="catcher"||p==="batter"?3:p==="infielder"?2:1.5} y={p==="runner"?10:13} width="6" height="4" rx="1.5" fill="#222"/>
+        {/* Legs — pitcher: raised left knee; catcher: shorter squat */}
+        {p==="catcher"?<>
+          <rect x="-8" y="5" width="6" height="8" rx="2" fill={pants}/>
+          <rect x="2" y="5" width="6" height="8" rx="2" fill={pants}/>
+        </>:p==="pitcher"?<>
+          <rect x="-7" y="5" width="6" height="6" rx="2" fill={pants}/>
+          <rect x="1" y="5" width="6" height="10" rx="2" fill={pants}/>
+        </>:<>
+          <rect x="-7" y="5" width="6" height="10" rx="2" fill={pants}/>
+          <rect x="1" y="5" width="6" height="10" rx="2" fill={pants}/>
+        </>}
+        {/* Torso — catcher: shorter */}
+        <rect x="-9" y={p==="catcher"?-6:-10} width="18" height={p==="catcher"?13:17} rx="4" fill={jersey} stroke="rgba(255,255,255,.2)" strokeWidth=".8"/>
+        {/* Left arm + hand — outfielder: raised shading eyes; runner: forward swing */}
+        {p==="outfielder"?
+          <g><rect x="-13" y="-14" width="5" height="10" rx="2" fill={jersey}/><circle cx="-10.5" cy="-10" r="2.5" fill="#e8c4a0"/></g>
+        :p==="runner"?
+          <g transform="rotate(20,-10.5,-3)"><rect x="-13" y="-8" width="5" height="10" rx="2" fill={jersey}/><circle cx="-10.5" cy="4" r="2.5" fill="#e8c4a0"/></g>
+        :<>
+          <rect x="-13" y="-8" width="5" height="10" rx="2" fill={jersey}/>
+          <circle cx="-10.5" cy="4" r="2.5" fill="#e8c4a0"/>
+        </>}
+        {/* Right arm + hand/equipment — pitcher: wind-up -60deg w/ ball; runner: back swing */}
+        {p==="pitcher"?
+          <g transform="rotate(-60,10.5,-3)"><rect x="8" y="-12" width="5" height="10" rx="2" fill={jersey}/><circle cx="12" cy="-18" r="2" fill="white"/></g>
+        :p==="runner"?
+          <g transform="rotate(-20,10.5,-3)"><rect x="8" y="-8" width="5" height="10" rx="2" fill={jersey}/><circle cx="10.5" cy="4" r="2.5" fill="#e8c4a0"/></g>
+        :<>
+          <rect x="8" y="-8" width="5" height="10" rx="2" fill={jersey}/>
+          {p==="infielder"?<ellipse cx="16" cy="8" rx="4" ry="3" fill="#8B5E3C"/>
+            :p==="outfielder"?<ellipse cx="14" cy="0" rx="4" ry="3" fill="#8B5E3C"/>
+            :p==="catcher"?<ellipse cx="14" cy="2" rx="5" ry="4" fill="#8B5E3C"/>
+            :<circle cx="10.5" cy="4" r="2.5" fill="#e8c4a0"/>}
+        </>}
+        {/* Head — catcher head lowered via hy */}
+        <circle cy={hy} r="8" fill="#e8c4a0"/>
+        <circle cx="-3" cy={hy-1} r="1.2" fill="#333"/>
+        <circle cx="3" cy={hy-1} r="1.2" fill="#333"/>
+        <path d={`M-2.5,${hy+2.5} Q0,${hy+4.5} 2.5,${hy+2.5}`} fill="none" stroke="#a0785a" strokeWidth=".8" strokeLinecap="round"/>
+        {/* Cap — position tracks head */}
+        <ellipse cy={hy-5} rx="9.5" ry="4" fill={cap}/>
+        <rect x="-9.5" y={hy-7} width="19" height="5" rx="3" fill={cap}/>
+        <rect x="-2" y={hy-1} width="12" height="3" rx="1.5" fill={cap} opacity=".6"/>
+        {/* Catcher mask */}
+        {showMask&&<><rect x="-6.5" y={hy+1} width="13" height="10" rx="2" fill="none" stroke="#555" strokeWidth="1" opacity=".6"/><line x1="-5" y1={hy+4} x2="5" y2={hy+4} stroke="#555" strokeWidth=".6" opacity=".4"/><line x1="-5" y1={hy+7} x2="5" y2={hy+7} stroke="#555" strokeWidth=".6" opacity=".4"/></>}
+        {/* Bat */}
+        {showBat&&<><line x1="8" y1="-8" x2="20" y2="-28" stroke={batColor} strokeWidth="3" strokeLinecap="round"/><line x1="19.5" y1="-27.5" x2="22.5" y2="-33" stroke={batColor} strokeWidth="4.5" strokeLinecap="round" opacity=".8"/></>}
+      </g>
     </g>
-  );
+    );
+  };
   return(
     <svg viewBox="0 0 400 310" style={{width:"100%",maxWidth:420,display:"block",margin:"0 auto"}}>
       <defs>
-        <radialGradient id="grs" cx="50%" cy="78%" r="62%">
-          <stop offset="0%" stopColor={t.grass[0]}/>
-          <stop offset="35%" stopColor={t.grass[1]}/>
-          <stop offset="70%" stopColor={t.grass[2]}/>
-          <stop offset="100%" stopColor={t.grass[3]}/>
-        </radialGradient>
         <linearGradient id="drt" x1=".2" y1="0" x2=".8" y2="1">
           <stop offset="0%" stopColor={t.dirt[0]}/>
           <stop offset="100%" stopColor={t.dirt[1]}/>
@@ -2846,94 +2868,111 @@ function Field({runners=[],outcome=null,ak=0,anim=null,theme=null,avatar=null,po
           <stop offset="100%" stopColor={t.wall[1]}/>
         </linearGradient>
         <filter id="gl"><feGaussianBlur stdDeviation="1.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-        <clipPath id="fc"><path d="M200,292 L32,100 Q32,42 200,42 Q368,42 368,100 Z"/></clipPath>
-        <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={t.skyTop||t.sky}/>
-          <stop offset="100%" stopColor={t.skyBot||t.sky}/>
+        <clipPath id="fc"><path d="M200,295 L5,25 Q5,0 200,0 Q395,0 395,25 Z"/></clipPath>
+        <linearGradient id="depthGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#000" stopOpacity=".15"/>
+          <stop offset="40%" stopColor="#000" stopOpacity=".03"/>
+          <stop offset="100%" stopColor="#000" stopOpacity="0"/>
         </linearGradient>
-        <clipPath id="crowdClip"><path d="M20,86 Q20,26 200,26 Q380,26 380,86 L380,0 L20,0 Z"/></clipPath>
+        <pattern id="grassTex" width="8" height="8" patternUnits="userSpaceOnUse">
+          <rect width="8" height="8" fill="rgba(0,0,0,0)"/>
+          <line x1="1" y1="0" x2="1" y2="3" stroke="rgba(0,0,0,.04)" strokeWidth=".5"/>
+          <line x1="5" y1="4" x2="5" y2="7" stroke="rgba(255,255,255,.04)" strokeWidth=".5"/>
+        </pattern>
+        <radialGradient id="mndGrad" cx="45%" cy="40%">
+          <stop offset="0%" stopColor={t.mound[0]} stopOpacity="1"/>
+          <stop offset="100%" stopColor={t.dirt[1]} stopOpacity="1"/>
+        </radialGradient>
       </defs>
 
-      {/* === SKY GRADIENT === */}
-      <rect width="400" height="310" fill="url(#skyGrad)"/>
+      {/* === FULL-CANVAS GRASS === */}
+      <rect width="400" height="310" fill={t.grass[0]}/>
 
-      {/* Stars — only for night/dome themes */}
-      {(t.id==="night"||t.id==="dome")&&[[60,12],[140,8],[200,5],[260,10],[340,14]].map(([x,y],i)=><circle key={`s${i}`} cx={x} cy={y} r=".7" fill="white" opacity={.2+i*.04}/>)}
-
-      {/* === PIXEL-ART CROWD === */}
-      <g clipPath="url(#crowdClip)">
-        <rect x="20" y="0" width="360" height="86" fill={t.crowdBg}/>
-        {[0,1,2].map(row=><g key={`cr${row}`} opacity={row===0?.35:row===1?.5:.65}>
-          {[...Array(80)].map((_,i)=><rect key={`c${row}_${i}`} x={22+i*4.5} y={row===0?2+row*18:row===1?4+row*16:6+row*14} width="4" height="5" rx=".5" fill={t.crowd[(i+row*3)%t.crowd.length]}/>)}
-        </g>)}
+      {/* === BOLD MOWING STRIPES (clipped to fan) === */}
+      <g clipPath="url(#fc)">
+        {[...Array(8)].map((_,i)=><rect key={`m${i}`} x="0" y={35+i*32} width="400" height="32"
+          fill={i%2===0?t.grass[2]:"rgba(255,255,255,.07)"} opacity={i%2===0?".14":".08"}/>)}
       </g>
 
-      {/* === OUTFIELD WALL === */}
-      <path d="M20,86 Q20,26 200,26 Q380,26 380,86 L376,92 Q376,34 200,34 Q24,34 24,92 Z" fill="url(#wal)" stroke="#0d3318" strokeWidth=".5"/>
+      {/* === GRASS TEXTURE OVERLAY === */}
+      <rect width="400" height="310" fill="url(#grassTex)" clipPath="url(#fc)"/>
 
-      {/* === PENNANT BANNERS === */}
-      {[[40,72],[80,50],[120,36],[160,28],[200,26],[240,28],[280,36],[320,50],[360,72]].map(([px,py],i)=>
-        <polygon key={`pn${i}`} points={`${px},${py} ${px-4},${py-10} ${px+4},${py-10}`} fill={t.banner[i%t.banner.length]} opacity=".7"/>
-      )}
+      {/* === DEPTH DARKENING (outfield fades darker — full height) === */}
+      <rect width="400" height="310" fill="url(#depthGrad)" clipPath="url(#fc)"/>
 
-      {/* Bright yellow fence cap */}
-      <path d="M20,86 Q20,26 200,26 Q380,26 380,86" fill="none" stroke={t.fence} strokeWidth="2.8"/>
+      {/* === OUTFIELD WALL (padded) === */}
+      <path d="M0,0 L400,0 L400,30 Q200,2 0,30 Z" fill="url(#wal)"/>
+      {/* Wall padding seam lines */}
+      {[8,16,24].map(y=><path key={`ws${y}`} d={`M10,${y} Q200,${y-4} 390,${y}`}
+        fill="none" stroke="rgba(255,255,255,.06)" strokeWidth=".5"/>)}
+      {/* Batter's eye (dark center field section) */}
+      <path d="M160,0 L240,0 L240,30 Q200,2 160,30 Z" fill="rgba(0,0,0,.25)"/>
+      <path d="M0,30 Q200,2 400,30" fill="none" stroke={t.wall[0]} strokeWidth=".8" strokeDasharray="3,2" opacity=".4"/>
+
+      {/* === FENCE CAP === */}
+      <path d="M0,30 Q200,2 400,30" fill="none" stroke={t.fence} strokeWidth="3"/>
+
+      {/* === WALL SHADOW (cast onto field) === */}
+      <path d="M0,32 Q200,4 400,32 L400,38 Q200,10 0,38 Z" fill="rgba(0,0,0,.12)"/>
+
+      {/* === FOUL POLES === */}
+      <line x1="12" y1="8" x2="12" y2="34" stroke={t.foulPole} strokeWidth="2" opacity=".8"/>
+      <circle cx="12" cy="8" r="2.5" fill={t.foulPole} opacity=".8"/>
+      <line x1="388" y1="8" x2="388" y2="34" stroke={t.foulPole} strokeWidth="2" opacity=".8"/>
+      <circle cx="388" cy="8" r="2.5" fill={t.foulPole} opacity=".8"/>
 
       {/* === MINI SCOREBOARD === */}
       <g>
-        <rect x="178" y="30" width="44" height="20" rx="2" fill={t.scoreBd} stroke={t.fence} strokeWidth=".5"/>
-        <text x="200" y="38" textAnchor="middle" fontSize="4" fill={t.scoreTxt} fontWeight="700" fontFamily="monospace">HOME  AWAY</text>
-        {[0,1,2,3,4,5,6,7,8].map(i=><circle key={`sd${i}`} cx={182+i*4.5} cy={44} r=".8" fill={t.scoreTxt} opacity=".4"/>)}
+        <rect x="178" y="6" width="44" height="18" rx="2" fill={t.scoreBd} stroke={t.fence} strokeWidth=".5"/>
+        <text x="200" y="14" textAnchor="middle" fontSize="4" fill={t.scoreTxt} fontWeight="700" fontFamily="monospace">HOME  AWAY</text>
+        {[0,1,2,3,4,5,6,7,8].map(i=><circle key={`sd${i}`} cx={182+i*4.5} cy={20} r=".8" fill={t.scoreTxt} opacity=".4"/>)}
       </g>
-
-      {/* === FOUL POLES === */}
-      <line x1="30" y1="30" x2="30" y2="90" stroke={t.foulPole} strokeWidth="2" opacity=".8"/>
-      <circle cx="30" cy="30" r="2.5" fill={t.foulPole} opacity=".8"/>
-      <line x1="370" y1="30" x2="370" y2="90" stroke={t.foulPole} strokeWidth="2" opacity=".8"/>
-      <circle cx="370" cy="30" r="2.5" fill={t.foulPole} opacity=".8"/>
 
       {/* === WARNING TRACK === */}
-      <path d="M24,92 Q24,38 200,38 Q376,38 376,92 L368,100 Q368,48 200,48 Q32,48 32,100 Z" fill={t.warn} opacity=".5"/>
-
-      {/* === OUTFIELD GRASS === */}
-      <path d="M200,292 L32,100 Q32,48 200,48 Q368,48 368,100 Z" fill="url(#grs)"/>
-      {/* Mowing stripes — clean horizontal bands */}
-      <g clipPath="url(#fc)">
-        {[...Array(13)].map((_,i)=><rect key={`m${i}`} x="0" y={46+i*20} width="400" height="10" fill={i%2===0?"rgba(255,255,255,.045)":"rgba(0,0,0,.03)"}/>)}
-      </g>
+      <path d="M2,34 Q200,6 398,34 L394,42 Q200,14 6,42 Z" fill={t.warn} opacity=".5"/>
 
       {/* === FOUL LINES === */}
-      <line x1="200" y1="292" x2="32" y2="100" stroke="white" strokeWidth="1.5" opacity=".55"/>
-      <line x1="200" y1="292" x2="368" y2="100" stroke="white" strokeWidth="1.5" opacity=".55"/>
+      <line x1="200" y1="290" x2="12" y2="30" stroke="white" strokeWidth="1.8" opacity=".7"/>
+      <line x1="200" y1="290" x2="388" y2="30" stroke="white" strokeWidth="1.8" opacity=".7"/>
 
       {/* === INFIELD DIRT === */}
-      <polygon points="200,282 284,206 200,140 116,206" fill="url(#drt)"/>
+      <polygon points="200,290 290,210 200,135 110,210" fill="url(#drt)" stroke="#a07030" strokeWidth=".8"/>
 
-      {/* === INFIELD GRASS (slightly brighter than outfield) === */}
-      <polygon points="200,260 260,214 200,172 140,214" fill={t.inGrass}/>
+      {/* === INFIELD GRASS (brighter than outfield) === */}
+      <polygon points="200,268 260,218 200,172 140,218" fill={t.inGrass}/>
 
       {/* === BASEPATH CHALK === */}
-      {[[200,282,284,206],[284,206,200,140],[200,140,116,206],[116,206,200,282]].map(([x1,y1,x2,y2],i)=>
+      {[[200,290,290,210],[290,210,200,135],[200,135,110,210],[110,210,200,290]].map(([x1,y1,x2,y2],i)=>
         <line key={`bp${i}`} x1={x1} y1={y1} x2={x2} y2={y2} stroke="rgba(255,255,255,.18)" strokeWidth="2.8"/>
       )}
 
       {/* === DIRT CUTOUTS === */}
-      <ellipse cx="200" cy="286" rx="18" ry="10" fill="url(#drt)"/>
-      <circle cx="284" cy="206" r="12" fill="url(#drt)"/>
-      <circle cx="200" cy="140" r="10" fill="url(#drt)"/>
-      <circle cx="116" cy="206" r="12" fill="url(#drt)"/>
+      <ellipse cx="200" cy="294" rx="18" ry="10" fill="url(#drt)"/>
+      <circle cx="290" cy="210" r="12" fill="url(#drt)"/>
+      <circle cx="200" cy="135" r="10" fill="url(#drt)"/>
+      <circle cx="110" cy="210" r="12" fill="url(#drt)"/>
 
-      {/* === MOUND === */}
-      <ellipse cx="200" cy="218" rx="15" ry="7.5" fill={t.mound[0]} stroke={t.mound[1]} strokeWidth=".4"/>
+      {/* === MOUND (shadow + radial highlight) === */}
+      <ellipse cx="202" cy="222" rx="16" ry="8" fill="rgba(0,0,0,.1)"/>
+      <ellipse cx="200" cy="218" rx="15" ry="7.5" fill="url(#mndGrad)" stroke="#a07030" strokeWidth=".6"/>
       <rect x="196.5" y="216" width="7" height="3" rx="1" fill="white" opacity=".9"/>
 
       {/* === HOME PLATE & BOXES === */}
-      <polygon points="200,278 196,282 196,286 204,286 204,282" fill="white" stroke="#bbb" strokeWidth=".6"/>
-      <rect x="182" y="274" width="11" height="16" rx="1.5" fill="none" stroke="white" strokeWidth=".6" opacity=".2"/>
-      <rect x="207" y="274" width="11" height="16" rx="1.5" fill="none" stroke="white" strokeWidth=".6" opacity=".2"/>
+      <polygon points="196,286 204,286 204,290 200,294 196,290" fill="white" stroke="#bbb" strokeWidth=".6"/>
+      <rect x="182" y="282" width="11" height="16" rx="1.5" fill="none" stroke="white" strokeWidth=".6" opacity=".35"/>
+      <rect x="207" y="282" width="11" height="16" rx="1.5" fill="none" stroke="white" strokeWidth=".6" opacity=".35"/>
+
+      {/* === ON-DECK CIRCLES === */}
+      <circle cx="160" cy="300" r="5" fill="none" stroke="white" strokeWidth=".5" opacity=".25"/>
+      <circle cx="240" cy="300" r="5" fill="none" stroke="white" strokeWidth=".5" opacity=".25"/>
+
+      {/* === BASE SHADOWS === */}
+      {[[290,210],[200,135],[110,210]].map(([x,y],i)=>
+        <ellipse key={`bs${i}`} cx={x+1} cy={y+3} rx="7" ry="2.5" fill="rgba(0,0,0,.1)"/>
+      )}
 
       {/* === BASES === */}
-      {[[284,206,1],[200,140,2],[116,206,3]].map(([x,y,n])=>(
+      {[[290,210,1],[200,135,2],[110,210,3]].map(([x,y,n])=>(
         <g key={`b${n}`} transform={`translate(${x},${y}) rotate(45)`}>
           <rect x="-6" y="-6" width="12" height="12" rx="1.2" fill={on(n)?"#3b82f6":"white"} stroke={on(n)?"#60a5fa":"#ccc"} strokeWidth="1.5">
             {on(n)&&<animate attributeName="opacity" values="1;.5;1" dur="1.2s" repeatCount="indefinite"/>}
@@ -2941,46 +2980,51 @@ function Field({runners=[],outcome=null,ak=0,anim=null,theme=null,avatar=null,po
         </g>
       ))}
 
-      {/* === FIELDERS (home team blue, highlight selected position) === */}
-      {[["leftField",128,108],["centerField",200,86],["rightField",272,108],["shortstop",155,182],["secondBase",245,182],["firstBase",272,200],["thirdBase",128,200]].map(([p,x,y])=>(
-        <Guy key={p} x={x} y={y} o={pos===p?1:.50} ring={pos===p}/>
+      {/* === OUTFIELDERS (home team blue) === */}
+      {[["leftField",100,80],["centerField",200,58],["rightField",300,80]].map(([p,x,y])=>(
+        <Guy key={p} x={x} y={y} o={pos===p?1:.50} ring={pos===p} pose="outfielder"/>
       ))}
 
-      {/* === PITCHER === */}
-      {!outcome&&<Guy x={200} y={211} jersey={pos==="pitcher"?"#dc2626":"#1e40af"} cap={pos==="pitcher"?"#b91c1c":"#1e3a8a"} ring={pos==="pitcher"}/>}
+      {/* === INFIELDERS (home team blue) === */}
+      {[["shortstop",152,185],["secondBase",248,185],["firstBase",278,205],["thirdBase",122,205]].map(([p,x,y])=>(
+        <Guy key={p} x={x} y={y} o={pos===p?1:.50} ring={pos===p} pose="infielder"/>
+      ))}
 
-      {/* === CATCHER === */}
-      {!outcome&&<Guy x={200} y={296} jersey={pos==="catcher"?"#dc2626":"#1e3a5f"} cap={pos==="catcher"?"#b91c1c":"#1a3050"} mask={true} ring={pos==="catcher"}/>}
+      {/* === PITCHER (home team — always blue) === */}
+      {!outcome&&<Guy x={200} y={212} jersey="#1e40af" cap="#1e3a8a" ring={pos==="pitcher"} pose="pitcher"/>}
 
-      {/* === BATTER === */}
-      {!outcome&&<Guy x={214} y={277} jersey={avatar?AVATAR_OPTS.jersey[avatar.j||0]:"#dc2626"} cap={avatar?AVATAR_OPTS.cap[avatar.c||0]:"#1a1a2e"} bat={true} batColor={avatar?AVATAR_OPTS.bat[avatar.b||0]:"#c8a060"} ring={pos==="batter"}/>}
+      {/* === CATCHER (home team — always blue) === */}
+      {!outcome&&<Guy x={200} y={300} jersey="#1e3a5f" cap="#1a3050" ring={pos==="catcher"} pose="catcher"/>}
 
-      {/* === RUNNERS (away team red, golden highlight ring) === */}
-      {on(1)&&<Guy x={294} y={196} jersey={avatar?AVATAR_OPTS.jersey[avatar.j||0]:"#dc2626"} cap={avatar?AVATAR_OPTS.cap[avatar.c||0]:"#b91c1c"} ring={true}/>}
-      {on(2)&&<Guy x={200} y={129} jersey={avatar?AVATAR_OPTS.jersey[avatar.j||0]:"#dc2626"} cap={avatar?AVATAR_OPTS.cap[avatar.c||0]:"#b91c1c"} ring={true}/>}
-      {on(3)&&<Guy x={106} y={196} jersey={avatar?AVATAR_OPTS.jersey[avatar.j||0]:"#dc2626"} cap={avatar?AVATAR_OPTS.cap[avatar.c||0]:"#b91c1c"} ring={true}/>}
+      {/* === BATTER (away team — always red) === */}
+      {!outcome&&<Guy x={215} y={285} jersey="#dc2626" cap="#b91c1c" pants="#d1d5db" batColor={avatar?AVATAR_OPTS.bat[avatar.b||0]:"#c8a060"} ring={pos==="batter"} pose="batter"/>}
+
+      {/* === RUNNERS (away team — always red, golden ring) === */}
+      {on(1)&&<Guy x={298} y={200} jersey="#dc2626" cap="#b91c1c" pants="#d1d5db" ring={true} pose="runner"/>}
+      {on(2)&&<Guy x={200} y={125} jersey="#dc2626" cap="#b91c1c" pants="#d1d5db" ring={true} pose="runner"/>}
+      {on(3)&&<Guy x={102} y={200} jersey="#dc2626" cap="#b91c1c" pants="#d1d5db" ring={true} pose="runner"/>}
 
       {/* ============ ANIMATIONS ============ */}
-      {outcome&&<circle key={ak} cx="200" cy="210" r="0" fill={outcome==="success"?"rgba(34,197,94,.18)":outcome==="warning"?"rgba(245,158,11,.12)":"rgba(239,68,68,.12)"}><animate attributeName="r" from="0" to="180" dur=".55s" fill="freeze"/><animate attributeName="opacity" from=".5" to="0" dur=".55s" fill="freeze"/></circle>}
+      {outcome&&<circle key={ak} cx="200" cy="215" r="0" fill={outcome==="success"?"rgba(34,197,94,.18)":outcome==="warning"?"rgba(245,158,11,.12)":"rgba(239,68,68,.12)"}><animate attributeName="r" from="0" to="180" dur=".55s" fill="freeze"/><animate attributeName="opacity" from=".5" to="0" dur=".55s" fill="freeze"/></circle>}
 
-      {anim==="steal"&&outcome==="success"&&<g key={`a${ak}`}><circle r="5" fill="#22c55e" filter="url(#gl)"><animateMotion dur=".6s" fill="freeze" path="M284,206 Q244,170 200,140"/></circle><text x="242" y="155" textAnchor="middle" fontSize="12" fill="#22c55e" fontWeight="900" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0" dur="1.2s" fill="freeze"/>SAFE!</text></g>}
-      {anim==="score"&&outcome==="success"&&<g key={`s${ak}`}><circle r="5" fill="#22c55e" filter="url(#gl)"><animateMotion dur=".5s" fill="freeze" path="M116,206 Q160,248 200,282"/></circle><text x="200" y="258" textAnchor="middle" fontSize="14" fill="#22c55e" fontWeight="900" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0" dur="1.3s" fill="freeze"/>SAFE!</text></g>}
-      {anim==="hit"&&outcome==="success"&&<g key={`h${ak}`}><circle r="3" fill="#f59e0b" filter="url(#gl)"><animateMotion dur=".45s" fill="freeze" path="M200,282 Q252,178 306,75"/></circle><text x="265" y="112" textAnchor="middle" fontSize="10" fill="#f59e0b" fontWeight="800" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0" dur="1s" fill="freeze"/>BASE HIT</text></g>}
-      {anim==="throwHome"&&<g key={`t${ak}`}><line x1="200" y1="140" x2="200" y2="282" stroke="#ef4444" strokeWidth="2" strokeDasharray="6,4" opacity="0"><animate attributeName="opacity" from=".65" to="0" dur=".9s" fill="freeze"/></line><circle r="2.5" fill="#ef4444"><animateMotion dur=".35s" fill="freeze" path="M200,140 L200,282"/></circle></g>}
-      {anim==="doubleplay"&&outcome==="success"&&<g key={`dp${ak}`}><circle r="3.5" fill="#22c55e" filter="url(#gl)"><animateMotion dur=".25s" fill="freeze" path="M284,206 Q244,170 200,140"/></circle><circle r="3.5" fill="#22c55e" filter="url(#gl)"><animateMotion dur=".25s" begin=".28s" fill="freeze" path="M200,140 Q244,170 284,206"/></circle><text x="200" y="175" textAnchor="middle" fontSize="10" fill="#22c55e" fontWeight="800" opacity="0"><animate attributeName="opacity" values="0;0;0;1;1;0" dur="1.1s" fill="freeze"/>DOUBLE PLAY!</text></g>}
-      {(anim==="strike"||anim==="strikeout")&&outcome==="success"&&<g key={`st${ak}`}><circle r="2.5" fill="white" opacity=".9"><animateMotion dur=".4s" fill="freeze" path="M200,218 L200,280"/></circle><text x="200" y="255" textAnchor="middle" fontSize={anim==="strikeout"?13:10} fill={anim==="strikeout"?"#ef4444":"#f59e0b"} fontWeight="900" opacity="0"><animate attributeName="opacity" values="0;1;1;0" dur="1.6s" fill="freeze"/>{anim==="strikeout"?"STRUCK OUT!":"STRIKE!"}</text></g>}
-      {anim==="groundout"&&outcome==="success"&&<g key={`go${ak}`}><circle r="2.5" fill="white" filter="url(#gl)"><animateMotion dur=".5s" fill="freeze" path="M200,282 Q232,248 254,228"/></circle><circle r="2.5" fill="#22c55e"><animateMotion dur=".35s" begin=".52s" fill="freeze" path="M254,228 L284,206"/></circle><text x="270" y="194" textAnchor="middle" fontSize="10" fill="#22c55e" fontWeight="800" opacity="0"><animate attributeName="opacity" values="0;0;0;1;1;0" dur="1.4s" fill="freeze"/>OUT!</text></g>}
-      {anim==="flyout"&&outcome==="success"&&<g key={`fl${ak}`}><circle r="3" fill="white" filter="url(#gl)"><animateMotion dur=".55s" fill="freeze" path="M200,282 Q242,118 282,108"/></circle><text x="282" y="95" textAnchor="middle" fontSize="10" fill="#22c55e" fontWeight="800" opacity="0"><animate attributeName="opacity" values="0;0;0;1;1;0" dur="1.2s" fill="freeze"/>CAUGHT!</text></g>}
+      {anim==="steal"&&outcome==="success"&&<g key={`a${ak}`}><circle r="5" fill="#22c55e" filter="url(#gl)"><animateMotion dur=".6s" fill="freeze" path="M290,210 Q248,170 200,135"/></circle><text x="248" y="158" textAnchor="middle" fontSize="12" fill="#22c55e" fontWeight="900" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0" dur="1.2s" fill="freeze"/>SAFE!</text></g>}
+      {anim==="score"&&outcome==="success"&&<g key={`s${ak}`}><circle r="5" fill="#22c55e" filter="url(#gl)"><animateMotion dur=".5s" fill="freeze" path="M110,210 Q160,252 200,290"/></circle><text x="200" y="265" textAnchor="middle" fontSize="14" fill="#22c55e" fontWeight="900" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0" dur="1.3s" fill="freeze"/>SAFE!</text></g>}
+      {anim==="hit"&&outcome==="success"&&<g key={`h${ak}`}><circle r="3" fill="#f59e0b" filter="url(#gl)"><animateMotion dur=".45s" fill="freeze" path="M200,290 Q252,178 306,75"/></circle><text x="265" y="112" textAnchor="middle" fontSize="10" fill="#f59e0b" fontWeight="800" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0" dur="1s" fill="freeze"/>BASE HIT</text></g>}
+      {anim==="throwHome"&&<g key={`t${ak}`}><line x1="200" y1="135" x2="200" y2="290" stroke="#ef4444" strokeWidth="2" strokeDasharray="6,4" opacity="0"><animate attributeName="opacity" from=".65" to="0" dur=".9s" fill="freeze"/></line><circle r="2.5" fill="#ef4444"><animateMotion dur=".35s" fill="freeze" path="M200,135 L200,290"/></circle></g>}
+      {anim==="doubleplay"&&outcome==="success"&&<g key={`dp${ak}`}><circle r="3.5" fill="#22c55e" filter="url(#gl)"><animateMotion dur=".25s" fill="freeze" path="M290,210 Q248,170 200,135"/></circle><circle r="3.5" fill="#22c55e" filter="url(#gl)"><animateMotion dur=".25s" begin=".28s" fill="freeze" path="M200,135 Q248,170 290,210"/></circle><text x="200" y="175" textAnchor="middle" fontSize="10" fill="#22c55e" fontWeight="800" opacity="0"><animate attributeName="opacity" values="0;0;0;1;1;0" dur="1.1s" fill="freeze"/>DOUBLE PLAY!</text></g>}
+      {(anim==="strike"||anim==="strikeout")&&outcome==="success"&&<g key={`st${ak}`}><circle r="2.5" fill="white" opacity=".9"><animateMotion dur=".4s" fill="freeze" path="M200,218 L200,288"/></circle><text x="200" y="263" textAnchor="middle" fontSize={anim==="strikeout"?13:10} fill={anim==="strikeout"?"#ef4444":"#f59e0b"} fontWeight="900" opacity="0"><animate attributeName="opacity" values="0;1;1;0" dur="1.6s" fill="freeze"/>{anim==="strikeout"?"STRUCK OUT!":"STRIKE!"}</text></g>}
+      {anim==="groundout"&&outcome==="success"&&<g key={`go${ak}`}><circle r="2.5" fill="white" filter="url(#gl)"><animateMotion dur=".5s" fill="freeze" path="M200,290 Q240,252 260,230"/></circle><circle r="2.5" fill="#22c55e"><animateMotion dur=".35s" begin=".52s" fill="freeze" path="M260,230 L290,210"/></circle><text x="276" y="198" textAnchor="middle" fontSize="10" fill="#22c55e" fontWeight="800" opacity="0"><animate attributeName="opacity" values="0;0;0;1;1;0" dur="1.4s" fill="freeze"/>OUT!</text></g>}
+      {anim==="flyout"&&outcome==="success"&&<g key={`fl${ak}`}><circle r="3" fill="white" filter="url(#gl)"><animateMotion dur=".55s" fill="freeze" path="M200,290 Q242,118 282,108"/></circle><text x="282" y="95" textAnchor="middle" fontSize="10" fill="#22c55e" fontWeight="800" opacity="0"><animate attributeName="opacity" values="0;0;0;1;1;0" dur="1.2s" fill="freeze"/>CAUGHT!</text></g>}
       {anim==="catch"&&outcome==="success"&&<g key={`ca${ak}`}><circle r="2.5" fill="white"><animateMotion dur=".35s" fill="freeze" path="M238,92 Q216,140 192,172"/></circle><circle cx="192" cy="172" r="0" fill="rgba(34,197,94,.25)"><animate attributeName="r" from="0" to="16" dur=".25s" begin=".35s" fill="freeze"/><animate attributeName="opacity" from=".6" to="0" dur=".25s" begin=".35s" fill="freeze"/></circle><text x="192" y="162" textAnchor="middle" fontSize="10" fill="#22c55e" fontWeight="800" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0" dur="1s" fill="freeze"/>GOT IT!</text></g>}
-      {anim==="advance"&&outcome==="success"&&<g key={`ad${ak}`}><circle r="4.5" fill="#3b82f6" filter="url(#gl)"><animateMotion dur=".5s" fill="freeze" path="M284,206 Q244,170 200,140"/></circle><text x="244" y="160" textAnchor="middle" fontSize="9" fill="#3b82f6" fontWeight="800" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0" dur="1s" fill="freeze"/>ADVANCING!</text></g>}
-      {anim==="walk"&&outcome==="success"&&<g key={`wk${ak}`}><circle r="4.5" fill="#3b82f6"><animateMotion dur=".7s" fill="freeze" path="M200,282 Q244,248 284,206"/></circle><text x="200" y="255" textAnchor="middle" fontSize="11" fill="#3b82f6" fontWeight="800" opacity="0"><animate attributeName="opacity" values="0;1;1;0" dur="1.2s" fill="freeze"/>BALL FOUR</text></g>}
-      {anim==="bunt"&&outcome==="success"&&<g key={`bn${ak}`}><circle r="2" fill="white"><animateMotion dur=".5s" fill="freeze" path="M200,282 Q198,265 192,250"/></circle><text x="180" y="242" textAnchor="middle" fontSize="9" fill="#22c55e" fontWeight="800" opacity="0"><animate attributeName="opacity" values="0;0;0;1;1;0" dur="1s" fill="freeze"/>BUNT!</text></g>}
-      {anim==="safe"&&outcome==="success"&&<g key={`sf${ak}`}><circle cx="200" cy="206" r="0" fill="none" stroke="#22c55e" strokeWidth="2.5"><animate attributeName="r" from="0" to="32" dur=".45s" fill="freeze"/><animate attributeName="opacity" from=".8" to="0" dur=".45s" fill="freeze"/></circle><text x="200" y="192" textAnchor="middle" fontSize="13" fill="#22c55e" fontWeight="900" opacity="0"><animate attributeName="opacity" values="0;1;1;0" dur="1.2s" fill="freeze"/>SAFE!</text></g>}
+      {anim==="advance"&&outcome==="success"&&<g key={`ad${ak}`}><circle r="4.5" fill="#3b82f6" filter="url(#gl)"><animateMotion dur=".5s" fill="freeze" path="M290,210 Q248,170 200,135"/></circle><text x="248" y="163" textAnchor="middle" fontSize="9" fill="#3b82f6" fontWeight="800" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0" dur="1s" fill="freeze"/>ADVANCING!</text></g>}
+      {anim==="walk"&&outcome==="success"&&<g key={`wk${ak}`}><circle r="4.5" fill="#3b82f6"><animateMotion dur=".7s" fill="freeze" path="M200,290 Q248,252 290,210"/></circle><text x="200" y="263" textAnchor="middle" fontSize="11" fill="#3b82f6" fontWeight="800" opacity="0"><animate attributeName="opacity" values="0;1;1;0" dur="1.2s" fill="freeze"/>BALL FOUR</text></g>}
+      {anim==="bunt"&&outcome==="success"&&<g key={`bn${ak}`}><circle r="2" fill="white"><animateMotion dur=".5s" fill="freeze" path="M200,290 Q198,272 192,258"/></circle><text x="180" y="250" textAnchor="middle" fontSize="9" fill="#22c55e" fontWeight="800" opacity="0"><animate attributeName="opacity" values="0;0;0;1;1;0" dur="1s" fill="freeze"/>BUNT!</text></g>}
+      {anim==="safe"&&outcome==="success"&&<g key={`sf${ak}`}><circle cx="200" cy="210" r="0" fill="none" stroke="#22c55e" strokeWidth="2.5"><animate attributeName="r" from="0" to="32" dur=".45s" fill="freeze"/><animate attributeName="opacity" from=".8" to="0" dur=".45s" fill="freeze"/></circle><text x="200" y="196" textAnchor="middle" fontSize="13" fill="#22c55e" fontWeight="900" opacity="0"><animate attributeName="opacity" values="0;1;1;0" dur="1.2s" fill="freeze"/>SAFE!</text></g>}
       {anim==="freeze"&&outcome==="success"&&<g key={`fr${ak}`}><text x="200" y="174" textAnchor="middle" fontSize="20" opacity="0"><animate attributeName="opacity" values="0;1;1;0" dur="1.5s" fill="freeze"/><animate attributeName="y" from="180" to="168" dur=".35s" fill="freeze"/>⚠️</text><text x="200" y="192" textAnchor="middle" fontSize="10" fill="#f59e0b" fontWeight="800" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0" dur="1.3s" fill="freeze"/>FREEZE!</text></g>}
 
-      {outcome&&outcome!=="success"&&(anim==="strike"||anim==="strikeout")&&<text key={`ws${ak}`} x="200" y="258" textAnchor="middle" fontSize="11" fill="#ef4444" fontWeight="800" opacity="0"><animate attributeName="opacity" values="0;1;1;0" dur="1.2s" fill="freeze"/>BALL</text>}
-      {outcome&&outcome!=="success"&&anim==="steal"&&<text key={`wo${ak}`} x="242" y="160" textAnchor="middle" fontSize="11" fill="#ef4444" fontWeight="800" opacity="0"><animate attributeName="opacity" values="0;1;1;0" dur="1.2s" fill="freeze"/>OUT!</text>}
-      {outcome&&outcome!=="success"&&(anim==="hit"||anim==="groundout"||anim==="flyout")&&<text key={`wh${ak}`} x="200" y="248" textAnchor="middle" fontSize="11" fill="#ef4444" fontWeight="800" opacity="0"><animate attributeName="opacity" values="0;1;1;0" dur="1.2s" fill="freeze"/>{anim==="flyout"?"FLY OUT":"OUT"}</text>}
+      {outcome&&outcome!=="success"&&(anim==="strike"||anim==="strikeout")&&<text key={`ws${ak}`} x="200" y="266" textAnchor="middle" fontSize="11" fill="#ef4444" fontWeight="800" opacity="0"><animate attributeName="opacity" values="0;1;1;0" dur="1.2s" fill="freeze"/>BALL</text>}
+      {outcome&&outcome!=="success"&&anim==="steal"&&<text key={`wo${ak}`} x="248" y="165" textAnchor="middle" fontSize="11" fill="#ef4444" fontWeight="800" opacity="0"><animate attributeName="opacity" values="0;1;1;0" dur="1.2s" fill="freeze"/>OUT!</text>}
+      {outcome&&outcome!=="success"&&(anim==="hit"||anim==="groundout"||anim==="flyout")&&<text key={`wh${ak}`} x="200" y="256" textAnchor="middle" fontSize="11" fill="#ef4444" fontWeight="800" opacity="0"><animate attributeName="opacity" values="0;1;1;0" dur="1.2s" fill="freeze"/>{anim==="flyout"?"FLY OUT":"OUT"}</text>}
       {/* Idle ball toss on mound when no outcome */}
       {!outcome&&<circle r="2" fill="white" opacity=".7"><animateMotion dur="1.8s" repeatCount="indefinite" path="M200,214 Q200,204 200,208 Q200,212 200,214"/><animate attributeName="opacity" values=".7;.3;.7" dur="1.8s" repeatCount="indefinite"/></circle>}
     </svg>

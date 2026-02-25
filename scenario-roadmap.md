@@ -1,8 +1,92 @@
 # Baseball Strategy Master — Scenario Roadmap
 
+## Scenario Audit Results (394 scenarios, Feb 2026)
+
+### Summary
+~95% of scenarios are excellent teaching material. The following fixes were applied:
+
+| Grade | Positions |
+|-------|-----------|
+| **A** | famous (10), counts (8), rules (8), shortstop (16), centerField (16) |
+| **A-** | pitcher (59), batter (58), baserunner (57), manager (58), catcher (30), secondBase (15), thirdBase (15) |
+| **B+** | leftField (15), firstBase (14), rightField (15) |
+
+### Fixes Applied
+
+**Tier 1 — Critical (5 fixes)**
+- `r54`: Added 4th option (was only 3, breaking UI alignment)
+- `p53`: Removed "double play" claim (impossible with 2 outs)
+- `f21`: Changed "tags the runner" to "steps on home plate for the force out" (bases loaded = force, not tag)
+- `ct7`: Changed description so squeeze defense call happens BEFORE the pitch (can't instruct mid-delivery)
+- `2b4`: Changed relay default to home plate (was third base, contradicted standard coaching)
+
+**Tier 2 — Significant (6 fixes)**
+- `b4`: Removed coaching conflict with b40 (no longer says "coach says take" then teaches to swing)
+- `p54`: Changed score from 5-4 to 4-4 (tied), added batting averages to justify platoon walk
+- `f17`: Changed score from 5-3 to 5-4 (1-run lead makes throw-home clearly correct)
+- `m1`: Changed on-deck hitter from ".245 (35 HRs)" to ".220 (8 HRs)" (makes IBB clearly right)
+- `b8`: Narrowed rates from 80/40 to 70/60, added nuance to explanation
+- `f43`: Renamed to `m58` (was using fielder prefix in manager array)
+
+**Tier 3 — Inconsistencies (5 fixes)**
+- `b16`/`b51`: Narrowed "take first pitch" rates from 85/50 to 75/60, added "patient but ready" nuance
+- `ss5`: Changed relay default to home plate (same fix as 2b4)
+- `lf7`: Raised glove-shield rate from 45 to 70 (consistent with f9/f55 teaching)
+- `ct4`/`ct17`: Added context differentiation (borderline = subtle pull, high-leverage = stillness)
+- `r53-r57`/`rl1,4,7`: Verified — both teach different angles (runner vs rule perspective), no changes needed
+
+**Tier 4 — Minor (10 fixes)**
+- `cf3`/`rf1`: Changed anim from `throwHome` to `catch` (answer is throw to third, not home)
+- `ct9`: Changed description from "1 out" to "2 outs" (matches situation object after strikeout)
+- `fp2`: Clarified force play reasoning in last option
+- `rl6`: Changed "American League team" to "your team" (DH universal since 2022)
+- `m44`: Added "In leagues where pitchers still bat" qualifier
+- `1b6`: Emphasized force-removed = tag play rule
+- `3b1`: Raised lead runner option rate from 30 to 45
+- `b39`: Added safety note for high-and-inside squeeze bunt
+- `f47`: Changed "No double play available" to "No conventional double play"
+
+---
+
+## Scenario Quality Checklist (For All Future Scenarios)
+
+Every scenario — handcrafted or AI-generated — must pass ALL of these checks:
+
+### Baseball Accuracy
+- [ ] Game situation is possible (innings, outs, count, runners, score all make sense together)
+- [ ] All 4 options are actions a player at THAT position could physically perform in that moment
+- [ ] The best answer is what a knowledgeable baseball coach would teach
+- [ ] No option requires a physically impossible action (e.g., changing a pitch mid-delivery)
+- [ ] Success rates reflect real baseball outcomes (best option 80-90, alternatives 40-60/25-40/5-25)
+- [ ] Explanations cite correct rules — force vs. tag, when plays apply, who has priority
+- [ ] Statistics cited are approximately correct (no made-up percentages)
+
+### Educational Quality
+- [ ] The "why" is explained, not just the "what"
+- [ ] Wrong-answer explanations teach something — they explain WHY it's suboptimal
+- [ ] No contradictions with other scenarios in the same position
+- [ ] The concept is a clear, reusable principle (not just "this is the right play")
+- [ ] Age-appropriate language (scenarios with `explSimple` for ages 6-10)
+
+### Structural Integrity
+- [ ] Exactly 4 options, 4 explanations, 4 rates
+- [ ] `best` index (0-3) matches the highest rate
+- [ ] `anim` type matches the scenario's action (not throwHome when the play is to third)
+- [ ] ID follows the naming convention for its category
+- [ ] `diff` level is appropriate (1=basic concepts, 2=situational, 3=advanced strategy)
+
+### Consistency Checks
+- [ ] Relay positioning: default alignment is toward HOME (not the lead runner's base)
+- [ ] Coach's signs: always teach respect for the coach's call (never "ignore the sign")
+- [ ] Taking vs. swinging: frame as situational, not absolute. Never say "always take" or "always swing"
+- [ ] Sun defense: glove technique is primary, sunglasses are supplementary
+- [ ] Framing: context-dependent (borderline = subtle pull, high-leverage = stillness)
+
+---
+
 ## Overview
 Target: 40-50 scenarios per position, 200-250 total in the shared bank
-Current: ~57 handcrafted across all positions
+Current: 394 handcrafted across 15 categories
 Each batch: Generate 10 at a time, review for accuracy, then move to next batch
 
 ---
