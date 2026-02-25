@@ -11,6 +11,29 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
     #root { min-height: 100vh; }
+
+    /* Mobile-first responsive styles */
+    @media (max-width: 480px) {
+      button { min-height: 48px !important; font-size: 14px !important; }
+      #root > div > div { padding-left: 8px !important; padding-right: 8px !important; }
+    }
+    @media (min-width: 481px) and (max-width: 768px) {
+      #root > div > div { max-width: 600px; margin: 0 auto; }
+    }
+    @media (min-width: 769px) {
+      #root > div > div { max-width: 480px; margin: 0 auto; }
+    }
+    /* Ensure touch targets are large enough */
+    button, [role="button"] {
+      min-height: 44px;
+      touch-action: manipulation;
+    }
+    /* Prevent zoom on double-tap on iOS */
+    input, select, textarea { font-size: 16px; }
+    /* Safe area for notch devices */
+    @supports (padding: env(safe-area-inset-bottom)) {
+      body { padding-bottom: env(safe-area-inset-bottom); }
+    }
   </style>
 </head>
 <body>
