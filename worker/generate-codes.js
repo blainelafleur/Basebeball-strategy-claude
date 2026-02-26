@@ -50,7 +50,7 @@ async function main() {
 
     try {
       execSync(
-        `npx wrangler kv key put --binding=PROMO_CODES "${kvKey}" '${kvValue}'`,
+        `npx wrangler kv key put --binding=PROMO_CODES --remote "${kvKey}" '${kvValue}'`,
         { cwd: __dirname, stdio: "pipe" }
       );
       codes.push(code);
