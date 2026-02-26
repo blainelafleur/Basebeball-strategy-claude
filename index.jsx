@@ -2963,7 +2963,7 @@ function getNxt(p){for(const l of LEVELS)if(p<l.min)return l;return null;}
 const DAILY_FREE = 8;
 const STRIPE_MONTHLY_URL = "https://buy.stripe.com/PLACEHOLDER_MONTHLY";
 const STRIPE_YEARLY_URL = "https://buy.stripe.com/PLACEHOLDER_YEARLY";
-const AI_PROXY_URL = "https://bsm-ai-proxy.YOUR_SUBDOMAIN.workers.dev/v1/chat/completions";
+const AI_PROXY_URL = "https://bsm-ai-proxy.blafleur.workers.dev/v1/chat/completions";
 const FREE_THEMES = ["default","sunny","retro"];
 const FREE_JERSEYS = 2;
 const FREE_CAPS = 2;
