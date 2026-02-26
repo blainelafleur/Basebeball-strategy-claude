@@ -3,6 +3,7 @@
 // Setup: wrangler secret put XAI_API_KEY
 
 const ALLOWED_ORIGINS = [
+  "https://bsm-app.pages.dev",
   "https://baseball-strategy-master-blafleur.replit.app",
   "http://localhost:3000",
   "http://localhost:5000",
