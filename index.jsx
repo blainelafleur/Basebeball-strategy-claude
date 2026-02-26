@@ -2963,7 +2963,8 @@ function getNxt(p){for(const l of LEVELS)if(p<l.min)return l;return null;}
 const DAILY_FREE = 8;
 const STRIPE_MONTHLY_URL = "https://buy.stripe.com/4gM00ifyYbLI67way56kg00";
 const STRIPE_YEARLY_URL = "https://buy.stripe.com/4gM7sKgD2g1YbrQ9u16kg01";
-const AI_PROXY_URL = "https://bsm-ai-proxy.blafleur.workers.dev/v1/chat/completions";
+const WORKER_BASE = "https://bsm-ai-proxy.blafleur.workers.dev";
+const AI_PROXY_URL = WORKER_BASE + "/v1/chat/completions";
 const FREE_THEMES = ["default","sunny","retro"];
 const FREE_JERSEYS = 2;
 const FREE_CAPS = 2;
@@ -3025,7 +3026,7 @@ const STADIUM_MILESTONES=[
   {games:200,label:"Fireworks",desc:"Fireworks on perfect answers!",icon:"🎆"},
   {games:330,label:"Legend Stadium",desc:"Golden border + Legend title!",icon:"👑"},
 ];
-const DEFAULT = {pts:0,str:0,bs:0,gp:0,co:0,ps:{},achs:[],cl:[],ds:0,lastDay:null,todayPlayed:0,todayDate:null,sp:0,isPro:false,onboarded:false,soundOn:true,recentWrong:[],dailyDone:false,dailyDate:null,streakFreezes:0,survivalBest:0,ageGroup:"11-12",displayName:"",teamCode:"",seasonGame:0,seasonCorrect:0,seasonComplete:false,fieldTheme:"default",avatarJersey:0,avatarCap:0,avatarBat:0,season:1,proPlan:null,proPurchaseDate:null,proExpiry:null,lastStreakFreezeDate:null,wrongCounts:{},posGrad:{},funnel:[],hist:{},firstPlayDate:null,lastPlayDate:null,sessionCount:0,tutorialDone:false};
+const DEFAULT = {pts:0,str:0,bs:0,gp:0,co:0,ps:{},achs:[],cl:[],ds:0,lastDay:null,todayPlayed:0,todayDate:null,sp:0,isPro:false,onboarded:false,soundOn:true,recentWrong:[],dailyDone:false,dailyDate:null,streakFreezes:0,survivalBest:0,ageGroup:"11-12",displayName:"",teamCode:"",seasonGame:0,seasonCorrect:0,seasonComplete:false,fieldTheme:"default",avatarJersey:0,avatarCap:0,avatarBat:0,season:1,proPlan:null,proPurchaseDate:null,proExpiry:null,lastStreakFreezeDate:null,wrongCounts:{},posGrad:{},funnel:[],hist:{},firstPlayDate:null,lastPlayDate:null,sessionCount:0,tutorialDone:false,promoCode:null,promoActivatedDate:null};
 
 // Streak flame visual — grows with daily streak length
 function getFlame(ds){
@@ -3506,6 +3507,46 @@ function Field({runners=[],outcome=null,ak=0,anim=null,theme=null,avatar=null,po
     </svg>
   );
 }
+// Promo code input — shown in upgrade panel
+function PromoCodeInput({setStats,setToast,snd,setPanel}){
+  const[show,setShow]=React.useState(false);
+  const[val,setVal]=React.useState("");
+  const[loading,setLoading]=React.useState(false);
+  const[err,setErr]=React.useState(null);
+  function redeem(){
+    const code=val.trim();if(!code||loading)return;
+    setLoading(true);setErr(null);
+    fetch(WORKER_BASE+"/validate-code",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({code})})
+      .then(r=>r.json()).then(d=>{
+        setLoading(false);
+        if(d.valid){
+          const expiry=d.type==="30day"?Date.now()+30*86400000:null;
+          setStats(p=>({...p,isPro:true,proPlan:"promo-"+d.type,proExpiry:expiry,promoCode:code,promoActivatedDate:Date.now(),funnel:[...(p.funnel||[]).slice(-99),{event:"promo_redeemed",ts:Date.now()}]}));
+          setErr("!"+(d.type==="lifetime"?"Lifetime Pro activated!":"30-day Pro activated!"));
+          snd.play('ach');
+          setTimeout(()=>{setToast({e:"🎟️",n:"Promo Code Activated!",d:d.type==="lifetime"?"Lifetime Pro access unlocked!":"30-day Pro access unlocked!"});setTimeout(()=>setToast(null),4000)},300);
+          setTimeout(()=>setPanel(null),2000);
+        } else {
+          setErr(d.reason==="already_used"?"This code has already been used.":"Invalid promo code.");
+          setStats(p=>({...p,funnel:[...(p.funnel||[]).slice(-99),{event:"promo_invalid",ts:Date.now()}]}));
+        }
+      }).catch(()=>{setLoading(false);setErr("Network error. Try again.")});
+  }
+  if(!show)return(<div style={{marginTop:6,textAlign:"center"}}>
+    <button onClick={()=>setShow(true)} style={{background:"none",border:"none",color:"#6b7280",fontSize:11,cursor:"pointer",textDecoration:"underline",padding:4}}>Have a promo code?</button>
+  </div>);
+  return(<div style={{marginTop:8,background:"rgba(255,255,255,.02)",border:"1px solid rgba(255,255,255,.06)",borderRadius:10,padding:"10px 12px"}}>
+    <div style={{fontSize:11,color:"#9ca3af",marginBottom:6,fontWeight:600}}>Enter Promo Code</div>
+    <div style={{display:"flex",gap:6,alignItems:"center"}}>
+      <input type="text" placeholder="BSM-XXXXXX" value={val} onChange={e=>setVal(e.target.value.toUpperCase())} maxLength={10}
+        style={{flex:1,background:"rgba(255,255,255,.04)",border:"1.5px solid rgba(255,255,255,.1)",borderRadius:8,padding:"8px 10px",color:"white",fontSize:13,fontFamily:"monospace",letterSpacing:1,outline:"none",textTransform:"uppercase"}}
+        onKeyDown={e=>{if(e.key==="Enter"&&val.trim()&&!loading)redeem()}}/>
+      <button disabled={!val.trim()||loading} onClick={redeem}
+        style={{background:loading?"#374151":"linear-gradient(135deg,#d97706,#f59e0b)",color:"white",border:"none",borderRadius:8,padding:"8px 14px",fontSize:12,fontWeight:700,cursor:loading?"wait":"pointer",opacity:!val.trim()?.4:1,whiteSpace:"nowrap"}}>{loading?"...":"Redeem"}</button>
+    </div>
+    {err&&<div style={{fontSize:10,color:err.startsWith("!")?"#22c55e":"#ef4444",marginTop:6}}>{err.startsWith("!")?err.slice(1):err}</div>}
+  </div>);
+}
 function Board({sit}){
   if(!sit)return null;const{inning,outs,count,score}=sit;
   return(<div style={{background:"linear-gradient(135deg,#0d1117,#161b22)",borderRadius:10,padding:"6px 10px",display:"flex",justifyContent:"space-around",alignItems:"center",fontFamily:"'Courier New',monospace",border:"1px solid #21262d"}}>
@@ -3688,6 +3729,21 @@ export default function App(){
       setStats(p=>({...p,isPro:true,proPlan:plan,proPurchaseDate:Date.now(),proExpiry:expiry,funnel:[...(p.funnel||[]).slice(-99),{event:"pro_activated",ts:Date.now()}]}));
       setTimeout(()=>{setToast({e:"⭐",n:"Welcome to All-Star Pass!",d:"Unlimited play, AI coaching, and more!"});snd.play('ach');setTimeout(()=>setToast(null),4000)},500);
       window.history.replaceState({},"",window.location.pathname+window.location.hash);
+    }
+    // Check for promo code in URL (?code=BSM-XXXXXX)
+    const urlCode=params.get("code");
+    if(urlCode){
+      window.history.replaceState({},"",window.location.pathname+window.location.hash);
+      fetch(WORKER_BASE+"/validate-code",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({code:urlCode})})
+        .then(r=>r.json()).then(d=>{
+          if(d.valid){
+            const expiry=d.type==="30day"?Date.now()+30*86400000:null;
+            setStats(p=>({...p,isPro:true,proPlan:"promo-"+d.type,proExpiry:expiry,promoCode:urlCode.trim().toUpperCase(),promoActivatedDate:Date.now(),funnel:[...(p.funnel||[]).slice(-99),{event:"promo_redeemed",ts:Date.now()}]}));
+            setTimeout(()=>{setToast({e:"🎟️",n:"Promo Code Activated!",d:d.type==="lifetime"?"Lifetime Pro access unlocked!":"30-day Pro access unlocked!"});snd.play('ach');setTimeout(()=>setToast(null),4000)},500);
+          } else {
+            setTimeout(()=>{setToast({e:"❌",n:"Invalid Code",d:d.reason==="already_used"?"This code has already been used.":"That promo code is not valid."});setTimeout(()=>setToast(null),4000)},500);
+          }
+        }).catch(()=>{setTimeout(()=>{setToast({e:"⚠️",n:"Error",d:"Could not verify promo code. Try again later."});setTimeout(()=>setToast(null),4000)},500)});
     }
   })()},[]);
   // Save
@@ -4494,14 +4550,15 @@ export default function App(){
                   </div>
                 ))}
               </div>
-              <div style={{fontSize:9,color:"#6b7280"}}>After subscribing, return to this page. Your pass activates automatically.</div>
+              <div style={{fontSize:9,color:"#6b7280",marginBottom:8}}>After subscribing, return to this page. Your pass activates automatically.</div>
+              <PromoCodeInput setStats={setStats} setToast={setToast} snd={snd} setPanel={setPanel} />
             </div>}
             <button onClick={()=>setPanel(null)} style={{...ghost,fontSize:11,marginTop:4}}>← Back</button>
           </div>}
 
           {/* Pro home indicator */}
           {stats.isPro&&<div style={{textAlign:"center",marginBottom:8,padding:"4px 0"}}>
-            <span style={{fontSize:10,color:"#f59e0b",fontWeight:600,letterSpacing:.5}}>PRO · 2x XP · AI Ready · Unlimited Plays</span>
+            <span style={{fontSize:10,color:"#f59e0b",fontWeight:600,letterSpacing:.5}}>{(stats.proPlan||"").startsWith("promo-")?"PROMO":"PRO"} · 2x XP · AI Ready · Unlimited Plays{stats.proPlan==="promo-30day"&&stats.proExpiry?` · ${Math.max(0,Math.ceil((stats.proExpiry-Date.now())/86400000))} days left`:""}</span>
           </div>}
 
           {/* Daily Diamond Play */}
@@ -4711,7 +4768,7 @@ export default function App(){
             </div>
             {stats.isPro?<div style={{background:"rgba(245,158,11,.04)",border:"1px solid rgba(245,158,11,.12)",borderRadius:10,padding:"10px 12px",marginBottom:10}}>
               <div style={{fontSize:11,fontWeight:700,color:"#f59e0b",marginBottom:4}}>All-Star Pass Active</div>
-              <div style={{fontSize:10,color:"#9ca3af"}}>Plan: {stats.proPlan||"lifetime"}{stats.proExpiry?` · Renews: ${new Date(stats.proExpiry).toLocaleDateString()}`:""}</div>
+              <div style={{fontSize:10,color:"#9ca3af"}}>Plan: {stats.proPlan==="promo-lifetime"?"Promo (Lifetime)":stats.proPlan==="promo-30day"?"Promo (30-day)":stats.proPlan||"lifetime"}{stats.proExpiry?` · ${(stats.proPlan||"").startsWith("promo-")?"Expires":"Renews"}: ${new Date(stats.proExpiry).toLocaleDateString()}`:""}</div>
             </div>:<div style={{background:"rgba(245,158,11,.04)",border:"1px solid rgba(245,158,11,.12)",borderRadius:10,padding:"10px 12px",marginBottom:10}}>
               <div style={{fontSize:11,fontWeight:700,color:"#f59e0b",marginBottom:4}}>Unlock More Learning</div>
               <div style={{fontSize:10,color:"#9ca3af",marginBottom:6}}>

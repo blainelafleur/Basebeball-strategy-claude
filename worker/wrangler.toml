@@ -11,3 +11,10 @@ compatibility_date = "2024-01-01"
 
 # Test locally:
 #   cd worker && npx wrangler dev
+
+# KV namespace for promo codes
+# Create with: npx wrangler kv namespace create PROMO_CODES
+# Then replace the id below with the returned namespace ID
+[[kv_namespaces]]
+binding = "PROMO_CODES"
+id = "REPLACE_WITH_NAMESPACE_ID"
