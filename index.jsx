@@ -2522,6 +2522,13 @@ function getLvl(p){for(let i=LEVELS.length-1;i>=0;i--)if(p>=LEVELS[i].min)return
 function getNxt(p){for(const l of LEVELS)if(p<l.min)return l;return null;}
 
 const DAILY_FREE = 8;
+const STRIPE_MONTHLY_URL = "https://buy.stripe.com/PLACEHOLDER_MONTHLY";
+const STRIPE_YEARLY_URL = "https://buy.stripe.com/PLACEHOLDER_YEARLY";
+const FREE_THEMES = ["default","sunny","retro"];
+const FREE_JERSEYS = 2;
+const FREE_CAPS = 2;
+const FREE_BATS = 1;
+const POS_SUGGESTIONS = {pitcher:"catcher",catcher:"pitcher",firstBase:"secondBase",secondBase:"shortstop",shortstop:"secondBase",thirdBase:"firstBase",leftField:"centerField",centerField:"rightField",rightField:"leftField",batter:"baserunner",baserunner:"batter",manager:"pitcher"};
 const STORAGE_KEY = "bsm_v5";
 const LB_KEY = "bsm_lb";
 function getWeek(){const d=new Date();const jan1=new Date(d.getFullYear(),0,1);return Math.ceil(((d-jan1)/86400000+jan1.getDay()+1)/7)+"-"+d.getFullYear();}
@@ -2556,7 +2563,17 @@ const FIELD_THEMES=[
   {id:"winter",name:"Winter Classic",emoji:"❄️",grass:["#88b8a0","#78a890","#689880","#588870"],dirt:["#c0b098","#a89880"],sky:"#0a1018",skyTop:"#607888",skyBot:"#98b0c0",wall:["#506068","#607078"],fence:"#90a8b0",inGrass:"#70a888",mound:["#b0a088","#988870"],warn:"#989080",crowd:["#5080a0","#406888","#7090a8","#608898","#507888","#80a0b0"],crowdBg:"#283038",scoreBd:"#1a2028",scoreTxt:"#90a8b0",banner:["#5080a0","#406888","#7090a8"],foulPole:"#90a8b0",unlock:{type:"cl",val:50},desc:"Frosty diamond"},
   {id:"allstar",name:"All-Star Game",emoji:"⭐",grass:["#50c870","#42b862","#34a854","#269846"],dirt:["#e0b878","#c8a060"],sky:"#0a0e1a",skyTop:"#1a2848",skyBot:"#304870",wall:["#18284a","#203860"],fence:"#f8d020",inGrass:"#42b060",mound:["#d0a860","#b89048"],warn:"#b89858",crowd:["#f04848","#4088e0","#f8c828","#40c060","#f09028","#a858d8"],crowdBg:"#182840",scoreBd:"#101830",scoreTxt:"#f8d020",banner:["#f8d020","#f04848","#4088e0"],foulPole:"#f8d020",unlock:{type:"gp",val:150},desc:"Midsummer showcase"},
 ];
-function themeOk(th,s){if(!th.unlock)return true;const{type:t,val:v}=th.unlock;if(t==="gp")return s.gp>=v;if(t==="ds")return s.ds>=v;if(t==="cl")return(s.cl?.length||0)>=v;return false;}
+function themeOk(th,s){
+  // Pro users get all themes
+  if(s.isPro)return true;
+  // Free themes always available
+  if(FREE_THEMES.includes(th.id))return true;
+  // Milestone fallback: grandfather existing free users who earned themes
+  if(th.unlock){const{type:t,val:v}=th.unlock;if(t==="gp"&&s.gp>=v)return true;if(t==="ds"&&s.ds>=v)return true;if(t==="cl"&&(s.cl?.length||0)>=v)return true;}
+  return false;
+}
+function proGate(stats,setPanel){if(stats.isPro)return true;setPanel('upgrade');return false;}
+function trackFunnel(event,setStats){setStats(p=>({...p,funnel:[...(p.funnel||[]).slice(-99),{event,ts:Date.now()}]}));}
 const AVATAR_OPTS={
   jersey:["#2563eb","#ef4444","#22c55e","#f59e0b","#a855f7","#ec4899"],
   cap:["#1d4ed8","#dc2626","#16a34a","#d97706","#7c3aed","#db2777"],
@@ -2568,7 +2585,7 @@ const STADIUM_MILESTONES=[
   {games:200,label:"Fireworks",desc:"Fireworks on perfect answers!",icon:"🎆"},
   {games:330,label:"Legend Stadium",desc:"Golden border + Legend title!",icon:"👑"},
 ];
-const DEFAULT = {pts:0,str:0,bs:0,gp:0,co:0,ps:{},achs:[],cl:[],ds:0,lastDay:null,todayPlayed:0,todayDate:null,sp:0,isPro:false,onboarded:false,soundOn:true,recentWrong:[],dailyDone:false,dailyDate:null,streakFreezes:0,survivalBest:0,ageGroup:"11-12",displayName:"",teamCode:"",seasonGame:0,seasonCorrect:0,seasonComplete:false,fieldTheme:"default",avatarJersey:0,avatarCap:0,avatarBat:0,season:1};
+const DEFAULT = {pts:0,str:0,bs:0,gp:0,co:0,ps:{},achs:[],cl:[],ds:0,lastDay:null,todayPlayed:0,todayDate:null,sp:0,isPro:false,onboarded:false,soundOn:true,recentWrong:[],dailyDone:false,dailyDate:null,streakFreezes:0,survivalBest:0,ageGroup:"11-12",displayName:"",teamCode:"",seasonGame:0,seasonCorrect:0,seasonComplete:false,fieldTheme:"default",avatarJersey:0,avatarCap:0,avatarBat:0,season:1,proPlan:null,proPurchaseDate:null,proExpiry:null,lastStreakFreezeDate:null,apiKey:null,wrongCounts:{},posGrad:{},funnel:[],hist:{}};
 
 // Streak flame visual — grows with daily streak length
 function getFlame(ds){
@@ -2614,7 +2631,7 @@ const POS_PRINCIPLES = {
   manager:"Manage by the situation, not by the book. RE24 run expectancy guides sacrifice bunt decisions (usually bad except: weak hitter, late game, need exactly 1 run). Stolen bases need ~72% success to break even. Pitching changes: matchup advantages (L/R platoon), fatigue, times through the order (batters hit ~30 points better third time through). Intentional walks: only with first base open and a clear skill gap to next hitter. Defensive positioning: guard lines late, play for DP early."
 };
 
-async function generateAIScenario(position, stats, conceptsLearned = [], recentWrong = [], signal = null) {
+async function generateAIScenario(position, stats, conceptsLearned = [], recentWrong = [], signal = null, apiKey = null) {
   const lvl = getLvl(stats.pts);
   const posStats = stats.ps[position] || { p: 0, c: 0 };
   const posAcc = posStats.p > 0 ? Math.round((posStats.c / posStats.p) * 100) : 50;
@@ -2690,9 +2707,11 @@ Rules for best: 0-indexed integer matching the optimal option in the options arr
   try {
     // Create timeout - abort after 10 seconds
     const timeoutId = setTimeout(() => { if (signal && !signal.aborted) signal = null; }, 10000);
+    const headers = { "Content-Type": "application/json", "anthropic-dangerous-direct-browser-access": "true" };
+    if (apiKey) headers["x-api-key"] = apiKey;
     const fetchOpts = {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify({
         model: "claude-sonnet-4-20250514",
         max_tokens: 1000,
@@ -3154,16 +3173,17 @@ function Coach({mood="neutral",msg=null}){
     </div>
   </div>);
 }
-function getCoachLine(cat,pos,streak){
-  // Streak reactions (override everything)
-  if(cat==="success"&&streak>=3&&COACH_LINES.streakLines[Math.min(streak,10)])return COACH_LINES.streakLines[Math.min(streak,10)];
-  // 20% chance of a baseball fact on success
-  if(cat==="success"&&Math.random()<0.2){const f=COACH_LINES.facts;return f[Math.floor(Math.random()*f.length)];}
-  // 30% chance of position-specific line
-  if(pos&&Math.random()<0.3){
-    const posLines=cat==="success"?COACH_LINES.posSuccess:cat==="danger"?COACH_LINES.posDanger:null;
-    if(posLines&&posLines[pos])return posLines[pos];
+function getCoachLine(cat,pos,streak,isPro=false){
+  // Pro: full coach with streak reactions, facts, position tips
+  if(isPro){
+    if(cat==="success"&&streak>=3&&COACH_LINES.streakLines[Math.min(streak,10)])return COACH_LINES.streakLines[Math.min(streak,10)];
+    if(cat==="success"&&Math.random()<0.2){const f=COACH_LINES.facts;return f[Math.floor(Math.random()*f.length)];}
+    if(pos&&Math.random()<0.3){
+      const posLines=cat==="success"?COACH_LINES.posSuccess:cat==="danger"?COACH_LINES.posDanger:null;
+      if(posLines&&posLines[pos])return posLines[pos];
+    }
   }
+  // Free: generic success/warning/danger lines only
   const lines=COACH_LINES[cat]||COACH_LINES.danger;return lines[Math.floor(Math.random()*lines.length)];
 }
 
@@ -3175,7 +3195,8 @@ export default function App(){
   const[sc,setSc]=useState(null);
   const[choice,setChoice]=useState(null);
   const[od,setOd]=useState(null);
-  const[hist,setHist]=useState({});
+  const hist=stats.hist||{};
+  const setHist=useCallback((updater)=>{setStats(p=>({...p,hist:typeof updater==='function'?updater(p.hist||{}):updater}))},[]);
   const[ri,setRi]=useState(-1);
   const[fo,setFo]=useState(null);
   const[ak,setAk]=useState(0);
@@ -3212,13 +3233,28 @@ export default function App(){
 
   const[challengeMode,setChallengeMode]=useState(false);
   const[challengeId,setChallengeId]=useState(null);
+  const[upgradeGatePass,setUpgradeGatePass]=useState(false);
   // Load
   useEffect(()=>{(async()=>{try{const r=await window.storage.get(STORAGE_KEY);if(r?.value){const d=JSON.parse(r.value);setStats({...DEFAULT,...d});snd.setEnabled(d.soundOn!==false);if(d.onboarded)setScreen("home");else setScreen("onboard");} else setScreen("onboard");}catch{setScreen("onboard")}
     // Check for challenge in URL
     const hash=window.location.hash;if(hash.startsWith("#challenge=")){const cid=hash.slice(11);setChallengeId(cid);window.location.hash="";}
+    // Check for Stripe return
+    const params=new URLSearchParams(window.location.search);
+    if(params.get("pro")==="success"){
+      const plan=params.get("plan")||"monthly";
+      const expiry=plan==="yearly"?Date.now()+365*86400000:Date.now()+31*86400000;
+      setStats(p=>({...p,isPro:true,proPlan:plan,proPurchaseDate:Date.now(),proExpiry:expiry,funnel:[...(p.funnel||[]).slice(-99),{event:"pro_activated",ts:Date.now()}]}));
+      setTimeout(()=>{setToast({e:"⭐",n:"Welcome to All-Star Pass!",d:"Unlimited play, AI coaching, and more!"});snd.play('ach');setTimeout(()=>setToast(null),4000)},500);
+      window.history.replaceState({},"",window.location.pathname+window.location.hash);
+    }
   })()},[]);
   // Save
   useEffect(()=>{(async()=>{try{await window.storage.set(STORAGE_KEY,JSON.stringify(stats))}catch{}})()},[stats]);
+  // Pro expiry check
+  useEffect(()=>{if(stats.isPro&&stats.proExpiry&&stats.proExpiry<Date.now()){
+    setStats(p=>({...p,isPro:false}));
+    setTimeout(()=>{setToast({e:"⏰",n:"All-Star Pass Expired",d:"Renew to keep unlimited play and AI coaching."});setTimeout(()=>setToast(null),4000)},500);
+  }},[stats.isPro,stats.proExpiry]);
   // Leaderboard: update weekly entry
   const[lbData,setLbData]=useState({week:"",entries:[]});
   useEffect(()=>{(async()=>{try{const r=await window.storage.get(LB_KEY);if(r?.value)setLbData(JSON.parse(r.value))}catch{}})()},[]);
@@ -3248,15 +3284,20 @@ export default function App(){
       // Show "Streak Saved!" toast
       setTimeout(()=>{setToast({e:"🧊",n:"Streak Saved!",d:`Used a streak freeze. ${newFreezes} remaining.`});setTimeout(()=>setToast(null),3500)},500);
     }else{newDs=1}
-    // Award a streak freeze every 7-day milestone (max 3)
-    const prev7=Math.floor(stats.ds/7);const new7=Math.floor(newDs/7);
-    if(new7>prev7&&newFreezes<3)newFreezes=Math.min(3,newFreezes+(new7-prev7));
+    // Pro-only: auto-grant 1 streak freeze per week (max 3)
+    let newLastFreeze=stats.lastStreakFreezeDate;
+    if(stats.isPro){
+      const weekMs=7*86400000;
+      if(!stats.lastStreakFreezeDate||Date.now()-stats.lastStreakFreezeDate>=weekMs){
+        if(newFreezes<3){newFreezes=Math.min(3,newFreezes+1);newLastFreeze=Date.now();}
+      }
+    }
     // Check for streak milestone celebration
     if(STREAK_MILESTONES.includes(newDs)&&newDs>stats.ds){
       const fl=getFlame(newDs);
       setTimeout(()=>{setLvlUp({e:fl.icon,n:`${newDs}-Day Streak!`,c:fl.color});snd.play('streak')},800);
     }
-    setStats(p=>({...p,todayPlayed:0,todayDate:today,ds:newDs,streakFreezes:newFreezes,lastDay:p.todayDate,dailyDone:p.dailyDate===today?p.dailyDone:false,dailyDate:today}));
+    setStats(p=>({...p,todayPlayed:0,todayDate:today,ds:newDs,streakFreezes:newFreezes,lastStreakFreezeDate:newLastFreeze,lastDay:p.todayDate,dailyDone:p.dailyDate===today?p.dailyDone:false,dailyDate:today}));
   }},[stats.todayDate]);
 
   // Handle challenge links
@@ -3283,14 +3324,26 @@ export default function App(){
   const maxDiff=(AGE_GROUPS.find(a=>a.id===stats.ageGroup)||AGE_GROUPS[2]).maxDiff;
   const getRand=useCallback((p)=>{
     let raw=SCENARIOS[p]||[];
-    // fielder track filtering removed — each position has its own scenario array
-    const pool=raw.filter(s=>s.diff<=maxDiff);const fallback=raw;
+    // Difficulty graduation for ages 6-8: unlock diff:2 per-position when ready
+    let effMaxDiff=maxDiff;
+    if(stats.ageGroup==="6-8"&&(stats.posGrad||{})[p])effMaxDiff=Math.max(effMaxDiff,2);
+    const pool=raw.filter(s=>s.diff<=effMaxDiff);const fallback=raw;
     const src=pool.length>0?pool:fallback;const seen=hist[p]||[];
     const unseen=src.filter(s=>!seen.includes(s.id));
+    // Spaced repetition: revisit wrong scenarios more often
+    const wc=stats.wrongCounts||{};
+    const wrongInPool=src.filter(s=>wc[s.id]>0);
+    if(wrongInPool.length>0){
+      const chance=unseen.length>0?0.4:0.6;
+      if(Math.random()<chance){
+        const pick=wrongInPool[Math.floor(Math.random()*wrongInPool.length)];
+        setHist(h=>({...h,[p]:[...(h[p]||[]),pick.id].slice(-src.length)}));return pick;
+      }
+    }
     const avail=unseen.length>0?unseen:src;
     const s=avail[Math.floor(Math.random()*avail.length)];
     setHist(h=>({...h,[p]:[...(h[p]||[]),s.id].slice(-src.length)}));return s;
-  },[hist,maxDiff]);
+  },[hist,maxDiff,stats.ageGroup,stats.posGrad,stats.wrongCounts]);
 
   const startDaily=useCallback(()=>{
     if(stats.dailyDone&&stats.dailyDate===new Date().toDateString())return;
@@ -3304,17 +3357,33 @@ export default function App(){
   const startGame=useCallback(async(p,forceAI=false)=>{
     if(atLimit){setPanel('limit');return;}
     snd.play('tap');setPos(p);setChoice(null);setOd(null);setRi(-1);setFo(null);setShowC(false);setLvlUp(null);setShowExp(true);setDailyMode(false);
-    
+
     // Determine if we should use AI (respect maxDiff so young players get AI after exhausting their pool)
     const raw=SCENARIOS[p]||[];const pool=raw.filter(s=>s.diff<=maxDiff);const seen=hist[p]||[];
     const unseen=(pool.length>0?pool:raw).filter(s=>!seen.includes(s.id));
     const useAI = forceAI || unseen.length === 0;
-    
+
+    if(useAI&&!stats.isPro){
+      // AI is pro-only — fall back to handcrafted, show toast
+      setAiMode(false);
+      const avail=pool.length>0?pool:raw;const s=avail[Math.floor(Math.random()*avail.length)];
+      setHist(h=>({...h,[p]:[...(h[p]||[]),s.id].slice(-avail.length)}));
+      setSc(s);setScreen("play");
+      s.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80);});
+      if(forceAI){trackFunnel('ai_gated',setStats);setTimeout(()=>{setToast({e:"🤖",n:"AI is Pro",d:"Upgrade to All-Star Pass for AI coaching!"});setTimeout(()=>setToast(null),3500)},300)}
+      else if(!forceAI&&unseen.length===0){
+        // Cross-position encouragement
+        const sug=POS_SUGGESTIONS[p];
+        if(sug&&POS_META[sug]){setTimeout(()=>{setToast({e:POS_META[sug].emoji,n:`Try ${POS_META[sug].label}!`,d:`You've seen all ${p} scenarios. ${POS_META[sug].label} is a great next step!`});setTimeout(()=>setToast(null),4000)},500)}
+      }
+      return;
+    }
+
     if(useAI){
       // Show loading screen
       setAiLoading(true);setAiMode(true);setScreen("play");
       const ctrl=new AbortController();abortRef.current=ctrl;
-      const aiSc = await generateAIScenario(p, stats, stats.cl||[], stats.recentWrong||[], ctrl.signal);
+      const aiSc = await generateAIScenario(p, stats, stats.cl||[], stats.recentWrong||[], ctrl.signal, stats.apiKey);
       abortRef.current=null;
       setAiLoading(false);
       if(aiSc){
@@ -3346,12 +3415,13 @@ export default function App(){
     const isOpt=idx===sc.best;const rate=sc.rates[idx];const cat=isOpt?"success":rate>=55?"warning":"danger";
     let pts=isOpt?15:rate>=55?8:rate>=35?4:2;
     if(dailyMode)pts*=2; // 2x XP for Daily Diamond Play
+    if(stats.isPro)pts*=2; // 2x XP for Pro
     // Prestige season bonus: +10% per season past the first
     if((stats.season||1)>1)pts=Math.round(pts*(1+((stats.season-1)*0.1)));
     // Speed Round bonus: +1 pt per second remaining
     let speedBonus=0;
     if(speedMode&&isOpt&&timer>0){speedBonus=timer;pts+=speedBonus;}
-    setFo(cat);setAk(k=>k+1);snd.play(isOpt?'correct':rate>=55?'near':'wrong');setCoachMsg(getCoachLine(cat,pos,isOpt?stats.str+1:0));
+    setFo(cat);setAk(k=>k+1);snd.play(isOpt?'correct':rate>=55?'near':'wrong');setCoachMsg(getCoachLine(cat,pos,isOpt?stats.str+1:0,stats.isPro));
     // Crowd cheer on perfect answers, jackpot on every 5th streak
     if(isOpt){setTimeout(()=>snd.play('cheer'),300);const newStr=stats.str+1;if(newStr>0&&newStr%5===0)setTimeout(()=>snd.play('jackpot'),500);}
     // Use simplified explanations for young players when available
@@ -3366,14 +3436,28 @@ export default function App(){
     const prevLvl=getLvl(stats.pts);
     setStats(p=>{
       const today=new Date().toDateString();
+      // Track wrongCounts for spaced repetition
+      const wc={...(p.wrongCounts||{})};
+      if(!isOpt&&sc.id){wc[sc.id]=(wc[sc.id]||0)+1}
+      else if(isOpt&&sc.id&&wc[sc.id]){delete wc[sc.id]} // Clear on correct answer
+      // Difficulty graduation for ages 6-8
+      const posGrad={...(p.posGrad||{})};
+      const updatedPs={...p.ps,[pos]:{p:(p.ps[pos]?.p||0)+1,c:(p.ps[pos]?.c||0)+(isOpt?1:0)}};
+      if(p.ageGroup==="6-8"&&!posGrad[pos]){
+        const pp=updatedPs[pos];
+        if(pp.p>=5&&(pp.c/pp.p)>0.7){posGrad[pos]=true;
+          setTimeout(()=>{setToast({e:"🎓",n:`${POS_META[pos]?.label||pos} Leveled Up!`,d:"Pro difficulty unlocked for this position!"});setTimeout(()=>setToast(null),3500)},800);
+        }
+      }
       const ns={...p,pts:p.pts+pts,str:isOpt?p.str+1:0,bs:Math.max(p.bs,isOpt?p.str+1:p.bs),gp:p.gp+1,co:p.co+(isOpt?1:0),
-        ps:{...p.ps,[pos]:{p:(p.ps[pos]?.p||0)+1,c:(p.ps[pos]?.c||0)+(isOpt?1:0)}},
+        ps:updatedPs,
         cl:isOpt&&!p.cl?.includes(sc.concept)?[...(p.cl||[]),sc.concept]:(p.cl||[]),
         recentWrong:isOpt?(p.recentWrong||[]):[...(p.recentWrong||[]),sc.concept].slice(-5),
         todayPlayed:dailyMode?p.todayPlayed:(p.todayDate===today?p.todayPlayed:0)+1,todayDate:today,
         sp:isOpt?(p.sp||0)+1:0,
         dailyDone:dailyMode?true:p.dailyDone,dailyDate:dailyMode?today:(p.dailyDate||today),
-        seasonCorrect:seasonMode&&isOpt?(p.seasonCorrect||0)+1:(p.seasonCorrect||0)};
+        seasonCorrect:seasonMode&&isOpt?(p.seasonCorrect||0)+1:(p.seasonCorrect||0),
+        wrongCounts:wc,posGrad};
       ns.achs=checkAch(ns);
       const newLvl=getLvl(ns.pts);
       if(newLvl.n!==prevLvl.n){setTimeout(()=>{setLvlUp(newLvl);snd.play('lvl')},600)}
@@ -3582,6 +3666,7 @@ export default function App(){
           {stats.ds>0&&(()=>{const fl=getFlame(stats.ds);return <span style={{background:`${fl.color}12`,border:`1px solid ${fl.color}22`,borderRadius:7,padding:"2px 7px",fontSize:10,fontWeight:700,color:fl.color,boxShadow:stats.ds>=7?`0 0 8px ${fl.glow}`:"none"}}>{fl.icon}{stats.ds}d</span>})()}
           {stats.str>0&&<span style={{background:"#f9731615",border:"1px solid #f9731625",borderRadius:7,padding:"2px 7px",fontSize:10,fontWeight:700,color:"#f97316"}}>🔥{stats.str}</span>}
           {!stats.isPro&&<span style={{background:remaining<=0?"rgba(239,68,68,.1)":remaining<=3?"rgba(245,158,11,.1)":"rgba(255,255,255,.03)",border:`1px solid ${remaining<=0?"rgba(239,68,68,.2)":remaining<=3?"rgba(245,158,11,.2)":"rgba(255,255,255,.06)"}`,borderRadius:7,padding:"2px 7px",fontSize:10,fontWeight:600,color:remaining<=0?"#ef4444":remaining<=3?"#f59e0b":"#6b7280"}}>{remaining>0?`${remaining} left`:"Back tomorrow"}</span>}
+          {stats.isPro&&<span style={{background:"linear-gradient(135deg,rgba(245,158,11,.15),rgba(234,179,8,.1))",border:"1px solid rgba(245,158,11,.3)",borderRadius:7,padding:"2px 7px",fontSize:10,fontWeight:800,color:"#f59e0b"}}>PRO</span>}
           <span style={{background:`${lvl.c}12`,border:`1px solid ${lvl.c}25`,borderRadius:7,padding:"2px 7px",fontSize:10,fontWeight:700,color:lvl.c}}>{lvl.e}{lvl.n}</span>
         </div>
       </div>}
@@ -3660,9 +3745,11 @@ export default function App(){
                     <div style={{height:"100%",width:`${(stats.ds/nextMile)*100}%`,background:`linear-gradient(90deg,${fl.color},${getFlame(nextMile).color})`,borderRadius:2,transition:"width .5s"}}/>
                   </div>
                 </div>}
-                {stats.streakFreezes>0&&<div style={{textAlign:"center",marginTop:4,fontSize:9,color:"#6b7280"}}>
+                {stats.streakFreezes>0?<div style={{textAlign:"center",marginTop:4,fontSize:9,color:"#6b7280"}}>
                   🧊 {stats.streakFreezes} streak freeze{stats.streakFreezes>1?"s":""} available
-                </div>}
+                </div>:!stats.isPro&&stats.ds>=3?<div style={{textAlign:"center",marginTop:4,fontSize:9,color:"#6b7280"}}>
+                  🧊 Streak freezes with All-Star Pass
+                </div>:null}
               </div>
             )})()}
             <div style={{display:"flex",gap:6,marginTop:10,flexWrap:"wrap"}}>
@@ -3788,21 +3875,21 @@ export default function App(){
               </svg>
             </div>);})()}
             <div style={{marginBottom:10}}>
-              <div style={{fontSize:10,color:"#9ca3af",fontWeight:600,marginBottom:4}}>Jersey Color</div>
+              <div style={{fontSize:10,color:"#9ca3af",fontWeight:600,marginBottom:4}}>Jersey Color {!stats.isPro&&<span style={{color:"#6b7280"}}>(2 free)</span>}</div>
               <div style={{display:"flex",gap:6,justifyContent:"center"}}>
-                {AVATAR_OPTS.jersey.map((c,i)=><button key={i} onClick={()=>{setStats(p=>({...p,avatarJersey:i}));snd.play('tap')}} style={{width:28,height:28,borderRadius:8,background:c,border:i===(stats.avatarJersey||0)?`3px solid white`:"2px solid rgba(255,255,255,.1)",cursor:"pointer",transition:"all .2s"}}/>)}
+                {AVATAR_OPTS.jersey.map((c,i)=>{const locked=!stats.isPro&&i>=FREE_JERSEYS&&i!==(stats.avatarJersey||0);return<button key={i} onClick={()=>{if(locked){setPanel('upgrade');trackFunnel('avatar_gated',setStats)}else{setStats(p=>({...p,avatarJersey:i}));snd.play('tap')}}} style={{width:28,height:28,borderRadius:8,background:c,border:i===(stats.avatarJersey||0)?`3px solid white`:"2px solid rgba(255,255,255,.1)",cursor:"pointer",transition:"all .2s",opacity:locked?.35:1,position:"relative"}}>{locked&&<span style={{position:"absolute",top:-4,right:-4,fontSize:8}}>🔒</span>}</button>})}
               </div>
             </div>
             <div style={{marginBottom:10}}>
-              <div style={{fontSize:10,color:"#9ca3af",fontWeight:600,marginBottom:4}}>Cap Color</div>
+              <div style={{fontSize:10,color:"#9ca3af",fontWeight:600,marginBottom:4}}>Cap Color {!stats.isPro&&<span style={{color:"#6b7280"}}>(2 free)</span>}</div>
               <div style={{display:"flex",gap:6,justifyContent:"center"}}>
-                {AVATAR_OPTS.cap.map((c,i)=><button key={i} onClick={()=>{setStats(p=>({...p,avatarCap:i}));snd.play('tap')}} style={{width:28,height:28,borderRadius:8,background:c,border:i===(stats.avatarCap||0)?`3px solid white`:"2px solid rgba(255,255,255,.1)",cursor:"pointer",transition:"all .2s"}}/>)}
+                {AVATAR_OPTS.cap.map((c,i)=>{const locked=!stats.isPro&&i>=FREE_CAPS&&i!==(stats.avatarCap||0);return<button key={i} onClick={()=>{if(locked){setPanel('upgrade');trackFunnel('avatar_gated',setStats)}else{setStats(p=>({...p,avatarCap:i}));snd.play('tap')}}} style={{width:28,height:28,borderRadius:8,background:c,border:i===(stats.avatarCap||0)?`3px solid white`:"2px solid rgba(255,255,255,.1)",cursor:"pointer",transition:"all .2s",opacity:locked?.35:1,position:"relative"}}>{locked&&<span style={{position:"absolute",top:-4,right:-4,fontSize:8}}>🔒</span>}</button>})}
               </div>
             </div>
             <div style={{marginBottom:12}}>
-              <div style={{fontSize:10,color:"#9ca3af",fontWeight:600,marginBottom:4}}>Bat Style</div>
+              <div style={{fontSize:10,color:"#9ca3af",fontWeight:600,marginBottom:4}}>Bat Style {!stats.isPro&&<span style={{color:"#6b7280"}}>(1 free)</span>}</div>
               <div style={{display:"flex",gap:6,justifyContent:"center"}}>
-                {AVATAR_OPTS.bat.map((c,i)=><button key={i} onClick={()=>{setStats(p=>({...p,avatarBat:i}));snd.play('tap')}} style={{width:28,height:28,borderRadius:8,background:c,border:i===(stats.avatarBat||0)?`3px solid white`:"2px solid rgba(255,255,255,.1)",cursor:"pointer",transition:"all .2s"}}/>)}
+                {AVATAR_OPTS.bat.map((c,i)=>{const locked=!stats.isPro&&i>=FREE_BATS&&i!==(stats.avatarBat||0);return<button key={i} onClick={()=>{if(locked){setPanel('upgrade');trackFunnel('avatar_gated',setStats)}else{setStats(p=>({...p,avatarBat:i}));snd.play('tap')}}} style={{width:28,height:28,borderRadius:8,background:c,border:i===(stats.avatarBat||0)?`3px solid white`:"2px solid rgba(255,255,255,.1)",cursor:"pointer",transition:"all .2s",opacity:locked?.35:1,position:"relative"}}>{locked&&<span style={{position:"absolute",top:-4,right:-4,fontSize:8}}>🔒</span>}</button>})}
               </div>
             </div>
 
@@ -3832,22 +3919,20 @@ export default function App(){
             </div>}
 
             {/* Field Themes */}
-            <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:14,color:"#ec4899",letterSpacing:1,marginBottom:6}}>FIELD THEMES</div>
+            <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:14,color:"#ec4899",letterSpacing:1,marginBottom:6}}>FIELD THEMES {!stats.isPro&&<span style={{fontSize:9,color:"#6b7280",fontWeight:400}}>(3 free · unlock all 10 with All-Star Pass!)</span>}</div>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6}}>
               {FIELD_THEMES.map(th=>{const unlocked=themeOk(th,stats);const active=stats.fieldTheme===th.id;return(
-                <button key={th.id} onClick={()=>{if(unlocked){setStats(p=>({...p,fieldTheme:th.id}));snd.play('tap')}}}
-                  style={{background:active?"rgba(236,72,153,.08)":unlocked?"rgba(255,255,255,.02)":"rgba(255,255,255,.01)",border:`1.5px solid ${active?"#ec4899":unlocked?"rgba(255,255,255,.08)":"rgba(255,255,255,.03)"}`,borderRadius:10,padding:"10px 8px",cursor:unlocked?"pointer":"default",textAlign:"center",opacity:unlocked?1:.45,transition:"all .2s",position:"relative"}}>
+                <button key={th.id} onClick={()=>{if(unlocked){setStats(p=>({...p,fieldTheme:th.id}));snd.play('tap')}else{setPanel('upgrade');trackFunnel('theme_gated',setStats)}}}
+                  style={{background:active?"rgba(236,72,153,.08)":unlocked?"rgba(255,255,255,.02)":"rgba(255,255,255,.01)",border:`1.5px solid ${active?"#ec4899":unlocked?"rgba(255,255,255,.08)":"rgba(255,255,255,.03)"}`,borderRadius:10,padding:"10px 8px",cursor:"pointer",textAlign:"center",opacity:unlocked?1:.45,transition:"all .2s",position:"relative"}}>
                   <div style={{fontSize:22,marginBottom:2}}>{th.emoji}</div>
                   <div style={{fontSize:11,fontWeight:700,color:active?"#ec4899":"white"}}>{th.name}</div>
                   <div style={{fontSize:9,color:"#6b7280",marginTop:1}}>{th.desc}</div>
-                  {!unlocked&&th.unlock&&<div style={{fontSize:8,color:"#f59e0b",marginTop:3,fontWeight:600}}>
-                    {th.unlock.type==="gp"?`🔒 Play ${th.unlock.val} games`:th.unlock.type==="ds"?`🔒 ${th.unlock.val}-day streak`:th.unlock.type==="cl"?`🔒 Learn ${th.unlock.val} concepts`:"🔒 Locked"}
-                  </div>}
+                  {!unlocked&&<div style={{fontSize:8,color:"#f59e0b",marginTop:3,fontWeight:600}}>🔒 All-Star Pass</div>}
                   {active&&<div style={{fontSize:8,color:"#ec4899",marginTop:2,fontWeight:700}}>ACTIVE</div>}
                 </button>
               )})}
             </div>
-            <div style={{textAlign:"center",marginTop:8,fontSize:9,color:"#6b7280"}}>Earn themes through milestones — no purchase needed!</div>
+            <div style={{textAlign:"center",marginTop:8,fontSize:9,color:"#6b7280"}}>{stats.isPro?"All themes unlocked!":"3 free themes. Earn more through milestones or go Pro!"}</div>
           </div>}
 
           {panel==='limit'&&<div style={{...card,marginBottom:12,textAlign:"center",borderColor:"rgba(34,197,94,.2)"}}>
@@ -3876,13 +3961,62 @@ export default function App(){
             </div>
             <div style={{borderTop:"1px solid rgba(255,255,255,.06)",paddingTop:10}}>
               <div style={{fontSize:11,color:"#d1d5db",fontWeight:600,marginBottom:6}}>Want unlimited practice?</div>
+              <button onClick={()=>{setPanel('upgrade');trackFunnel('limit_to_upgrade',setStats)}} style={{...btn("linear-gradient(135deg,#d97706,#f59e0b)"),...{maxWidth:280,margin:"0 auto",fontSize:13,boxShadow:"0 4px 15px rgba(245,158,11,.3)",marginBottom:8}}}>Ask a Parent About All-Star Pass</button>
               <button onClick={()=>{
-                const a=Math.floor(Math.random()*10)+5;const b=Math.floor(Math.random()*10)+3;
-                const answer=prompt(`Parent Gate: What is ${a} \u00d7 ${b}?`);
-                if(answer&&parseInt(answer)===a*b){setStats(p=>({...p,isPro:true}));setPanel(null);snd.play('ach')}
-              }} style={{...btn("linear-gradient(135deg,#d97706,#f59e0b)"),...{maxWidth:280,margin:"0 auto",fontSize:13,boxShadow:"0 4px 15px rgba(245,158,11,.3)"}}}>Ask a Parent About All-Star Pass</button>
+                const msg=`Hi! ${stats.displayName||"Your child"} has been learning baseball strategy and loves it! They've played ${stats.gp} scenarios, learned ${(stats.cl||[]).length} concepts, and have ${acc}% accuracy.\n\nThe free version has ${DAILY_FREE} plays/day. The All-Star Pass ($4.99/mo or $29.99/yr) gives unlimited play, AI coaching, and 2x XP.\n\nCheck it out: ${window.location.href}`;
+                if(navigator.clipboard)navigator.clipboard.writeText(msg).then(()=>{setToast({e:"📋",n:"Message Copied!",d:"Share it with a parent to ask about upgrading"});setTimeout(()=>setToast(null),3500)});
+                trackFunnel('tell_parent_clicked',setStats);
+              }} style={{...btn("rgba(255,255,255,.06)"),...{maxWidth:280,margin:"0 auto",fontSize:12,color:"#9ca3af"}}}>📋 Tell a Parent (copy message)</button>
               <div style={{fontSize:9,color:"#6b7280",marginTop:6}}>$4.99/mo or $29.99/year — unlimited play, AI coaching, and more</div>
             </div>
+          </div>}
+
+          {/* Upgrade Panel — All-Star Pass */}
+          {panel==='upgrade'&&<div style={{...card,marginBottom:12,textAlign:"center",borderColor:"rgba(245,158,11,.25)",background:"linear-gradient(135deg,rgba(245,158,11,.04),rgba(234,179,8,.02))"}}>
+            {!upgradeGatePass?<div>
+              <div style={{fontSize:36,marginBottom:4}}>⭐</div>
+              <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:22,color:"#f59e0b",letterSpacing:1,marginBottom:4}}>ALL-STAR PASS</div>
+              <p style={{fontSize:12,color:"#9ca3af",marginBottom:12}}>A parent needs to verify. Solve the problem below:</p>
+              {(()=>{const a=13,b=7;return(<div>
+                <div style={{fontSize:16,fontWeight:700,color:"#d1d5db",marginBottom:8}}>What is {a} x {b}?</div>
+                <input id="upgrade-gate" type="number" placeholder="Answer" style={{width:120,background:"rgba(255,255,255,.04)",border:"1.5px solid rgba(255,255,255,.1)",borderRadius:10,padding:"10px 12px",color:"white",fontSize:16,textAlign:"center",outline:"none",marginBottom:8}}
+                  onKeyDown={e=>{if(e.key==="Enter"){if(parseInt(e.target.value)===a*b){setUpgradeGatePass(true);trackFunnel('upgrade_gate_passed',setStats)}else{e.target.value="";e.target.placeholder="Try again"}}}}/>
+                <div><button onClick={()=>{const inp=document.getElementById("upgrade-gate");if(inp&&parseInt(inp.value)===a*b){setUpgradeGatePass(true);trackFunnel('upgrade_gate_passed',setStats)}else if(inp){inp.value="";inp.placeholder="Try again"}}} style={{...btn("linear-gradient(135deg,#d97706,#f59e0b)"),...{maxWidth:200,margin:"0 auto",fontSize:13}}}>Verify</button></div>
+              </div>)})()}
+            </div>:<div>
+              <div style={{fontSize:36,marginBottom:4}}>⭐</div>
+              <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:22,color:"#f59e0b",letterSpacing:1,marginBottom:4}}>ALL-STAR PASS</div>
+              <p style={{fontSize:12,color:"#d1d5db",marginBottom:12}}>Unlock the full experience for {stats.displayName||"your player"}!</p>
+              <div style={{display:"flex",gap:8,marginBottom:12,justifyContent:"center",flexWrap:"wrap"}}>
+                <div style={{flex:"1 1 140px",maxWidth:180,background:"rgba(255,255,255,.03)",border:"1.5px solid rgba(245,158,11,.2)",borderRadius:14,padding:"16px 12px",cursor:"pointer"}} onClick={()=>{trackFunnel('stripe_link_clicked',setStats);window.open(STRIPE_MONTHLY_URL,"_blank")}}>
+                  <div style={{fontSize:24,fontWeight:800,color:"#f59e0b"}}>$4.99</div>
+                  <div style={{fontSize:11,color:"#9ca3af",marginBottom:8}}>/month</div>
+                  <div style={{...btn("linear-gradient(135deg,#d97706,#f59e0b)"),...{fontSize:12,padding:"10px"}}}>Subscribe Monthly</div>
+                </div>
+                <div style={{flex:"1 1 140px",maxWidth:180,background:"rgba(245,158,11,.04)",border:"2px solid #f59e0b",borderRadius:14,padding:"16px 12px",cursor:"pointer",position:"relative"}} onClick={()=>{trackFunnel('stripe_link_clicked',setStats);window.open(STRIPE_YEARLY_URL,"_blank")}}>
+                  <div style={{position:"absolute",top:-8,right:8,background:"#22c55e",color:"white",fontSize:9,fontWeight:800,padding:"2px 8px",borderRadius:6}}>SAVE 50%</div>
+                  <div style={{fontSize:24,fontWeight:800,color:"#f59e0b"}}>$29.99</div>
+                  <div style={{fontSize:11,color:"#9ca3af",marginBottom:8}}>/year</div>
+                  <div style={{...btn("linear-gradient(135deg,#d97706,#f59e0b)"),...{fontSize:12,padding:"10px"}}}>Subscribe Yearly</div>
+                </div>
+              </div>
+              <div style={{textAlign:"left",background:"rgba(255,255,255,.02)",border:"1px solid rgba(255,255,255,.04)",borderRadius:10,padding:"10px 12px",marginBottom:10}}>
+                {[["Unlimited plays every day","No daily limit"],["AI Coach personalized scenarios","Targets your weak spots"],["All 10 field themes","Classic, Night, Dome, and more"],["Full avatar customization","6 jerseys, 6 caps, 3 bats"],["Streak freezes (1/week)","Never lose your streak"],["2x XP on every play","Level up twice as fast"],["Pro badge","Show off your commitment"]].map(([t,d],i)=>(
+                  <div key={i} style={{display:"flex",alignItems:"center",gap:8,padding:"4px 0"}}>
+                    <span style={{color:"#22c55e",fontSize:12,flexShrink:0}}>✓</span>
+                    <span style={{fontSize:12,color:"#d1d5db",fontWeight:600}}>{t}</span>
+                    <span style={{fontSize:10,color:"#6b7280",marginLeft:"auto"}}>{d}</span>
+                  </div>
+                ))}
+              </div>
+              <div style={{fontSize:9,color:"#6b7280"}}>After subscribing, return to this page. Your pass activates automatically.</div>
+            </div>}
+            <button onClick={()=>setPanel(null)} style={{...ghost,fontSize:11,marginTop:4}}>← Back</button>
+          </div>}
+
+          {/* Pro home indicator */}
+          {stats.isPro&&<div style={{textAlign:"center",marginBottom:8,padding:"4px 0"}}>
+            <span style={{fontSize:10,color:"#f59e0b",fontWeight:600,letterSpacing:.5}}>PRO · 2x XP · AI Ready · Unlimited Plays</span>
           </div>}
 
           {/* Daily Diamond Play */}
@@ -3988,6 +4122,7 @@ export default function App(){
                       <div style={{fontSize:group.positions.length>=3?8:10,color:"rgba(255,255,255,.55)",marginTop:1}}>{m.desc}</div>
                       <div style={{fontSize:8,color:"rgba(255,255,255,.35)",marginTop:2}}>{SCENARIOS[p]?.length||0} scenarios</div>
                       {a!==null&&<div style={{fontSize:8,color:"rgba(255,255,255,.6)",marginTop:1}}>{a}% · {ps.p} played</div>}
+                      {(()=>{const seen=(hist[p]||[]);const total=(SCENARIOS[p]||[]).length;if(seen.length>=total&&total>0)return<div style={{fontSize:7,color:"#22c55e",fontWeight:700,marginTop:1}}>All {total} mastered{!stats.isPro?" · Go Pro for AI":""}</div>;return null})()}
                     </div>
                   </div>
                 )})}
@@ -3996,13 +4131,14 @@ export default function App(){
           ))}
 
           {/* AI Challenge */}
-          {stats.gp>=3&&<div style={{marginTop:12,background:"linear-gradient(135deg,rgba(168,85,247,.06),rgba(59,130,246,.06))",border:"1px solid rgba(168,85,247,.15)",borderRadius:14,padding:14,textAlign:"center"}}>
+          {stats.gp>=3&&<div style={{marginTop:12,background:"linear-gradient(135deg,rgba(168,85,247,.06),rgba(59,130,246,.06))",border:"1px solid rgba(168,85,247,.15)",borderRadius:14,padding:14,textAlign:"center",position:"relative"}}>
+            {!stats.isPro&&<div style={{position:"absolute",top:8,right:8,background:"linear-gradient(135deg,#d97706,#f59e0b)",borderRadius:6,padding:"2px 8px",fontSize:8,fontWeight:800,color:"white",letterSpacing:.5}}>ALL-STAR PASS</div>}
             <div style={{fontSize:20,marginBottom:3}}>🤖</div>
             <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:15,color:"#a855f7",letterSpacing:1,marginBottom:2}}>AI COACH'S CHALLENGE</div>
-            <p style={{fontSize:11,color:"#9ca3af",marginBottom:8,lineHeight:1.4}}>A personalized scenario targeting your weak spots. Every one is unique to you.</p>
+            <p style={{fontSize:11,color:"#9ca3af",marginBottom:8,lineHeight:1.4}}>{stats.isPro?"A personalized scenario targeting your weak spots. Every one is unique to you.":"Upgrade to All-Star Pass for AI-generated scenarios that target your weak spots."}</p>
             <div style={{display:"flex",gap:6,justifyContent:"center",flexWrap:"wrap"}}>
               {ALL_POS.map(p=>{const m=POS_META[p];return(
-                <button key={p} onClick={()=>startGame(p,true)} style={{background:`${m.color}12`,border:`1px solid ${m.color}20`,borderRadius:8,padding:"5px 10px",color:m.color,fontSize:10,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",gap:3}}>
+                <button key={p} onClick={()=>{if(!stats.isPro){setPanel('upgrade');trackFunnel('ai_gated',setStats)}else{startGame(p,true)}}} style={{background:`${m.color}12`,border:`1px solid ${m.color}20`,borderRadius:8,padding:"5px 10px",color:m.color,fontSize:10,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",gap:3,opacity:stats.isPro?1:.6}}>
                   <span>{m.emoji}</span>{m.label}
                 </button>
               )})}
@@ -4012,7 +4148,7 @@ export default function App(){
           {/* Daily remaining */}
           {!stats.isPro&&<div style={{textAlign:"center",marginTop:10}}>
             <div style={{fontSize:10,color:remaining<=0?"#ef4444":remaining<=3?"#f59e0b":"#6b7280"}}>{remaining>0?`${remaining} free play${remaining!==1?"s":""} remaining today`:"\u2728 Come back tomorrow for your Daily Diamond!"}</div>
-            {remaining<=3&&<button onClick={()=>setPanel('limit')} style={{...ghost,color:"#f59e0b",fontSize:11,fontWeight:600,marginTop:2}}>Want unlimited play?</button>}
+            {remaining<=3&&<button onClick={()=>{setPanel('limit');trackFunnel('limit_hit',setStats)}} style={{...ghost,color:"#f59e0b",fontSize:11,fontWeight:600,marginTop:2}}>Want unlimited play?</button>}
           </div>}
 
           <div style={{textAlign:"center",color:"#374151",fontSize:9,marginTop:16,display:"flex",justifyContent:"center",gap:10,flexWrap:"wrap"}}>
@@ -4082,12 +4218,29 @@ export default function App(){
                 <span key={a.id} style={{fontSize:16,opacity:earned?1:.2,cursor:"default"}} title={`${a.n}${earned?" (earned)":""}`}>{a.e}</span>
               )})}
             </div>
-            <div style={{background:"rgba(255,255,255,.02)",border:"1px solid rgba(255,255,255,.04)",borderRadius:8,padding:"8px 10px"}}>
+            <div style={{background:"rgba(255,255,255,.02)",border:"1px solid rgba(255,255,255,.04)",borderRadius:8,padding:"8px 10px",marginBottom:10}}>
               <div style={{fontSize:10,color:"#6b7280",lineHeight:1.5}}>
                 <strong>Summary:</strong> {stats.gp} total games · {(stats.cl||[]).length} concepts · {(stats.achs||[]).length}/{ACHS.length} achievements · Level: {lvl.n}
                 {stats.ds>=7?" · Building great daily habits!":stats.ds>=3?" · Daily routine forming!":""}
               </div>
             </div>
+            {stats.isPro?<div style={{background:"rgba(245,158,11,.04)",border:"1px solid rgba(245,158,11,.12)",borderRadius:10,padding:"10px 12px",marginBottom:10}}>
+              <div style={{fontSize:11,fontWeight:700,color:"#f59e0b",marginBottom:4}}>All-Star Pass Active</div>
+              <div style={{fontSize:10,color:"#9ca3af"}}>Plan: {stats.proPlan||"lifetime"}{stats.proExpiry?` · Renews: ${new Date(stats.proExpiry).toLocaleDateString()}`:""}</div>
+            </div>:<div style={{background:"rgba(245,158,11,.04)",border:"1px solid rgba(245,158,11,.12)",borderRadius:10,padding:"10px 12px",marginBottom:10}}>
+              <div style={{fontSize:11,fontWeight:700,color:"#f59e0b",marginBottom:4}}>Unlock More Learning</div>
+              <div style={{fontSize:10,color:"#9ca3af",marginBottom:6}}>
+                {stats.displayName||"Your player"} has learned {(stats.cl||[]).length} concepts in {stats.gp} games. The All-Star Pass adds unlimited play, AI coaching, and 2x XP.
+              </div>
+              <button onClick={()=>setPanel('upgrade')} style={{...btn("linear-gradient(135deg,#d97706,#f59e0b)"),...{maxWidth:220,fontSize:11,padding:"8px"}}}>View All-Star Pass</button>
+            </div>}
+            {stats.isPro&&<div style={{marginBottom:10}}>
+              <div style={{fontSize:11,fontWeight:700,color:"#6b7280",marginBottom:4}}>AI API KEY (optional)</div>
+              <div style={{fontSize:9,color:"#6b7280",marginBottom:4}}>Enter a Claude API key for AI-generated scenarios. Stored locally only.</div>
+              <input value={stats.apiKey||""} onChange={e=>setStats(p=>({...p,apiKey:e.target.value.trim()||null}))}
+                placeholder="sk-ant-..." type="password"
+                style={{width:"100%",background:"rgba(255,255,255,.04)",border:"1.5px solid rgba(255,255,255,.1)",borderRadius:8,padding:"8px 10px",color:"white",fontSize:11,outline:"none"}}/>
+            </div>}
           </div>}
         </div>}
 
@@ -4169,7 +4322,7 @@ export default function App(){
               {od.isOpt?"PERFECT STRATEGY!":od.cat==="warning"?"NOT BAD!":"LEARNING MOMENT"}
             </h2>
             <div style={{display:"flex",justifyContent:"center",gap:5,flexWrap:"wrap"}}>
-              {od.pts>0&&<span style={{background:"rgba(34,197,94,.08)",color:"#22c55e",padding:"2px 10px",borderRadius:14,fontSize:11,fontWeight:800,border:"1px solid rgba(34,197,94,.15)"}}>+{od.pts} pts{dailyMode?" (2x)":""}{od.speedBonus>0?` (+${od.speedBonus} speed)`:""}</span>}
+              {od.pts>0&&<span style={{background:"rgba(34,197,94,.08)",color:"#22c55e",padding:"2px 10px",borderRadius:14,fontSize:11,fontWeight:800,border:"1px solid rgba(34,197,94,.15)"}}>+{od.pts} pts{stats.isPro?" (2x Pro)":""}{dailyMode?" (2x Daily)":""}{od.speedBonus>0?` (+${od.speedBonus} speed)`:""}</span>}
               {dailyMode&&<span style={{background:"rgba(245,158,11,.08)",color:"#f59e0b",padding:"2px 10px",borderRadius:14,fontSize:11,fontWeight:800,border:"1px solid rgba(245,158,11,.15)"}}>💎 Daily Done!</span>}
               {stats.str>1&&od.isOpt&&<span style={{background:"rgba(249,115,22,.08)",color:"#f97316",padding:"2px 10px",borderRadius:14,fontSize:11,fontWeight:800,border:"1px solid rgba(249,115,22,.15)"}}>🔥 {stats.str}</span>}
             </div>
@@ -4204,9 +4357,10 @@ export default function App(){
           </div>
 
           {/* Pro upsell (non-annoying, after outcome) */}
-          {!stats.isPro&&stats.gp>5&&stats.gp%5===0&&<div style={{marginTop:12,textAlign:"center",background:"rgba(245,158,11,.03)",border:"1px solid rgba(245,158,11,.1)",borderRadius:10,padding:"8px 12px"}}>
-            <div style={{fontSize:11,color:"#f59e0b",fontWeight:600}}>&#9825; {stats.displayName||"Your player"} has learned {(stats.cl||[]).length} concept{(stats.cl||[]).length!==1?"s":""}!</div>
-            <div style={{fontSize:10,color:"#9ca3af",marginTop:2}}>The All-Star Pass gives unlimited practice and AI coaching — $4.99/mo</div>
+          {!stats.isPro&&stats.gp>5&&stats.gp%5===0&&<div style={{marginTop:12,textAlign:"center",background:"linear-gradient(135deg,rgba(245,158,11,.04),rgba(234,179,8,.02))",border:"1.5px solid rgba(245,158,11,.15)",borderRadius:12,padding:"12px 14px"}}>
+            <div style={{fontSize:11,color:"#f59e0b",fontWeight:700,marginBottom:4}}>{stats.displayName||"Player"} has learned {(stats.cl||[]).length} concept{(stats.cl||[]).length!==1?"s":""} in {stats.gp} games!</div>
+            <div style={{fontSize:10,color:"#9ca3af",marginBottom:8}}>Unlock unlimited play, AI coaching, and 2x XP with the All-Star Pass.</div>
+            <button onClick={()=>{setPanel('upgrade');trackFunnel('postgame_upsell',setStats);goHome()}} style={{background:"linear-gradient(135deg,#d97706,#f59e0b)",color:"white",border:"none",borderRadius:10,padding:"8px 20px",fontSize:12,fontWeight:700,cursor:"pointer"}}>View All-Star Pass</button>
           </div>}
         </div>}
 
