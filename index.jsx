@@ -4787,7 +4787,7 @@ export default function App(){
               if(sel&&od){if(od.cat==="success"){bg="rgba(34,197,94,.08)";bd="#22c55e"}else if(od.cat==="warning"){bg="rgba(245,158,11,.08)";bd="#f59e0b"}else{bg="rgba(239,68,68,.08)";bd="#ef4444"}}
               if(choice!==null&&i===sc.best&&!sel){bg="rgba(34,197,94,.04)";bd="rgba(34,197,94,.3)"}
               return(
-                <button key={i} aria-label={`Option ${i+1}: ${o}`} onClick={()=>{snd.play('tap');handleChoice(i)}} disabled={choice!==null}
+                <button key={i} aria-label={`Option ${i+1}: ${opt}`} onClick={()=>{snd.play('tap');handleChoice(i)}} disabled={choice!==null}
                   style={{background:bg,border:`1.5px solid ${bd}`,borderRadius:12,padding:"14px 12px",cursor:choice!==null?"default":"pointer",transition:"all .2s",opacity:vis?1:0,transform:vis?"translateX(0)":"translateX(-10px)",textAlign:"left",width:"100%",color:"white",fontSize:14,lineHeight:1.4,display:"flex",alignItems:"flex-start",gap:8,minHeight:48}}>
                   <span style={{width:24,height:24,borderRadius:7,flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",
                     background:sel?(od?.cat==="success"?"#22c55e":od?.cat==="warning"?"#f59e0b":"#ef4444"):choice!==null&&i===sc.best?"#22c55e":"rgba(255,255,255,.04)",
