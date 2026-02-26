@@ -3289,7 +3289,7 @@ export default function App(){
     const unseen=src.filter(s=>!seen.includes(s.id));
     const avail=unseen.length>0?unseen:src;
     const s=avail[Math.floor(Math.random()*avail.length)];
-    setHist(h=>({...h,[p]:[...(h[p]||[]),s.id].slice(-src.length+1)}));return s;
+    setHist(h=>({...h,[p]:[...(h[p]||[]),s.id].slice(-src.length)}));return s;
   },[hist,maxDiff]);
 
   const startDaily=useCallback(()=>{
@@ -3323,7 +3323,7 @@ export default function App(){
       } else {
         // AI failed — fall back to random handcrafted (respect maxDiff)
         const avail=pool.length>0?pool:raw;const s=avail[Math.floor(Math.random()*avail.length)];
-        setHist(h=>({...h,[p]:[...(h[p]||[]),s.id].slice(-avail.length+1)}));
+        setHist(h=>({...h,[p]:[...(h[p]||[]),s.id].slice(-avail.length)}));
         setSc(s);setAiMode(false);
         s.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80);});
       }
