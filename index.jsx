@@ -3633,8 +3633,6 @@ export default function App(){
   const[sc,setSc]=useState(null);
   const[choice,setChoice]=useState(null);
   const[od,setOd]=useState(null);
-  const hist=stats.hist||{};
-  const setHist=useCallback((updater)=>{setStats(p=>({...p,hist:typeof updater==='function'?updater(p.hist||{}):updater}))},[]);
   const[ri,setRi]=useState(-1);
   const[fo,setFo]=useState(null);
   const[ak,setAk]=useState(0);
@@ -3643,6 +3641,8 @@ export default function App(){
   const[panel,setPanel]=useState(null); // 'ach','concepts','stats','settings'
   const[showExp,setShowExp]=useState(true);
   const[stats,setStats]=useState(DEFAULT);
+  const hist=stats.hist||{};
+  const setHist=useCallback((updater)=>{setStats(p=>({...p,hist:typeof updater==='function'?updater(p.hist||{}):updater}))},[]);
   const[lvlUp,setLvlUp]=useState(null);
   const[aiLoading,setAiLoading]=useState(false);
   const[coachMsg,setCoachMsg]=useState(null);
