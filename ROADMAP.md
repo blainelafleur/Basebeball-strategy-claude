@@ -150,31 +150,65 @@ Hardened Phase 2 implementation after audit revealed critical gaps.
 
 ---
 
+## Phase 2.7: "Know Your Players" (User Accounts) — NOT STARTED
+
+Add user accounts and server-side progress sync using Cloudflare D1 (free serverless SQLite). Stays within current single-file architecture — no Next.js port needed.
+
+### Phase A: MVP — Accounts & Sync
+- **Cloudflare D1 database**: `users`, `profiles`, `sessions` tables
+- **Worker auth endpoints**: signup, login, logout, verify-email, me, sync
+- **Password hashing**: PBKDF2-SHA256 via Web Crypto API
+- **Email verification**: Resend API (free tier: 3K emails/month)
+- **Frontend**: Login/signup screens, account panel, sync indicator
+- **Dual-write**: localStorage (offline fallback) + server sync (debounced 3s)
+- **Claim progress**: Existing anonymous users can create account and migrate localStorage stats
+- **13+ only**: Under-13 continue as anonymous (COPPA consent deferred to Phase B)
+
+### Phase B: COPPA + Server-Side Pro
+- **Parent consent flow**: Under-13 signup collects parent email, sends consent link (email-plus method)
+- **Consent audit log**: `consent_log` table for COPPA compliance proof
+- **Server-side Pro**: `subscriptions` table replaces spoofable localStorage `isPro`
+- **Promo codes tied to accounts**: Redemptions recorded against user ID
+
+### Phase C: Multi-Profile + Polish
+- **Parent accounts**: Add/switch between multiple child profiles
+- **Forgot password**: Password reset via email
+- **Soft engagement prompts**: "Save your progress" after 3rd game, after first achievement
+- **Data export/deletion**: Per-profile export and COPPA-compliant deletion
+
+### Key Architecture Decisions
+- **D1 over PostgreSQL**: Free, already in Cloudflare ecosystem, sufficient at current scale
+- **Stats as JSON blob**: Store full `stats` object in `profiles.stats_json` — avoids restructuring 40+ fields
+- **Session tokens over JWTs**: Simple random tokens in D1, allows server-side revocation
+- **Accounts are optional**: Anonymous localStorage play works exactly as today
+
+---
+
 ## Phase 3: "Build the Engine" (Production Infrastructure) — NOT STARTED
 
-Major scope change: port to Next.js, add accounts, move payment server-side.
+Major scope change: port to Next.js for SSR, move to PostgreSQL for scale, add advanced features.
 
 ### 3.1 Port Game into Next.js
 - Extract `index.jsx` into modular components under `src/components/game/`
-- Keep all 394 scenarios as `src/data/scenarios.ts`
+- Keep all 460 scenarios as `src/data/scenarios.ts`
 - Game must look and play identically to the Phase 1/2 client-side version
+- Migrate D1 accounts data to PostgreSQL
 
-### 3.2 Auth + COPPA-Compliant Accounts
-- NextAuth with parent email/password or Google OAuth
-- Parent creates child profile(s) — username only, no child email
-- Guest mode (localStorage) still works — convert to account later
-- Credit card payment = COPPA Verifiable Parental Consent
+### 3.2 Enhanced Auth
+- Add Google OAuth via NextAuth (alongside existing email/password from Phase 2.7)
+- Server-side session management
+- Account linking (merge anonymous + OAuth + email accounts)
 
 ### 3.3 Hybrid Persistence
 - Game works offline with localStorage (preserve current behavior)
 - When logged in, sync to PostgreSQL on each scenario completion
 - Leaderboard entries written server-side
 
-### 3.4 Server-Side Claude AI
-- Replace client-side Claude calls with server-side `/api/ai/` routes
+### 3.4 Server-Side AI
+- Replace Cloudflare Worker xAI proxy with Next.js API routes
 - Reuse the proven prompt from `generateAIScenario()`
 - Rate limiting: 5 AI scenarios/day free, unlimited for paid
-- API key never exposed to client (replaces client-side fix from 2.3)
+- API key never exposed to client
 
 ### 3.5 Stripe Webhooks
 - Replace Payment Links (2.2) with server-side webhook verification

@@ -2,9 +2,9 @@ name = "bsm-ai-proxy"
 main = "index.js"
 compatibility_date = "2024-01-01"
 
-# Set the API key as a secret (never in this file):
-#   npx wrangler secret put XAI_API_KEY
-# Then paste your xAI API key when prompted.
+# Secrets (never in this file):
+#   npx wrangler secret put XAI_API_KEY     — xAI API key for AI scenarios
+#   npx wrangler secret put RESEND_API_KEY  — Resend email service key
 
 # Deploy:
 #   cd worker && npx wrangler deploy
@@ -18,3 +18,12 @@ compatibility_date = "2024-01-01"
 [[kv_namespaces]]
 binding = "PROMO_CODES"
 id = "38b5cb49063845249913d1219b9d5c9a"
+
+# D1 database for user accounts
+# Create with: npx wrangler d1 create bsm-accounts
+# Then replace the database_id below with the returned ID
+# Apply schema: npx wrangler d1 execute bsm-accounts --remote --file=schema.sql
+[[d1_databases]]
+binding = "DB"
+database_name = "bsm-accounts"
+database_id = "362f65bf-8f77-47fc-a8bf-1f1ee9c11f5b"

@@ -3668,6 +3668,68 @@ function getCoachLine(cat,pos,streak,isPro=false){
 
 const DIFF_TAG = [{l:"Rookie",c:"#22c55e"},{l:"Intermediate",c:"#f59e0b"},{l:"Advanced",c:"#ef4444"}];
 
+function LoginScreen({onLogin,onSignup,onSkip,authError,authLoading,btn,ghost}){
+  const[email,setEmail]=useState("");const[pw,setPw]=useState("");
+  return(<div style={{textAlign:"center",padding:"40px 20px"}}>
+    <div style={{fontSize:48,marginBottom:8}}>⚾</div>
+    <h2 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:28,letterSpacing:2,color:"#f59e0b",marginBottom:4}}>WELCOME BACK</h2>
+    <p style={{color:"#9ca3af",fontSize:13,marginBottom:20}}>Log in to load your progress</p>
+    {authError&&<div style={{background:"rgba(239,68,68,.08)",border:"1px solid rgba(239,68,68,.2)",borderRadius:10,padding:"8px 12px",maxWidth:300,margin:"0 auto 12px"}}><span style={{fontSize:12,color:"#ef4444"}}>{authError}</span></div>}
+    <div style={{maxWidth:300,margin:"0 auto",display:"flex",flexDirection:"column",gap:10}}>
+      <input value={email} onChange={e=>setEmail(e.target.value)} placeholder="Email" type="email" autoComplete="email" style={{width:"100%",background:"rgba(255,255,255,.04)",border:"1.5px solid rgba(255,255,255,.1)",borderRadius:10,padding:"12px",color:"white",fontSize:14,outline:"none"}}/>
+      <input value={pw} onChange={e=>setPw(e.target.value)} placeholder="Password" type="password" autoComplete="current-password" style={{width:"100%",background:"rgba(255,255,255,.04)",border:"1.5px solid rgba(255,255,255,.1)",borderRadius:10,padding:"12px",color:"white",fontSize:14,outline:"none"}}
+        onKeyDown={e=>{if(e.key==="Enter"&&email&&pw)onLogin(email,pw)}}/>
+      <button onClick={()=>onLogin(email,pw)} disabled={authLoading||!email||!pw} style={{...btn("linear-gradient(135deg,#2563eb,#3b82f6)"),opacity:authLoading||!email||!pw?.5:1}}>
+        {authLoading?"Logging in...":"Log In"}
+      </button>
+    </div>
+    <div style={{marginTop:16,display:"flex",flexDirection:"column",gap:8,alignItems:"center"}}>
+      <button onClick={onSignup} style={{...ghost,color:"#3b82f6",fontSize:12}}>Don't have an account? Sign Up</button>
+      <button onClick={onSkip} style={{...ghost,fontSize:11}}>Play without account</button>
+    </div>
+  </div>);
+}
+
+function SignupScreen({onSignup,onLogin,onSkip,authError,authLoading,stats,btn,ghost}){
+  const[fn,setFn]=useState("");const[ln,setLn]=useState("");const[email,setEmail]=useState("");const[pw,setPw]=useState("");
+  const isUnder13=stats.ageGroup==="6-8"||stats.ageGroup==="9-10";
+  const canSubmit=fn&&ln&&email&&pw.length>=8&&!authLoading;
+  return(<div style={{textAlign:"center",padding:"30px 20px"}}>
+    <div style={{fontSize:48,marginBottom:8}}>⚾</div>
+    <h2 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:28,letterSpacing:2,color:"#f59e0b",marginBottom:4}}>CREATE ACCOUNT</h2>
+    <p style={{color:"#9ca3af",fontSize:13,marginBottom:16}}>Save your progress across devices</p>
+    {isUnder13?<div style={{maxWidth:320,margin:"0 auto"}}>
+      <div style={{background:"rgba(245,158,11,.06)",border:"1px solid rgba(245,158,11,.15)",borderRadius:12,padding:"16px",marginBottom:16}}>
+        <div style={{fontSize:32,marginBottom:8}}>👋</div>
+        <div style={{fontSize:14,fontWeight:700,color:"#f59e0b",marginBottom:6}}>Coming Soon for Younger Players!</div>
+        <p style={{fontSize:12,color:"#9ca3af",lineHeight:1.5}}>Account creation for players under 13 is coming soon! A parent will be able to create an account for you. For now, keep playing — your progress is saved on this device.</p>
+      </div>
+      <button onClick={onSkip} style={{...btn("linear-gradient(135deg,#d97706,#f59e0b)"),...{maxWidth:280}}}>Keep Playing</button>
+    </div>:<div>
+      {authError&&<div style={{background:"rgba(239,68,68,.08)",border:"1px solid rgba(239,68,68,.2)",borderRadius:10,padding:"8px 12px",maxWidth:300,margin:"0 auto 12px"}}><span style={{fontSize:12,color:"#ef4444"}}>{authError}</span></div>}
+      <div style={{maxWidth:300,margin:"0 auto",display:"flex",flexDirection:"column",gap:10}}>
+        <div style={{display:"flex",gap:8}}>
+          <input value={fn} onChange={e=>setFn(e.target.value)} placeholder="First Name" autoComplete="given-name" style={{flex:1,background:"rgba(255,255,255,.04)",border:"1.5px solid rgba(255,255,255,.1)",borderRadius:10,padding:"12px",color:"white",fontSize:14,outline:"none"}}/>
+          <input value={ln} onChange={e=>setLn(e.target.value)} placeholder="Last Name" autoComplete="family-name" style={{flex:1,background:"rgba(255,255,255,.04)",border:"1.5px solid rgba(255,255,255,.1)",borderRadius:10,padding:"12px",color:"white",fontSize:14,outline:"none"}}/>
+        </div>
+        <input value={email} onChange={e=>setEmail(e.target.value)} placeholder="Email" type="email" autoComplete="email" style={{width:"100%",background:"rgba(255,255,255,.04)",border:"1.5px solid rgba(255,255,255,.1)",borderRadius:10,padding:"12px",color:"white",fontSize:14,outline:"none"}}/>
+        <input value={pw} onChange={e=>setPw(e.target.value)} placeholder="Password (8+ characters)" type="password" autoComplete="new-password" style={{width:"100%",background:"rgba(255,255,255,.04)",border:"1.5px solid rgba(255,255,255,.1)",borderRadius:10,padding:"12px",color:"white",fontSize:14,outline:"none"}}
+          onKeyDown={e=>{if(e.key==="Enter"&&canSubmit)onSignup({email,password:pw,firstName:fn,lastName:ln,displayName:stats.displayName||fn,ageGroup:stats.ageGroup,existingStats:stats.gp>0?stats:undefined})}}/>
+        <button onClick={()=>onSignup({email,password:pw,firstName:fn,lastName:ln,displayName:stats.displayName||fn,ageGroup:stats.ageGroup,existingStats:stats.gp>0?stats:undefined})} disabled={!canSubmit} style={{...btn("linear-gradient(135deg,#059669,#22c55e)"),opacity:canSubmit?1:.5}}>
+          {authLoading?"Creating Account...":"Create Account"}
+        </button>
+        {stats.gp>0&&<div style={{background:"rgba(59,130,246,.06)",border:"1px solid rgba(59,130,246,.12)",borderRadius:8,padding:"6px 10px"}}>
+          <span style={{fontSize:10,color:"#93c5fd"}}>Your existing progress ({stats.gp} games, {(stats.cl||[]).length} concepts) will be saved to your account</span>
+        </div>}
+      </div>
+      <div style={{marginTop:16,display:"flex",flexDirection:"column",gap:8,alignItems:"center"}}>
+        <button onClick={onLogin} style={{...ghost,color:"#3b82f6",fontSize:12}}>Already have an account? Log In</button>
+        <button onClick={onSkip} style={{...ghost,fontSize:11}}>Play without account</button>
+      </div>
+    </div>}
+  </div>);
+}
+
 export default function App(){
   const[screen,setScreen]=useState("loading");
   const[pos,setPos]=useState(null);
@@ -3717,8 +3779,76 @@ export default function App(){
   const[upgradeGatePass,setUpgradeGatePass]=useState(()=>sessionStorage.getItem('bsm_upgradeGate')==='true');
   const[upgradeGateA]=useState(()=>Math.floor(Math.random()*10)+5);
   const[upgradeGateB]=useState(()=>Math.floor(Math.random()*10)+3);
+  // Auth state
+  const[authToken,setAuthToken]=useState(()=>localStorage.getItem('bsm_auth_token'));
+  const[authUser,setAuthUser]=useState(null);
+  const[authProfile,setAuthProfile]=useState(null);
+  const[syncStatus,setSyncStatus]=useState('idle'); // 'idle'|'syncing'|'synced'|'error'
+  const[authError,setAuthError]=useState(null);
+  const[authLoading,setAuthLoading]=useState(false);
+  const syncTimerRef=useRef(null);
+  const lastSyncRef=useRef(null);
+  // Auth helpers
+  const authFetch=useCallback(async(path,opts={})=>{
+    const headers={...opts.headers};
+    let body=opts.body;
+    if(body&&typeof body==='object'&&!(body instanceof FormData)){headers["Content-Type"]="application/json";body=JSON.stringify(body);}
+    if(authToken)headers["Authorization"]=`Bearer ${authToken}`;
+    const res=await fetch(WORKER_BASE+path,{...opts,headers,body});
+    return res.json();
+  },[authToken]);
+
+  const doLogout=useCallback(()=>{
+    if(authToken)authFetch("/auth/logout",{method:"POST"}).catch(()=>{});
+    setAuthToken(null);setAuthUser(null);setAuthProfile(null);setSyncStatus('idle');
+    localStorage.removeItem('bsm_auth_token');
+  },[authToken,authFetch]);
+
+  const syncToServer=useCallback(async(statsToSync)=>{
+    if(!authToken)return;
+    setSyncStatus('syncing');
+    try{
+      const d=await authFetch("/auth/sync",{method:"POST",body:{stats:statsToSync}});
+      if(d.ok)setSyncStatus('synced');
+      else setSyncStatus('error');
+    }catch{setSyncStatus('error');}
+  },[authToken,authFetch]);
+
   // Load
-  useEffect(()=>{(async()=>{try{const r=await window.storage.get(STORAGE_KEY);if(r?.value){const d=JSON.parse(r.value);setStats({...DEFAULT,...d,sessionCount:(d.sessionCount||0)+1});snd.setEnabled(d.soundOn!==false);if(d.onboarded)setScreen("home");else setScreen("onboard");} else setScreen("onboard");}catch{setScreen("onboard")}
+  useEffect(()=>{(async()=>{
+    // Load local state first
+    let localStats=null;
+    try{const r=await window.storage.get(STORAGE_KEY);if(r?.value)localStats=JSON.parse(r.value);}catch{}
+
+    // If auth token exists, try to validate session and merge server state
+    const token=localStorage.getItem('bsm_auth_token');
+    if(token){
+      try{
+        const res=await fetch(WORKER_BASE+"/auth/me",{headers:{"Authorization":`Bearer ${token}`}});
+        const d=await res.json();
+        if(d.ok){
+          setAuthUser(d.user);setAuthProfile(d.profile);
+          // Merge: server stats with local — higher gp wins
+          const serverStats=d.stats||{};
+          const merged=localStats?(serverStats.gp||0)>=(localStats.gp||0)?{...DEFAULT,...serverStats}:{...DEFAULT,...localStats}:{...DEFAULT,...serverStats};
+          merged.sessionCount=(merged.sessionCount||0)+1;
+          setStats(merged);snd.setEnabled(merged.soundOn!==false);
+          if(merged.onboarded)setScreen("home");else setScreen("onboard");
+        } else {
+          // Token expired/invalid — clear and fall back to local
+          localStorage.removeItem('bsm_auth_token');setAuthToken(null);
+          if(localStats){setStats({...DEFAULT,...localStats,sessionCount:(localStats.sessionCount||0)+1});snd.setEnabled(localStats.soundOn!==false);setScreen(localStats.onboarded?"home":"onboard");}
+          else setScreen("onboard");
+        }
+      }catch{
+        // Network error — fall back to local
+        if(localStats){setStats({...DEFAULT,...localStats,sessionCount:(localStats.sessionCount||0)+1});snd.setEnabled(localStats.soundOn!==false);setScreen(localStats.onboarded?"home":"onboard");}
+        else setScreen("onboard");
+      }
+    } else {
+      if(localStats){setStats({...DEFAULT,...localStats,sessionCount:(localStats.sessionCount||0)+1});snd.setEnabled(localStats.soundOn!==false);setScreen(localStats.onboarded?"home":"onboard");}
+      else setScreen("onboard");
+    }
     // Check for challenge in URL
     const hash=window.location.hash;if(hash.startsWith("#challenge=")){const cid=hash.slice(11);setChallengeId(cid);window.location.hash="";}
     // Check for Stripe return
@@ -3746,8 +3876,18 @@ export default function App(){
         }).catch(()=>{setTimeout(()=>{setToast({e:"⚠️",n:"Error",d:"Could not verify promo code. Try again later."});setTimeout(()=>setToast(null),4000)},500)});
     }
   })()},[]);
-  // Save
-  useEffect(()=>{(async()=>{try{await window.storage.set(STORAGE_KEY,JSON.stringify(stats))}catch{}})()},[stats]);
+  // Save (local + debounced server sync)
+  useEffect(()=>{
+    (async()=>{try{await window.storage.set(STORAGE_KEY,JSON.stringify(stats))}catch{}})();
+    // Debounced server sync (3s after last change)
+    if(authToken){
+      if(syncTimerRef.current)clearTimeout(syncTimerRef.current);
+      syncTimerRef.current=setTimeout(()=>{
+        const json=JSON.stringify(stats);
+        if(json!==lastSyncRef.current){lastSyncRef.current=json;syncToServer(stats);}
+      },3000);
+    }
+  },[stats,authToken,syncToServer]);
   // Pro expiry check
   useEffect(()=>{if(stats.isPro&&stats.proExpiry&&stats.proExpiry<Date.now()){
     setStats(p=>({...p,isPro:false}));
@@ -3985,6 +4125,44 @@ export default function App(){
   goHomeRef.current=goHome;
   const next=useCallback(()=>{setLvlUp(null);if(speedMode){speedNextRef.current?.()}else if(survivalMode){survivalNextRef.current?.()}else if(seasonMode){seasonNextRef.current?.()}else if(dailyMode){goHomeRef.current?.()}else if(atLimit){setScreen("home");setTimeout(()=>setPanel('limit'),100)}else{startGame(pos,aiMode)}},[pos,startGame,aiMode,dailyMode,speedMode,survivalMode,seasonMode,atLimit]);
   const finishOnboard=useCallback(()=>{setStats(p=>({...p,onboarded:true,todayDate:new Date().toDateString()}));setScreen("home")},[]);
+
+  // Auth: signup
+  const handleSignup=useCallback(async(formData)=>{
+    setAuthLoading(true);setAuthError(null);
+    try{
+      const res=await fetch(WORKER_BASE+"/auth/signup",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(formData)});
+      const d=await res.json();
+      if(d.ok){
+        setAuthToken(d.token);localStorage.setItem('bsm_auth_token',d.token);
+        setAuthUser(d.user);setAuthProfile(d.profile);
+        if(d.stats&&Object.keys(d.stats).length>0)setStats(p=>({...p,...d.stats}));
+        setScreen(stats.onboarded?"home":"onboard");
+        setToast({e:"✅",n:"Account Created!",d:"Your progress is now saved to the cloud."});setTimeout(()=>setToast(null),4000);
+      } else { setAuthError(d.error||"Signup failed"); }
+    }catch{ setAuthError("Network error. Please try again."); }
+    setAuthLoading(false);
+  },[stats.onboarded,setToast]);
+
+  // Auth: login
+  const handleLogin=useCallback(async(email,password)=>{
+    setAuthLoading(true);setAuthError(null);
+    try{
+      const res=await fetch(WORKER_BASE+"/auth/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email,password})});
+      const d=await res.json();
+      if(d.ok){
+        setAuthToken(d.token);localStorage.setItem('bsm_auth_token',d.token);
+        setAuthUser(d.user);setAuthProfile(d.profile);
+        // Load server stats, merging with local (higher gp wins)
+        if(d.stats&&Object.keys(d.stats).length>0){
+          setStats(p=>(d.stats.gp||0)>=(p.gp||0)?{...DEFAULT,...d.stats}:p);
+        }
+        setScreen(stats.onboarded||(d.stats&&d.stats.onboarded)?"home":"onboard");
+        snd.play('ach');
+        setToast({e:"👋",n:`Welcome back!`,d:"Your progress has been loaded."});setTimeout(()=>setToast(null),4000);
+      } else { setAuthError(d.error||"Login failed"); }
+    }catch{ setAuthError("Network error. Please try again."); }
+    setAuthLoading(false);
+  },[stats.onboarded,snd,setToast]);
   
   const lvl=getLvl(stats.pts);const nxt=getNxt(stats.pts);
   const prog=nxt?((stats.pts-lvl.min)/(nxt.min-lvl.min))*100:100;
@@ -4166,12 +4344,19 @@ export default function App(){
           {stats.str>0&&<span style={{background:"#f9731615",border:"1px solid #f9731625",borderRadius:7,padding:"2px 7px",fontSize:10,fontWeight:700,color:"#f97316"}}>🔥{stats.str}</span>}
           {!stats.isPro&&<span style={{background:remaining<=0?"rgba(239,68,68,.1)":remaining<=3?"rgba(245,158,11,.1)":"rgba(255,255,255,.03)",border:`1px solid ${remaining<=0?"rgba(239,68,68,.2)":remaining<=3?"rgba(245,158,11,.2)":"rgba(255,255,255,.06)"}`,borderRadius:7,padding:"2px 7px",fontSize:10,fontWeight:600,color:remaining<=0?"#ef4444":remaining<=3?"#f59e0b":"#6b7280"}}>{remaining>0?`${remaining} left`:"Back tomorrow"}</span>}
           {stats.isPro&&<span style={{background:"linear-gradient(135deg,rgba(245,158,11,.15),rgba(234,179,8,.1))",border:"1px solid rgba(245,158,11,.3)",borderRadius:7,padding:"2px 7px",fontSize:10,fontWeight:800,color:"#f59e0b"}}>PRO</span>}
+          {authUser&&<span onClick={()=>syncStatus==='error'?syncToServer(stats):null} style={{background:"rgba(59,130,246,.08)",border:"1px solid rgba(59,130,246,.15)",borderRadius:7,padding:"2px 7px",fontSize:10,fontWeight:600,color:syncStatus==='synced'?"#22c55e":syncStatus==='syncing'?"#3b82f6":syncStatus==='error'?"#ef4444":"#6b7280",cursor:syncStatus==='error'?"pointer":"default"}} title={syncStatus==='synced'?"Progress saved":syncStatus==='syncing'?"Syncing...":syncStatus==='error'?"Sync failed — tap to retry":"Signed in"}>{syncStatus==='syncing'?"↻":syncStatus==='synced'?"☁✓":syncStatus==='error'?"☁!":"☁"}</span>}
           <span style={{background:`${lvl.c}12`,border:`1px solid ${lvl.c}25`,borderRadius:7,padding:"2px 7px",fontSize:10,fontWeight:700,color:lvl.c}}>{lvl.e}{lvl.n}</span>
         </div>
       </div>}
 
       <div style={{maxWidth:640,margin:"0 auto",padding:"10px 16px"}}>
         
+        {/* LOGIN */}
+        {screen==="login"&&<LoginScreen onLogin={handleLogin} onSignup={()=>{setAuthError(null);setScreen("signup")}} onSkip={()=>{setAuthError(null);setScreen(stats.onboarded?"home":"onboard")}} authError={authError} authLoading={authLoading} btn={btn} ghost={ghost}/>}
+
+        {/* SIGNUP */}
+        {screen==="signup"&&<SignupScreen onSignup={handleSignup} onLogin={()=>{setAuthError(null);setScreen("login")}} onSkip={()=>{setAuthError(null);setScreen(stats.onboarded?"home":"onboard")}} authError={authError} authLoading={authLoading} stats={stats} btn={btn} ghost={ghost}/>}
+
         {/* ONBOARDING */}
         {screen==="onboard"&&<div style={{textAlign:"center",padding:"60px 20px 40px"}}>
           <div style={{fontSize:64,marginBottom:12}}>⚾</div>
@@ -4204,6 +4389,7 @@ export default function App(){
             </div>
           </div>
           <button onClick={finishOnboard} style={{...btn("linear-gradient(135deg,#d97706,#f59e0b)"),...{boxShadow:"0 4px 15px rgba(245,158,11,.3)",maxWidth:300}}}>Let's Play! →</button>
+          {!authUser&&<button onClick={()=>setScreen("login")} style={{...ghost,fontSize:11,display:"block",margin:"8px auto",color:"#6b7280"}}>Already have an account? Log In</button>}
         </div>}
 
         {/* HOME */}
@@ -4556,6 +4742,16 @@ export default function App(){
             <button onClick={()=>setPanel(null)} style={{...ghost,fontSize:11,marginTop:4}}>← Back</button>
           </div>}
 
+          {/* Account CTA for logged-out users with progress */}
+          {!authUser&&stats.gp>=3&&stats.gp%10===3&&<div style={{background:"rgba(59,130,246,.04)",border:"1px solid rgba(59,130,246,.12)",borderRadius:12,padding:"10px 14px",marginBottom:10,display:"flex",alignItems:"center",gap:10}}>
+            <span style={{fontSize:18,flexShrink:0}}>☁</span>
+            <div style={{flex:1}}>
+              <div style={{fontSize:11,fontWeight:700,color:"#93c5fd"}}>Save your progress</div>
+              <div style={{fontSize:10,color:"#6b7280"}}>Create a free account to keep your {stats.gp} games and {(stats.cl||[]).length} concepts safe across devices.</div>
+            </div>
+            <button onClick={()=>setScreen("signup")} style={{background:"rgba(59,130,246,.1)",border:"1px solid rgba(59,130,246,.2)",borderRadius:8,padding:"6px 12px",color:"#3b82f6",fontSize:10,fontWeight:700,cursor:"pointer",flexShrink:0}}>Sign Up</button>
+          </div>}
+
           {/* Pro home indicator */}
           {stats.isPro&&<div style={{textAlign:"center",marginBottom:8,padding:"4px 0"}}>
             <span style={{fontSize:10,color:"#f59e0b",fontWeight:600,letterSpacing:.5}}>{(stats.proPlan||"").startsWith("promo-")?"PROMO":"PRO"} · 2x XP · AI Ready · Unlimited Plays{stats.proPlan==="promo-30day"&&stats.proExpiry?` · ${Math.max(0,Math.ceil((stats.proExpiry-Date.now())/86400000))} days left`:""}</span>
@@ -4695,6 +4891,34 @@ export default function App(){
 
           <div style={{textAlign:"center",color:"#374151",fontSize:9,marginTop:16,display:"flex",justifyContent:"center",gap:10,flexWrap:"wrap"}}>
             <span>1️⃣ Pick position</span><span>2️⃣ Read the play</span><span>3️⃣ Make the call</span><span>4️⃣ Learn why</span>
+          </div>
+
+          {/* Account */}
+          <div style={{marginTop:12,background:authUser?"rgba(59,130,246,.03)":"rgba(255,255,255,.01)",border:`1px solid ${authUser?"rgba(59,130,246,.1)":"rgba(255,255,255,.04)"}`,borderRadius:12,padding:"10px 12px"}}>
+            {authUser?<div>
+              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+                <div style={{display:"flex",alignItems:"center",gap:8}}>
+                  <span style={{fontSize:14}}>👤</span>
+                  <div>
+                    <div style={{fontSize:12,fontWeight:700,color:"#d1d5db"}}>{authUser.firstName} {authUser.lastName}</div>
+                    <div style={{fontSize:10,color:"#6b7280"}}>{authUser.email}</div>
+                  </div>
+                </div>
+                <div style={{display:"flex",alignItems:"center",gap:6}}>
+                  <span style={{fontSize:9,color:syncStatus==='synced'?"#22c55e":syncStatus==='syncing'?"#3b82f6":syncStatus==='error'?"#ef4444":"#6b7280"}}>{syncStatus==='synced'?"Synced":syncStatus==='syncing'?"Syncing...":syncStatus==='error'?"Sync error":"Ready"}</span>
+                  <button onClick={doLogout} style={{background:"rgba(239,68,68,.06)",border:"1px solid rgba(239,68,68,.15)",borderRadius:6,padding:"4px 8px",color:"#ef4444",fontSize:10,fontWeight:600,cursor:"pointer"}}>Log Out</button>
+                </div>
+              </div>
+            </div>:<div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+              <div style={{display:"flex",alignItems:"center",gap:8}}>
+                <span style={{fontSize:14}}>☁</span>
+                <div style={{fontSize:11,color:"#6b7280"}}>Save your progress across devices</div>
+              </div>
+              <div style={{display:"flex",gap:6}}>
+                <button onClick={()=>setScreen("signup")} style={{background:"rgba(34,197,94,.06)",border:"1px solid rgba(34,197,94,.15)",borderRadius:6,padding:"4px 10px",color:"#22c55e",fontSize:10,fontWeight:600,cursor:"pointer"}}>Sign Up</button>
+                <button onClick={()=>setScreen("login")} style={{background:"rgba(59,130,246,.06)",border:"1px solid rgba(59,130,246,.15)",borderRadius:6,padding:"4px 10px",color:"#3b82f6",fontSize:10,fontWeight:600,cursor:"pointer"}}>Log In</button>
+              </div>
+            </div>}
           </div>
 
           {/* Team & Settings */}
