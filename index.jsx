@@ -775,13 +775,13 @@ const SCENARIOS = {
       options:["Turn the double play — every millisecond counts","Get the force at second and hold — don't rush the relay","Make the flip and let the shortstop decide","Skip the flip — throw directly to first"],
       best:1,explanations:["Trying to turn a DP against the fastest runner might result in a rushed wild throw. Two men on, nobody out is much worse.","When the runner is extremely fast, get the sure out at second. A force out is guaranteed — but the relay throw to first might not beat the fastest runner. Take the sure out and avoid the error.","The shortstop will try to turn it, but a rushed throw against a blazing runner could be wild.","Throwing to first only gets one out and doesn't address the runner. The force at second is better."],
       rates:[30,85,40,25],concept:"Against very fast runners, get the sure out at second — don't force a double play and risk an error",anim:"groundout"},
-    {id:"f47",title:"Runner on Second — Hold or Play Back?",diff:2,cat:"positioning",
+    {id:"f47",title:"Runner on Second — Hold or Play Back?",diff:1,cat:"positioning",
       description:"Bot 3rd, runner on 2nd, nobody out, tied 1-1. You're the second baseman. Should you play at double play depth even though there's no runner on first?",
       situation:{inning:"Bot 3",outs:0,count:"-",runners:[2],score:[1,1]},
       options:["Double play depth — get the runner at third on a ground ball","Normal depth — maximize your range","Play in — cut off the run at home","Split the difference — shade toward 2nd a bit"],
       best:1,explanations:["No conventional double play is available with only a runner on 2nd — there's no force at third base.","With a runner on 2nd and nobody out, play at normal depth. Your job is to get outs. If the ball is hit to you, throw to first for the out. Glance at the runner on second, but he's not your primary concern — getting the batter out is.","Playing in with a runner on 2nd and nobody out is too aggressive — you give up too much range.","Shading toward 2nd isn't needed without a runner on first."],
       rates:[20,85,30,35],concept:"With only a runner on 2nd, play normal depth — no conventional DP is available without a runner on first",anim:"groundout"},
-    {id:"f60",title:"Rundown — How Many Throws?",diff:2,cat:"communication",
+    {id:"f60",title:"Rundown — How Many Throws?",diff:1,cat:"communication",
       description:"Top of the 6th, runner caught in a rundown between first and second. You're the second baseman with the ball. The first baseman is at first. How do you handle this?",
       situation:{inning:"Top 6",outs:0,count:"-",runners:[1],score:[3,3]},
       options:["Chase him toward first and throw to the first baseman — one throw","Run at him full speed and tag him yourself","Pump fake a few times to freeze him, then tag","Throw the ball back and forth until he makes a mistake"],
@@ -799,13 +799,13 @@ const SCENARIOS = {
       options:["Sprint to your left, backhand the ball, plant your right foot, and throw across your body to first","Let it go through — the center fielder will back you up","Try to dive for it and flip the ball from your knees","Run to your left, field it, then spin all the way around to throw to first"],
       best:0,explanations:["Great play! Ranging to your left, backhanding the ball, planting hard, and throwing across your body is the fastest way to get this out. It takes practice but it's how the best second basemen make this play.","Never give up on a ball you can reach! The center fielder backing you up means a single, not an out. With two outs, you need to make this play to end the inning.","Diving is a last resort. If you can get to the ball on your feet, always stay on your feet. Throwing from your knees is weak and inaccurate, and the runner will beat it out.","Spinning all the way around takes way too long. By the time you complete the spin and throw, the batter is already past first base. The across-the-body throw is much quicker."],
       rates:[85,10,25,20],concept:"When ranging to your left as a second baseman, backhand the ball, plant hard, and throw across your body — spinning around wastes too much time.",anim:"groundout"},
-    {id:"2b3",title:"Covering First on the Bunt",diff:2,cat:"fielder",
+    {id:"2b3",title:"Covering First on the Bunt",diff:1,cat:"fielder",
       description:"You're the second baseman. Runner on first, no outs, and the other team is bunting. Your first baseman charges toward home plate to field the bunt. The bunt rolls toward the pitcher. Who covers first base?",
       situation:{inning:"Top 3",outs:0,count:"1-1",runners:[1],score:[0,0]},
       options:["Sprint to first base to cover the bag — you're the one who takes over when the 1B charges","Stay at your normal position and let the pitcher cover first","Run to second base instead in case the lead runner goes there","Wait and see what happens before you move"],
       best:0,explanations:["Exactly right! When the first baseman charges a bunt, the second baseman MUST hustle over to cover first base. This is your responsibility on every bunt play — get there fast and give the fielder a target!","The pitcher might field the bunt, but then who does he throw to at first? Someone has to be on the bag, and that someone is you. The pitcher can't cover first AND field the bunt.","The shortstop covers second base on this play, not you. Your job is first base. If you both go to second, nobody covers first and the batter gets a free base.","Waiting and watching is the worst thing you can do on a bunt play. Everything happens fast — you need to be sprinting toward first the instant you see the bunt go down. Hesitation means the runner is safe."],
       rates:[85,20,25,10],concept:"On a bunt play when the first baseman charges, the second baseman must sprint over to cover first base — hesitation means a free base.",anim:"bunt"},
-    {id:"2b4",title:"Relay From Right Field",diff:2,cat:"fielder",
+    {id:"2b4",title:"Relay From Right Field",diff:1,cat:"fielder",
       description:"You're the second baseman. Runner on first, one out, and the batter hits a line drive into the right field gap. The ball rolls to the wall. The runner from first is rounding second and heading to third — and he looks like he might keep going. You're the relay man — where do you position yourself?",
       situation:{inning:"Bot 6",outs:1,count:"0-0",runners:[1],score:[4,3]},
       options:["Line yourself up between the right fielder and third base, arms up, calling for the ball","Line up between the right fielder and home plate","Stay near second base and let the shortstop handle the relay","Run out toward right field to get as close to the outfielder as possible"],
@@ -857,7 +857,7 @@ const SCENARIOS = {
       options:["Step on second and throw to first — double play","Throw to third for the force out","Throw to first for the sure out","Tag the runner coming from first"],
       best:0,explanations:["With runners on 1st and 2nd, stepping on second starts the double play — the runner from first is forced at second, then a quick throw to first gets the batter. Two outs!","Throwing to third gets one out but lets the batter reach first. The double play is worth more.","Throwing to first gets one out but advances both runners into scoring position.","Tagging one runner still leaves the other runners advancing. The double play is the best play."],
       rates:[85,45,30,15],concept:"With runners on 1st and 2nd, step on second and throw to first for the double play",anim:"doubleplay"},
-    {id:"f18",title:"Runner Breaks from Third",diff:2,cat:"infield",
+    {id:"f18",title:"Runner Breaks from Third",diff:1,cat:"infield",
       description:"Bot 7th, runner on 3rd, 1 out, down 3-4. You're at shortstop playing normal depth. Slow ground ball to your left — you field it, but the runner on 3rd breaks for home!",
       situation:{inning:"Bot 7",outs:1,count:"-",runners:[3],score:[3,4]},
       options:["Throw home to get the runner","Throw to first — get the sure out","Hold the ball — check if the runner commits","Throw to third — maybe he'll go back"],
@@ -875,7 +875,7 @@ const SCENARIOS = {
       options:["Double play depth — a few steps closer to 2nd base","Normal depth — play your regular spot","Deep in the hole — maximize range","Shift toward the pull side"],
       best:0,explanations:["With a runner on first and nobody out, move to double play depth. This means moving a few steps toward second base and a step or two in (closer to home). This shorter path to second base lets you start the double play faster. You sacrifice a little range in the hole, but the DP is worth it.","Normal depth makes the double play harder — you have to cover more ground to get to second.","Deep in the hole maximizes your range but makes the throw to second for the DP much longer.","Shifting without knowing the hitter's tendencies is guessing."],
       rates:[85,30,20,25],concept:"Double play depth means a few steps toward 2nd and a step in — shorter path to start the DP",anim:"doubleplay"},
-    {id:"f48",title:"Fast Runner at the Plate — Adjust Depth",diff:2,cat:"positioning",
+    {id:"f48",title:"Fast Runner at the Plate — Adjust Depth",diff:1,cat:"positioning",
       description:"Top of the 8th, nobody on, 1 out, up 3-2. Their fastest player steps in — he can beat out routine ground balls if you play too deep. You're the shortstop.",
       situation:{inning:"Top 8",outs:1,count:"-",runners:[],score:[3,2]},
       options:["Play a step or two in — shorten the throw to first","Play normal depth — don't change for one batter","Play deep — get more range","Shade toward the hole — fast guys pull the ball"],
@@ -911,7 +911,7 @@ const SCENARIOS = {
       options:["Call for it yourself — you're an infielder going back on the ball","Let the left fielder take it — he's charging in with the ball in front of him","Let the third baseman call for it since he's closer to that side","Nobody calls it — whoever gets there first just catches it"],
       best:1,explanations:["Going back on a fly ball is one of the hardest plays in baseball — the ball drifts AWAY from you and you're running blind. The left fielder charging in has it in front of him the whole way, which is a much easier catch. Let the outfielder take this one.","Correct! The outfielder coming in always has priority over the infielder going back. Running forward, the left fielder can see the ball in front of him and has momentum toward the infield for a throw. Going back, you're chasing a ball drifting away from you — that's the toughest catch in baseball. Call him off? Never. Let him call YOU off.","The third baseman would have to range a long way to his left for this ball. Even if he got there, he'd be going back too — same problem as the shortstop. The outfielder coming in has the best angle by far.","Never leave a pop fly uncalled! When nobody calls it, players crash into each other or the ball drops between them. Someone MUST take charge — and on tweeners, the outfielder is the one who calls it."],
       rates:[35,88,20,10],concept:"Outfielders coming in have priority over infielders going back — running forward with the ball in front of you is always easier than chasing it over your shoulder.",anim:"catch"},
-    {id:"ss5",title:"Relay Man to Left-Center",diff:2,cat:"fielder",
+    {id:"ss5",title:"Relay Man to Left-Center",diff:1,cat:"fielder",
       description:"You're the shortstop. Runner on first, one out. The batter hits a deep fly ball to left-center field that drops and rolls to the wall. The runner from first is rounding second and heading for third — and he might keep going. You need to be the relay man. Where do you go?",
       situation:{inning:"Top 6",outs:1,count:"0-0",runners:[1],score:[3,4]},
       options:["Run out to line up between the left-center fielder and third base, arms up high so the outfielder can see you","Line up between the outfielder and home plate, arms up","Stay at shortstop position and let the third baseman handle it","Go to second base in case the batter tries to stretch it to a double"],
@@ -923,7 +923,7 @@ const SCENARIOS = {
       options:["Charge the ball hard, field it with your bare hand if needed, and fire home to try to get the runner","Play it safe — field the ball cleanly and throw to first for the sure out","Wait for the ball to come to you, then decide where to throw","Let the third baseman field it since he's closer to home"],
       best:0,explanations:["This is the do-or-die play! With the game on the line and the runner going home, you MUST charge hard and throw home. Even a bare-hand pickup and throw gives you a chance to save the game. If you throw to first, the runner scores and the game is over.","Throwing to first gets an out, but the runner from third scores and the game is over — you lose! In a tie game with a runner breaking from third, you have to try to get the runner at home. The out at first doesn't matter if the winning run scores.","Waiting for the ball to come to you wastes precious time. The runner is sprinting home — every fraction of a second matters. You have to charge aggressively and make a quick play. There's no time to be patient here.","The ball is hit toward you, not the third baseman. Even if the third baseman could get it, he'd have to field it and then spin to throw home. You're already facing home plate as you charge in — it's your play to make."],
       rates:[82,30,10,15],concept:"On a do-or-die play with a runner scoring from third, charge hard and throw home — the out at first doesn't matter if the winning run scores.",anim:"throwHome"},
-    {id:"ss7",title:"Positioning for a Pull Hitter",diff:2,cat:"fielder",
+    {id:"ss7",title:"Positioning for a Pull Hitter",diff:1,cat:"fielder",
       description:"You're the shortstop. Nobody on base, two outs. A big right-handed pull hitter is stepping up to bat. Your coach tells you to shade toward the third base side. Where should you position yourself?",
       situation:{inning:"Top 5",outs:2,count:"0-0",runners:[],score:[1,0]},
       options:["Move a few steps toward third base from your normal position — right-handed pull hitters tend to hit toward the left side of the infield","Stay in your normal shortstop position because you don't want to leave gaps","Move a few steps toward second base to cover the middle","Move way over right next to the third baseman"],
@@ -1036,14 +1036,14 @@ const SCENARIOS = {
       rates:[80,20,40,15],concept:"In late-game situations with a runner on third, play shallow to give yourself a shorter throw home and a chance to save the run.",anim:"throwHome"},
   ],
   leftField: [
-    {id:"f4",title:"Hit the Cutoff",diff:2,cat:"outfield",
+    {id:"f4",title:"Hit the Cutoff",diff:1,cat:"outfield",
       description:"You're in left. Single to you, runners on 1st and 2nd. Lead runner rounding 3rd.",
       situation:{inning:"Top 7",outs:1,count:"-",runners:[1,2],score:[4,3]},
       options:["Throw home directly","Throw to 3rd","Throw to 2nd","Hit the cutoff man"],
       best:3,explanations:["A direct throw from left is long. If offline, everyone advances.","3rd isn't the priority — the run matters.","Throwing behind ignores the scoring runner.","The cutoff man can redirect to home or hold to prevent extras."],
       explSimple:["Throwing all the way home from left field is really far. If you miss, everyone moves up.","Third base isn't where the action is — the runner is going home!","Throwing to second ignores the runner trying to score.","Throw to the cutoff man! He's closer and can decide where the ball needs to go."],
       rates:[30,35,15,85],concept:"Always hit the cutoff man — he makes the best decision for the team",anim:"throwHome"},
-    {id:"f9",title:"Ball in the Sun",diff:2,cat:"outfield",
+    {id:"f9",title:"Ball in the Sun",diff:1,cat:"outfield",
       description:"High fly ball headed right into the sun. You lose sight of it.",
       situation:{inning:"Top 7",outs:2,count:"-",runners:[1],score:[3,2]},
       options:["Glove up to shade your eyes","Keep running where you think it's going","Stop and call for help","Drop to one knee"],
@@ -1098,7 +1098,7 @@ const SCENARIOS = {
       options:["Call 'I got it!' loudly and early so the shortstop peels off","Stay quiet and let the shortstop take it since he's an infielder","Both go for it and whoever gets there first catches it","Pull up and let the shortstop have it — infielders have priority on shallow flies"],
       best:0,explanations:["As the outfielder coming in, you have the ball in front of you the whole way. You have the better angle and can see it clearly. Call it loud and early so the shortstop knows to peel off.","Staying quiet causes collisions. Communication is the number one rule on fly balls between infielders and outfielders.","Both going for it without talking is how players get hurt. Collisions between fielders are one of the most dangerous plays in baseball.","Actually, on balls in between, the outfielder has priority because they're running in and can see the ball better. The shortstop is running with his back to the infield, making it a harder catch."],
       rates:[88,15,10,40],concept:"Outfielders have priority on shallow flies because they're running forward with the ball in front of them — call it loud and early.",anim:"catch"},
-    {id:"lf4",title:"Back Up Third",diff:2,cat:"fielder",
+    {id:"lf4",title:"Back Up Third",diff:1,cat:"fielder",
       description:"You're in left field. Top of the 5th, runner on first, no outs. The batter hits a ground ball to second base. The second baseman fields it and throws to the shortstop at second for the force out. The shortstop now throws to first for the double play. Where should you be?",
       situation:{inning:"Top 5",outs:0,count:"1-1",runners:[1],score:[3,3]},
       options:["Backing up third base in case of an overthrow from the outfield later","Stay in your normal left field position — the play is on the infield","Move toward the infield to back up any throw to third base","Back up second base in case the throw from the shortstop is wild"],
@@ -1155,7 +1155,7 @@ const SCENARIOS = {
       options:["Shade the whole infield toward the right side","Play straight up — he might adjust","Only shade the second baseman","Shift the shortstop all the way to the right side"],
       best:0,explanations:["When a hitter pulls everything, shade your infield toward the pull side. Move the second baseman toward first, the shortstop toward second, and the first baseman closer to the line. You're positioning where the ball is most likely to go based on the data you have.","Playing straight up ignores three at-bats of evidence. Use the information!","Only shading one player is a half-measure. Move the whole infield together.","A full shift with the shortstop on the right side is too extreme for most situations. Shading is enough."],
       rates:[85,25,35,30],concept:"Against pull hitters, shade the infield toward the pull side — position where the ball is going",anim:"groundout"},
-    {id:"f59",title:"Pop-Up Between Three Players",diff:2,cat:"communication",
+    {id:"f59",title:"Pop-Up Between Three Players",diff:1,cat:"communication",
       description:"Bot 3rd, nobody on, 1 out. Pop-up hit between the pitcher, catcher, and first baseman. All three are drifting toward it. Nobody has called it.",
       situation:{inning:"Bot 3",outs:1,count:"-",runners:[],score:[2,1]},
       options:["Someone needs to call it NOW — first baseman has priority","The pitcher should catch it — he's closest","The catcher should call it — he sees the whole field","Wait and see who gets there first"],
@@ -1179,7 +1179,7 @@ const SCENARIOS = {
       options:["Keep your foot on the bag, stretch toward the throw, and scoop it by keeping your glove low with the pocket facing up","Pull your foot off the bag and catch the ball cleanly with two hands, then try to tag the runner","Stay upright on the bag and try to catch the ball chest-high after it bounces up","Move off the bag entirely to block the ball like a hockey goalie"],
       best:0,explanations:["Textbook first baseman play! Keep your foot on the base for the force out, stretch toward the throw to catch it sooner, and scoop with your glove low and open. Great first basemen save errors by picking these short hops every day.","If you pull your foot off the bag, it's not a force out anymore. You'd have to tag the runner, and he's already sprinting past you. Keep your foot on the bag — that's the whole point of a force play at first.","Short-hop throws don't bounce up to chest height at first base — they stay low. Waiting for a big hop means the ball scoots under your glove or past you. Get down to where the ball is.","Leaving the bag means no out even if you stop the ball. First base is all about keeping your foot on the bag while making the catch. That's what makes the position special."],
       rates:[88,30,20,15],concept:"First basemen save infielders' errors by scooping short hops — keep your foot on the bag, stretch toward the throw, and get your glove down low.",anim:"groundout"},
-    {id:"1b3",title:"Fielding a Bunt as the First Baseman",diff:2,cat:"fielder",
+    {id:"1b3",title:"Fielding a Bunt as the First Baseman",diff:1,cat:"fielder",
       description:"You're at first base. Runner on first, no outs, and the batter squares to bunt. The pitch is bunted hard right at you, about 20 feet down the first base line. The second baseman is sprinting to cover first.",
       situation:{inning:"Bot 4",outs:0,count:"1-0",runners:[1],score:[0,0]},
       options:["Charge the ball, field it, and throw to second base to get the lead runner if you have time","Charge the ball, field it, and flip to the second baseman covering first for the sure out","Let the pitcher field it since bunts are always the pitcher's job","Field the ball and run to first base yourself to get the easy out"],
@@ -1191,7 +1191,7 @@ const SCENARIOS = {
       options:["Let the second baseman field it — sprint back to first base so someone is there to take the throw","Go after the ball yourself since you're closer, and let the pitcher cover first","Freeze and see what happens — wait to see if the second baseman or pitcher gets to it first","Go after the ball and then try to beat the runner back to first base yourself"],
       best:0,explanations:["This is the right call! When the ball is in the hole, the second baseman has a better angle to field it and throw to first. Your job is to get back to the bag so there's someone to receive the throw. If nobody's on first, the out is impossible.","You might be closer, but the second baseman has a much better throwing angle to first base from that position. If you field it, you have to spin and throw across your body or run to the bag yourself — both are harder plays.","Freezing is the worst thing a first baseman can do. Every ground ball requires an instant decision — either go get the ball or get back to the bag. Hesitation means nobody covers first and the runner is safe.","You cannot field a ball 15 feet to your right and then beat a sprinting batter back to first base. Even the fastest first baseman can't outrun a thrown ball. Get to the bag and let your teammate make the throw."],
       rates:[88,40,10,20],concept:"First basemen must decide instantly: go after the ball or get back to the bag. When the second baseman has a better angle, get to first and be the target.",anim:"groundout"},
-    {id:"1b5",title:"Cutoff Positioning on a Single to Right",diff:2,cat:"fielder",
+    {id:"1b5",title:"Cutoff Positioning on a Single to Right",diff:1,cat:"fielder",
       description:"You're the first baseman. Runner on second base, and the batter singles to right field. The runner is rounding third and heading home. The right fielder picks up the ball and is ready to throw. You need to get in the cutoff position.",
       situation:{inning:"Bot 5",outs:1,count:"0-0",runners:[2],score:[2,3]},
       options:["Line up between the right fielder and home plate, about 45 feet from home, with your arms up so the fielder can see you","Run to home plate to back up the catcher in case the throw gets past him","Stay at first base in case the batter tries to stretch his single into a double","Move halfway between first and second base to cover the cutoff from right-center field"],
@@ -1243,7 +1243,7 @@ const SCENARIOS = {
       options:["Throw to third — cut him down","Hit the cutoff man and let him redirect","Throw home in case he tries to score","Hold the ball — he's already at third"],
       best:1,explanations:["Throwing directly to third from right field is a long throw that's likely to sail. If it gets past the third baseman, the runner scores.","Hit the cutoff man! On a single to right with a runner going first to third, your job is to throw a strong, low throw to the cutoff. He can redirect to third if there's a play, or hold it to prevent the batter from advancing. The cutoff creates options.","Throwing home when the runner is only going to third wastes a throw and lets the batter advance.","Holding the ball lets runners take extra bases for free. Always make a throw."],
       rates:[35,85,15,20],concept:"On singles to right with runners advancing, hit the cutoff — he can redirect to the right base",anim:"throwHome"},
-    {id:"f55",title:"Fly Ball in the Sun",diff:2,cat:"outfield",
+    {id:"f55",title:"Fly Ball in the Sun",diff:1,cat:"outfield",
       description:"Bot 4th, nobody on, 1 out. Fly ball hit to right field — you look up and the sun is directly in your eyes. You lost the ball!",
       situation:{inning:"Bot 4",outs:1,count:"-",runners:[],score:[2,1]},
       options:["Use your glove as a sun shield — put it up to block the sun","Close your eyes and guess where it'll land","Call off and let someone else catch it","Drop your head and pick up the ball below the sun"],
@@ -1273,7 +1273,7 @@ const SCENARIOS = {
       options:["Charge the ball aggressively to field it quickly and throw to third base","Hang back and wait for the ball to come to you, then throw to second","Let the ball roll to you while watching the runner","Throw to first base to make sure the batter doesn't take second"],
       best:0,explanations:["Charging the ball cuts down the time the runner has to advance. Getting to the ball fast and making a quick throw to third gives you the best chance to cut down the runner or at least hold him at second.","Hanging back lets the runner round second and cruise into third easily. Every extra second the ball is on the ground is an extra step for the runner.","Watching the runner instead of attacking the ball is passive play. By the time the ball reaches you, the runner is standing on third.","Throwing to first doesn't help since the batter already has a single. The critical play is stopping the lead runner from taking third."],
       rates:[85,30,15,10],concept:"Charge ground ball singles aggressively in right field — every second you save keeps runners from going first-to-third.",anim:"catch"},
-    {id:"rf3",title:"Hit the Cutoff Man",diff:2,cat:"fielder",
+    {id:"rf3",title:"Hit the Cutoff Man",diff:1,cat:"fielder",
       description:"You're the right fielder. A deep fly ball drops in front of the warning track for a hit. A runner is scoring from second base. You pick up the ball 320 feet from home plate. The second baseman is set up as your cutoff man about 150 feet from you. Your arm can reach home on the fly from 250 feet but not from 320.",
       situation:{inning:"Top 6",outs:1,count:"0-2",runners:[2],score:[1,2]},
       options:["Throw a hard one-hop throw to the cutoff man so he can relay it home","Air-mail a throw toward home plate even though you can't reach it","Run the ball in closer before throwing so you can reach home","Throw to third base instead to keep the batter from advancing"],
@@ -1329,13 +1329,13 @@ const SCENARIOS = {
       options:["Throw to first — get the sure out","Throw to third to tag the runner","Look the runner back to 2nd, then throw to first","Hold the ball and chase the runner"],
       best:2,explanations:["Throwing to first without checking the runner could let him advance to third — then he scores on anything.","There's no force at third, so you'd need to tag him. He's probably not committed yet.","Smart! Glance at the runner first. If he's going, throw to the shortstop covering third. If he's staying, throw to first. This quick look takes half a second but prevents a free base.","Chasing a runner starts a rundown that gives the batter time to reach base. Make a throw instead."],
       rates:[50,25,85,10],concept:"With a runner on 2nd, look him back before throwing to first — don't give a free base",anim:"groundout"},
-    {id:"f19",title:"Slow Roller — Eat It or Throw?",diff:2,cat:"infield",
+    {id:"f19",title:"Slow Roller — Eat It or Throw?",diff:1,cat:"infield",
       description:"Top of the 8th, nobody on, 2 outs, up 2-1. You're the third baseman. Slow roller — you charge in and barehand it, but the batter is fast and almost to first.",
       situation:{inning:"Top 8",outs:2,count:"-",runners:[],score:[2,1]},
       options:["Throw it anyway — you might get him","Eat the ball — don't risk an overthrow","Flip it underhand to first","Sprint toward first and throw on the run"],
       best:1,explanations:["A rushed throw from deep in the grass is the #1 cause of throwing errors. If the batter is almost at first, a wild throw puts him in scoring position.","Smart! If you don't have a clean throw, hold the ball. An error with 2 outs and a 1-run lead could let the tying run reach scoring position. A single is much less dangerous than a runner on 2nd or 3rd from an error.","An underhand flip from the third base side doesn't have the arm strength to reach first.","Throwing on the run from deep grass is one of the hardest throws in baseball. If the batter is almost there, the risk isn't worth it."],
       rates:[25,85,20,30],concept:"If you don't have a clean throw, eat the ball — an error is worse than a single",anim:"safe"},
-    {id:"f45",title:"Bunt Situation — Where to Move",diff:2,cat:"positioning",
+    {id:"f45",title:"Bunt Situation — Where to Move",diff:1,cat:"positioning",
       description:"Bot 5th, runner on 1st, nobody out, tied 3-3. The #8 hitter is up — he's almost certainly going to bunt. You're the third baseman. Where should you play?",
       situation:{inning:"Bot 5",outs:0,count:"-",runners:[1],score:[3,3]},
       options:["Charge in aggressively — be ready to field the bunt","Play normal depth — react after the ball is bunted","Halfway in — compromise between bunt and swing","Stay deep and let the pitcher field it"],
@@ -1371,7 +1371,7 @@ const SCENARIOS = {
       options:["Crow-hop toward first to build momentum, then throw overhand with your body behind it","Stand still and rifle it from where you fielded it to save time","Throw sidearm to get it there faster","Lob it high so the first baseman has time to adjust"],
       best:0,explanations:["The crow-hop builds momentum for the long throw across the diamond. Using your body and an overhand release gives you accuracy and carry. This is how third basemen are taught to make this throw.","Standing still means you're throwing with only arm strength from 120 feet. Without body momentum, the throw tails or bounces, and you risk a throwing error.","Sidearm throws from third base tend to tail away from the first baseman, especially on long throws. Save sidearm for short-range plays.","A lob takes too long in the air and gives the runner extra steps. Even average runners will beat a rainbow throw from third."],
       rates:[85,35,30,15],concept:"The crow-hop builds momentum for the long throw across the diamond — your body generates the power, not just your arm.",anim:"groundout"},
-    {id:"3b4",title:"Guard the Line",diff:2,cat:"fielder",
+    {id:"3b4",title:"Guard the Line",diff:1,cat:"fielder",
       description:"You're at third base. Top of the 8th, your team leads 3-2. Runner on first, one out. The coach signals you to guard the line. The batter is a left-handed pull hitter who has hit two doubles down the line tonight.",
       situation:{inning:"Top 8",outs:1,count:"0-0",runners:[1],score:[3,2]},
       options:["Move two steps closer to the foul line and shade toward the bag","Stay in your normal position — you can react to anything","Cheat toward the shortstop hole to take away the ground ball up the middle","Move in closer to home plate for a potential bunt"],
@@ -1389,7 +1389,7 @@ const SCENARIOS = {
       options:["Pick it up and step on third for the force out","Pick it up and throw to second to start a double play","Pick it up and throw to first for the sure out","Hold the ball — with runners moving you might throw it away"],
       best:0,explanations:["Stepping on third base for the force out is the smart play. It's the closest base, you don't need a throw, and you get the lead runner. With two outs, it changes the whole at-bat for the next hitter.","After knocking a ball down and scrambling, a throw to second for a double play is extremely difficult. You'll likely rush it and throw it into center field.","Throwing to first after a knockdown means a long throw while off-balance. With runners moving, an error puts the go-ahead run in scoring position or worse.","Holding the ball with bases loaded and one out lets everyone advance safely. The tying and go-ahead runs both move up. You need to get an out."],
       rates:[82,25,35,12],concept:"After knocking down a hard shot, look for the closest force out — stepping on the bag beats a risky throw every time.",anim:"groundout"},
-    {id:"3b7",title:"Foul Ball Near Dugout",diff:2,cat:"fielder",
+    {id:"3b7",title:"Foul Ball Near Dugout",diff:1,cat:"fielder",
       description:"You're at third base. Bottom of the 2nd, nobody on, one out. The batter pops up a high foul ball drifting toward the third base dugout. You're tracking it well, but it's carrying closer to the dugout railing. The dugout steps are about three feet away.",
       situation:{inning:"Bot 2",outs:1,count:"1-2",runners:[],score:[0,1]},
       options:["Track the ball but pull up if you get within one step of the dugout — player safety comes first","Sprint full speed, reach over the railing, and try to make the spectacular catch","Call off your teammates and catch it, planting your feet well before the dugout edge","Ignore it and let the catcher handle all foul pops"],
@@ -3305,9 +3305,9 @@ export default function App(){
     if(atLimit){setPanel('limit');return;}
     snd.play('tap');setPos(p);setChoice(null);setOd(null);setRi(-1);setFo(null);setShowC(false);setLvlUp(null);setShowExp(true);setDailyMode(false);
     
-    // Determine if we should use AI
-    const pool=SCENARIOS[p]||[];const seen=hist[p]||[];
-    const unseen=pool.filter(s=>!seen.includes(s.id));
+    // Determine if we should use AI (respect maxDiff so young players get AI after exhausting their pool)
+    const raw=SCENARIOS[p]||[];const pool=raw.filter(s=>s.diff<=maxDiff);const seen=hist[p]||[];
+    const unseen=(pool.length>0?pool:raw).filter(s=>!seen.includes(s.id));
     const useAI = forceAI || unseen.length === 0;
     
     if(useAI){
@@ -3321,9 +3321,9 @@ export default function App(){
         setSc(aiSc);
         aiSc.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80);});
       } else {
-        // AI failed — fall back to random handcrafted
-        const avail=pool;const s=avail[Math.floor(Math.random()*avail.length)];
-        setHist(h=>({...h,[p]:[...(h[p]||[]),s.id].slice(-pool.length+1)}));
+        // AI failed — fall back to random handcrafted (respect maxDiff)
+        const avail=pool.length>0?pool:raw;const s=avail[Math.floor(Math.random()*avail.length)];
+        setHist(h=>({...h,[p]:[...(h[p]||[]),s.id].slice(-avail.length+1)}));
         setSc(s);setAiMode(false);
         s.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80);});
       }
@@ -3333,7 +3333,7 @@ export default function App(){
       const s=getRand(p);setSc(s);setScreen("play");
       s.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80);});
     }
-  },[getRand,snd,atLimit,hist,stats]);
+  },[getRand,snd,atLimit,hist,stats,maxDiff]);
 
   const checkAch=useCallback((ns)=>{
     const earned=ns.achs||[];
