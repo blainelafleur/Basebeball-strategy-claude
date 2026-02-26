@@ -2521,7 +2521,7 @@ function achProgress(id,s){
 function getLvl(p){for(let i=LEVELS.length-1;i>=0;i--)if(p>=LEVELS[i].min)return LEVELS[i];return LEVELS[0];}
 function getNxt(p){for(const l of LEVELS)if(p<l.min)return l;return null;}
 
-const DAILY_FREE = 15;
+const DAILY_FREE = 8;
 const STORAGE_KEY = "bsm_v5";
 const LB_KEY = "bsm_lb";
 function getWeek(){const d=new Date();const jan1=new Date(d.getFullYear(),0,1);return Math.ceil(((d-jan1)/86400000+jan1.getDay()+1)/7)+"-"+d.getFullYear();}
@@ -3370,7 +3370,7 @@ export default function App(){
         ps:{...p.ps,[pos]:{p:(p.ps[pos]?.p||0)+1,c:(p.ps[pos]?.c||0)+(isOpt?1:0)}},
         cl:isOpt&&!p.cl?.includes(sc.concept)?[...(p.cl||[]),sc.concept]:(p.cl||[]),
         recentWrong:isOpt?(p.recentWrong||[]):[...(p.recentWrong||[]),sc.concept].slice(-5),
-        todayPlayed:(p.todayDate===today?p.todayPlayed:0)+1,todayDate:today,
+        todayPlayed:dailyMode?p.todayPlayed:(p.todayDate===today?p.todayPlayed:0)+1,todayDate:today,
         sp:isOpt?(p.sp||0)+1:0,
         dailyDone:dailyMode?true:p.dailyDone,dailyDate:dailyMode?today:(p.dailyDate||today),
         seasonCorrect:seasonMode&&isOpt?(p.seasonCorrect||0)+1:(p.seasonCorrect||0)};
@@ -3400,7 +3400,7 @@ export default function App(){
 
   const goHome=useCallback(()=>{setScreen("home");setPos(null);setSc(null);setChoice(null);setOd(null);setFo(null);setPanel(null);setLvlUp(null);setCoachMsg(null);setDailyMode(false);setSpeedMode(false);setSpeedRound(null);setSurvivalMode(false);setSurvivalRun(null);setChallengeMode(false);setSeasonMode(false);setSeasonStageIntro(null);if(timerRef.current)clearTimeout(timerRef.current)},[]);
   goHomeRef.current=goHome;
-  const next=useCallback(()=>{setLvlUp(null);if(speedMode){speedNextRef.current?.()}else if(survivalMode){survivalNextRef.current?.()}else if(seasonMode){seasonNextRef.current?.()}else if(dailyMode){goHomeRef.current?.()}else{startGame(pos,aiMode)}},[pos,startGame,aiMode,dailyMode,speedMode,survivalMode,seasonMode]);
+  const next=useCallback(()=>{setLvlUp(null);if(speedMode){speedNextRef.current?.()}else if(survivalMode){survivalNextRef.current?.()}else if(seasonMode){seasonNextRef.current?.()}else if(dailyMode){goHomeRef.current?.()}else if(atLimit){setScreen("home");setTimeout(()=>setPanel('limit'),100)}else{startGame(pos,aiMode)}},[pos,startGame,aiMode,dailyMode,speedMode,survivalMode,seasonMode,atLimit]);
   const finishOnboard=useCallback(()=>{setStats(p=>({...p,onboarded:true,todayDate:new Date().toDateString()}));setScreen("home")},[]);
   
   const lvl=getLvl(stats.pts);const nxt=getNxt(stats.pts);
@@ -3581,7 +3581,7 @@ export default function App(){
           <span style={{background:"#f59e0b15",border:"1px solid #f59e0b25",borderRadius:7,padding:"2px 7px",fontSize:10,fontWeight:700,color:"#f59e0b"}}>🏆{stats.pts}</span>
           {stats.ds>0&&(()=>{const fl=getFlame(stats.ds);return <span style={{background:`${fl.color}12`,border:`1px solid ${fl.color}22`,borderRadius:7,padding:"2px 7px",fontSize:10,fontWeight:700,color:fl.color,boxShadow:stats.ds>=7?`0 0 8px ${fl.glow}`:"none"}}>{fl.icon}{stats.ds}d</span>})()}
           {stats.str>0&&<span style={{background:"#f9731615",border:"1px solid #f9731625",borderRadius:7,padding:"2px 7px",fontSize:10,fontWeight:700,color:"#f97316"}}>🔥{stats.str}</span>}
-          {!stats.isPro&&<span style={{background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.06)",borderRadius:7,padding:"2px 7px",fontSize:10,fontWeight:600,color:"#6b7280"}}>{remaining>0?`${remaining} left`:""}</span>}
+          {!stats.isPro&&<span style={{background:remaining<=0?"rgba(239,68,68,.1)":remaining<=3?"rgba(245,158,11,.1)":"rgba(255,255,255,.03)",border:`1px solid ${remaining<=0?"rgba(239,68,68,.2)":remaining<=3?"rgba(245,158,11,.2)":"rgba(255,255,255,.06)"}`,borderRadius:7,padding:"2px 7px",fontSize:10,fontWeight:600,color:remaining<=0?"#ef4444":remaining<=3?"#f59e0b":"#6b7280"}}>{remaining>0?`${remaining} left`:"Back tomorrow"}</span>}
           <span style={{background:`${lvl.c}12`,border:`1px solid ${lvl.c}25`,borderRadius:7,padding:"2px 7px",fontSize:10,fontWeight:700,color:lvl.c}}>{lvl.e}{lvl.n}</span>
         </div>
       </div>}
@@ -3850,12 +3850,39 @@ export default function App(){
             <div style={{textAlign:"center",marginTop:8,fontSize:9,color:"#6b7280"}}>Earn themes through milestones — no purchase needed!</div>
           </div>}
 
-          {panel==='limit'&&<div style={{...card,marginBottom:12,textAlign:"center",borderColor:"rgba(245,158,11,.2)"}}>
-            <div style={{fontSize:32,marginBottom:6}}>⏰</div>
-            <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:18,color:"#f59e0b",letterSpacing:1}}>DAILY LIMIT REACHED</div>
-            <p style={{fontSize:12,color:"#9ca3af",marginTop:4,marginBottom:10}}>You've played all {DAILY_FREE} free scenarios today. Come back tomorrow or go Pro for unlimited play!</p>
-            <button onClick={()=>{setStats(p=>({...p,isPro:true}));setPanel(null);snd.play('ach')}} style={{...btn("linear-gradient(135deg,#d97706,#f59e0b)"),...{maxWidth:260,margin:"0 auto",boxShadow:"0 4px 15px rgba(245,158,11,.3)"}}}>⭐ Go Pro — Unlimited Play</button>
-            <div style={{fontSize:9,color:"#6b7280",marginTop:6}}>$4.99/mo or $29.99/year</div>
+          {panel==='limit'&&<div style={{...card,marginBottom:12,textAlign:"center",borderColor:"rgba(34,197,94,.2)"}}>
+            <div style={{fontSize:36,marginBottom:4}}>&#127881;</div>
+            <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:20,color:"#22c55e",letterSpacing:1}}>GREAT SESSION TODAY!</div>
+            <p style={{fontSize:12,color:"#d1d5db",marginTop:6,marginBottom:10}}>
+              You played {DAILY_FREE} scenarios and learned {(stats.cl||[]).length} concept{(stats.cl||[]).length!==1?"s":""}!
+            </p>
+            <div style={{display:"flex",justifyContent:"center",gap:16,marginBottom:12}}>
+              <div style={{background:"rgba(34,197,94,.08)",borderRadius:10,padding:"8px 14px"}}>
+                <div style={{fontSize:18,fontWeight:700,color:"#22c55e"}}>{acc}%</div>
+                <div style={{fontSize:9,color:"#9ca3af"}}>Accuracy</div>
+              </div>
+              <div style={{background:"rgba(139,92,246,.08)",borderRadius:10,padding:"8px 14px"}}>
+                <div style={{fontSize:18,fontWeight:700,color:"#8b5cf6"}}>{stats.str||0}</div>
+                <div style={{fontSize:9,color:"#9ca3af"}}>Streak</div>
+              </div>
+              <div style={{background:"rgba(245,158,11,.08)",borderRadius:10,padding:"8px 14px"}}>
+                <div style={{fontSize:18,fontWeight:700,color:"#f59e0b"}}>{lvl.emoji} {lvl.n}</div>
+                <div style={{fontSize:9,color:"#9ca3af"}}>Level</div>
+              </div>
+            </div>
+            <div style={{background:"rgba(59,130,246,.06)",border:"1px solid rgba(59,130,246,.15)",borderRadius:10,padding:10,marginBottom:12}}>
+              <div style={{fontSize:12,color:"#60a5fa",fontWeight:600}}>See you tomorrow!</div>
+              <div style={{fontSize:11,color:"#9ca3af",marginTop:2}}>Your Daily Diamond Play is always free — come back for a fresh challenge!</div>
+            </div>
+            <div style={{borderTop:"1px solid rgba(255,255,255,.06)",paddingTop:10}}>
+              <div style={{fontSize:11,color:"#d1d5db",fontWeight:600,marginBottom:6}}>Want unlimited practice?</div>
+              <button onClick={()=>{
+                const a=Math.floor(Math.random()*10)+5;const b=Math.floor(Math.random()*10)+3;
+                const answer=prompt(`Parent Gate: What is ${a} \u00d7 ${b}?`);
+                if(answer&&parseInt(answer)===a*b){setStats(p=>({...p,isPro:true}));setPanel(null);snd.play('ach')}
+              }} style={{...btn("linear-gradient(135deg,#d97706,#f59e0b)"),...{maxWidth:280,margin:"0 auto",fontSize:13,boxShadow:"0 4px 15px rgba(245,158,11,.3)"}}}>Ask a Parent About All-Star Pass</button>
+              <div style={{fontSize:9,color:"#6b7280",marginTop:6}}>$4.99/mo or $29.99/year — unlimited play, AI coaching, and more</div>
+            </div>
           </div>}
 
           {/* Daily Diamond Play */}
@@ -3984,8 +4011,8 @@ export default function App(){
 
           {/* Daily remaining */}
           {!stats.isPro&&<div style={{textAlign:"center",marginTop:10}}>
-            <div style={{fontSize:10,color:"#6b7280"}}>{remaining>0?`${remaining} free scenarios remaining today`:"Daily limit reached"}</div>
-            <button onClick={()=>setPanel('limit')} style={{...ghost,color:"#f59e0b",fontSize:11,fontWeight:600,marginTop:2}}>⭐ Go Pro for unlimited play</button>
+            <div style={{fontSize:10,color:remaining<=0?"#ef4444":remaining<=3?"#f59e0b":"#6b7280"}}>{remaining>0?`${remaining} free play${remaining!==1?"s":""} remaining today`:"\u2728 Come back tomorrow for your Daily Diamond!"}</div>
+            {remaining<=3&&<button onClick={()=>setPanel('limit')} style={{...ghost,color:"#f59e0b",fontSize:11,fontWeight:600,marginTop:2}}>Want unlimited play?</button>}
           </div>}
 
           <div style={{textAlign:"center",color:"#374151",fontSize:9,marginTop:16,display:"flex",justifyContent:"center",gap:10,flexWrap:"wrap"}}>
@@ -4178,8 +4205,8 @@ export default function App(){
 
           {/* Pro upsell (non-annoying, after outcome) */}
           {!stats.isPro&&stats.gp>5&&stats.gp%5===0&&<div style={{marginTop:12,textAlign:"center",background:"rgba(245,158,11,.03)",border:"1px solid rgba(245,158,11,.1)",borderRadius:10,padding:"8px 12px"}}>
-            <div style={{fontSize:11,color:"#f59e0b",fontWeight:600}}>⭐ Enjoying the game?</div>
-            <div style={{fontSize:10,color:"#9ca3af",marginTop:2}}>Go Pro for unlimited play, advanced stats & no ads</div>
+            <div style={{fontSize:11,color:"#f59e0b",fontWeight:600}}>&#9825; {stats.displayName||"Your player"} has learned {(stats.cl||[]).length} concept{(stats.cl||[]).length!==1?"s":""}!</div>
+            <div style={{fontSize:10,color:"#9ca3af",marginTop:2}}>The All-Star Pass gives unlimited practice and AI coaching — $4.99/mo</div>
           </div>}
         </div>}
 
