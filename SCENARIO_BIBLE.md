@@ -416,7 +416,7 @@ Each scenario needs:
 
 Focus: [SPECIFIC TOPICS]
 
-CRITICAL: All scenarios must comply with the Principles Library in scenario-roadmap.md.
+CRITICAL: All scenarios must comply with the Principles Library in SCENARIO_BIBLE.md.
 Run the Quality Checklist before finalizing.
 ```
 

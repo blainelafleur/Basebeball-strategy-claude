@@ -51,8 +51,8 @@ Lines 791-1134: Main App() component (game state, UI, logic)
 
 ## Field Visualization
 - SVG-based, fan-shaped broadcast angle
-- Pixel-art style player sprites using `Guy()` component
-- Key coordinates: Home(200,282) 1B(284,206) 2B(200,140) 3B(116,206) Mound(200,218)
+- Pose-aware player sprites using `Guy()` component (40% smaller, 6 poses: pitcher/catcher/batter/infielder/outfielder/runner)
+- Key coordinates: Home(200,290) 1B(290,210) 2B(200,135) 3B(110,210) Mound(200,218)
 - 15 animation types: steal, score, hit, throwHome, doubleplay, strike, strikeout, groundout, flyout, catch, advance, walk, bunt, safe, freeze
 - Bright kid-friendly colors (grass #52c46a, dirt #dab07a)
 - Runners shown with golden glow rings, batter has bat, catcher has mask
