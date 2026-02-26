@@ -1,70 +1,270 @@
-# Baseball Strategy Master — Scenario Roadmap
+# Baseball Strategy Master — Scenario Quality & Knowledge Framework
 
-## Scenario Audit Results (394 scenarios, Feb 2026)
-
-### Summary
-~95% of scenarios are excellent teaching material. The following fixes were applied:
-
-| Grade | Positions |
-|-------|-----------|
-| **A** | famous (10), counts (8), rules (8), shortstop (16), centerField (16) |
-| **A-** | pitcher (59), batter (58), baserunner (57), manager (58), catcher (30), secondBase (15), thirdBase (15) |
-| **B+** | leftField (15), firstBase (14), rightField (15) |
-
-### Fixes Applied
-
-**Tier 1 — Critical (5 fixes)**
-- `r54`: Added 4th option (was only 3, breaking UI alignment)
-- `p53`: Removed "double play" claim (impossible with 2 outs)
-- `f21`: Changed "tags the runner" to "steps on home plate for the force out" (bases loaded = force, not tag)
-- `ct7`: Changed description so squeeze defense call happens BEFORE the pitch (can't instruct mid-delivery)
-- `2b4`: Changed relay default to home plate (was third base, contradicted standard coaching)
-
-**Tier 2 — Significant (6 fixes)**
-- `b4`: Removed coaching conflict with b40 (no longer says "coach says take" then teaches to swing)
-- `p54`: Changed score from 5-4 to 4-4 (tied), added batting averages to justify platoon walk
-- `f17`: Changed score from 5-3 to 5-4 (1-run lead makes throw-home clearly correct)
-- `m1`: Changed on-deck hitter from ".245 (35 HRs)" to ".220 (8 HRs)" (makes IBB clearly right)
-- `b8`: Narrowed rates from 80/40 to 70/60, added nuance to explanation
-- `f43`: Renamed to `m58` (was using fielder prefix in manager array)
-
-**Tier 3 — Inconsistencies (5 fixes)**
-- `b16`/`b51`: Narrowed "take first pitch" rates from 85/50 to 75/60, added "patient but ready" nuance
-- `ss5`: Changed relay default to home plate (same fix as 2b4)
-- `lf7`: Raised glove-shield rate from 45 to 70 (consistent with f9/f55 teaching)
-- `ct4`/`ct17`: Added context differentiation (borderline = subtle pull, high-leverage = stillness)
-- `r53-r57`/`rl1,4,7`: Verified — both teach different angles (runner vs rule perspective), no changes needed
-
-**Tier 4 — Minor (10 fixes)**
-- `cf3`/`rf1`: Changed anim from `throwHome` to `catch` (answer is throw to third, not home)
-- `ct9`: Changed description from "1 out" to "2 outs" (matches situation object after strikeout)
-- `fp2`: Clarified force play reasoning in last option
-- `rl6`: Changed "American League team" to "your team" (DH universal since 2022)
-- `m44`: Added "In leagues where pitchers still bat" qualifier
-- `1b6`: Emphasized force-removed = tag play rule
-- `3b1`: Raised lead runner option rate from 30 to 45
-- `b39`: Added safety note for high-and-inside squeeze bunt
-- `f47`: Changed "No double play available" to "No conventional double play"
+> The 394 scenarios are the core product. Every scenario must teach correct baseball strategy backed by authoritative sources. This document defines WHAT knowledge to teach, WHERE it comes from, and HOW to verify it.
 
 ---
 
-## Scenario Quality Checklist (For All Future Scenarios)
+## 1. Purpose & Scope
 
-Every scenario — handcrafted or AI-generated — must pass ALL of these checks:
+This framework governs all scenario content — handcrafted and AI-generated. It replaces the original batch-planning roadmap with a rigorous, data-backed quality system.
+
+**Goals:**
+- Every scenario teaches something an authoritative coach would agree with
+- Statistics cited are real (sourced from MLB data, FanGraphs, Baseball Reference)
+- No scenario contradicts another scenario in the same or different position
+- The AI generation system has enough context to produce correct scenarios autonomously
+
+---
+
+## 2. Knowledge Hierarchy (Source Precedence)
+
+When building or auditing scenarios, resolve conflicts using this precedence:
+
+| Tier | Source | Example | Authority |
+|------|--------|---------|-----------|
+| **1** | MLB Official Rules | Force vs tag, balk rules, infield fly, DH | Canonical — never contradict |
+| **2** | Measurable Data | Statcast, FanGraphs RE24, Baseball Reference | Objective — cite the numbers |
+| **3** | Coaching Consensus | ABCA, USA Baseball, pro coaching manuals | Standard teaching — follow unless data contradicts |
+| **4** | Situational Judgment | Context-dependent decisions | Explain trade-offs, don't present as absolute |
+
+**Conflict Resolution Protocol:**
+- Tier 1 overrides everything. If a coaching tradition contradicts the rulebook, the rulebook wins.
+- Tier 2 overrides Tier 3 when data clearly shows a strategy is suboptimal (e.g., sacrifice bunts lowering RE).
+- Tier 3 represents "what coaches teach" — use this for positioning, communication, fundamentals.
+- Tier 4 scenarios must present multiple valid options and explain WHY the best choice depends on context.
+
+---
+
+## 3. Position-Specific Principles Library
+
+### Universal Principles (Apply to ALL Positions)
+
+**Fly Ball Priority Hierarchy** (non-negotiable):
+- Outfielder coming in > Infielder going back. ALWAYS.
+- Center fielder > Corner outfielders on any ball CF can reach.
+- The ball drifts TOWARD the outfielder and AWAY from the infielder.
+- Running in = ball in front of you (easy catch, good depth perception).
+- Going back = ball over your shoulder (hardest catch in baseball, drifting away).
+- Source: Every authoritative coaching source — Pro Baseball Insider, ABCA, USA Baseball.
+
+**Relay Positioning:**
+- Default alignment is TOWARD HOME PLATE. Always.
+- Preventing runs is the #1 priority on every relay play.
+- Teammates yell to redirect — the relay man listens and adjusts.
+- Source: Standard coaching consensus (ABCA, pro coaching manuals).
+
+**Force vs Tag:**
+- Force play: runner is FORCED to advance because the batter became a runner. Touch the base.
+- Tag play: runner is NOT forced. Must tag the runner with the ball.
+- Force is REMOVED when the runner ahead is put out. The remaining plays become tag plays.
+- Bases loaded = force at every base (including home). Runner out at home = force removed at third.
+- Source: MLB Official Rules, Rule 5.09(b).
+
+**Communication:**
+- Someone MUST call for every fly ball. "I got it!" — loud, early, repeated.
+- No-call fly balls cause collisions, the most dangerous play in baseball.
+- The priority fielder calls it; everyone else peels off.
+
+### Pitcher
+- First-pitch strikes are critical: batters hit ~.340 on first-pitch strikes.
+- Work ahead in the count. 0-2 count: batters hit ~.167. Expand the zone.
+- From the stretch: quick to the plate, vary hold times to disrupt steal timing.
+- Pitch to contact with a lead; pitch for strikeouts in high leverage.
+- Pickoffs: disrupt timing and shorten leads, don't just throw blindly.
+- Fielding bunts and covering first are pitcher responsibilities.
+- Pitch sequencing: set up pitches with eye level changes and speed differentials.
+
+### Catcher
+- Field general: calls pitches based on count, batter weakness, and situation.
+- Framing: subtle glove pull on borderline pitches. High-leverage: stillness and presentation.
+- Blocking: smother balls in the dirt, keep them in front. With runners on, this is critical.
+- Throwing out runners: quick transfer, strong throw to the bag side of the base.
+- Pop-ups near home: catcher has priority. Turn your back to the field (ball curves back).
+- Runner on 2nd seeing signs: switch to multiple-sign sequences.
+
+### First Base
+- Scoop low throws — stretch toward the throw, keep your foot on the bag.
+- Hold runners: give pitcher a target, apply tag on pickoff throws.
+- Bunt defense: charge aggressively. 2B covers first.
+- Cutoff on throws from RF to home.
+- Know when force is removed: runner out ahead of you = tag play, not force.
+
+### Second Base
+- Double play pivot: receive feed, touch second, get off the bag to avoid the runner.
+- Relay man on balls hit to RIGHT field — default toward home plate.
+- Cover first on bunts when 1B charges.
+- Fly ball priority: outfielder coming in ALWAYS has priority over you going back.
+
+### Shortstop
+- Captain of the infield for communication on fly balls and relays.
+- Double play feed: firm, chest-high throw to second.
+- Relay man on balls hit to LEFT field — default toward home plate.
+- Deep-hole play: plant hard, strong throw across the diamond (signature play).
+- Steal coverage: straddle the bag, sweep tag down in front of the base.
+- Fly ball priority: outfielder coming in ALWAYS has priority over you going back. Never call off an outfielder on a shallow fly.
+
+### Third Base
+- Hot corner: quick reactions, ready position, expect hard-hit balls.
+- Bunt defense: crash hard, bare-hand if needed, strong throw to first.
+- Slow rollers: charge aggressively, bare-hand scoop-and-throw in one motion.
+- Guard the line late in close games (prevent extra-base hits down the line).
+- Fly ball priority: outfielder coming in has priority on tweeners behind you.
+
+### Left Field
+- Priority over ALL infielders on fly balls you can reach (coming in is easier).
+- Hit the cutoff man — don't throw all the way home unless the play is clearly there.
+- Wall play: round the ball so momentum carries toward the infield. Never field and spin.
+- Back up third base on all infield ground balls.
+- Sun balls: use glove as primary shield, sunglasses as supplementary.
+
+### Center Field
+- Priority on ALL fly balls you can reach — over corner OF and all infielders.
+- Communication is your responsibility — you see the whole field.
+- Gap coverage: take angle routes (banana routes), not straight-back.
+- Do-or-die throws: charge the ball, crow-hop, throw through the cutoff.
+- Back up second base on infield plays.
+
+### Right Field
+- Strong arm is your biggest weapon — throw out runners at third and home.
+- Back up first base on EVERY infield grounder (most important routine job).
+- Priority over infielders (1B, 2B) on fly balls you can reach.
+- Cutoff throws: hit the cutoff unless you have a clear play at the base.
+- Wall play: learn caroms off the wall in your corner.
+
+### Batter
+- Count leverage is everything. Hitter's counts (2-0, 3-1): be aggressive on YOUR pitch.
+- Pitcher's counts (0-2, 1-2): protect the zone, shorten up, expand slightly.
+- Two-strike approach: widen the zone, battle, foul off tough pitches.
+- Situational hitting: runner on 3rd with less than 2 outs = fly ball scores him.
+- Hit behind the runner to advance from 2nd to 3rd (hit to the right side).
+- Sacrifice bunts usually LOWER run expectancy (see Data Integration section).
+- Always respect the coach's signs. Never teach "ignore the sign."
+
+### Baserunner
+- Stolen base break-even: ~72% success rate needed (per RE24). Below that, you're hurting the team.
+- Read the pitcher: first-move tells, timing the delivery, lead distance.
+- Tag-ups: watch the fielder's feet, leave on the catch (not before).
+- Line drives: FREEZE and read. Never get doubled off.
+- Never make the first or third out at third base (old baseball axiom with RE24 backing).
+- Respect coach's signs always. Secondary leads are key for passed balls and wild pitches.
+
+### Manager
+- RE24 guides sacrifice bunt decisions (usually bad — see Data Integration).
+- Stolen bases need ~72% success to be worthwhile.
+- Pitching changes: L/R platoon advantage, fatigue, times through the order (~30 points better 3rd time).
+- Intentional walks: only with first base open AND a clear skill gap to the next hitter.
+- Defensive positioning: guard lines late in close games, play for DP early.
+- Play for one run late in close games; play for big innings early.
+
+### Rules (Special Category)
+- Teach MLB Official Rules accurately. Include recent changes (pitch clock, shift ban, universal DH).
+- Force play, infield fly rule, balk, obstruction, interference — all from the official rulebook.
+
+### Famous Plays (Special Category)
+- Historical accuracy is paramount. Cite the actual year, teams, and players.
+- Teach the strategic lesson the play illustrates, not just the story.
+
+### Counts (Special Category)
+- Count-specific batting averages and strategy. Data-driven decisions.
+- Tie scenarios to real count leverage (hitter's count vs pitcher's count).
+
+---
+
+## 4. Scenario Construction Methodology (8 Steps)
+
+1. **Choose the teaching concept** — one clear, reusable principle per scenario.
+2. **Design the game situation** — make it realistic (inning, outs, count, runners, score all consistent).
+3. **Write 4 options** — one optimal (75-90 rate), one decent (45-65), two poor (10-40).
+4. **Verify against Principles Library** — does the best answer match authoritative coaching?
+5. **Write explanations that teach WHY** — cite specific rules, stats, or principles. Never just "good choice."
+6. **Cross-check for contradictions** — search existing scenarios for the same concept. Ensure consistency.
+7. **Assign metadata** — difficulty (1-3), animation type, category, situation object.
+8. **Run the Quality Checklist** (Section 7) before committing.
+
+---
+
+## 5. Data Integration Reference
+
+### Run Expectancy Matrix (Key Base-Out States, 2015-2024 MLB averages)
+
+| Runners | 0 Out | 1 Out | 2 Out |
+|---------|-------|-------|-------|
+| Empty | 0.54 | 0.29 | 0.11 |
+| 1st | 0.94 | 0.56 | 0.24 |
+| 2nd | 1.17 | 0.71 | 0.33 |
+| 3rd | 1.43 | 0.98 | 0.37 |
+| 1st & 2nd | 1.56 | 0.96 | 0.46 |
+| 1st & 3rd | 1.83 | 1.21 | 0.52 |
+| 2nd & 3rd | 2.05 | 1.44 | 0.60 |
+| Loaded | 2.29 | 1.59 | 0.77 |
+
+### Sacrifice Bunt RE24 Analysis
+- Runner on 1st, 0 out: 0.94 → Runner on 2nd, 1 out: 0.71. **Net: −0.23 runs.**
+- Runner on 2nd, 0 out: 1.17 → Runner on 3rd, 1 out: 0.98. **Net: −0.19 runs.**
+- Bunting almost always lowers run expectancy. Exceptions: very weak hitter (<.200), late game needing exactly 1 run (Win Expectancy, not RE, drives the call), pitcher batting.
+
+### Stolen Base Break-Even
+- ~72% success rate needed for a steal attempt to be RE-neutral.
+- Below 72%: the caught-stealing damage outweighs the base-advanced benefit.
+- Context: with 2 outs, break-even drops to ~67% (caught stealing ends the inning but you were likely stranded anyway).
+
+### Count-Specific Batting Averages (MLB Averages)
+| Count | BA | OBP | SLG | Notes |
+|-------|-----|-----|-----|-------|
+| 0-0 (first pitch) | .340 | .340 | .555 | First-pitch strikes are gold for pitchers |
+| 1-0 | .345 | .345 | .550 | Hitter's count — be aggressive |
+| 2-0 | .400 | .400 | .665 | Best hitter's count — sit on your pitch |
+| 3-0 | .375 | .900+ | .590 | Usually take; green light only for good hitters |
+| 3-1 | .370 | .500+ | .615 | Premium hitter's count |
+| 0-1 | .300 | .300 | .460 | Pitcher got ahead — still competitive |
+| 0-2 | .167 | .170 | .240 | Pitcher dominant — expand zone, protect |
+| 1-2 | .180 | .190 | .270 | Pitcher's count — survival mode |
+| 2-2 | .205 | .210 | .310 | Neutral-to-pitcher — protect the zone |
+| 3-2 | .230 | .350+ | .380 | Full count — anything can happen |
+
+### Key Fielding/Pitching Metrics
+- Times through the order: batters hit ~30 points better the 3rd time vs 1st time.
+- Platoon advantage: LHB vs RHP ~15-20 points higher BA than LHB vs LHP (and vice versa).
+- Catcher pop time: elite = 1.8-1.9 sec. Average = 2.0 sec. Steal window matters.
+- Pitcher time to plate: under 1.3 sec makes stealing very difficult.
+
+---
+
+## 6. AI Self-Audit Protocol
+
+Every AI-generated scenario must pass this 7-point verification before being accepted:
+
+1. **Situation validity**: Is the game situation physically possible? (outs 0-2, count valid, runners/score consistent)
+2. **Option feasibility**: Can this player physically perform all 4 options from their position in this moment?
+3. **Authoritative correctness**: Does the best answer match what a coaching authority (Tier 1-3) would teach?
+4. **Rule accuracy**: Are force/tag, priority, relay, and other rules cited correctly?
+5. **Statistical accuracy**: Are any cited percentages approximately correct? (no invented numbers)
+6. **Principles consistency**: Does the scenario contradict any principle in the Principles Library (Section 3)?
+7. **Animation match**: Is the anim type consistent with the scenario action?
+
+These 7 checks are injected directly into the AI generation prompt in `index.jsx`.
+
+---
+
+## 7. Enhanced Quality Checklist (For All Scenarios)
+
+Every scenario — handcrafted or AI-generated — must pass ALL of these:
 
 ### Baseball Accuracy
 - [ ] Game situation is possible (innings, outs, count, runners, score all make sense together)
 - [ ] All 4 options are actions a player at THAT position could physically perform in that moment
-- [ ] The best answer is what a knowledgeable baseball coach would teach
+- [ ] The best answer matches authoritative coaching (Tier 1-3 sources)
 - [ ] No option requires a physically impossible action (e.g., changing a pitch mid-delivery)
-- [ ] Success rates reflect real baseball outcomes (best option 80-90, alternatives 40-60/25-40/5-25)
-- [ ] Explanations cite correct rules — force vs. tag, when plays apply, who has priority
-- [ ] Statistics cited are approximately correct (no made-up percentages)
+- [ ] Success rates reflect real baseball outcomes (best 75-90, decent 45-65, poor 10-40)
+- [ ] Explanations cite correct rules — force vs tag, priority hierarchy, relay direction
+- [ ] Statistics cited are approximately correct (sourced from Section 5 data)
+- [ ] Fly ball priority is correct: OF coming in > IF going back. Center > corners.
+- [ ] Relay default is toward HOME PLATE (preventing runs is priority)
 
 ### Educational Quality
 - [ ] The "why" is explained, not just the "what"
 - [ ] Wrong-answer explanations teach something — they explain WHY it's suboptimal
-- [ ] No contradictions with other scenarios in the same position
+- [ ] No contradictions with other scenarios in the same or different position
 - [ ] The concept is a clear, reusable principle (not just "this is the right play")
 - [ ] Age-appropriate language (scenarios with `explSimple` for ages 6-10)
 
@@ -78,512 +278,180 @@ Every scenario — handcrafted or AI-generated — must pass ALL of these checks
 ### Consistency Checks
 - [ ] Relay positioning: default alignment is toward HOME (not the lead runner's base)
 - [ ] Coach's signs: always teach respect for the coach's call (never "ignore the sign")
-- [ ] Taking vs. swinging: frame as situational, not absolute. Never say "always take" or "always swing"
+- [ ] Taking vs swinging: frame as situational, not absolute. Never "always take" or "always swing"
 - [ ] Sun defense: glove technique is primary, sunglasses are supplementary
 - [ ] Framing: context-dependent (borderline = subtle pull, high-leverage = stillness)
+- [ ] Sacrifice bunts: acknowledge RE24 trade-off (bunts lower RE except in narrow late-game situations)
+- [ ] Stolen bases: acknowledge ~72% break-even rate in explanations when relevant
 
 ---
 
-## Overview
-Target: 40-50 scenarios per position, 200-250 total in the shared bank
-Current: 394 handcrafted across 15 categories
-Each batch: Generate 10 at a time, review for accuracy, then move to next batch
+## 8. Current MLB Rule Changes Tracker
+
+Rules that affect scenario accuracy (as of 2024-25 seasons):
+
+| Rule Change | Season | Impact on Scenarios |
+|-------------|--------|-------------------|
+| Pitch clock | 2023 | Pitchers must deliver in 15/20 sec. Affects steal timing scenarios. |
+| Shift ban | 2023 | 2 infielders on each side of 2B required. Shift scenarios need qualifier. |
+| Universal DH | 2022 | No more "pitcher batting" in NL. Add qualifier for youth leagues. |
+| Bigger bases (18") | 2023 | Slightly shorter steal distance. Minor impact on steal scenarios. |
+| Runner on 2nd in extras | 2020 | "Ghost runner" rule. Affects extra-inning manager scenarios. |
+| Pitch clock violation = ball/strike | 2023 | New strategic element for advanced scenarios. |
 
 ---
 
-## PITCHER (Target: 45 scenarios)
+## 9. Audit Log
 
-### Batch 1 — Pitch Selection by Count (10 scenarios)
-Difficulty 1:
-1. First pitch to a leadoff hitter — throw a strike or nibble the corners?
-2. 0-2 count — waste a pitch or go for the strikeout?
-3. 3-1 count — what pitch to throw when you have to throw a strike?
+### Feb 2026 — Initial Audit (394 scenarios)
 
-Difficulty 2:
-4. 1-1 count against a power hitter — fastball or offspeed?
-5. 2-2 count with a runner on third — pitch to contact or go for the K?
-6. 0-1 count — expand the zone or stay in the zone?
-7. Behind 2-0 to the 8th hitter — groove it or work the corners?
+**Tier 1 — Critical (7 fixes)**
+- `r54`: Added 4th option (was only 3, breaking UI)
+- `p53`: Removed "double play" claim (impossible with 2 outs)
+- `f21`: Changed "tags the runner" to "steps on home plate for the force out" (bases loaded = force)
+- `ct7`: Changed squeeze defense call to happen BEFORE the pitch
+- `2b4`: Changed relay default to home plate (was third base)
+- `ss4`: **Fixed fly ball priority** — changed best answer from SS going back to LF coming in. Outfielder priority is non-negotiable.
+- `2b6`: **Fixed fly ball priority** — changed best answer from 2B going back to RF coming in. Added tag-up throwing position rationale.
 
-Difficulty 3:
-8. Full count, bases loaded, two outs in a tie game — your best pitch or their worst pitch?
-9. 3-2 count, runner stealing on the pitch — fastball for strike or slider hoping he chases?
-10. 0-2 to a known fastball hitter — waste a breaking ball or challenge with heat?
+**Tier 2 — Significant (6 fixes)**
+- `b4`: Removed coaching conflict with b40
+- `p54`: Changed score from 5-4 to 4-4, added batting averages
+- `f17`: Changed score from 5-3 to 5-4 (1-run lead)
+- `m1`: Changed on-deck hitter stats (makes IBB clearly right)
+- `b8`: Narrowed rates, added nuance
+- `f43`: Renamed to `m58` (wrong prefix)
 
-### Batch 2 — Pitching With Runners On Base (10 scenarios)
-Difficulty 1:
-1. Runner on first, nobody out — focus on the batter or worry about the runner?
-2. Pitch from the stretch vs the windup — when do you switch?
-3. Runner on second, nobody out — do you pitch differently knowing a single scores him?
+**Tier 3 — Inconsistencies (5 fixes)**
+- `b16`/`b51`: Narrowed "take first pitch" rates, added nuance
+- `ss5`: Changed relay default to home plate
+- `lf7`: Raised glove-shield rate to 70
+- `ct4`/`ct17`: Added context differentiation for framing
+- `r53-r57`/`rl1,4,7`: Verified — no changes needed
 
-Difficulty 2:
-4. Fast runner on first, 1-1 count — quick to the plate or forget the runner?
-5. Runners on first and third, one out — pitch for a ground ball double play?
-6. Runner on second in scoring position — pitching carefully or attacking the zone?
-7. Slide step vs full delivery with a runner on first — when does it matter?
+**Tier 4 — Minor (14 fixes)**
+- `cf3`/`rf1`: Fixed anim from `throwHome` to `catch`
+- `ct9`: Fixed outs description
+- `fp2`: Clarified force play reasoning
+- `rl6`: Changed "American League" to "your team" (universal DH)
+- `m44`: Added qualifier for pitcher batting
+- `1b6`: Emphasized force-removed = tag play
+- `3b1`: Raised lead runner rate
+- `b39`: Added safety note
+- `f47`: Changed "No double play" to "No conventional double play"
+- `p44`: Fixed anim from `catch` to `safe` (pickoff throw, not catching)
+- `p48`: Fixed anim from `catch` to `safe` (pickoff throw, not catching)
+- `2b7`: Fixed anim from `advance` to `freeze` (holding runner, not advancing)
+- `r15`: Fixed anim from `safe` to `freeze` (teaching NOT to steal = stay put)
 
-Difficulty 3:
-8. Runner on third, less than 2 outs, infield in — pitch for strikeout, fly ball, or ground ball?
-9. Pickoff attempt — runner has a big lead, but the hitter is 0-2. What do you do?
-10. Bases loaded, one out, tie game — pitch to the batter or intentionally walk to set up force at any base?
+### Full Framework Audit (Feb 2026)
 
-### Batch 3 — Game Situation Pitching (10 scenarios)
-Difficulty 1:
-1. You have a 5-run lead in the 6th — pitch aggressively or carefully?
-2. First inning, first batter — how do you approach the game's opening at-bat?
-3. Your team just scored 3 runs — how does a big lead change your approach?
-
-Difficulty 2:
-4. Tie game, 7th inning, you've thrown 85 pitches — conserve energy or keep attacking?
-5. Facing the same batter for the 3rd time in a game — adjust your sequence or stick with what worked?
-6. The batter before this one hit a home run — how do you reset mentally and approach the next hitter?
-7. You just walked two batters — what's your adjustment?
-
-Difficulty 3:
-8. Top of the order coming up in the 8th, one-run lead — pitch to them or ask to be pulled?
-9. Your fastball isn't working today — how do you adjust your game plan mid-game?
-10. Cold weather game, your breaking ball isn't biting — adapt or keep throwing it?
-
-### Batch 4 — Holding Runners & Pickoffs (8 scenarios)
-Difficulty 1:
-1. Runner on first with a big lead — throw a pickoff or ignore him?
-2. Known base stealer on first — how do you adjust your timing?
-
-Difficulty 2:
-3. Runner on second is taking a big secondary lead — step off or pitch?
-4. Two pickoff throws already, runner is still taking a big lead — try again or focus on the batter?
-5. Runner on first, lefty pitcher advantage — how to use it?
-
-Difficulty 3:
-6. Runner on first fakes going, trying to distract you — how do you stay composed?
-7. Pitch out call from the catcher — when does it make sense to agree?
-8. Daylight play at second — the shortstop flashes, do you throw?
-
-### Batch 5 — Intentional Walks & Pitching Around (7 scenarios)
-Difficulty 2:
-1. Their best hitter is up with first base open — walk him to face a weaker hitter?
-2. Runner on second, two outs, first base open — walk the hitter to set up force at any base?
-3. Facing a lefty when the next batter is a righty — walk the lefty for a better matchup?
-
-Difficulty 3:
-4. Their cleanup hitter is 3-for-3 against you today — walk him even though it loads the bases?
-5. 8th inning, one-run lead, first base open — walk the tying run into scoring position?
-6. Two outs, runners on second and third — walk the batter to load the bases and set up a force?
-7. Intentional walk backfires when the next hitter is a surprise pinch hitter — how do you adjust?
+All 394 scenarios audited against the new Knowledge Framework (Section 3). Results:
+- **Structural integrity**: 394/394 pass (4 options, 4 rates, best=highest, valid anim, valid diff)
+- **Fly ball priority**: All correct after ss4/2b6 fixes
+- **Relay direction**: 8/8 relay scenarios correctly default toward home plate
+- **Force/tag accuracy**: 0 critical errors. Minor wording in m1/m31 ("force at every base")
+- **Bunt RE24**: 47/48 properly contextualized (b40 teaches coach obedience — design choice)
+- **Steal RE24**: All stealing scenarios are RE24-aware with proper risk/reward framing
+- **Count data**: All cited statistics are correct or approximately correct
+- **Coach authority**: All scenarios respect coach's signs
+- **No absolute claims**: No "always take" or "always swing" found
+- **Internal contradictions**: 0 true contradictions found
+- **Animation consistency**: 4 mismatches fixed (p44, p48, 2b7, r15)
 
 ---
 
-## BATTER (Target: 45 scenarios)
+## 10. Maintenance Protocol
 
-### Batch 1 — Situational Hitting (10 scenarios)
-Difficulty 1:
-1. Runner on third, less than 2 outs — what kind of contact do you want to make?
-2. Runner on second, nobody out — hit to the right side to advance the runner?
-3. Bases empty, you're leading off — what's your approach at the plate?
+### Annual (Before Each Season)
+- Review MLB rule changes for the upcoming season
+- Update Section 8 (Rule Changes Tracker)
+- Check if any scenarios reference outdated rules
+- Update count-specific batting averages if new MLB data is available
 
-Difficulty 2:
-4. Runner on third, one out, infield playing in — ground ball scores him, but fly ball does too. What's the approach?
-5. Runners on first and third, one out — hit and run or swing away?
-6. Down by one, runner on second, two outs — just get a hit or look for something specific?
-7. Tie game, runner on second, nobody out — bunt him to third or try to drive him in?
+### Quarterly
+- Refresh RE24 data if FanGraphs publishes updated tables
+- Audit any new scenarios added since last review
+- Check AI-generated scenario logs for recurring errors
 
-Difficulty 3:
-8. Runner on third, one out, team down by one in the 9th — deep fly ball ties it, hit ties it. Approach?
-9. Bases loaded, nobody out — swing for the fences or just put the ball in play?
-10. Runner on first, nobody out, pitcher is wild — take pitches to let the runner steal second?
-
-### Batch 2 — Count Management (10 scenarios)
-Difficulty 1:
-1. The count is 3-0 — do you swing at the next pitch?
-2. You're behind 0-2 — how does your approach change?
-3. The count is 2-0 — you're ahead. What are you looking for?
-
-Difficulty 2:
-4. First pitch of the at-bat — swing or take to see what the pitcher has?
-5. Count is 1-0 after a ball that just missed — get aggressive or stay patient?
-6. 3-1 count, runner on first — your pitch to hit, but a ground ball could be a double play?
-7. 2-2 count — protect the zone or still be selective?
-
-Difficulty 3:
-8. Full count, two outs, runners in scoring position — foul off tough pitches to stay alive?
-9. 3-0 with a runner on third and one out — take or swing? Coach's green light vs your judgment.
-10. 0-2 and the pitcher keeps throwing the same offspeed pitch — sit on it or react?
-
-### Batch 3 — Bunting Decisions (8 scenarios)
-Difficulty 1:
-1. Runner on first, nobody out, you're the 9-hole hitter — bunt him over?
-2. Runner on second, nobody out — sacrifice bunt to move him to third?
-
-Difficulty 2:
-3. You're a fast runner and the third baseman is playing deep — bunt for a hit?
-4. Runner on first, nobody out, but you're a good hitter — sacrifice or swing away?
-5. Squeeze play with runner on third, one out — when does the coach call this?
-
-Difficulty 3:
-6. Suicide squeeze called — the pitch is high and inside. What do you do?
-7. Runner on second, nobody out, but you're the 3-hole hitter with power — bunt or drive him in?
-8. Fake bunt to pull the infield in, then slash — when is this smart?
-
-### Batch 4 — Two-Strike Approach (8 scenarios)
-Difficulty 1:
-1. Two strikes — do you change your swing or keep swinging the same way?
-2. Two strikes with runners on — protect the plate or still be selective?
-
-Difficulty 2:
-3. Two strikes and the pitcher has been throwing breaking balls — what do you look for?
-4. Choking up on the bat with two strikes — why and when?
-5. Two strikes and you keep fouling off pitches — how long can you battle?
-6. The pitcher's been nibbling the corners all day and you have two strikes — expand your zone?
-
-Difficulty 3:
-7. Two strikes, runner on third, less than two outs — put the ball in play at all costs or still wait for your pitch?
-8. Two strikes and you're pretty sure a curveball is coming — sit on it or stay reactionary?
-
-### Batch 5 — Hitting Strategy by Game Situation (9 scenarios)
-Difficulty 1:
-1. Your team is winning big — still try hard or just have fun?
-2. First at-bat against a new pitcher — take pitches to see his stuff?
-
-Difficulty 2:
-3. You're in a slump, 0 for your last 10 — what do you adjust?
-4. The pitcher just hit your teammate — how do you stay focused at the plate?
-5. Cold weather, the ball isn't carrying — adjust your approach from power to contact?
-6. You notice the pitcher tips his curveball — how do you use this without being obvious?
-
-Difficulty 3:
-7. Bases loaded, no outs, you're the cleanup hitter — everyone expects a grand slam. What's the smart approach?
-8. You're the go-ahead run in the 9th — the pitcher is clearly nervous. How do you exploit this?
-9. Late in the game, you've seen this pitcher 3 times — what adjustments have you made?
+### On Every New Scenario Batch
+- Run the full Quality Checklist (Section 7) on every scenario
+- Cross-reference with existing scenarios for contradictions
+- Verify fly ball priority, relay direction, and force/tag rules specifically
 
 ---
 
-## BASERUNNER (Target: 45 scenarios)
+## Appendix A: AI Prompt Enhancement Spec
 
-### Batch 1 — Steal Decisions (10 scenarios)
-Difficulty 1:
-1. You're on first with a big lead — the pitcher is slow to the plate. Steal second?
-2. You're fast and on first — but the catcher has a great arm. Do you still go?
-3. You're on second — is stealing third ever a good idea?
+The AI generation prompt in `index.jsx` (`generateAIScenario()`) includes three injected blocks:
 
-Difficulty 2:
-4. Runner on first, 3-1 count — the pitcher has to throw a strike. Good time to steal?
-5. Down by 3 runs in the 7th — steal to get in scoring position or play it safe?
-6. You're on first, left-handed pitcher — how does this change your steal approach?
-7. Delayed steal — the catcher lobs the ball back to the pitcher lazily. React?
+1. **Position Principles Block**: Full principles from `POS_PRINCIPLES` constant, injected per-position.
+2. **Data Reference Block**: Key RE24 data, count averages, stolen base break-even, fly ball priority hierarchy, relay default, force/tag rules.
+3. **Self-Audit Block**: The 7-point verification checklist the AI must pass before outputting.
 
-Difficulty 3:
-8. Runner on first, two outs, your best hitter is at the plate — risk a steal or let him hit?
-9. Double steal with runners on first and third — how does this work?
-10. You're on second, the pitcher keeps looking at you — he's going to try a pickoff. How do you read it?
-
-### Batch 2 — Tagging Up (10 scenarios)
-Difficulty 1:
-1. You're on third, fly ball to deep center field — tag up and score?
-2. You're on third, shallow fly ball to left — too risky to tag?
-3. You're on second, deep fly ball to right — advance to third on the catch?
-
-Difficulty 2:
-4. You're on third, medium-depth fly ball — the outfielder has a strong arm. Go or stay?
-5. Line drive to the outfielder — you went halfway. Now what?
-6. You're on second, fly ball to center — advance to third or stay put? It depends on the outfielder's arm.
-7. Sacrifice fly — you're on third with one out. How do you time your departure?
-
-Difficulty 3:
-8. You're on third, fly ball to shallow right — the right fielder is charging in. His throw will be weak but he's close.
-9. Two runners tagging — you're on third, teammate is on second. Both go?
-10. You're on third, foul ball caught near the dugout — is it deep enough to tag?
-
-### Batch 3 — Reading the Ball Off the Bat (10 scenarios)
-Difficulty 1:
-1. Ground ball to the left side — you're on first. Go to second?
-2. Line drive right at the shortstop — you took off. Get back to first!
-3. Fly ball to the outfield — you're on first. Go halfway and watch.
-
-Difficulty 2:
-4. Ground ball to the right side — you're on second. Do you advance to third?
-5. Ball hit to the gap in right-center — you're on first. Can you make it to third?
-6. Chopper over the pitcher's head — you're on second. Score or hold at third?
-7. Sharp ground ball to third — you're on second. The third baseman is close to the bag.
-
-Difficulty 3:
-8. Slow roller to the right side — you're on third with one out. Go on contact was the call, but the ball is right at the first baseman.
-9. Blooper to shallow center — you're on first. The center fielder and shortstop are both going for it. If it drops, you score. If caught, you're doubled off.
-10. Hard one-hop back to the pitcher — you're on third. He fakes home and throws to third.
-
-### Batch 4 — Advancing & Game Situations (10 scenarios)
-Difficulty 1:
-1. Wild pitch — you're on second. Advance to third?
-2. Passed ball — you're on third. Sprint home?
-3. Ball gets away from the first baseman — you're on first. Go to second?
-
-Difficulty 2:
-4. The throw from the outfield goes to the wrong base — you're between bases. Keep going or go back?
-5. Hit and run is called — the batter swings and misses. You're running. Now what?
-6. First to third on a single — when can you take the extra base?
-7. Overthrow to first on a ground ball — how far do you go?
-
-Difficulty 3:
-8. You're on second, ground ball to short, runner on first is out at second — do you try for third during the double play?
-9. Balk is called — do you always get a free base? What do you do?
-10. Rundown — you're caught between bases. How do you make the defense make as many throws as possible?
-
-### Batch 5 — Special Situations (5 scenarios)
-Difficulty 2:
-1. Infield fly rule is called — what do you do as a runner?
-2. Ground rule double — where do you end up from first base?
-
-Difficulty 3:
-3. Obstruction by the fielder — the third baseman is in your way without the ball. What happens?
-4. Appeal play — you missed touching second base. Can the defense get you out?
-5. Force play removed — runner ahead of you is out. Are you still forced?
+These blocks are maintained in the `POS_PRINCIPLES` constant and the prompt template in `generateAIScenario()`. When updating principles in this document, also update the corresponding code.
 
 ---
 
-## FIELDER (Target: 50 scenarios)
+## Appendix B: Batch Planning Template
 
-### Batch 1 — Infield: Throwing to the Right Base (10 scenarios)
-Difficulty 1:
-1. Ground ball to you at short, runner on first, less than 2 outs — where do you throw?
-2. Ground ball to second base, bases empty — routine throw to first?
-3. Runner on second, ground ball to third — throw to first or check the runner?
+Use this template when generating new scenario batches:
 
-Difficulty 2:
-4. Runners on first and second, ground ball to short — start the double play or go to third?
-5. Bases loaded, ground ball to you — throw home for the force or start the double play?
-6. Runner on third, less than 2 outs, ground ball to short — check the runner or throw to first?
-7. Slow roller to third — do you have time to throw to first or eat the ball?
-
-Difficulty 3:
-8. Runner on first, ground ball up the middle — flip to second to start the DP, but the runner is fast. Can you turn two?
-9. Bases loaded, one out, hard ground ball to you — 1-2-3 double play or throw home first?
-10. Bunt with runners on first and second — fielder's choice. Who's the easiest out?
-
-### Batch 2 — Infield: Positioning & Depth (8 scenarios)
-Difficulty 1:
-1. Runner on third, less than 2 outs — play in to cut off the run or play back for range?
-2. Double play depth — where do you stand vs normal depth?
-
-Difficulty 2:
-3. Late in a close game, fast runner at the plate — shade toward the hole or play straight up?
-4. Bunt situation — where should the first and third basemen move?
-5. Left-handed pull hitter at the plate — shift or play straight up?
-6. Runner on second, nobody out — play at double play depth even without a runner on first?
-
-Difficulty 3:
-7. Their fastest runner is on third, one out — in or back? The batter is a power hitter.
-8. No outs, runner on first, known bunter — crash in or hold your position?
-
-### Batch 3 — Outfield: Throwing & Cutoffs (10 scenarios)
-Difficulty 1:
-1. Single to left field, runner on second — hit the cutoff man or throw straight home?
-2. Fly ball caught in center, runner on third tagging — throw home or to the cutoff?
-3. Ball hit to the gap — who backs up the throw?
-
-Difficulty 2:
-4. Runner rounding second hard on a single — throw to third or hold the ball?
-5. Extra base hit to the gap — throw to second, third, or relay through the cutoff?
-6. Runner trying to score from first on a double — long relay throw. Where do you aim?
-7. You're in right field and the ball gets past the center fielder — back up or go to a cutoff position?
-
-Difficulty 3:
-8. Runner on first, base hit to right — the first base coach is waving him to third. Cut it off or let the throw go through?
-9. Ball off the wall — play it quickly off the carom or wait for it to settle?
-10. Two runners going — one scoring, one trying for third. Which throw do you make?
-
-### Batch 4 — Outfield: Fly Ball Decisions (8 scenarios)
-Difficulty 1:
-1. Fly ball hit right to you — catch it normally or basket catch?
-2. Ball hit between you and another outfielder — who calls it?
-
-Difficulty 2:
-3. Ball hit deep toward the warning track — sprint back or angle your route?
-4. Line drive sinking in front of you — dive for it or play it on a hop?
-5. Fly ball in the sun — how do you find it?
-6. Ball hit to the gap, you and the other outfielder are both close — communication?
-
-Difficulty 3:
-7. Wind is blowing out hard — how does this change your starting depth?
-8. Ball hit to the wall, you can catch it but will crash into the fence — make the play or play it safe?
-
-### Batch 5 — Catcher: Game Management (10 scenarios)
-Difficulty 1:
-1. Runner on first, your pitcher is ignoring him — call a pitchout or pickoff?
-2. Ball in the dirt with a runner on third — block it or try to catch it?
-3. Pop fly near the backstop — whose ball is it?
-
-Difficulty 2:
-4. The opposing batter keeps fouling off pitches — change the pitch sequence?
-5. Your pitcher is losing control, walking batters — what do you say in a mound visit?
-6. Runner on third, wild pitch — how do you recover and make a play?
-7. Passed ball vs wild pitch — what's the difference and how do you prevent them?
-
-Difficulty 3:
-8. You notice the batter peeks at your signs — how do you adjust?
-9. Runner on second can see your signs — switch to a more complex sign system?
-10. Your pitcher wants to throw a fastball but you see the batter sitting on it — stick with your call or change?
-
-### Batch 6 — Communication & Teamwork (4 scenarios)
-Difficulty 2:
-1. Popup between the pitcher, catcher, and first baseman — who calls it?
-2. Rundown situation — how many throws should it take? What's your role?
-
-Difficulty 3:
-3. Relay throw from deep center — where do you position as the cutoff man?
-4. Bunt defense with runners on first and second — who covers what?
-
----
-
-## MANAGER (Target: 45 scenarios)
-
-### Batch 1 — Pitching Changes (10 scenarios)
-Difficulty 1:
-1. Your starter has thrown 90 pitches and is getting tired — pull him or let him finish the inning?
-2. Your pitcher just gave up back-to-back hits — go to the bullpen?
-3. Your starter is throwing a shutout but has 100+ pitches — leave him in?
-
-Difficulty 2:
-4. Your pitcher is doing well but a tough lefty is coming up — bring in the lefty specialist?
-5. Your reliever just got the last out of the 7th — does he come back for the 8th?
-6. Bases loaded, one out, your pitcher is struggling — pull him mid-inning or let him work out of it?
-7. Your closer has pitched 2 days in a row — use him again in a save situation?
-
-Difficulty 3:
-8. Your starter has a no-hitter through 6 but has thrown 105 pitches — how long do you ride it?
-9. Your best reliever is available but it's only the 6th inning — save him for later or use him now?
-10. Lefty-righty matchup — their best hitter is a switch hitter. Does the platoon advantage still apply?
-
-### Batch 2 — Offensive Strategy Calls (10 scenarios)
-Difficulty 1:
-1. Runner on first, nobody out, weak hitter up — bunt or swing away?
-2. Down by 1 in the 9th, leadoff runner on — sacrifice bunt or let the hitter swing?
-3. Bases loaded, nobody out — squeeze play or let him hit?
-
-Difficulty 2:
-4. Runner on first, your fastest player — steal or hit and run?
-5. Down by 3, runner on first — steal to get in position or play for a big inning?
-6. Hit and run called, batter swings and misses — was it the right call?
-7. Your 3-hole hitter is in a 0-for-15 slump — drop him in the order?
-
-Difficulty 3:
-8. One run game, bottom 8th, runner on second with nobody out — bunt to third or try to drive him in?
-9. Intentional walk to load the bases with one out to set up a force/DP — when is this smart?
-10. You have 2 pinch hitters left, it's the 7th inning — use one now or save them for the 9th?
-
-### Batch 3 — Defensive Strategy (8 scenarios)
-Difficulty 1:
-1. Winning by 1 in the 9th — bring in your best defensive outfielder?
-2. Opposing team has a fast runner — tell your catcher to be ready for a steal?
-
-Difficulty 2:
-3. Opposing batter is a known pull hitter — call for a shift?
-4. Runner on second, close game — tell your middle infielders to move to hold the runner?
-5. Bunt situation — call the wheel play or standard bunt defense?
-6. Infield in or back with a runner on third? Depends on the score and outs.
-
-Difficulty 3:
-7. Opposing team down by 2 in the 9th, runner on first, power hitter up — play for the DP or guard the lines?
-8. Your outfielders are getting tired — defensive replacement or save your bench?
-
-### Batch 4 — Lineup Construction (8 scenarios)
-Difficulty 1:
-1. Building a starting lineup — what does each spot in the order mean?
-2. Your fastest player — where does he bat? Leadoff?
-
-Difficulty 2:
-3. Your best hitter vs your best power hitter — who bats 3rd and who bats 4th?
-4. Pitcher is batting — 8th or 9th in the order? (NL rules)
-5. Platoon advantage — start the lefty or righty based on the opposing pitcher?
-6. A player is hot, hitting .400 this week — move him up in the order?
-
-Difficulty 3:
-7. Sabermetrics suggest your best hitter should bat 2nd, not 3rd — do you go against tradition?
-8. Your lineup has too many lefties and they're facing a tough lefty pitcher — rearrange or ride with it?
-
-### Batch 5 — Game Management (9 scenarios)
-Difficulty 1:
-1. Rain delay — your pitcher was dealing. Can he come back after a 45-minute delay?
-2. You're losing 8-0 in the 5th — when do you start resting starters for tomorrow?
-
-Difficulty 2:
-3. Extra innings — how do you manage your bullpen when the game could go 12+?
-4. Your team committed 3 errors — how do you keep morale up?
-5. The other team is stealing signs — what do you do?
-6. Bench-clearing situation — how does a manager handle conflict?
-7. Late game, tie score — do you play for one run or a big inning?
-
-Difficulty 3:
-8. Day game after a night game — rest your regulars or play to win?
-9. Final series of the season, your team is fighting for playoffs — use your ace on short rest?
-
----
-
-## GENERATION SCHEDULE
-
-### Week 1
-- [ ] Pitcher Batch 1 (Pitch Selection by Count) — 10 scenarios
-- [ ] Pitcher Batch 2 (Pitching With Runners) — 10 scenarios
-- [ ] Batter Batch 1 (Situational Hitting) — 10 scenarios
-
-### Week 2
-- [ ] Batter Batch 2 (Count Management) — 10 scenarios
-- [ ] Baserunner Batch 1 (Steal Decisions) — 10 scenarios
-- [ ] Baserunner Batch 2 (Tagging Up) — 10 scenarios
-
-### Week 3
-- [ ] Fielder Batch 1 (Throwing to Right Base) — 10 scenarios
-- [ ] Fielder Batch 3 (Outfield Throwing & Cutoffs) — 10 scenarios
-- [ ] Fielder Batch 5 (Catcher Game Management) — 10 scenarios
-
-### Week 4
-- [ ] Manager Batch 1 (Pitching Changes) — 10 scenarios
-- [ ] Manager Batch 2 (Offensive Strategy) — 10 scenarios
-- [ ] Manager Batch 3 (Defensive Strategy) — 8 scenarios
-
-### Week 5 (Fill remaining gaps)
-- [ ] Pitcher Batches 3-5
-- [ ] Batter Batches 3-5
-- [ ] Baserunner Batches 3-5
-- [ ] Fielder Batches 2, 4, 6
-- [ ] Manager Batches 4-5
-
-### After Each Batch
-1. Generate 10 scenarios with Claude Code
-2. Review each scenario for baseball accuracy
-3. Test in the app to make sure they display correctly
-4. Commit and push to GitHub
-5. Move to next batch
-
----
-
-## PROMPT TEMPLATE FOR CLAUDE CODE
-
-Use this template for each batch, changing the position and topics:
-
----
-
-Generate [NUMBER] new [POSITION] scenarios for the SCENARIOS.[position] array in index.jsx. Follow the EXACT format of the existing scenarios.
+```
+Generate [NUMBER] new [POSITION] scenarios for the SCENARIOS.[position] array in index.jsx.
 
 Each scenario needs:
-- id: "[first letter][next number]" (e.g., "p13" for the 13th pitcher scenario)
+- id: "[prefix][next number]"
 - title: Short catchy name
-- diff: [SPECIFY 1, 2, or 3 for each]
+- diff: [1, 2, or 3]
 - cat: category tag
-- description: 2-3 sentences painting a vivid game picture. Include the inning, score, outs, count, who's batting.
+- description: 2-3 vivid sentences. Include inning, score, outs, count, who's batting.
 - situation: {inning, outs, count, runners array, score array}
 - options: exactly 4 choices
-- best: 0-indexed number of the optimal choice
-- explanations: 4 detailed explanations teaching WHY each choice is good or bad. Reference real baseball percentages and strategy.
-- rates: 4 success rate numbers (best choice should be 75-90, worst 15-30)
+- best: 0-indexed optimal choice
+- explanations: 4 detailed explanations teaching WHY
+- rates: 4 success rates (best 75-90, decent 45-65, poor 10-40)
 - concept: One-sentence strategic lesson
-- anim: one of [steal, score, hit, throwHome, doubleplay, strike, strikeout, groundout, flyout, catch, advance, walk, bunt, safe, freeze]
+- anim: one of [strike, strikeout, hit, groundout, flyout, steal, score, advance, catch, throwHome, doubleplay, bunt, walk, safe, freeze]
 
-Focus these [NUMBER] scenarios on:
-[LIST THE SPECIFIC TOPICS]
+Focus: [SPECIFIC TOPICS]
 
-Requirements:
-- Strategically accurate based on real MLB baseball fundamentals
-- Explanations teach kids WHY, don't just say "good choice" or "bad choice"
-- Success rates should be realistic
-- Difficulty 1 = obvious right answer, Difficulty 3 = nuanced situations
-- Descriptions should make kids feel like they're in a real game
-- Age-appropriate language for kids 8-16
+CRITICAL: All scenarios must comply with the Principles Library in scenario-roadmap.md.
+Run the Quality Checklist before finalizing.
+```
+
+---
+
+## Scenario Counts (394 total)
+
+| Position | Count | Notes |
+|----------|-------|-------|
+| pitcher | 59 | |
+| batter | 58 | |
+| baserunner | 57 | |
+| manager | 58 | |
+| catcher | 30 | |
+| shortstop | 16 | |
+| centerField | 16 | |
+| secondBase | 15 | |
+| thirdBase | 15 | |
+| leftField | 15 | |
+| firstBase | 14 | |
+| rightField | 15 | |
+| famous | 10 | |
+| rules | 8 | |
+| counts | 8 | |
+
+---
+
+## Key Sources
+
+- [MLB Official Rules](https://www.mlb.com/official-rules) — Tier 1
+- [FanGraphs RE24 / Run Expectancy](https://library.fangraphs.com/misc/re24/) — Tier 2
+- [Baseball Savant / Statcast](https://baseballsavant.mlb.com/) — Tier 2
+- [Baseball Reference](https://baseball-reference.com/) — Tier 2
+- [SABR Research](https://sabr.org/) — Tier 2
+- [Pro Baseball Insider — Pop Fly Priorities](https://probaseballinsider.com/baseball-instruction/pop-fly-priorities/) — Tier 3
+- [Coach and Athletic Director — Priority System](https://coachad.com/articles/the-priority-system-in-baseball/) — Tier 3
+- [ABCA (American Baseball Coaches Association)](https://abca.org/) — Tier 3
+- [USA Baseball](https://usabaseball.com/) — Tier 3
