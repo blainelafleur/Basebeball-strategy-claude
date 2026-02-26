@@ -2961,8 +2961,8 @@ function getLvl(p){for(let i=LEVELS.length-1;i>=0;i--)if(p>=LEVELS[i].min)return
 function getNxt(p){for(const l of LEVELS)if(p<l.min)return l;return null;}
 
 const DAILY_FREE = 8;
-const STRIPE_MONTHLY_URL = "https://buy.stripe.com/PLACEHOLDER_MONTHLY";
-const STRIPE_YEARLY_URL = "https://buy.stripe.com/PLACEHOLDER_YEARLY";
+const STRIPE_MONTHLY_URL = "https://buy.stripe.com/4gM00ifyYbLI67way56kg00";
+const STRIPE_YEARLY_URL = "https://buy.stripe.com/4gM7sKgD2g1YbrQ9u16kg01";
 const AI_PROXY_URL = "https://bsm-ai-proxy.blafleur.workers.dev/v1/chat/completions";
 const FREE_THEMES = ["default","sunny","retro"];
 const FREE_JERSEYS = 2;
