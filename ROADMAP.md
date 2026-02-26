@@ -2,7 +2,7 @@
 
 ## Context
 
-**Where We Are:** A polished educational baseball game — 394 handcrafted scenarios across 15 categories, SVG field with 10 themes, avatar customization, season mode, coach mascot, survival/speed/daily modes — running as a single-file React app (`index.jsx`, ~4,239 lines) on Replit. Free tier gives 8 plays/day with a well-designed limit screen and Daily Diamond always free.
+**Where We Are:** A polished educational baseball game — 460 handcrafted scenarios across 15 categories, SVG field with 10 themes, avatar customization, season mode, coach mascot, survival/speed/daily modes, AI scenarios via xAI Grok + Cloudflare Worker proxy — running as a single-file React app (`index.jsx`, ~4,970 lines) on Replit. Free tier gives 8 plays/day with a well-designed limit screen and Daily Diamond always free. Pro gating, upgrade panel, and Stripe Payment Links are implemented (Phase 2 complete).
 
 **The Strategy:** Three phases remain. First, monetize the client-side app (no backend needed). Then build production infrastructure. Then grow with social features and coach tools.
 
@@ -54,7 +54,7 @@ All work in `index.jsx`. No backend changes. Shipped to Replit.
 
 ---
 
-## Phase 2: "Monetize It" (Client-Side Freemium) — NOT STARTED
+## Phase 2: "Monetize It" (Client-Side Freemium) — COMPLETE
 
 All work in `index.jsx`. No backend needed. Stripe Payment Links handle payment.
 
@@ -109,6 +109,44 @@ Additional:
 - Locked-content previews (blurred themes, grayed avatars)
 - Position card exhaustion badges
 - Funnel event tracking in localStorage (`limit_hit`, `stripe_link_clicked`, `pro_activated`, etc.)
+
+---
+
+## Phase 2.5: "Make It Real" (Audit & Refinement) — COMPLETE
+
+Hardened Phase 2 implementation after audit revealed critical gaps.
+
+### 2.5.1 Harden Parent Gate — DONE
+- Replaced hardcoded `13 x 7` with randomized math problems
+- Gate pass stored in sessionStorage (clears on tab close)
+
+### 2.5.2 Make AI Work — xAI Grok + Cloudflare Worker — DONE
+- Created `worker/index.js` — Cloudflare Worker proxy that hides xAI API key
+- Rewrote `generateAIScenario()` for xAI `grok-4-1-fast` (OpenAI-compatible format)
+- Enabled `x_search` tool for real-time X/Twitter baseball data in scenarios
+- Removed client-side API key requirement (proxy handles auth)
+- 15-second timeout with fallback to handcrafted scenarios
+
+### 2.5.3 Lightweight Analytics — DONE
+- Added `firstPlayDate`, `lastPlayDate`, `sessionCount` tracking
+- "Export Analytics (JSON)" button in parent report panel
+
+### 2.5.4 UX Quick Wins — DONE
+- 3-step first-play tutorial overlay for new users
+- Position mastery celebration screen when all scenarios exhausted
+- ARIA labels and keyboard navigation on key interactive elements
+
+### 2.5.5 Scenario Expansion — DONE
+- Expanded from 394 to 460 handcrafted scenarios (+66)
+- Filled weak positions: 1B, 2B, SS, 3B, LF, CF, RF (+6 each), famous (+10), rules (+10), counts (+10)
+
+### 2.5.6 Documentation Refresh — DONE
+- Updated CLAUDE.md, ROADMAP.md, MEMORY.md to match current codebase
+
+### Accepted Risks (Until Phase 3)
+- `isPro` in localStorage can be spoofed — fix with server-side auth
+- Stripe Payment Link URLs need real Stripe products configured
+- Cloudflare Worker AI proxy is free tier (100K req/day) — sufficient at current scale
 
 ---
 

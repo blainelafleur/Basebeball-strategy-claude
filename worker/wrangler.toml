@@ -1,0 +1,13 @@
+name = "bsm-ai-proxy"
+main = "index.js"
+compatibility_date = "2024-01-01"
+
+# Set the API key as a secret (never in this file):
+#   npx wrangler secret put XAI_API_KEY
+# Then paste your xAI API key when prompted.
+
+# Deploy:
+#   cd worker && npx wrangler deploy
+
+# Test locally:
+#   cd worker && npx wrangler dev
