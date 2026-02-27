@@ -3711,6 +3711,13 @@ coaching: {
     "advance-rate":"MLB runners score from 2nd on a single {rate}% of the time. Go on a base hit!",
     "first-pitch-value":"First-pitch strikes save ~0.05 runs per batter. At 68%, elite pitchers own this.",
     "three-oh-take":"3-0: 48% chance of a walk on the next pitch. Take the pitch unless you get the green light.",
+    "two-out-steal":"Two outs changes the steal math — only {breakeven}% break-even vs. 72% normally. Worth the risk!",
+    "platoon-matchup":"Platoon advantage is worth about 18 BA points. The right matchup on the field makes all the difference.",
+    "squeeze-moment":"Squeeze play: runner COMMITS on the pitch. Batter MUST make contact. One hesitation and it's a disaster.",
+    "framing-window":"Borderline pitch on {count} — this is exactly where framing wins or loses the at-bat.",
+    "dropped-k-moment":"Ball in the dirt on strike three! React fast — the batter may be able to run!",
+    "pickoff-window":"Runner with a big lead and slow delivery — pickoff or quick pitch? Every tenth of a second matters.",
+    "line-guard-moment":"One-run lead, late innings — protect the line. A double ends the game faster than a single.",
   }
 }};
 
@@ -3978,9 +3985,12 @@ function getSmartCoachLine(cat, situation, position, streak, isPro) {
     const re24 = getRunExpectancy(runners, outs);
     const ci = getCountIntel(count);
     const pressure = getPressure(situation);
-    // Streak lines still take priority
-    if (cat==="success" && streak>=3 && COACH_LINES.streakLines[Math.min(streak,10)])
-      return COACH_LINES.streakLines[Math.min(streak,10)];
+    // Streak lines take priority — use full range
+    if (cat==="success" && streak>=3) {
+      const maxSt=COACH_LINES.streakLines.length-1;
+      const sl=COACH_LINES.streakLines[Math.min(streak,maxSt)];
+      if(sl) return sl;
+    }
     // 40% chance of a situational brain line for Pro
     if (Math.random() < 0.4) {
       const innNum = parseInt((inning||"").replace(/\D/g,"")) || 1;
@@ -3989,23 +3999,30 @@ function getSmartCoachLine(cat, situation, position, streak, isPro) {
       let key = null, vars = {};
       if (runners.length === 3) { key = "bases-loaded"; vars = {re24: re24.toFixed(2)}; }
       else if (pressure >= 75 && innNum >= 7) { key = "high-leverage"; }
+      else if (runners.includes(1) && outs < 2 && !runners.includes(3)) { key = "dp-situation"; }
       else if (ci && ci.edge === "hitter" && cat === "success") { key = "hitters-count"; vars = {count, ba: "."+Math.round(ci.ba*1000), label: ci.label}; }
       else if (ci && ci.edge === "pitcher") { key = "pitchers-count"; vars = {count, ba: "."+Math.round(ci.ba*1000)}; }
       else if (count === "3-2") { key = "full-count"; }
       else if (re24 > 1.5) { key = "high-re24"; vars = {re24: re24.toFixed(2)}; }
-      else if (runners.some(r => r >= 2) && outs < 2) { key = "risp"; vars = {outs}; }
       else if (runners.includes(3) && outs < 2) {
-        const prob = BRAIN.stats.scoringProb.third[outs];
+        const prob = BRAIN.stats.scoringProb?.third?.[outs] || 0.67;
         key = "scoring-chance"; vars = {base:"3rd", outs, prob:Math.round(prob*100)};
       }
+      else if (runners.some(r => r >= 2) && outs < 2) { key = "risp"; vars = {outs}; }
       else if (['0-2','1-2'].includes(count)) {
-        const kRate = BRAIN.stats.countRates[count]?.k;
+        const kRate = BRAIN.stats.countRates?.[count]?.k || 0.27;
         key = "two-strike-danger"; vars = {count, kRate:Math.round(kRate*100)};
       }
       else if (count === '3-0') { key = "three-oh-take"; }
+      else if (innNum >= 8 && diff === 1 && ["thirdBase","firstBase","leftField","rightField","manager"].includes(position)) { key = "line-guard-moment"; }
       else if (innNum >= 7 && diff <= 2) { key = "late-close"; }
+      else if (innNum >= 6 && position === "pitcher") { key = "fatigue-warning"; vars = {penalty:30}; }
+      else if (outs === 2 && runners.length > 0 && position === "baserunner") { key = "two-out-steal"; vars = {breakeven:67}; }
       else if (outs === 2) { key = "two-outs"; }
       else if (outs === 0 && runners.length > 0) { key = "nobody-out"; }
+      else if (position === "catcher" && ci && ci.edge === "neutral") { key = "framing-window"; vars = {count: count||"2-2"}; }
+      else if (position === "baserunner" && runners.some(r => r <= 2)) { key = "steal-risky"; vars = {breakeven:72}; }
+      else if (re24 < 0.30) { key = "low-re24"; vars = {re24: re24.toFixed(2)}; }
       else if (innNum <= 1 && ["pitcher","manager"].includes(position)) { key = "first-pitch-value"; }
       else if (innNum <= 1) { key = "first-inning"; }
       if (key && BRAIN.coaching.situational[key]) {
@@ -4640,76 +4657,93 @@ function Board({sit}){
 // Coach Mascot — friendly baseball character with expressions
 const COACH_LINES={
   success:[
-    "Perfect call, slugger!","That's big-league thinking!","You nailed it!","Pro-level decision!",
-    "Coach is impressed!","Textbook play!","You're reading the game like a pro!","That's exactly what I'd do!",
-    "Sharp thinking out there!","You've got baseball IQ for days!","MVP material right there!",
-    "That's a veteran move!","Way to stay cool under pressure!","Smart baseball, love it!",
-    "You just made the highlight reel!","The scouts are watching!","That's what champions do!",
-    "You're playing chess while they play checkers!","That's heads-up ball right there!",
-    "You could teach this one!","Gold glove decision!","That's the right read every time!",
-    "You're seeing the whole field!","Clutch play, no doubt!","That's instinct you can't teach — wait, we just did!"
+    "That's instinct you can't teach — wait, we just did!","You're seeing the whole field!",
+    "That's heads-up ball right there!","You're reading the game like a pro!","That's exactly what I'd do!",
+    "Sharp thinking out there!","You've got baseball IQ for days!","That's a veteran move!",
+    "Way to stay cool under pressure!","You could teach this one!","That's the right read every time!",
+    "Clutch play, no doubt!","You just made the highlight reel!","That's what champions do!","Textbook play!",
+    "You saw the whole situation in a split second — that's baseball IQ!",
+    "That's the call coaches drill all season — and you just made it cold!",
+    "One right decision at the right moment wins games. That was it.",
+    "Nailed it! Every scenario you get right is a rep you'll remember in a real game.",
+    "Smart players make their teammates better — that's exactly what you just did.",
+    "Knowing WHY it's right is more valuable than guessing right. You knew.",
+    "That's the kind of decision that separates players who play long careers from those who don't.",
+    "The game rewards smart over fast, every time. You just proved it.",
+    "Baseball IQ compounds — every right answer makes the next one come faster.",
+    "First-time right on a tough one? That's real learning."
   ],
   warning:[
     "Not bad! Close one.","Good instinct, almost there!","Decent call — let's learn why.",
-    "You're on the right track!","Solid effort!","Hey, that's a reasonable play!",
+    "You're on the right track!","Hey, that's a reasonable play!",
     "Close — just one adjustment away!","Good thinking, wrong moment for it though.",
     "I've seen pros make that same call!","That works sometimes — but there's a better option.",
     "You're thinking about it the right way!","Almost had it — read the explanation!",
-    "That's a B+ play — let's get to A+!","Halfway there, keep going!",
     "Smart idea, just slightly off target.","Not a bad play — but not the best play.",
     "You've got the right instincts — let's sharpen them!","That'll work in some situations!",
-    "Good effort — next time you'll nail it!","Close call! The difference is in the details."
+    "Close call! The difference is in the details.",
+    "You picked up on the right cue — just applied it one beat off.",
+    "The right concept, slightly wrong situation. That gap closes fast.",
+    "A+ instinct, B+ timing. Read the explanation and flip that.",
+    "Pro players miss this one too — until they've seen it enough times. You're one rep closer."
   ],
   danger:[
-    "Hey, that's how we learn!","Every pro struck out first.","Let's break this down.",
-    "Good try — check the tip!","No worries, you'll get it!","Even the greats make mistakes!",
-    "That's a tough one — let's learn from it.","Shake it off and come back stronger!",
+    "Every pro struck out first.","Let's break this down.","No worries, you'll get it!",
+    "Even the greats make mistakes!","That's a tough one — let's learn from it.",
+    "Shake it off and come back stronger!",
     "Babe Ruth struck out 1,330 times. You're in good company!","The best players study their mistakes.",
     "Don't sweat it — this is how you get better!","Read the breakdown — it'll click next time.",
     "That's a learning rep — those count the most!","This one's tricky. Let's figure it out together.",
     "Oops! But now you know for next time.","Every wrong answer is a future right answer!",
-    "I missed that one too when I was learning!","Dust yourself off — next one's yours!",
-    "The game is the best teacher!","That's why we practice!"
+    "Dust yourself off — next one's yours!",
+    "The best players in the world had coaches who made them get this wrong first. Now you have.",
+    "Wrong answer, right process — you read the situation and committed. Read the explanation for the tweak.",
+    "Nobody gets this one right on instinct alone. That's why we train.",
+    "Write this one down mentally. In a real game, muscle memory takes over — now yours has the right play.",
+    "One wrong rep means ten right ones are loading. That's how this works."
   ],
   posSuccess:{
-    pitcher:["That's an ace-level pitch call!","First-pitch strikes cut BA from .340 to .167 on 0-2 — you got ahead!","Pitching smart beats pitching hard every time!","That's Cy Young thinking!"],
-    catcher:["You're the quarterback of this defense!","Elite catchers think two pitches ahead — just like you!","That's a 1.85-second pop time decision!","Field general material!"],
-    firstBase:["Stretch and scoop — that's Gold Glove material!","Knowing when to hold vs charge is what separates pros!","That's why 1B is the cutoff on CF/RF throws home!","Smooth first base work!"],
-    secondBase:["Silky smooth! That's a double play artist!","Quick pivot, strong relay — textbook!","Knowing when to cover 1B vs 2B is advanced stuff!","DP artist in the making!"],
-    shortstop:["Captain of the infield — nailed it!","Communication is king at short — you've got it!","That's a Gold Glove relay!","You own the left side!"],
-    thirdBase:["Hot corner hero! Lightning reflexes!","Charging bunts takes courage — you've got it!","Line guard in the 9th — that's veteran savvy!","Hot corner MVP!"],
-    leftField:["Tracking that ball like a pro!","Backing up 3B is an OF's hidden superpower — you know it!","That throw hit the cutoff perfectly!","Reading the ball like a scout!"],
-    centerField:["That's why CF is the captain of the outfield!","You called it loud and early — that's leadership!","Gap to gap coverage — elite range!","The OF captain speaks!"],
-    rightField:["Cannon arm! That throw was perfect!","Backing up 1B on every grounder — that's elite hustle!","Strong arm, smart throw — deadly combo!","Right field rocket arm!"],
-    batter:["You've got the eye of a cleanup hitter!","Knowing hitter's counts from pitcher's counts is an edge!","That's situational hitting — moving runners is how you win!","Patient and powerful — the perfect combo!"],
-    baserunner:["Speed AND smarts — that's rare!","72% break-even for steals — you know the math!","Reading the pitcher's first move is an art!","That's heads-up base running!"],
-    manager:["Skipper, that's a World Series move!","RE24 says that was the right call — and so do I!","Managing the pitching staff is the hardest job — nailed it!","That's a championship decision!"],
-    famous:"History lesson: aced!",rules:"You know the rulebook inside out!",counts:"Count IQ is off the charts!"
+    pitcher:["That's an ace-level pitch call!","First-pitch strikes cut BA from .340 to .167 on 0-2 — you got ahead!","Pitching smart beats pitching hard every time!","That's Cy Young thinking!","Pitch sequencing is how good arms become great ones — you just used it.","Location over velocity, every time. You just proved it.","The best pitchers know what pitch they're SETTING UP two throws from now. That's you."],
+    catcher:["You're the quarterback of this defense!","Elite catchers think two pitches ahead — just like you!","Elite pop time is 1.85 seconds — your pitch-calling just gave the pitcher every advantage.","Field general material!","Framing a borderline pitch is worth more than a strikeout. You got the call.","You called the right pitch in the right count — that's a game manager talking.","The catcher controls the pace of the whole game. You just felt that."],
+    firstBase:["Stretch and scoop — that's Gold Glove material!","Knowing when to hold vs charge is what separates pros!","That's why 1B is the cutoff on CF/RF throws home!","Smooth first base work!","When 1B crashes a bunt, 2B covers first — you knew who was coming behind you.","Force is removed when the runner ahead is out — you recognized the tag play instantly.","Stretching toward the throw not only saves the out — it saves the inning."],
+    secondBase:["Quick hands, smart feet — that's what turns two and wins games.","Quick pivot, strong relay — textbook!","Knowing when to cover 1B vs 2B is advanced stuff!","DP artist in the making!","Right side extra-base hit? 2B leads the relay — you were already moving.","The DP pivot: receive, touch, get off the bag before the runner arrives. Textbook.","Cover 1B when 1B charges, cover 2B when you're the relay — you tracked both."],
+    shortstop:["Captain of the infield — nailed it!","Communication is king at short — you've got it!","That's a Gold Glove relay!","You own the left side!","Left side extra-base hit means SS leads the relay. You were in the right spot.","Cutoff on all throws to third — SS owns that lane. You know the game.","Firm, chest-high feeds to second — that's how you turn two without thinking."],
+    thirdBase:["Hot corner hero! Lightning reflexes!","Charging bunts takes courage — you've got it!","Line guard in the 9th — that's veteran savvy!","Hot corner MVP!","SS covers 3B when you go out as cutoff — you knew your partner was there.","Bare-hand, charge, throw in one motion — that's a play you can't script.","Guarding the line in the 9th isn't giving up range — it's smart defense."],
+    leftField:["Coming in on a ball is always easier than going back — you knew that and trusted it.","Backing up 3B is an OF's hidden superpower — you know it!","That throw hit the cutoff perfectly!","Reading the ball like a scout!","3B is your cutoff on every throw home from left — you hit the right man.","Charging into a ball instead of circling it is how you save runs, not just outs.","That's the gap read coaches can't teach until they've seen it done right once. That was it."],
+    centerField:["That's why CF is the captain of the outfield!","You called it loud and early — that's leadership!","Gap to gap coverage — elite range!","The OF captain speaks!","Angle routes save steps. You didn't run straight back — you ran where the ball was going.","Center fielder has priority over everyone. You used it — and it worked.","1B is your cutoff on throws home from center. Hit the target, let them decide."],
+    rightField:["Cannon arm! That throw was perfect!","Backing up 1B on every grounder — that's elite hustle!","Strong arm, smart throw — deadly combo!","Right field rocket arm!","2B leads the relay on right-side extra-base hits — you hit the right man.","Backing up first on every single grounder is the most overlooked play in baseball — not for you.","Hit the cutoff and let the defense work. You trust the system."],
+    batter:["You've got the eye of a cleanup hitter!","Knowing hitter's counts from pitcher's counts is an edge!","That's situational hitting — moving runners is how you win!","Patient and powerful — the perfect combo!","On 3-1, hitters bat .370 — you recognized the premium count and attacked.","Two-strike approach: widen the zone, battle, don't give in. You didn't give in.","Hitting behind the runner isn't a sacrifice — it's winning baseball."],
+    baserunner:["Speed AND smarts — that's rare!","72% break-even for steals — you know the math!","Reading the pitcher's first move is an art!","That's heads-up base running!","Freeze on line drives, run on fly balls — you read it right in a fraction of a second.","Never make the first or third out at third. You know the axiom — and you lived it.","Secondary lead isn't standing still — it's a calculated creep toward the next base. Perfect."],
+    manager:["Skipper, that's a World Series move!","RE24 says that was the right call — and so do I!","Managing the pitching staff is the hardest job — nailed it!","That's a championship decision!","Third time through the order: batters hit 30 points better. You made the change at the right time.","Platoon advantage is worth 18 BA points. You put the right matchup on the field.","Win Probability, not just run expectancy — late-game decisions need a different lens. You used it."],
+    famous:["History lesson: aced!","The greats made decisions in milliseconds — and so did you.","Same situation, same century apart — same right answer.","Knowing what legends did is the first step to doing it yourself."],
+    rules:["You know the rulebook inside out!","The rulebook protects smart players — you knew exactly how.","Force vs tag, obstruction vs interference — you got the details right.","Rules aren't just for umpires. Smart players use them to their advantage."],
+    counts:["Count IQ is off the charts!","Hitters bat .400 on 2-0, .167 on 0-2 — you know which count this was.","Count leverage is the single biggest edge in amateur baseball — you have it.","The count tells the story. You read it right."]
   },
   posDanger:{
-    pitcher:["Pitching is all about outsmarting the hitter — you'll get there!","Remember: location beats velocity in high leverage!","Getting ahead 0-1 changes everything — work on first-pitch strikes!","The best pitchers think two pitches ahead."],
-    catcher:["Calling a game is the toughest job on the field — keep studying!","Remember: direct the cutoff man with your voice!","Pop time starts with a quick transfer — keep working on it!","The catcher sees the whole field — use that view!"],
-    firstBase:["First base is all about footwork and focus — keep at it!","Scoops save games — short-hop practice pays off!","Remember: you're the cutoff on CF and RF throws home!","Knowing when 2B covers for you is key."],
-    secondBase:["Turning two is an art — you'll get smoother with reps!","Cover 1B when 1B charges bunts — it's your job!","The DP pivot takes a thousand reps — keep at it!","Left side relay is SS, right side is you — know your assignments!"],
-    shortstop:["Shortstop is the hardest infield position — keep grinding!","Firm, chest-high feeds make the DP work!","You cut throws to 3B — know your assignments!","Communication is your superpower — use it!"],
-    thirdBase:["The hot corner is all about reactions — they'll get faster!","Bare-hand bunts take practice — keep charging!","Guard the line late and close — don't give up extra bases!","SS covers 3B when you're the cutoff — trust your teammates!"],
-    leftField:["Reading the ball off the bat takes practice — you're learning!","3B is your cutoff man on throws home — hit him!","Back up 3B on ALL infield plays — that's your hidden job!","Coming in on a ball is always easier than going back."],
-    centerField:["Covering all that ground takes experience — keep running them down!","You have priority on EVERY fly ball you can reach!","Angle routes beat straight-back routes — save steps!","Back up 2B on steal attempts — hustle pays off!"],
-    rightField:["That arm will get stronger — keep making those throws!","Back up 1B on EVERY grounder — most important routine OF job!","1B is your cutoff on throws home — hit the target!","Coming in is always easier than going back."],
-    batter:["Even the best hitters fail 7 out of 10 times. Keep swinging!","On 0-2, expand your zone slightly and fight off tough pitches.","2-0 is the best hitter's count — .400 BA! Be ready for your pitch.","Situational hitting wins games — think about moving runners!"],
-    baserunner:["Base running is the hardest thing to teach — you're learning!","Below 72% success rate, a steal attempt hurts your team.","Never make the first or third out at third base!","Tag up: watch the fielder's feet, leave on the catch."],
-    manager:["Managing is all about the next decision. Reset and go!","Batters hit 30 points better the 3rd time through — use that info!","Sacrifice bunts usually cost runs — check the RE24!","Late and close: every decision is magnified."],
-    famous:"These famous plays tripped up real pros too!",
-    rules:"Even umpires argue about rules sometimes!",
-    counts:"Counts are tricky — even big leaguers get fooled!"
+    pitcher:["Pitching is all about outsmarting the hitter — you'll get there!","Remember: location beats velocity in high leverage!","Getting ahead 0-1 changes everything — work on first-pitch strikes!","The best pitchers think two pitches ahead.","Set up your breaking ball with a fastball up — change eye level before changing speed.","Third time through the lineup, batters hit 30 points better. Know when to give way.","Holding runners isn't just pickoffs — it's varying your hold time to disrupt their rhythm."],
+    catcher:["Calling a game is the toughest job on the field — keep studying!","Remember: direct the cutoff man with your voice!","Pop time starts with a quick transfer — keep working on it!","The catcher sees the whole field — use that view!","Borderline pitch in a 2-2 count? Stillness sells it. Movement kills it.","On a dropped third strike: 1B empty? Chase it. 1B occupied, less than 2 outs? Batter's out.","Quick transfer beats a strong arm every time on steal attempts."],
+    firstBase:["First base is all about footwork and focus — keep at it!","Scoops save games — short-hop practice pays off!","Remember: you're the cutoff on CF and RF throws home!","Knowing when 2B covers for you is key.","When you're the cutoff, 2B covers 1B. Trust the rotation — it's automatic.","Force is removed the moment the runner ahead is out. Switch to a tag.","Stretching without coming off the bag early is a skill — practice the timing."],
+    secondBase:["Turning two is an art — you'll get smoother with reps!","Cover 1B when 1B charges bunts — it's your job!","The DP pivot takes a thousand reps — keep at it!","Left side relay is SS, right side is you — know your assignments!","On RF/CF gap balls, you're the lead relay — get in line between the OF and home.","Outfielder coming in always has priority over you going back on fly balls. Peel off early.","Get off the 2B bag the instant you release the DP throw — the runner is aiming at you."],
+    shortstop:["Shortstop is the hardest infield position — keep grinding!","Firm, chest-high feeds make the DP work!","You cut throws to 3B — know your assignments!","Communication is your superpower — use it!","On LF/deep CF balls, you lead the relay. Get there fast and give the OF a target.","Never call off an outfielder on a shallow fly — they're coming in, you're going back. That's harder.","The hole play: plant hard on the backhand, strong throw across. No arm-strength shortcuts."],
+    thirdBase:["The hot corner is all about reactions — they'll get faster!","Bare-hand bunts take practice — keep charging!","Guard the line late and close — don't give up extra bases!","SS covers 3B when you're the cutoff — trust your teammates!","Your cutoff lane is LF to home — get in line fast, listen for the catcher's call.","Guarding the line means giving up some singles to prevent doubles. In the 9th, that's the right trade.","Slow roller: charge, bare-hand, throw in one motion — hesitation means safe."],
+    leftField:["Reading the ball off the bat takes practice — you're learning!","3B is your cutoff man on throws home — hit him!","Back up 3B on ALL infield plays — that's your hidden job!","Coming in on a ball is always easier than going back.","Round the wall ball so your momentum carries toward the infield — never catch and spin.","Back up third on every infield grounder — you're the last line if the throw gets away.","Your relay on doubles is the SS — get the ball there and let him decide the play."],
+    centerField:["Covering all that ground takes experience — keep running them down!","You have priority on EVERY fly ball you can reach!","Angle routes beat straight-back routes — save steps!","Back up 2B on steal attempts — hustle pays off!","Call it loud and early — every collision in the OF starts with a player who waited too long.","On throws home from center, 1B is your cutoff — hit him, not the plate.","The banana route: start wide, let the ball come to you. Straight back = ball over your head."],
+    rightField:["That arm will get stronger — keep making those throws!","Back up 1B on EVERY grounder — most important routine OF job!","1B is your cutoff on throws home — hit the target!","Coming in is always easier than going back.","Wall caroms in right are unpredictable — learn your park's corner, that's a pro habit.","A throw to first isn't giving up — it's turning a double into a single. Smart.","RF-CF gap ball? 2B leads the relay — know your assignment."],
+    batter:["Even the best hitters fail 7 out of 10 times. Keep swinging!","On 0-2, expand your zone slightly and fight off tough pitches.","2-0 is the best hitter's count — .400 BA! Be ready for your pitch.","Situational hitting wins games — think about moving runners!","Down 0-2, hitters bat .167. Expand the zone, shorten up, battle — don't swing for the fences.","Runner on 3rd, less than 2 outs — a fly ball scores the run. You don't need a hit.","The hit-and-run: batter MUST swing to protect the runner. No take. No exceptions."],
+    baserunner:["Base running is the hardest thing to teach — you're learning!","Below 72% success rate, a steal attempt hurts your team.","Never make the first or third out at third base!","Tag up: watch the fielder's feet, leave on the catch.","Line drives: FREEZE and read. Getting doubled off is unforgivable — the ball's in front of you.","Secondary lead isn't passive — key on every pitch, creep toward the next base on every delivery.","With 2 outs, the steal break-even drops to 67% — the caught stealing ends the inning anyway."],
+    manager:["Managing is all about the next decision. Reset and go!","Batters hit 30 points better the 3rd time through — use that info!","Sacrifice bunts usually cost runs — check the RE24!","Late and close: every decision is magnified.","Intentional walks: only with first base open AND a clear skill gap to the next hitter. Both conditions.","Batters see the pitcher for the first time in 3 years every night — by the 3rd AB they're adjusting.","Defensive positioning: guard lines late, play for DP early. The game situation changes the entire field."],
+    famous:["These famous plays tripped up real pros too!","Even the 1955 World Series had players who guessed wrong first.","History's best plays look obvious in hindsight — in the moment, they're hard.","Wrong on this one? You're in good company — the defense thought so too."],
+    rules:["Even umpires argue about rules sometimes!","The infield fly rule, the balk, the force removal — these take reps to lock in.","Rules scenarios trip up players who haven't studied them. Now you have.","Wrong call here, but knowing WHY it's wrong is already half the battle."],
+    counts:["Counts are tricky — even big leaguers get fooled!","On hitter's counts, attack your pitch. On pitcher's counts, protect the zone. Review which is which.","The count shifts the entire strategy for both sides. Study these — they compound fast.","Wrong count read = wrong approach. Right count read = .200 BA difference. It matters enormously."]
   },
   streakLines:[
     null,null,null,
     "Three in a row! You're heating up!","Four straight! Stay locked in!",
     "Five in a row! You're on fire!","Six straight! Can't stop, won't stop!",
-    "Seven! That's a whole week of perfection!","Incredible streak going!",
-    "Double digits! You're unstoppable!","This streak is legendary!",
-    null,null,null,null,
+    "Seven! That's a whole week of perfection!","Eight straight! You're locked in!",
+    "Nine straight! One away from double digits — keep going!","This streak is legendary!",
+    "ELEVEN! You're not just playing — you're mastering this.","TWELVE straight. This is what elite preparation looks like.",
+    null,null,
     "FIFTEEN straight! You're writing history!",
     null,null,null,null,
     "TWENTY! Hall of Fame material right here!",
@@ -4722,7 +4756,7 @@ const COACH_LINES={
     "Did you know? A 90 mph fastball reaches home plate in 0.4 seconds!",
     "Fun fact: The average MLB game has about 146 pitches per team!",
     "Did you know? Only 6% of stolen base attempts use a delayed steal!",
-    "Fun fact: Left-handed pitchers have a natural advantage holding runners!",
+    "Brain stat: Left-handed pitchers can face first base in their natural delivery — that's why LHP steal success rates are 5-8% lower against them than RHP.",
     "Did you know? Batters hit .100 points higher on 3-1 counts vs 0-2 counts!",
     "Fun fact: The infield fly rule was created in 1895 to stop sneaky double plays!",
     "Did you know? Catchers squat and stand up over 200 times per game!",
@@ -4751,7 +4785,16 @@ const COACH_LINES={
     "Brain stat: 3-0 count — 48% of the time the pitcher throws ball 4. Take the pitch!",
     "Brain stat: The 2023 pitch clock shortened the steal window by 0.2 seconds — steals are harder!",
     "Brain stat: After 90 pitches, a starter's ERA equivalent rises by over 1 run per game!",
-    "Fun fact: A runner needs about 3.3 seconds to steal 2nd. Elite catchers give them only 3.2!"
+    "Fun fact: A runner needs about 3.3 seconds to steal 2nd. Elite catchers give them only 3.2!",
+    "Brain stat: Bunting with runners on 1st AND 2nd only costs 0.08 expected runs — the one time a bunt is closest to breaking even!",
+    "Brain stat: With just a runner on first and 0 outs, teams average 0.94 runs. A single can flip an entire game.",
+    "Brain stat: First and third with 0 outs? Teams average 1.83 runs that inning — that's why pitchers hate that situation!",
+    "Brain stat: On 3-1 counts, hitters bat .370 with a .500+ OBP — premium hitter's count. Sit on YOUR pitch.",
+    "Brain stat: Down 1-2, hitters only bat .180. That's survival mode — expand the zone and make contact.",
+    "Brain stat: With 2 outs, the steal break-even drops to 67% — a caught stealing ends the inning anyway, so the risk math changes!",
+    "Brain stat: The second time through the order, batters already hit 15 points better. By the third time? 30 points. Starters don't get easier.",
+    "Brain stat: When a pitcher delivers in under 1.2 seconds, stealing becomes nearly impossible — that's why quick pitchers are so valuable.",
+    "Brain stat: Getting ahead 0-1 drops batter BA to .300 — a huge advantage. That's why first-pitch strikes are non-negotiable."
   ]
 };
 function Coach({mood="neutral",msg=null}){

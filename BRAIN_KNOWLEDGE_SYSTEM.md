@@ -939,7 +939,7 @@ defensivePositioning: {
 
 ### 4.3 BRAIN.coaching.situational — Template Coach Lines
 
-33 situation-keyed lines with template variables (`{re24}`, `{count}`, `{ba}`, `{label}`, `{breakeven}`, `{delta}`, `{penalty}`, `{outs}`, `{prob}`, `{base}`, `{kRate}`, `{window}`, `{verdict}`, `{rate}`). Used by `getSmartCoachLine()` for Pro users — 40% chance of a data-driven line.
+40 situation-keyed lines with template variables (`{re24}`, `{count}`, `{ba}`, `{label}`, `{breakeven}`, `{delta}`, `{penalty}`, `{outs}`, `{prob}`, `{base}`, `{kRate}`, `{window}`, `{verdict}`, `{rate}`). Used by `getSmartCoachLine()` for Pro users — 40% chance of a data-driven line. 22-condition priority waterfall activates lines based on game state.
 
 | Key | Template | When Used |
 |-----|----------|-----------|
@@ -1291,100 +1291,30 @@ const ROLE_VIOLATIONS = {
 
 ### 8.1 Line Categories
 
-**Generic Success Lines (25 lines)**
-```
-"Perfect call, slugger!", "That's big-league thinking!", "You nailed it!",
-"Pro-level decision!", "Coach is impressed!", "Textbook play!",
-"You're reading the game like a pro!", "That's exactly what I'd do!",
-"Sharp thinking out there!", "You've got baseball IQ for days!",
-"MVP material right there!", "That's a veteran move!",
-"Way to stay cool under pressure!", "Smart baseball, love it!",
-"You just made the highlight reel!", "The scouts are watching!",
-"That's what champions do!", "You're playing chess while they play checkers!",
-"That's heads-up ball right there!", "You could teach this one!",
-"Gold glove decision!", "That's the right read every time!",
-"You're seeing the whole field!", "Clutch play, no doubt!",
-"That's instinct you can't teach — wait, we just did!"
-```
+**Generic Success Lines (25 lines)** — 15 kept from original, 10 replaced with more specific, teaching-focused lines.
 
-**Generic Warning Lines (20 lines)**
-```
-"Not bad! Close one.", "Good instinct, almost there!",
-"Decent call — let's learn why.", "You're on the right track!",
-"Solid effort!", "Hey, that's a reasonable play!",
-"Close — just one adjustment away!", "Good thinking, wrong moment for it though.",
-"I've seen pros make that same call!", "That works sometimes — but there's a better option.",
-"You're thinking about it the right way!", "Almost had it — read the explanation!",
-"That's a B+ play — let's get to A+!", "Halfway there, keep going!",
-"Smart idea, just slightly off target.", "Not a bad play — but not the best play.",
-"You've got the right instincts — let's sharpen them!", "That'll work in some situations!",
-"Good effort — next time you'll nail it!", "Close call! The difference is in the details."
-```
+**Generic Warning Lines (20 lines)** — 16 kept, 4 replaced (removed "Solid effort!", "Halfway there!", "B+ play", "Good effort — next time!").
 
-**Generic Danger Lines (20 lines)**
-```
-"Hey, that's how we learn!", "Every pro struck out first.",
-"Let's break this down.", "Good try — check the tip!",
-"No worries, you'll get it!", "Even the greats make mistakes!",
-"That's a tough one — let's learn from it.", "Shake it off and come back stronger!",
-"Babe Ruth struck out 1,330 times. You're in good company!",
-"The best players study their mistakes.",
-"Don't sweat it — this is how you get better!",
-"Read the breakdown — it'll click next time.",
-"That's a learning rep — those count the most!",
-"This one's tricky. Let's figure it out together.",
-"Oops! But now you know for next time.",
-"Every wrong answer is a future right answer!",
-"I missed that one too when I was learning!",
-"Dust yourself off — next one's yours!",
-"The game is the best teacher!", "That's why we practice!"
-```
+**Generic Danger Lines (20 lines)** — 15 kept, 5 replaced (removed "Hey, that's how we learn!", "Good try — check the tip!", "I missed that one too!", "The game is the best teacher!", "That's why we practice!").
 
 ### 8.2 Position-Specific Lines (Pro Only)
 
-**Position Success Lines (4 per fielding position, 1 for special modes)**
+**Position Success Lines (7 per fielding position, 4 for special modes)**
 
-| Position | Lines |
-|----------|-------|
-| pitcher | "That's an ace-level pitch call!", "First-pitch strikes cut BA from .340 to .167 on 0-2 — you got ahead!", "Pitching smart beats pitching hard every time!", "That's Cy Young thinking!" |
-| catcher | "You're the quarterback of this defense!", "Elite catchers think two pitches ahead — just like you!", "That's a 1.85-second pop time decision!", "Field general material!" |
-| firstBase | "Stretch and scoop — that's Gold Glove material!", "Knowing when to hold vs charge is what separates pros!", "That's why 1B is the cutoff on CF/RF throws home!", "Smooth first base work!" |
-| secondBase | "Silky smooth! That's a double play artist!", "Quick pivot, strong relay — textbook!", "Knowing when to cover 1B vs 2B is advanced stuff!", "DP artist in the making!" |
-| shortstop | "Captain of the infield — nailed it!", "Communication is king at short — you've got it!", "That's a Gold Glove relay!", "You own the left side!" |
-| thirdBase | "Hot corner hero! Lightning reflexes!", "Charging bunts takes courage — you've got it!", "Line guard in the 9th — that's veteran savvy!", "Hot corner MVP!" |
-| leftField | "Tracking that ball like a pro!", "Backing up 3B is an OF's hidden superpower — you know it!", "That throw hit the cutoff perfectly!", "Reading the ball like a scout!" |
-| centerField | "That's why CF is the captain of the outfield!", "You called it loud and early — that's leadership!", "Gap to gap coverage — elite range!", "The OF captain speaks!" |
-| rightField | "Cannon arm! That throw was perfect!", "Backing up 1B on every grounder — that's elite hustle!", "Strong arm, smart throw — deadly combo!", "Right field rocket arm!" |
-| batter | "You've got the eye of a cleanup hitter!", "Knowing hitter's counts from pitcher's counts is an edge!", "That's situational hitting — moving runners is how you win!", "Patient and powerful — the perfect combo!" |
-| baserunner | "Speed AND smarts — that's rare!", "72% break-even for steals — you know the math!", "Reading the pitcher's first move is an art!", "That's heads-up base running!" |
-| manager | "Skipper, that's a World Series move!", "RE24 says that was the right call — and so do I!", "Managing the pitching staff is the hardest job — nailed it!", "That's a championship decision!" |
-| famous | "History lesson: aced!" |
-| rules | "You know the rulebook inside out!" |
-| counts | "Count IQ is off the charts!" |
+Each of the 12 main positions now has 7 lines (4 original + 3 new teaching-focused additions). Special modes (famous, rules, counts) expanded from 1 string to 4-element arrays.
 
-**Position Danger Lines (4 per fielding position, 1 for special modes)**
+Key fixes applied:
+- catcher[2]: "That's a 1.85-second pop time decision!" → "Elite pop time is 1.85 seconds — your pitch-calling just gave the pitcher every advantage."
+- secondBase[0]: "Silky smooth! That's a double play artist!" → "Quick hands, smart feet — that's what turns two and wins games."
+- leftField[0]: "Tracking that ball like a pro!" → "Coming in on a ball is always easier than going back — you knew that and trusted it."
 
-| Position | Lines |
-|----------|-------|
-| pitcher | "Pitching is all about outsmarting the hitter — you'll get there!", "Remember: location beats velocity in high leverage!", "Getting ahead 0-1 changes everything — work on first-pitch strikes!", "The best pitchers think two pitches ahead." |
-| catcher | "Calling a game is the toughest job on the field — keep studying!", "Remember: direct the cutoff man with your voice!", "Pop time starts with a quick transfer — keep working on it!", "The catcher sees the whole field — use that view!" |
-| firstBase | "First base is all about footwork and focus — keep at it!", "Scoops save games — short-hop practice pays off!", "Remember: you're the cutoff on CF and RF throws home!", "Knowing when 2B covers for you is key." |
-| secondBase | "Turning two is an art — you'll get smoother with reps!", "Cover 1B when 1B charges bunts — it's your job!", "The DP pivot takes a thousand reps — keep at it!", "Left side relay is SS, right side is you — know your assignments!" |
-| shortstop | "Shortstop is the hardest infield position — keep grinding!", "Firm, chest-high feeds make the DP work!", "You cut throws to 3B — know your assignments!", "Communication is your superpower — use it!" |
-| thirdBase | "The hot corner is all about reactions — they'll get faster!", "Bare-hand bunts take practice — keep charging!", "Guard the line late and close — don't give up extra bases!", "SS covers 3B when you're the cutoff — trust your teammates!" |
-| leftField | "Reading the ball off the bat takes practice — you're learning!", "3B is your cutoff man on throws home — hit him!", "Back up 3B on ALL infield plays — that's your hidden job!", "Coming in on a ball is always easier than going back." |
-| centerField | "Covering all that ground takes experience — keep running them down!", "You have priority on EVERY fly ball you can reach!", "Angle routes beat straight-back routes — save steps!", "Back up 2B on steal attempts — hustle pays off!" |
-| rightField | "That arm will get stronger — keep making those throws!", "Back up 1B on EVERY grounder — most important routine OF job!", "1B is your cutoff on throws home — hit the target!", "Coming in is always easier than going back." |
-| batter | "Even the best hitters fail 7 out of 10 times. Keep swinging!", "On 0-2, expand your zone slightly and fight off tough pitches.", "2-0 is the best hitter's count — .400 BA! Be ready for your pitch.", "Situational hitting wins games — think about moving runners!" |
-| baserunner | "Base running is the hardest thing to teach — you're learning!", "Below 72% success rate, a steal attempt hurts your team.", "Never make the first or third out at third base!", "Tag up: watch the fielder's feet, leave on the catch." |
-| manager | "Managing is all about the next decision. Reset and go!", "Batters hit 30 points better the 3rd time through — use that info!", "Sacrifice bunts usually cost runs — check the RE24!", "Late and close: every decision is magnified." |
-| famous | "These famous plays tripped up real pros too!" |
-| rules | "Even umpires argue about rules sometimes!" |
-| counts | "Counts are tricky — even big leaguers get fooled!" |
+**Position Danger Lines (7 per fielding position, 4 for special modes)**
+
+Same expansion: 4 original + 3 new teaching lines per position. Special modes expanded to 4-element arrays. Every new danger line teaches a specific concept or technique.
 
 ### 8.3 Streak Lines
 
-Triggered when streak ≥ 3 and the player got the answer right. Takes priority over all other line types.
+Triggered when streak ≥ 3 and the player got the answer right. Takes priority over all other line types. Uses full array range (fixed from cap at 10).
 
 | Streak | Line |
 |--------|------|
@@ -1393,72 +1323,60 @@ Triggered when streak ≥ 3 and the player got the answer right. Takes priority 
 | 5 | "Five in a row! You're on fire!" |
 | 6 | "Six straight! Can't stop, won't stop!" |
 | 7 | "Seven! That's a whole week of perfection!" |
-| 8 | "Incredible streak going!" |
-| 9 | "Double digits! You're unstoppable!" |
+| 8 | "Eight straight! You're locked in!" |
+| 9 | "Nine straight! One away from double digits — keep going!" |
 | 10 | "This streak is legendary!" |
+| 11 | "ELEVEN! You're not just playing — you're mastering this." |
+| 12 | "TWELVE straight. This is what elite preparation looks like." |
 | 15 | "FIFTEEN straight! You're writing history!" |
 | 20 | "TWENTY! Hall of Fame material right here!" |
 | 25 | "TWENTY-FIVE! Is there anything you don't know?!" |
 
-### 8.4 Facts (35 lines)
+Fixes: streak 8 (was "Incredible streak going!" — no number), streak 9 (was "Double digits!" — 9 is not double digits). New milestones at 11 and 12 fill the gap between 10 and 15.
 
-Mix of "Did you know?" fun facts and "Brain stat:" data-driven facts. 20% chance on success for Pro users.
+### 8.4 Facts (44 lines)
 
-```
-"Did you know? A MLB game has about 300 strategic decisions!"
-"Fun fact: The pitcher's mound is exactly 60 feet, 6 inches from home plate!"
-"Did you know? A 90 mph fastball reaches home plate in 0.4 seconds!"
-"Fun fact: The average MLB game has about 146 pitches per team!"
-"Did you know? Only 6% of stolen base attempts use a delayed steal!"
-"Fun fact: Left-handed pitchers have a natural advantage holding runners!"
-"Did you know? Batters hit .100 points higher on 3-1 counts vs 0-2 counts!"
-"Fun fact: The infield fly rule was created in 1895 to stop sneaky double plays!"
-"Did you know? Catchers squat and stand up over 200 times per game!"
-"Fun fact: A curveball can break up to 17 inches from its starting path!"
-"Did you know? The hit-and-run play has been used since the 1890s!"
-"Fun fact: Relief pitchers didn't become common until the 1950s!"
-"Brain stat: With bases loaded and 0 outs, teams score an average of 2.29 runs!"
-"Brain stat: A sacrifice bunt with a runner on 1st costs 0.23 expected runs!"
-"Brain stat: On 2-0 counts, hitters bat .400 — the best count in baseball!"
-"Brain stat: Batters hit .167 on 0-2 counts — get ahead early!"
-"Brain stat: Platoon advantage is worth about 18 points of batting average!"
-"Brain stat: Elite catchers have a 1.85-second pop time — lightning fast!"
-"Brain stat: The steal break-even rate is 72% — below that, you're hurting your team!"
-"Brain stat: Runners on 2nd and 3rd with 0 outs? Teams average 2.05 runs!"
-"Did you know? The force play is removed when the runner ahead is put out!"
-"Fun fact: Center fielders have priority over ALL other fielders on fly balls!"
-"Did you know? On a full count, the walk rate jumps but BA drops to .230!"
-"Fun fact: The double play is called the pitcher's best friend!"
-"Brain stat: With no one on and 2 outs, teams only average 0.11 runs. Every base counts!"
-"Brain stat: Runners on 3rd with less than 2 outs score 67-85% of the time!"
-"Brain stat: A runner on 2nd scores only 23% of the time with 2 outs — need a base HIT!"
-"Brain stat: MLB runners score from 2nd on a single 62% of the time. Run on contact!"
-"Brain stat: First-pitch strikes save pitchers about 0.05 runs per batter faced!"
-"Brain stat: Elite pitchers throw first-pitch strikes 68% of the time. Average is 59%!"
-"Brain stat: On 0-2, the pitcher has a 27% strikeout rate on the very next pitch!"
-"Brain stat: 3-0 count — 48% of the time the pitcher throws ball 4. Take the pitch!"
-"Brain stat: The 2023 pitch clock shortened the steal window by 0.2 seconds — steals are harder!"
-"Brain stat: After 90 pitches, a starter's ERA equivalent rises by over 1 run per game!"
-"Fun fact: A runner needs about 3.3 seconds to steal 2nd. Elite catchers give them only 3.2!"
-```
+Mix of "Did you know?" fun facts and "Brain stat:" data-driven facts. 20% chance on success for Pro users. +9 new Brain Stat facts, 1 replaced (LHP fact → data-backed LHP steal suppression stat).
+
+New facts added:
+- Bunt with 1st+2nd costs only 0.08 RE (closest to break-even)
+- Runner on 1st/0 out: 0.94 expected runs
+- 1st and 3rd/0 out: 1.83 expected runs
+- 3-1 count: .370 BA, .500+ OBP
+- 1-2 count: .180 BA (survival mode)
+- 2-out steal break-even: 67% (not 72%)
+- TTO 2nd time: +15 pts, 3rd time: +30 pts
+- Quick delivery (1.2s) prevents steals
+- 0-1 count: .300 BA (first-pitch strike value)
 
 ### 8.5 Coach Line Selection Logic
 
 ```
 getCoachLine(cat, pos, streak, isPro):
   IF Pro:
-    1. streak ≥ 3 AND streak line exists → streak line
-    2. 20% chance on success → random fact
-    3. 30% chance → position-specific line (success or danger based on cat)
+    1. streak ≥ 3 AND streak line exists (full range) → streak line
+    2. 20% chance on success → random fact from 44-line pool
+    3. 30% chance → position-specific line (7 per position, 4 for special modes)
   THEN (Pro or Free):
     4. Random generic line from cat (success/warning/danger)
 
 getSmartCoachLine(cat, situation, position, streak, isPro):
   IF Pro AND situation exists:
-    1. streak ≥ 3 AND streak line exists → streak line
-    2. 40% chance → situational brain line (see priority order in Section 4.3)
+    1. streak ≥ 3 AND streak line exists (full range) → streak line
+    2. 40% chance → situational brain line, priority waterfall:
+       bases-loaded → high-leverage → dp-situation → hitters-count →
+       pitchers-count → full-count → high-re24 → scoring-chance →
+       risp → two-strike-danger → three-oh-take → line-guard-moment →
+       late-close → fatigue-warning → two-out-steal → two-outs →
+       nobody-out → framing-window → steal-risky → low-re24 →
+       first-pitch-value → first-inning
   THEN:
     3. Fall through to getCoachLine()
+
+40 situational lines total (33 original + 7 new: two-out-steal, platoon-matchup,
+squeeze-moment, framing-window, dropped-k-moment, pickoff-window, line-guard-moment).
+6 previously dormant lines now have triggers: dp-situation, fatigue-warning,
+steal-risky, low-re24, framing-window, line-guard-moment.
 ```
 
 ---
