@@ -123,7 +123,7 @@ Hardened Phase 2 implementation after audit revealed critical gaps.
 ### 2.5.2 Make AI Work — xAI Grok + Cloudflare Worker — DONE
 - Created `worker/index.js` — Cloudflare Worker proxy that hides xAI API key
 - Rewrote `generateAIScenario()` for xAI `grok-4-1-fast` (OpenAI-compatible format)
-- Enabled `x_search` tool for real-time X/Twitter baseball data in scenarios
+- ~~Enabled `x_search` tool~~ (deprecated by xAI, removed)
 - Removed client-side API key requirement (proxy handles auth)
 - 15-second timeout with fallback to handcrafted scenarios
 

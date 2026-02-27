@@ -59,7 +59,7 @@ Lines 3260-4970:    Main App() component (game state, UI, all screens)
 - Uses xAI Grok (`grok-4-1-fast`) via Cloudflare Worker proxy
 - Worker URL: `AI_PROXY_URL` constant in index.jsx
 - Sends player context: level, position accuracy, mastered concepts, recent wrong answers
-- Has `x_search` tool enabled for real-time X/Twitter baseball data
+- Real-time X search removed (xAI deprecated the tool API)
 - Triggers: "AI Coach's Challenge" button (Pro only) or when scenarios exhausted
 - Purple "AI" badge shown during AI-generated scenarios
 - 15-second timeout with cancel button and fallback to handcrafted

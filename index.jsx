@@ -3088,8 +3088,6 @@ async function generateAIScenario(position, stats, conceptsLearned = [], recentW
 
   const prompt = `You are creating a baseball strategy scenario for an educational game aimed at young players (ages 8-18).
 
-REAL-TIME CONTEXT: If you have access to search tools, optionally search X for recent MLB news, game highlights, or trending baseball discussions relevant to this position. Reference real, current events when it adds engagement value (e.g., "After last night's walk-off by [player]..."). Only use real data you can verify — never fabricate current events.
-
 PLAYER CONTEXT:
 - Level: ${lvl.n} (${stats.pts} points, ${stats.gp} games played)
 - Position: ${position} (${posStats.p} played, ${posAcc}% accuracy)
@@ -3155,8 +3153,7 @@ Rules for best: 0-indexed integer matching the optimal option in the options arr
       body: JSON.stringify({
         model: "grok-4-1-fast",
         max_tokens: 1000,
-        messages: [{ role: "system", content: prompt }],
-        tools: [{ type: "x_search" }]
+        messages: [{ role: "system", content: prompt }]
       })
     };
     if (signal) fetchOpts.signal = signal;
@@ -3166,9 +3163,15 @@ Rules for best: 0-indexed integer matching the optimal option in the options arr
       new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 15000))
     ]);
 
-    if (!response.ok) throw new Error(`API ${response.status}`);
+    if (!response.ok) {
+      const errBody = await response.text().catch(() => "");
+      console.error("[BSM] AI API error:", response.status, errBody);
+      throw new Error(`API ${response.status}`);
+    }
     const data = await response.json();
     const text = data.choices?.[0]?.message?.content || "";
+    console.log("[BSM] AI response received, content length:", text.length);
+    if (!text) throw new Error("API returned empty content");
     
     // Parse JSON — strip any accidental markdown fences
     const clean = text.replace(/```json|```/g, "").trim();
@@ -3208,8 +3211,9 @@ Rules for best: 0-indexed integer matching the optimal option in the options arr
     
     return { scenario };
   } catch (err) {
-    console.error("AI generation failed:", err);
+    console.error("[BSM] AI generation failed:", err.message, err);
     const errType = err.name==="AbortError" ? "aborted" : err.message==="Timeout" ? "timeout" : err.message?.startsWith("API") ? "api" : "parse";
+    console.error("[BSM] Error type:", errType);
     return { scenario: null, error: errType };
   }
 }
@@ -4362,7 +4366,7 @@ export default function App(){
       {/* Toast */}
       {toast&&<div style={{position:"fixed",top:56,left:"50%",transform:"translateX(-50%)",zIndex:200,background:"linear-gradient(135deg,#1a1a2e,#16213e)",border:"2px solid #f59e0b",borderRadius:14,padding:"8px 18px",display:"flex",alignItems:"center",gap:10,boxShadow:"0 8px 30px rgba(245,158,11,.3)",animation:"sd .35s ease-out",maxWidth:"90vw"}}>
         <span style={{fontSize:24}}>{toast.e}</span>
-        <div><div style={{fontSize:9,color:"#f59e0b",fontWeight:700,textTransform:"uppercase",letterSpacing:1}}>Achievement Unlocked!</div><div style={{fontSize:13,fontWeight:700}}>{toast.n}</div></div>
+        <div><div style={{fontSize:9,color:"#f59e0b",fontWeight:700,textTransform:"uppercase",letterSpacing:1}}>{toast.id?"Achievement Unlocked!":toast.n}</div><div style={{fontSize:13,fontWeight:700}}>{toast.id?toast.n:toast.d}</div></div>
       </div>}
 
       {/* Level Up Overlay */}
