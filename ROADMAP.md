@@ -143,6 +143,11 @@ Hardened Phase 2 implementation after audit revealed critical gaps.
 ### 2.5.6 Documentation Refresh — DONE
 - Updated CLAUDE.md, ROADMAP.md, MEMORY.md to match current codebase
 
+### 2.5.7 AI Response Time Optimization — TODO
+- Current AI scenario generation takes noticeably long (~5-10s)
+- Investigate: reduce prompt size, try smaller/faster model, pre-generate during idle, cache common positions
+- Consider streaming response to show partial progress
+
 ### Accepted Risks (Until Phase 3)
 - `isPro` in localStorage can be spoofed — fix with server-side auth
 - Stripe Payment Link URLs need real Stripe products configured

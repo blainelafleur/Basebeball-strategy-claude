@@ -3026,7 +3026,7 @@ const STADIUM_MILESTONES=[
   {games:200,label:"Fireworks",desc:"Fireworks on perfect answers!",icon:"🎆"},
   {games:330,label:"Legend Stadium",desc:"Golden border + Legend title!",icon:"👑"},
 ];
-const DEFAULT = {pts:0,str:0,bs:0,gp:0,co:0,ps:{},achs:[],cl:[],ds:0,lastDay:null,todayPlayed:0,todayDate:null,sp:0,isPro:false,onboarded:false,soundOn:true,recentWrong:[],dailyDone:false,dailyDate:null,streakFreezes:0,survivalBest:0,ageGroup:"11-12",displayName:"",teamCode:"",seasonGame:0,seasonCorrect:0,seasonComplete:false,fieldTheme:"default",avatarJersey:0,avatarCap:0,avatarBat:0,season:1,proPlan:null,proPurchaseDate:null,proExpiry:null,lastStreakFreezeDate:null,wrongCounts:{},posGrad:{},funnel:[],hist:{},firstPlayDate:null,lastPlayDate:null,sessionCount:0,tutorialDone:false,promoCode:null,promoActivatedDate:null,masteryShown:[]};
+const DEFAULT = {pts:0,str:0,bs:0,gp:0,co:0,ps:{},achs:[],cl:[],ds:0,lastDay:null,todayPlayed:0,todayDate:null,sp:0,isPro:false,onboarded:false,soundOn:true,recentWrong:[],dailyDone:false,dailyDate:null,streakFreezes:0,survivalBest:0,ageGroup:"11-12",displayName:"",teamCode:"",seasonGame:0,seasonCorrect:0,seasonComplete:false,fieldTheme:"default",avatarJersey:0,avatarCap:0,avatarBat:0,season:1,proPlan:null,proPurchaseDate:null,proExpiry:null,lastStreakFreezeDate:null,wrongCounts:{},posGrad:{},funnel:[],hist:{},posPlayed:{},firstPlayDate:null,lastPlayDate:null,sessionCount:0,tutorialDone:false,promoCode:null,promoActivatedDate:null,masteryShown:[]};
 
 // Streak flame visual — grows with daily streak length
 function getFlame(ds){
@@ -3822,6 +3822,12 @@ export default function App(){
     }catch{setSyncStatus('error');}
   },[authToken,authFetch]);
 
+  // Migrate: bootstrap posPlayed from hist if missing (one-time for existing users)
+  function migrateStats(s){
+    if(!s.posPlayed&&s.hist){const pp={};for(const[pos,ids] of Object.entries(s.hist)){pp[pos]=[...new Set(ids)];}s.posPlayed=pp;}
+    return s;
+  }
+
   // Load
   useEffect(()=>{(async()=>{
     // Load local state first
@@ -3839,22 +3845,22 @@ export default function App(){
           // Merge: server stats with local — higher gp wins
           const serverStats=d.stats||{};
           const merged=localStats?(serverStats.gp||0)>=(localStats.gp||0)?{...DEFAULT,...serverStats}:{...DEFAULT,...localStats}:{...DEFAULT,...serverStats};
-          merged.sessionCount=(merged.sessionCount||0)+1;
+          merged.sessionCount=(merged.sessionCount||0)+1;migrateStats(merged);
           setStats(merged);snd.setEnabled(merged.soundOn!==false);
           if(merged.onboarded)setScreen("home");else setScreen("onboard");
         } else {
           // Token expired/invalid — clear and fall back to local
           localStorage.removeItem('bsm_auth_token');setAuthToken(null);
-          if(localStats){setStats({...DEFAULT,...localStats,sessionCount:(localStats.sessionCount||0)+1});snd.setEnabled(localStats.soundOn!==false);setScreen(localStats.onboarded?"home":"onboard");}
+          if(localStats){const ls=migrateStats({...DEFAULT,...localStats,sessionCount:(localStats.sessionCount||0)+1});setStats(ls);snd.setEnabled(ls.soundOn!==false);setScreen(ls.onboarded?"home":"onboard");}
           else setScreen("onboard");
         }
       }catch{
         // Network error — fall back to local
-        if(localStats){setStats({...DEFAULT,...localStats,sessionCount:(localStats.sessionCount||0)+1});snd.setEnabled(localStats.soundOn!==false);setScreen(localStats.onboarded?"home":"onboard");}
+        if(localStats){const ls=migrateStats({...DEFAULT,...localStats,sessionCount:(localStats.sessionCount||0)+1});setStats(ls);snd.setEnabled(ls.soundOn!==false);setScreen(ls.onboarded?"home":"onboard");}
         else setScreen("onboard");
       }
     } else {
-      if(localStats){setStats({...DEFAULT,...localStats,sessionCount:(localStats.sessionCount||0)+1});snd.setEnabled(localStats.soundOn!==false);setScreen(localStats.onboarded?"home":"onboard");}
+      if(localStats){const ls=migrateStats({...DEFAULT,...localStats,sessionCount:(localStats.sessionCount||0)+1});setStats(ls);snd.setEnabled(ls.soundOn!==false);setScreen(ls.onboarded?"home":"onboard");}
       else setScreen("onboard");
     }
     // Check for challenge in URL
@@ -4028,8 +4034,10 @@ export default function App(){
     const src=pool.length>0?pool:raw;
     const unseen=src.filter(s=>!seen.includes(s.id));
     const lastScId=lastScRef.current;
+    const played=new Set((stats.posPlayed||{})[p]||[]);
+    const allExhausted=src.every(s=>played.has(s.id));
 
-    console.log('[BSM] startGame',{pos:p,forceAI,unseen:unseen.length,isPro:stats.isPro});
+    console.log('[BSM] startGame',{pos:p,forceAI,unseen:unseen.length,allExhausted,isPro:stats.isPro});
 
     // Local helper: AI generation with loading, abort, concept targeting, fallback
     const doAI=async()=>{
@@ -4065,7 +4073,7 @@ export default function App(){
     if(forceAI){
       // GUARANTEED AI path — button already verified isPro
       await doAI();
-    } else if(unseen.length===0&&!stats.isPro){
+    } else if(allExhausted&&!stats.isPro){
       // Free user pool exhaustion
       setAiMode(false);
       const shown=stats.masteryShown||[];
@@ -4078,7 +4086,7 @@ export default function App(){
       setSc(s);setScreen("play");
       s.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80);});
       setTimeout(()=>{setToast({e:"🔄",n:"Review Mode",d:"Revisiting scenarios to sharpen your skills!"});setTimeout(()=>setToast(null),3000)},300);
-    } else if(unseen.length===0){
+    } else if(allExhausted){
       // Pro user natural pool exhaustion — try AI
       await doAI();
     } else {
@@ -4135,6 +4143,9 @@ export default function App(){
         }
       }
       const now=Date.now();
+      // Track all played scenario IDs per position (append-only, for exhaustion detection)
+      const posP={...(p.posPlayed||{})};
+      if(sc.id&&!sc.isAI){const posIds=new Set(posP[pos]||[]);posIds.add(sc.id);posP[pos]=[...posIds];}
       const ns={...p,pts:p.pts+pts,str:isOpt?p.str+1:0,bs:Math.max(p.bs,isOpt?p.str+1:p.bs),gp:p.gp+1,co:p.co+(isOpt?1:0),
         ps:updatedPs,
         cl:isOpt&&!p.cl?.includes(sc.concept)?[...(p.cl||[]),sc.concept]:(p.cl||[]),
@@ -4144,7 +4155,7 @@ export default function App(){
         dailyDone:dailyMode?true:p.dailyDone,dailyDate:dailyMode?today:(p.dailyDate||today),
         firstPlayDate:p.firstPlayDate||now,lastPlayDate:now,
         seasonCorrect:seasonMode&&isOpt?(p.seasonCorrect||0)+1:(p.seasonCorrect||0),
-        wrongCounts:wc,posGrad};
+        wrongCounts:wc,posGrad,posPlayed:posP};
       ns.achs=checkAch(ns);
       const newLvl=getLvl(ns.pts);
       if(newLvl.n!==prevLvl.n){setTimeout(()=>{setLvlUp(newLvl);snd.play('lvl')},600)}
@@ -4171,7 +4182,7 @@ export default function App(){
 
   const goHome=useCallback(()=>{setScreen("home");setPos(null);setSc(null);setChoice(null);setOd(null);setFo(null);setPanel(null);setLvlUp(null);setCoachMsg(null);setDailyMode(false);setSpeedMode(false);setSpeedRound(null);setSurvivalMode(false);setSurvivalRun(null);setChallengeMode(false);setSeasonMode(false);setSeasonStageIntro(null);setAiMode(false);if(timerRef.current)clearTimeout(timerRef.current)},[]);
   goHomeRef.current=goHome;
-  const next=useCallback(()=>{setLvlUp(null);if(speedMode){speedNextRef.current?.()}else if(survivalMode){survivalNextRef.current?.()}else if(seasonMode){seasonNextRef.current?.()}else if(dailyMode){goHomeRef.current?.()}else if(atLimit){setScreen("home");setTimeout(()=>setPanel('limit'),100)}else{startGame(pos,false)}},[pos,startGame,dailyMode,speedMode,survivalMode,seasonMode,atLimit]);
+  const next=useCallback(()=>{setLvlUp(null);if(speedMode){speedNextRef.current?.()}else if(survivalMode){survivalNextRef.current?.()}else if(seasonMode){seasonNextRef.current?.()}else if(dailyMode){goHomeRef.current?.()}else if(atLimit){setScreen("home");setTimeout(()=>setPanel('limit'),100)}else{startGame(pos,aiMode)}},[pos,startGame,dailyMode,speedMode,survivalMode,seasonMode,atLimit,aiMode]);
   const finishOnboard=useCallback(()=>{setStats(p=>({...p,onboarded:true,todayDate:new Date().toDateString()}));setScreen("home")},[]);
 
   // Auth: signup
