@@ -15,7 +15,7 @@ An educational web app that teaches baseball strategy to kids (ages 6-18) throug
 
 ## File Structure
 ```
-index.jsx          — The entire app (~4,970 lines)
+index.jsx          — The entire app (~5,760 lines)
 preview.html       — Loads index.jsx with CDN React + Babel
 worker/
   index.js         — Cloudflare Worker proxy for xAI API
@@ -31,10 +31,14 @@ Lines 1-10:         Imports and header
 Lines 11-2800:      SCENARIOS object (460 handcrafted scenarios across 15 categories)
 Lines 2800-2870:    Position metadata, field themes, achievements
 Lines 2870-2920:    DEFAULT state object, position suggestions, difficulty graduation
-Lines 2920-3050:    Helper functions: sound system, generateAIScenario(), spaced repetition
-Lines 3050-3200:    Field() component (SVG baseball field + 15 animations, 10 themes)
-Lines 3200-3260:    Board() component (scoreboard display)
-Lines 3260-4970:    Main App() component (game state, UI, all screens)
+Lines 2920-3050:    Helper functions: sound system, spaced repetition
+Lines 3050-3160:    Knowledge maps (cutoff/relay, bunt, first-third, backup, rundown, DP, hit-run)
+Lines 3160-3440:    BRAIN constant (RE24, count data, concepts, coaching) + Brain API functions
+Lines 3440-3610:    generateAIScenario() — AI scenario generation via xAI Grok
+Lines 3610-3700:    Sound system, helper utilities
+Lines 3700-3850:    Field() component (SVG baseball field + 15 animations, 10 themes)
+Lines 3850-3910:    Board() component (scoreboard display)
+Lines 3910-5760:    Main App() component (game state, UI, all screens)
 ```
 
 ## Key Architecture Decisions

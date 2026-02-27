@@ -7,20 +7,20 @@ import { useState, useEffect, useCallback, useRef } from "react";
 // ============================================================================
 const SCENARIOS = {
   pitcher: [
-    {id:"p1",title:"Full Count Pressure",diff:3,cat:"pressure",
+    {id:"p1",title:"Full Count Pressure",diff:3,cat:"pressure",conceptTag:"count-leverage",
       description:"Bottom 9th, bases loaded, 2 outs. Tie game. The cleanup hitter is hot. Count is full 3-2. What's your pitch?",
       situation:{inning:"Bot 9",outs:2,count:"3-2",runners:[1,2,3],score:[4,4]},
       options:["Fastball down the middle — challenge him","Slider low and away — make him chase","Changeup — keep him off balance","Inside fastball — brush him back"],
       best:1,explanations:["Too risky! MLB hitters bat .350+ on middle-middle fastballs in high-leverage spots.","Perfect! The slider low-away gets a 34% whiff rate in full counts. Make him chase out of the zone.","On 3-2 with bases loaded, a changeup that misses becomes ball four — walk-off walk.","Inside on 3-2 with bases loaded? If you miss, it's a walk-off walk. Too much risk."],
       rates:[30,85,55,15],concept:"Pitch location beats velocity in pressure situations",anim:"strikeout"},
-    {id:"p2",title:"First Batter of the Game",diff:1,cat:"counts",
+    {id:"p2",title:"First Batter of the Game",diff:1,cat:"counts",conceptTag:"first-pitch-strike",
       description:"Top of the 1st. You're facing the leadoff hitter — a contact guy who gets on base. What's your approach?",
       situation:{inning:"Top 1",outs:0,count:"0-0",runners:[],score:[0,0]},
       options:["First-pitch fastball for a strike","Start with a curveball to surprise him","Throw a changeup to set up your fastball","Waste a pitch high and inside"],
       best:0,explanations:["Great! Getting ahead 0-1 is huge. Pitchers who throw first-pitch strikes have ERAs nearly 2 runs lower.","Risky to start with a breaking ball — if it hangs, he'll jump on it.","Changeups work best when he expects fastball. First pitch, he doesn't know yet.","Wasting pitches against a leadoff hitter just drives up your pitch count."],
       explSimple:["Nice! Throwing a strike first makes the batter have to worry. You're in charge now.","Starting with a tricky pitch can go wrong because it's hard to control.","A changeup works better later when the batter is expecting a fastball.","Throwing balls on purpose just wastes pitches and lets the batter get comfortable."],
       rates:[85,40,50,30],concept:"Getting ahead in the count is a pitcher's biggest advantage",anim:"strike"},
-    {id:"p3",title:"Runner Threatening to Steal",diff:2,cat:"baserunners",
+    {id:"p3",title:"Runner Threatening to Steal",diff:2,cat:"baserunners",conceptTag:"steal-breakeven",
       description:"Speedster on 1st — 40 stolen bases this year. He's taking a big lead. Count is 1-0.",
       situation:{inning:"Top 4",outs:0,count:"1-0",runners:[1],score:[2,1]},
       options:["Throw over to first","Quick-pitch with a slide step","Pitch out","Ignore the runner — focus on the batter"],
@@ -34,14 +34,14 @@ const SCENARIOS = {
       best:2,explanations:["Tired arm = less velocity. Challenging a power hitter with diminished stuff is dangerous.","Pitching around loads the bases — tying run comes to the plate.","Smart! Changing speeds when tired beats trying to overpower. Keep him guessing.","That's the manager's call, not yours. Compete."],
       explSimple:["When your arm is tired, your fastball isn't as fast — a big hitter could crush it.","Pitching around him fills up the bases, and that makes things even scarier.","Smart! When you're tired, trick the batter by mixing slow and fast pitches instead of throwing hard.","It's not your decision to leave the game — keep competing and do your best."],
       rates:[30,40,80,55],concept:"When fatigued, pitching smart (mixing speeds) beats pitching hard",anim:"strike"},
-    {id:"p5",title:"Setting Up the Strikeout",diff:2,cat:"counts",
+    {id:"p5",title:"Setting Up the Strikeout",diff:2,cat:"counts",conceptTag:"two-strike-approach",
       description:"2 outs, 6th inning, nobody on. Count is 0-2 on a slugger who homered off you earlier.",
       situation:{inning:"Bot 6",outs:2,count:"0-2",runners:[],score:[5,3]},
       options:["Waste one in the dirt","Fastball up in the zone","Slider on the outside corner","Fastball down the middle — dare him"],
       best:0,explanations:["With 0-2 you can afford a ball. Expand his zone, then finish him.","He homered off your fastball. Don't give him another one he can see.","Good but risky — if the slider hangs, it's in his wheelhouse.","Never challenge a guy who already went deep off you!"],
       explSimple:["You have two strikes already, so you can throw one in the dirt and see if he chases it.","He already hit a home run off your fastball — don't give him the same pitch again!","A slider could work, but if you don't throw it perfectly, he might hit it hard.","Throwing it right down the middle to a guy who already homered off you is a bad idea!"],
       rates:[85,35,60,10],concept:"Use waste pitches on 0-2 to expand the zone before the strikeout pitch",anim:"strikeout"},
-    {id:"p6",title:"Double Play Groundball",diff:2,cat:"situational",
+    {id:"p6",title:"Double Play Groundball",diff:2,cat:"situational",conceptTag:"double-play-turn",
       description:"Runners on 1st and 2nd, nobody out. Need a ground ball. Lefty batter likes the ball up. Count 1-1.",
       situation:{inning:"Bot 3",outs:0,count:"1-1",runners:[1,2],score:[2,2]},
       options:["Sinker down in the zone","High fastball where he likes it","Curveball in the dirt","Changeup away"],
@@ -181,7 +181,7 @@ const SCENARIOS = {
       options:["Throw over to first to keep him close","Slide-step fastball to the plate — be quick","Forget the runner and just pitch normally","Pitch out so your catcher can throw him out"],
       best:1,explanations:["Throwing over is fine as a look, but this runner already stole a base — he's not scared of pickoff throws. You're just delaying the inevitable and falling behind the hitter mentally.","Perfect! The slide step is your best weapon against speedsters. It shaves 0.3 seconds off your delivery — the difference between safe and out. By staying quick to the plate, you neutralize his speed advantage without losing focus on the batter. MLB pitchers who use the slide step cut stolen base attempts by 40%.","Pitching normally with a full delivery against a guy who already stole on you? He'll take second standing up. You must adjust your timing.","A pitchout on 1-1 makes it 2-1 — you're behind in the count and you might not even get him. Pitchouts work best when you're certain the runner is going."],
       rates:[40,85,20,30],concept:"Against fast runners, the slide step is your best friend — it cuts delivery time and steal success rates",anim:"strike"},
-    {id:"p28",title:"First and Third Groundball",diff:2,cat:"baserunners",
+    {id:"p28",title:"First and Third Groundball",diff:2,cat:"baserunners",conceptTag:"first-third",
       description:"Bot 6th, runners on first and third, 1 out. Tie game 3-3. Contact hitter up, count 0-1. Your infield is at double play depth. A ground ball could turn two and end the inning — but it could also score the run from third.",
       situation:{inning:"Bot 6",outs:1,count:"0-1",runners:[1,3],score:[3,3]},
       options:["Fastball up — try for a strikeout instead","Sinker down — pitch for the double play ground ball","Curveball — get him to pop up","Pitch carefully around him — don't give in"],
@@ -340,7 +340,7 @@ const SCENARIOS = {
       options:["Walk him — set up the force play","Pitch to him — don't put extra runners on","Walk only if the next batter is weaker","Pitch carefully but don't walk him intentionally"],
       best:0,explanations:["Walking the batter to put runners on 1st and 2nd creates a force play at second, third, and first. On any ground ball, you can get the force out at any base instead of needing a tag. The force play is much easier to execute than a tag play.","Pitching to this batter without the force play means a ground ball to the left side requires a tag at third — much harder than a force.","The next batter's stats matter, but the force play advantage is valuable regardless.","Pitching carefully often leads to unintentional walks on 3-2 counts — just walk him on purpose and be ready."],
       rates:[85,30,40,35],concept:"Walk a batter to set up the force play — force outs are easier than tag plays",anim:"walk"},
-    {id:"p54",title:"Lefty-Righty Walk Advantage",diff:2,cat:"strategy",
+    {id:"p54",title:"Lefty-Righty Walk Advantage",diff:2,cat:"strategy",conceptTag:"force-vs-tag",
       description:"Top of the 6th, runner on 1st, 1 out, tied 4-4. A tough left-handed hitter (.320 avg) is at the plate. The next batter is a right-handed hitter (.210 avg). You're a right-handed pitcher.",
       situation:{inning:"Top 6",outs:1,count:"-",runners:[1],score:[4,4]},
       options:["Walk the lefty to face the righty — platoon advantage","Pitch to the lefty — don't put another runner on","Pitch carefully to the lefty — don't give him anything good","Only walk him if he gets ahead in the count"],
@@ -392,7 +392,7 @@ const SCENARIOS = {
       best:1,explanations:["Guessing one pitch on 0-2 is a gamble.","Perfect! Choke up for bat control and a shorter swing. Fight off tough pitches until you get something hittable.","Sitting fastball when the slider is dominant means you'll chase.","Foul bunt with 2 strikes = strikeout. Game over."],
       explSimple:["Guessing one pitch with two strikes is too risky — you might guess wrong and strike out.","Great! Choke up on the bat and just try to make contact. Fight off tough pitches until you get a good one.","If the pitcher keeps throwing sliders, just looking for fastballs means you'll swing at bad pitches.","Be careful — if you try to bunt and it goes foul with two strikes, you're out!"],
       rates:[35,80,45,10],concept:"With 2 strikes, shorten your swing and focus on putting the ball in play",anim:"hit"},
-    {id:"b3",title:"Hit and Run",diff:1,cat:"plays",
+    {id:"b3",title:"Hit and Run",diff:1,cat:"plays",conceptTag:"hit-and-run",
       description:"Coach gives the hit-and-run sign. Runner on 1st, 1 out, count 1-1.",
       situation:{inning:"Top 3",outs:1,count:"1-1",runners:[1],score:[1,1]},
       options:["Swing no matter what","Only swing if it's good","Bunt instead","Swing and pull for power"],
@@ -582,7 +582,7 @@ const SCENARIOS = {
       options:["Take the pitch — a walk puts another runner on","Swing only if it's a perfect fastball right down the middle","Swing at any strike — you have the green light","Squeeze bunt — the runner on 3rd scores"],
       best:1,explanations:["A walk helps, but it doesn't tie the game. The runner on 3rd is the tying run — you want to drive him in if possible.","The green light doesn't mean swing at everything — it means swing at a PERFECT pitch. On 3-0, the pitcher must throw a strike. If it's a meatball fastball right in your wheelhouse, crush it. If it's not absolutely perfect, take it to 3-1.","Swinging at any strike wastes the green light's purpose. You only swing at a pitch you can CRUSH.","A squeeze bunt on 3-0 wastes an incredible count advantage."],
       rates:[40,85,30,15],concept:"A green light on 3-0 means swing at a PERFECT pitch — not any pitch, THE pitch",anim:"hit"},
-    {id:"b33",title:"0-2 Same Pitch Twice",diff:3,cat:"counts",
+    {id:"b33",title:"0-2 Same Pitch Twice",diff:3,cat:"counts",conceptTag:"two-strike-approach",
       description:"Top of the 6th, runner on 1st, 1 out, down 3-2. Count is 0-2. The pitcher has thrown you two changeups in a row — both for strikes. Is he coming back with a third?",
       situation:{inning:"Top 6",outs:1,count:"0-2",runners:[1],score:[2,3]},
       options:["Sit on the changeup — he'll throw it again","Look fastball, react to changeup","Crowd the plate to take away the outside changeup","Just try to foul everything off"],
@@ -595,7 +595,7 @@ const SCENARIOS = {
       options:["Bunt the runner to 2nd — do your job","Swing away — surprise the defense","Fake the bunt and swing","Take pitches and hope for a walk"],
       best:0,explanations:["As the #9 hitter with nobody out, the sacrifice bunt is your job. Move the runner to 2nd where a single from the leadoff hitter scores him. You're trading your out for a runner in scoring position. That's a good trade when you're the weakest hitter.","Swinging away as the #9 hitter ignores the team's best strategy. The leadoff hitter behind you is more likely to drive in the run.","Fake bunt and swing goes against the coach's sign. Execute the play that was called.","Hoping for a walk wastes the bunt opportunity. The runner on first needs to be advanced."],
       rates:[85,25,20,30],concept:"As the weakest hitter, the sacrifice bunt trades your out for a runner in scoring position — a good trade",anim:"bunt"},
-    {id:"b35",title:"Bunt Him to Third",diff:1,cat:"plays",
+    {id:"b35",title:"Bunt Him to Third",diff:1,cat:"plays",conceptTag:"bunt-re24",
       description:"Bot 7th, runner on 2nd, nobody out, down 3-2. You're a decent contact hitter but not a power guy. The tying run is at second.",
       situation:{inning:"Bot 7",outs:0,count:"0-0",runners:[2],score:[2,3]},
       options:["Bunt the runner to 3rd","Hit to the right side — advance him and reach base","Swing away — drive the run in yourself","Take a pitch first to see what the pitcher has"],
@@ -638,7 +638,7 @@ const SCENARIOS = {
       best:1,explanations:["Slashing at whatever comes defeats the purpose. If the pitch is bad, take it for a ball. The bunt fake already pulled the infield in.","The slash play is a two-part trick: First, show bunt to pull the infield in. Second, pull back and ONLY swing at a hittable pitch. With the infield charging, there are huge gaps behind them. A sharp ground ball or line drive goes right through the holes. But don't swing at a bad pitch — the fake already helped you.","Not committing to either the fake or the swing makes you do neither well.","The coach called a slash, not a bunt. Execute the play that was called."],
       rates:[35,85,30,15],concept:"The slash play exploits a charging infield — show bunt, then swing at a good pitch through the gaps",anim:"hit"},
     // Batch 4 — Two-Strike Approach
-    {id:"b42",title:"Two Strikes — Change Your Swing",diff:1,cat:"counts",
+    {id:"b42",title:"Two Strikes — Change Your Swing",diff:1,cat:"counts",conceptTag:"two-strike-approach",
       description:"Bot 4th, nobody on, 1 out, tied 2-2. You fell behind 0-2 quickly. The pitcher has been pounding the outside corner. What do you do with your swing?",
       situation:{inning:"Bot 4",outs:1,count:"0-2",runners:[],score:[2,2]},
       options:["Shorten your swing — choke up and make contact","Keep swinging the same — don't change for anyone","Swing harder — you need to catch up to the fastball","Open your stance to see the ball better"],
@@ -650,7 +650,7 @@ const SCENARIOS = {
       options:["Swing at it — can't take a called strike three","Take it — trust the umpire to call it a ball","Foul it off — protect the plate","Swing for the fences — go for the big hit"],
       best:2,explanations:["Swinging at a borderline pitch with a full swing often leads to weak contact or a swing-and-miss.","Taking a borderline pitch with 2 strikes and a runner on 3rd is risky — if the ump calls it a strike, you struck out looking with the tying run at third.","Fouling off borderline pitches is elite hitting. You're not giving in (striking out), and you're not swinging hard at a tough pitch. You're keeping the at-bat alive until you get something you can drive. With a runner on 3rd, every extra pitch is another chance to get a hittable ball.","Swinging for the fences with 2 strikes is how you strike out."],
       rates:[35,25,85,10],concept:"With 2 strikes and runners on, foul off borderline pitches — keep the at-bat alive",anim:"hit"},
-    {id:"b44",title:"Two Strikes — Breaking Ball Barrage",diff:2,cat:"counts",
+    {id:"b44",title:"Two Strikes — Breaking Ball Barrage",diff:2,cat:"counts",conceptTag:"two-strike-approach",
       description:"Bot 5th, nobody on, 2 outs, up 4-3. Count is 1-2. The pitcher has been throwing you nothing but curveballs. You've fouled off two of them.",
       situation:{inning:"Bot 5",outs:2,count:"1-2",runners:[],score:[4,3]},
       options:["Sit on the curveball and crush it","Look for the fastball — he might switch","Stay ready for anything — react to what comes","Take the next pitch — it'll probably be a ball"],
@@ -750,14 +750,14 @@ const SCENARIOS = {
       best:0,explanations:["Ball came right to you — step on 2nd (force out) and fire to 1st. Two outs!","One out is okay but you're leaving a free out on the field.","The flip adds an extra throw. You're right there — do it yourself.","Never hold the ball with runners moving!"],
       explSimple:["The ball came right to you! Step on second base, then throw to first to get two outs.","Throwing to first only gets one out. You could have gotten two!","You're standing right there at second — just step on the base yourself instead of flipping it.","Don't hold the ball! You need to make a throw and get someone out."],
       rates:[85,55,50,10],concept:"When a ground ball comes right to you, turn the double play yourself",anim:"doubleplay"},
-    {id:"f12",title:"Relay Position",diff:2,cat:"outfield",
+    {id:"f12",title:"Relay Position",diff:2,cat:"outfield",conceptTag:"relay-double-cut",
       description:"Deep fly ball to the corner in right. Runner trying to score from 1st. You're the 2nd baseman going out for the relay.",
       situation:{inning:"Bot 5",outs:1,count:"-",runners:[1],score:[2,3]},
       options:["Line up between outfielder and home plate","Line up between outfielder and 3rd","Go to shallow right field","Stay near 2nd base"],
       best:0,explanations:["Perfect relay positioning! Get in a straight line between the outfielder and home plate.","The throw needs to go HOME, not 3rd. Line up accordingly.","Too close to the outfielder — you need distance for a relay.","Staying at 2nd means no relay. The throw bounces in."],
       explSimple:["Stand in a straight line between the outfielder and home plate so you can catch and throw it home quickly.","The runner is going home, so line up toward home plate — not third base.","Don't go too close to the outfielder. You need to be in the middle to make a good relay throw.","If you stay at second base, nobody catches the throw and it bounces all the way in."],
       rates:[85,35,25,15],concept:"On relay throws, line up directly between the outfielder and the target base",anim:"throwHome"},
-    {id:"f14",title:"Bases Empty — Routine Grounder",diff:1,cat:"infield",
+    {id:"f14",title:"Bases Empty — Routine Grounder",diff:1,cat:"infield",conceptTag:"force-vs-tag",
       description:"Bot 4th, nobody on, 1 out, tied 3-3. You're at second base. Routine ground ball hit right to you.",
       situation:{inning:"Bot 4",outs:1,count:"-",runners:[],score:[3,3]},
       options:["Throw to first base","Throw to second base","Hold the ball — no rush","Tag the base you're standing near"],
@@ -799,7 +799,7 @@ const SCENARIOS = {
       options:["Sprint to your left, backhand the ball, plant your right foot, and throw across your body to first","Let it go through — the center fielder will back you up","Try to dive for it and flip the ball from your knees","Run to your left, field it, then spin all the way around to throw to first"],
       best:0,explanations:["Great play! Ranging to your left, backhanding the ball, planting hard, and throwing across your body is the fastest way to get this out. It takes practice but it's how the best second basemen make this play.","Never give up on a ball you can reach! The center fielder backing you up means a single, not an out. With two outs, you need to make this play to end the inning.","Diving is a last resort. If you can get to the ball on your feet, always stay on your feet. Throwing from your knees is weak and inaccurate, and the runner will beat it out.","Spinning all the way around takes way too long. By the time you complete the spin and throw, the batter is already past first base. The across-the-body throw is much quicker."],
       rates:[85,10,25,20],concept:"When ranging to your left as a second baseman, backhand the ball, plant hard, and throw across your body — spinning around wastes too much time.",anim:"groundout"},
-    {id:"2b3",title:"Covering First on the Bunt",diff:1,cat:"fielder",
+    {id:"2b3",title:"Covering First on the Bunt",diff:1,cat:"fielder",conceptTag:"bunt-defense",
       description:"You're the second baseman. Runner on first, no outs, and the other team is bunting. Your first baseman charges toward home plate to field the bunt. The bunt rolls toward the pitcher. Who covers first base?",
       situation:{inning:"Top 3",outs:0,count:"1-1",runners:[1],score:[0,0]},
       options:["Sprint to first base to cover the bag — you're the one who takes over when the 1B charges","Stay at your normal position and let the pitcher cover first","Run to second base instead in case the lead runner goes there","Wait and see what happens before you move"],
@@ -848,7 +848,7 @@ const SCENARIOS = {
       options:["Catch the ball at the bag, touch second with your left foot, and use the pitcher's throw momentum to redirect a quick sidearm throw to first","Catch it, step on the bag with your right foot, then crow-hop and make a full overhand throw to first","Catch it and hold the ball \u2014 the force out at second is enough with nobody out","Catch it, but jump high in the air to avoid the sliding runner before throwing"],
       best:0,explanations:["Textbook pivot on a feed from the pitcher! You catch the ball, touch the bag with your left foot as you step across the base, and redirect a quick sidearm throw to first. Using the momentum of the incoming throw helps you get the ball to first faster. Smooth footwork turns two!","Stepping on the bag with your right foot puts you on the wrong side of the base and forces a longer, slower throwing motion. By the time you crow-hop and throw overhand, the batter has reached first. The left foot touch and quick sidearm is much faster.","Just taking the force out at second wastes a golden double play opportunity. With nobody out, getting two outs on one play changes the whole inning. Always try to complete the double play when you can.","Jumping high makes your throw inaccurate and costs you time in the air. A small step across the bag to the infield side is all you need to clear the runner. Stay low, stay quick, and get the ball to first."],
       rates:[85,35,20,25],concept:"On a double play feed from the pitcher, touch second with your left foot and redirect a quick sidearm throw to first \u2014 footwork and momentum are the keys.",anim:"doubleplay"},
-    {id:"2b11",title:"Bunt Play \u2014 Cover First!",diff:2,cat:"fielder",
+    {id:"2b11",title:"Bunt Play \u2014 Cover First!",diff:2,cat:"fielder",conceptTag:"bunt-defense",
       description:"You're the second baseman. Runner on first, no outs, and the batter squares to bunt. The first baseman charges hard toward home plate, the pitcher is breaking toward the third base line, and the third baseman is charging too. The bunt is down \u2014 a decent one rolling toward the pitcher. Where do you need to be?",
       situation:{inning:"Top 6",outs:0,count:"1-0",runners:[1],score:[3,2]},
       options:["Sprint to cover first base \u2014 the first baseman left it empty when he charged the bunt","Run toward second base to cover the bag in case of a throw there","Stay in your normal position and watch the play develop","Move toward the mound area to back up the pitcher's throw"],
@@ -936,7 +936,7 @@ const SCENARIOS = {
       options:["Make a quick, chest-high throw to the second baseman at the bag — firm but easy to handle","Shovel a hard underhand flip right at his feet","Throw the ball as hard as you possibly can to save time","Run the ball over to second base yourself and then throw to first"],
       best:0,explanations:["A firm, chest-high throw right to the second baseman's glove is the perfect double play feed. It gives him a clean catch and lets him turn the play quickly. Accuracy matters more than speed on the feed — help your teammate make the turn!","An underhand flip at his feet is hard to handle and slows down the turn. The second baseman has to reach down, adjust, and then throw — that extra time lets the runner reach first safely.","Throwing as hard as you can might be wild or hard for the second baseman to catch. A firm, accurate throw is much better than a bullet that sails into center field. Control your throw!","Running the ball to second wastes way too much time. By the time you get there, the runner from first is already at second, and the batter is almost to first. Use your arm — that's what it's for!"],
       rates:[88,25,20,10],concept:"On a double play feed to second, make a firm chest-high throw the second baseman can handle — accuracy beats raw speed every time.",anim:"doubleplay"},
-    {id:"ss3",title:"Covering on the Steal",diff:2,cat:"fielder",
+    {id:"ss3",title:"Covering on the Steal",diff:2,cat:"fielder",conceptTag:"steal-breakeven",
       description:"You're the shortstop. Runner on first with good speed, and you suspect he's going to steal second. The pitcher delivers, and the runner takes off! The catcher pops up and fires to second. You're covering the bag. How should you set up?",
       situation:{inning:"Top 1",outs:0,count:"2-1",runners:[1],score:[0,0]},
       options:["Get to the bag early, straddle it with your left foot on the outfield side, and give the catcher a clear target with your glove","Stand in front of the bag blocking the base path so the runner can't reach it","Get to the bag and jump out of the way as the throw arrives to avoid getting hit by the runner","Wait at your normal position until you see the throw, then run to the bag"],
@@ -948,7 +948,7 @@ const SCENARIOS = {
       options:["Call for it yourself — you're an infielder going back on the ball","Let the left fielder take it — he's charging in with the ball in front of him","Let the third baseman call for it since he's closer to that side","Nobody calls it — whoever gets there first just catches it"],
       best:1,explanations:["Going back on a fly ball is one of the hardest plays in baseball — the ball drifts AWAY from you and you're running blind. The left fielder charging in has it in front of him the whole way, which is a much easier catch. Let the outfielder take this one.","Correct! The outfielder coming in always has priority over the infielder going back. Running forward, the left fielder can see the ball in front of him and has momentum toward the infield for a throw. Going back, you're chasing a ball drifting away from you — that's the toughest catch in baseball. Call him off? Never. Let him call YOU off.","The third baseman would have to range a long way to his left for this ball. Even if he got there, he'd be going back too — same problem as the shortstop. The outfielder coming in has the best angle by far.","Never leave a pop fly uncalled! When nobody calls it, players crash into each other or the ball drops between them. Someone MUST take charge — and on tweeners, the outfielder is the one who calls it."],
       rates:[35,88,20,10],concept:"Outfielders coming in have priority over infielders going back — running forward with the ball in front of you is always easier than chasing it over your shoulder.",anim:"catch"},
-    {id:"ss5",title:"Relay Man to Left-Center",diff:1,cat:"fielder",
+    {id:"ss5",title:"Relay Man to Left-Center",diff:1,cat:"fielder",conceptTag:"relay-double-cut",
       description:"You're the shortstop. Runner on first, one out. The batter hits a deep fly ball to left-center field that drops and rolls to the wall. The runner from first is rounding second and heading for third — and he might keep going. You need to be the relay man. Where do you go?",
       situation:{inning:"Top 6",outs:1,count:"0-0",runners:[1],score:[3,4]},
       options:["Run out to line up between the left-center fielder and third base, arms up high so the outfielder can see you","Line up between the outfielder and home plate, arms up","Stay at shortstop position and let the third baseman handle it","Go to second base in case the batter tries to stretch it to a double"],
@@ -991,7 +991,7 @@ const SCENARIOS = {
       options:["You cover second base \u2014 with a right-handed batter up, the ball is more likely hit to the left side, so the second baseman stays in his fielding position","The second baseman covers \u2014 he's closer to the bag","Both of you run to the bag so someone is definitely there","Neither of you \u2014 the pitcher covers second on a steal"],
       best:0,explanations:["Exactly right! With a right-handed batter, the ball is more likely to be pulled to the left side of the field. That means the second baseman needs to stay in his position to field a possible ground ball hit to the right side. So the shortstop covers second on the steal. It's all about protecting the side of the field where the ball is most likely NOT to go.","The second baseman might be physically closer, but with a right-handed batter up, he needs to stay in his fielding position. If he breaks toward second to cover the steal and the batter hits a ground ball to the right side, there's nobody there. The coverage depends on the batter, not the distance.","If both of you run to the bag, you leave the entire middle of the infield wide open. What if the batter swings and hits a ground ball? It rolls through for an easy hit because nobody is in position. Only one middle infielder covers \u2014 the other stays home.","The pitcher has to deliver the pitch and then be ready to field a batted ball. He can't cover second base on a steal \u2014 that's the middle infielders' job. The shortstop and second baseman divide this responsibility based on the handedness of the batter."],
       rates:[85,35,10,15],concept:"With a right-handed batter, the shortstop covers second on a steal because the second baseman needs to protect the right side where a righty is more likely to hit.",anim:"steal"},
-    {id:"ss12",title:"Double Play Depth or Normal Depth?",diff:2,cat:"fielder",
+    {id:"ss12",title:"Double Play Depth or Normal Depth?",diff:2,cat:"fielder",conceptTag:"dp-positioning",
       description:"You're the shortstop. It's a tie game in the 6th inning. Runner on first, nobody out. Your coach tells you to get into double play depth. What does that mean, and why does it matter?",
       situation:{inning:"Top 6",outs:0,count:"0-0",runners:[1],score:[3,3]},
       options:["Move a few steps toward second base and a step or two closer to home plate \u2014 shorter distance to second base means you can start the double play faster","Move several steps toward third to increase your range in the hole","Stay at your normal depth but move closer to second base only","Move way in on the grass, almost behind the pitcher's mound"],
@@ -1060,7 +1060,7 @@ const SCENARIOS = {
       options:["Sprint back, turn your back to the infield, and run to the spot","Drift back while keeping your eyes on the ball","Sprint to the wall and wait for it","Take an angle route — the banana route to the ball"],
       best:3,explanations:["Sprinting straight back while watching over your shoulder is the old-school method but it's inefficient.","Drifting back is too slow for a ball going over your head. You won't get there.","Sprinting to the wall and waiting doesn't work — the ball might land short of the wall.","Take an angle route (the 'banana route') — turn and run at an angle to where the ball will land, then curve back to catch it. This is faster than running straight back because you run in a more efficient path. You also end up facing the right direction to make a throw after the catch. Elite outfielders always use angle routes on deep fly balls."],
       rates:[35,15,20,85],concept:"On deep fly balls, use an angle route — turn and run to the spot, don't drift back or run straight",anim:"catch"},
-    {id:"cf1",title:"Take Charge on the Pop Fly",diff:1,cat:"fielder",
+    {id:"cf1",title:"Take Charge on the Pop Fly",diff:1,cat:"fielder",conceptTag:"fly-ball-priority",
       description:"You're the center fielder. A high pop fly is hit to short left-center field. The left fielder is running over and the shortstop is drifting back. You have a clear path to the ball and can get there easily.",
       situation:{inning:"Top 3",outs:1,count:"0-1",runners:[],score:[2,2]},
       options:["Call 'I got it!' loudly and wave off both players","Let the left fielder take it since it's closer to his side","Stay quiet and just run to the ball","Yell for the shortstop to catch it"],
@@ -1078,7 +1078,7 @@ const SCENARIOS = {
       options:["Throw to third base to try to get the lead runner","Throw to second base to hold the batter at first","Throw home just in case the runner tries to score","Throw to first base to keep the batter honest"],
       best:0,explanations:["The lead runner is the most dangerous baserunner. If you can gun him down at third, you get the second out and take away a scoring threat. That's the high-value play.","The batter already has a single and is unlikely to try for second on a ball hit right at you. Throwing to second base wastes time while the lead runner takes third easily.","The runner is only going to third, not home. Throwing home lets the batter move up to second and gives nobody a chance at an out.","Throwing to first makes no sense since the batter is already safe on the hit. You'd be ignoring the advancing lead runner completely."],
       rates:[80,40,15,10],concept:"Always target the lead runner — getting the out on the most advanced baserunner takes away the biggest scoring threat.",anim:"catch"},
-    {id:"cf4",title:"Back Up the Play",diff:1,cat:"fielder",
+    {id:"cf4",title:"Back Up the Play",diff:1,cat:"fielder",conceptTag:"backup-duties",
       description:"You're the center fielder. With a runner on second and one out, a ground ball is hit to the shortstop. The shortstop fields it cleanly and throws to first base for the out. You notice nobody is behind the left fielder's area.",
       situation:{inning:"Bot 2",outs:1,count:"1-1",runners:[2],score:[0,0]},
       options:["Sprint toward left field to back up any overthrow or bobble at third","Stay in center field and watch the play","Run toward second base to back up the throw","Jog toward the infield to congratulate the shortstop"],
@@ -1147,7 +1147,7 @@ const SCENARIOS = {
       rates:[85,25,15,20],concept:"Always hit your cutoff man with a crow-hop throw \u2014 it gives your team two chances to make a play instead of one.",anim:"throwHome"},
   ],
   leftField: [
-    {id:"f4",title:"Hit the Cutoff",diff:1,cat:"outfield",
+    {id:"f4",title:"Hit the Cutoff",diff:1,cat:"outfield",conceptTag:"cutoff-roles",
       description:"You're in left. Single to you, runners on 1st and 2nd. Lead runner rounding 3rd.",
       situation:{inning:"Top 7",outs:1,count:"-",runners:[1,2],score:[4,3]},
       options:["Throw home directly","Throw to 3rd","Throw to 2nd","Hit the cutoff man"],
@@ -1191,7 +1191,7 @@ const SCENARIOS = {
       options:["Play deeper than normal — give yourself more room","Play normal depth — adjust on each ball","Play shallow — the wind won't affect line drives","It doesn't matter — just react to each ball"],
       best:0,explanations:["When the wind is blowing out, play 10-15 feet deeper than normal. Fly balls will carry farther, and balls that would normally be warning track fly outs become home runs or extra-base hits if you're playing too shallow. Depth is your friend with the wind at your back.","Adjusting on each ball means you're constantly behind. Set your depth before the pitch.","Playing shallow is the OPPOSITE of what you should do. Wind blowing out means balls carry — give yourself room.","It absolutely matters. A ball you would normally catch at the warning track now sails over the fence if you're too shallow."],
       rates:[85,35,10,20],concept:"When the wind blows out, play deeper — fly balls carry farther and you need the extra room",anim:"catch"},
-    {id:"lf1",title:"Hit the Cutoff",diff:1,cat:"fielder",
+    {id:"lf1",title:"Hit the Cutoff",diff:1,cat:"fielder",conceptTag:"cutoff-roles",
       description:"You're the left fielder. Bottom of the 4th, runner on second, one out. The batter singles to your left. You field it cleanly about 20 feet from the foul line. The runner is rounding third and heading home. Your third baseman is lined up as the cutoff man.",
       situation:{inning:"Bot 4",outs:1,count:"0-2",runners:[2],score:[3,1]},
       options:["Throw a strong one-hopper to the cutoff man's chest","Throw it directly to home plate, skipping the cutoff","Throw it to third base to keep the batter from advancing","Hold the ball and jog it in"],
@@ -1345,7 +1345,7 @@ const SCENARIOS = {
       options:["Line up between the right fielder and home plate, about 45 feet from home, with your arms up so the fielder can see you","Run to home plate to back up the catcher in case the throw gets past him","Stay at first base in case the batter tries to stretch his single into a double","Move halfway between first and second base to cover the cutoff from right-center field"],
       best:0,explanations:["Perfect cutoff positioning! Line up between the outfielder and home plate so the throw comes right through you. Arms up so the fielder can see your target. You can cut the throw and redirect it or let it go through to the catcher.","Backing up the catcher sounds helpful, but who's going to cut the throw off? If the throw is offline or the catcher has no play, nobody is there to redirect the ball. The cutoff man is the most important player on this play.","Staying at first base ignores the bigger play — a run is about to score! The batter advancing to second doesn't matter as much as cutting down the runner at home. Cutoff plays save runs.","The cutoff position for a throw from right field to home plate is between the fielder and home, not between first and second. You need to be in a straight line from the right fielder to the catcher."],
       rates:[85,25,20,15],concept:"On throws to home from right field, the first baseman is the cutoff man — line up between the fielder and home plate with your arms raised.",anim:"throwHome"},
-    {id:"1b6",title:"Turning the 3-6-3 Double Play",diff:3,cat:"fielder",
+    {id:"1b6",title:"Turning the 3-6-3 Double Play",diff:3,cat:"fielder",conceptTag:"double-play-turn",
       description:"You're the first baseman. Runner on first, one out, ground ball hit right at you. The runner is going on the pitch. You field the ball cleanly about eight feet in front of the bag. The shortstop is covering second base.",
       situation:{inning:"Top 7",outs:1,count:"0-1",runners:[1],score:[4,4]},
       options:["Throw to the shortstop at second base for the force out, then sprint back to first and get ready for the return throw","Tag first base yourself first, then throw to second to try to get the runner","Hold the ball and just tag first base for the one sure out","Throw to second base and let the pitcher cover first for the return throw"],
@@ -1357,7 +1357,7 @@ const SCENARIOS = {
       options:["Call 'I got it! I got it!' loudly and wave off your teammates since you have the best angle as the first baseman","Let the second baseman take it since he's running toward the ball","Wait to see who gets there first and then the closest player catches it","Stay quiet and just try to catch it without saying anything"],
       best:0,explanations:["Take charge! Foul balls on the first base side are your territory. You're closest to the stands, you know how much room you have, and you face these pop-ups all the time. Call it loud and clear so nobody crashes into each other.","The second baseman is running a longer distance and doesn't know how close the stands are. The first baseman plays near the dugout every day and knows exactly how much room is available. This is your ball.","Waiting to see who gets there first causes collisions. Somebody has to call for the ball EARLY so the other players can get out of the way. Hesitation leads to dropped balls and banged-up teammates.","Never try to catch a fly ball silently! Without calling it, two or three players might converge on the same spot. Collisions cause injuries and dropped balls. Always communicate — be loud and be early."],
       rates:[90,35,15,10],concept:"On foul balls near your position, call it loudly and early — communication prevents collisions and dropped balls.",anim:"catch"},
-    {id:"1b8",title:"First-and-Third Pickoff Play",diff:3,cat:"fielder",
+    {id:"1b8",title:"First-and-Third Pickoff Play",diff:3,cat:"fielder",conceptTag:"first-third",
       description:"You're the first baseman. Runners on first and third, one out. The runner on first takes off for second base on the pitch. Your catcher catches the ball and fires a throw to second base — but it's actually a designed play where the shortstop will cut the throw and look at third.",
       situation:{inning:"Top 8",outs:1,count:"1-1",runners:[1,3],score:[5,4]},
       options:["Sprint to cover home plate in case the runner on third tries to score during the chaos of the play","Stay near first base in case the throw from the shortstop comes back to you for a pickoff on the runner retreating","Get behind the mound to back up any throw that goes to second base or back to the pitcher","Run toward the runner going to second to get in a rundown between first and second"],
@@ -1408,7 +1408,7 @@ const SCENARIOS = {
       best:0,explanations:["Shallow = you're CLOSE to home. Direct throw has your best shot.","Cutoff relay adds time on a short throw.","Being shallow means you're CLOSER. Best chance ever.","Nobody is running to 2nd."],
       explSimple:["You caught the ball close to home plate — throw it right home because you're not far away!","Using a cutoff man takes extra time when you're already close enough to throw home yourself.","You're close to home plate! That means you have a great chance to throw the runner out.","Nobody is running to second base, so there's no reason to throw there."],
       rates:[85,50,20,10],concept:"On shallow fly balls, throw directly home — the short distance is your advantage",anim:"throwHome"},
-    {id:"f11",title:"Backing Up Bases",diff:1,cat:"positioning",
+    {id:"f11",title:"Backing Up Bases",diff:1,cat:"positioning",conceptTag:"backup-duties",
       description:"You're in right field. Grounder to shortstop, runner on 2nd going to 3rd. Where should you go?",
       situation:{inning:"Top 3",outs:1,count:"-",runners:[2],score:[1,1]},
       options:["Stay in position","Back up 1st base","Back up 3rd base","Back up home"],
@@ -1505,7 +1505,7 @@ const SCENARIOS = {
       options:["Sprint toward the foul territory behind first base to back up the throw from third","Stay in right field and watch — it's a routine play","Run toward second base in case the batter tries to stretch for a double","Move toward center field to cover more ground"],
       best:0,explanations:["Long throws from third base are the most likely to pull the first baseman off the bag or skip past him. Backing up first base on throws from the left side of the infield is one of your most important responsibilities as a right fielder.","A throw from deep behind third base is 130+ feet across the diamond. That's a long, hard throw that can sail or bounce. If nobody backs it up and it gets past the first baseman, the runner takes second or third for free.","The batter is trying to beat out a grounder to first — he's not going to second unless there's an error. Your job is to prevent the error from becoming a disaster by backing up first.","Moving toward center leaves first base completely unprotected. An overthrow rolls to the fence and turns a routine groundout into a runner on second or third."],
       rates:[88,15,20,10],concept:"The right fielder must back up first base on throws from the left side of the infield — long throws from third are the most likely to get past the first baseman.",anim:"advance"},
-    {id:"rf11",title:"Cutoff Man or Throw Home Direct",diff:3,cat:"fielder",
+    {id:"rf11",title:"Cutoff Man or Throw Home Direct",diff:3,cat:"fielder",conceptTag:"cutoff-roles",
       description:"You're the right fielder. Bottom of the 8th, one-run game. Runner on second, one out. The batter singles sharply to right field and you charge in to field it cleanly on one hop. The runner from second is rounding third and heading home. You're about 250 feet from home plate. You have a strong arm — you can reach home on the fly from 250 feet, but it won't be your most accurate throw. The first baseman is lined up as the cutoff man at about 130 feet from you.",
       situation:{inning:"Bot 8",outs:1,count:"2-1",runners:[2],score:[4,3]},
       options:["Throw home directly — your arm is strong enough and this is a do-or-die situation","Hit the cutoff man with a chest-high throw so he can relay it home or redirect","Throw to second base to keep the batter from advancing into scoring position","Hold the ball and concede the run since the runner has too big a head start"],
@@ -1591,7 +1591,7 @@ const SCENARIOS = {
       options:["Crow-hop toward first to build momentum, then throw overhand with your body behind it","Stand still and rifle it from where you fielded it to save time","Throw sidearm to get it there faster","Lob it high so the first baseman has time to adjust"],
       best:0,explanations:["The crow-hop builds momentum for the long throw across the diamond. Using your body and an overhand release gives you accuracy and carry. This is how third basemen are taught to make this throw.","Standing still means you're throwing with only arm strength from 120 feet. Without body momentum, the throw tails or bounces, and you risk a throwing error.","Sidearm throws from third base tend to tail away from the first baseman, especially on long throws. Save sidearm for short-range plays.","A lob takes too long in the air and gives the runner extra steps. Even average runners will beat a rainbow throw from third."],
       rates:[85,35,30,15],concept:"The crow-hop builds momentum for the long throw across the diamond — your body generates the power, not just your arm.",anim:"groundout"},
-    {id:"3b4",title:"Guard the Line",diff:1,cat:"fielder",
+    {id:"3b4",title:"Guard the Line",diff:1,cat:"fielder",conceptTag:"cutoff-roles",
       description:"You're at third base. Top of the 8th, your team leads 3-2. Runner on first, one out. The coach signals you to guard the line. The batter is a left-handed pull hitter who has hit two doubles down the line tonight.",
       situation:{inning:"Top 8",outs:1,count:"0-0",runners:[1],score:[3,2]},
       options:["Move two steps closer to the foul line and shade toward the bag","Stay in your normal position — you can react to anything","Cheat toward the shortstop hole to take away the ground ball up the middle","Move in closer to home plate for a potential bunt"],
@@ -1627,7 +1627,7 @@ const SCENARIOS = {
       options:["Charge hard, bare-hand the ball, and fire to first base in one motion","Charge hard, field it with your glove, transfer to your throwing hand, then throw to first","Charge in but look the runner back to second before throwing to first","Hold your position and wait for the ball to roll closer to you"],
       best:0,explanations:["On a dying roller, bare-handing saves the split second of glove-to-hand transfer. You scoop it with your throwing hand and fire to first in one seamless motion. With a fast runner, that saved time is the difference between out and safe.","Fielding with your glove is safer for catching, but the transfer from glove to hand takes too long. On a slow roller with a fast runner, you need every millisecond. The bare hand is the play here.","Looking the runner back is a good instinct, but with one out and a fast batter, you don't have time to check the runner AND throw out the batter. Get the sure out at first — the runner on second isn't going home on a slow roller to third.","Waiting for a dying roller is a death sentence. The ball is barely moving — it might stop completely before it reaches you. Meanwhile the batter is sprinting to first. Attack the ball!"],
       rates:[82,50,35,10],concept:"On slow rollers, bare-handing eliminates the glove transfer and lets you throw in one continuous motion — every split second counts.",anim:"groundout"},
-    {id:"3b10",title:"Tag the Runner at Third",diff:1,cat:"fielder",
+    {id:"3b10",title:"Tag the Runner at Third",diff:1,cat:"fielder",conceptTag:"force-vs-tag",
       description:"You're the third baseman. Runner on second, no outs. The batter singles to left field and the runner rounds third hard. The left fielder throws to you at third base and the runner decides to come back. He's sliding into the bag headfirst. You catch the throw and need to apply the tag.",
       situation:{inning:"Top 5",outs:0,count:"0-0",runners:[2],score:[2,3]},
       options:["Catch the ball and sweep your glove down low in front of the bag to tag the runner's hands before they reach the base","Catch the ball and try to tag the runner on the back as he slides","Catch the ball, hold it up for the umpire to see, then apply the tag","Stand on top of the bag and wait for the runner to slide into your feet"],
@@ -1659,14 +1659,14 @@ const SCENARIOS = {
       rates:[85,15,20,25],concept:"On steals of third, the third baseman covers the bag — straddle it, catch the throw, and sweep the tag down on the runner's feet.",anim:"catch"},
   ],
   baserunner: [
-    {id:"r1",title:"Stealing Second",diff:1,cat:"stealing",
+    {id:"r1",title:"Stealing Second",diff:1,cat:"stealing",conceptTag:"steal-breakeven",
       description:"You're on 1st, 2-1 count. Pitcher is slow to the plate, catcher has a weak arm. You've got speed.",
       situation:{inning:"Top 6",outs:0,count:"2-1",runners:[1],score:[2,3]},
       options:["Go! Steal on the next pitch","Wait for a better count","Stay — let the batter work","Take a bigger lead but don't go"],
       best:0,explanations:["Perfect conditions: slow pitcher, weak catcher, hitter's count. MLB runners succeed 85%+ here.","You might not get a better spot. All signs point to GO.","Too passive when everything favors you.","Indecisive! If you take a bigger lead, the pitcher throws over."],
       explSimple:["Everything is perfect — the pitcher is slow and the catcher can't throw well. Go steal that base!","This is the best time to steal. Don't wait for a better chance because this IS the best chance.","Just standing there wastes your speed. Everything says it's time to run!","Taking a bigger lead without running just makes the pitcher throw to first base."],
       rates:[85,60,30,40],concept:"Steal when conditions align: slow pitcher, weak catcher, hitter's count",anim:"steal"},
-    {id:"r2",title:"Tag Up Deep Fly",diff:1,cat:"tagging",
+    {id:"r2",title:"Tag Up Deep Fly",diff:1,cat:"tagging",conceptTag:"tag-up",
       description:"You're on 3rd, 1 out. Deep fly to center. Routine catch. Tie game, 8th inning.",
       situation:{inning:"Bot 8",outs:1,count:"-",runners:[3],score:[3,3]},
       options:["Tag up and score after the catch","Go halfway","Stay on 3rd","Break for home immediately"],
@@ -1748,7 +1748,7 @@ const SCENARIOS = {
       options:["Steal second — the pitcher is slow","Stay put — don't risk it","Wait for a better count to steal","Only go if the coach gives the sign"],
       best:0,explanations:["A pitcher with a 1.8-second delivery is a gift for baserunners. Most catchers need the ball in 2.0 seconds total to throw out a runner. If the pitcher takes 1.8 just to deliver, even an average runner can steal second easily.","Playing it safe with a slow pitcher wastes a golden opportunity. This is exactly when aggressive baserunning wins games.","The count doesn't matter much when the pitcher is this slow. His delivery time gives you the advantage, not the count.","Waiting for a sign is good fundamentals, but any smart coach would give the steal sign against a pitcher this slow."],
       rates:[85,25,40,50],concept:"A pitcher's delivery time is the key to stealing bases — slow deliveries mean easy steals",anim:"steal"},
-    {id:"r14",title:"Fast but Strong-Armed Catcher",diff:1,cat:"stealing",
+    {id:"r14",title:"Fast but Strong-Armed Catcher",diff:1,cat:"stealing",conceptTag:"steal-breakeven",
       description:"Top of the 5th, you're on 1st, 1 out, tied 2-2. You're one of the fastest kids on the team, but their catcher has thrown out 3 runners today.",
       situation:{inning:"Top 5",outs:1,count:"0-0",runners:[1],score:[2,2]},
       options:["Steal anyway — you're fast enough","Stay put — the catcher is too good","Get a great jump — timing beats arm strength","Take a bigger lead to make up the difference"],
@@ -1827,13 +1827,13 @@ const SCENARIOS = {
       options:["Tag up and go — you're fast enough","Stay at third — his arm is too strong","Read the catch — if he's off-balance, go. If he's set, stay","Tag up and bluff — force a bad throw"],
       best:2,explanations:["Going blindly against a strong arm without reading the catch is risky.","Staying at third is safe but you might be wasting a chance. There's a smarter way to decide.","Reading the catch is the key! If the outfielder has to reach, run sideways, or catch off-balance, his throw will be weaker — GO. If he's camped under it with his feet set, his throw will be strong — STAY. Great baserunners make this read in real time.","Bluffing to force a bad throw can backfire. If he ignores you, you've wasted energy."],
       rates:[35,40,85,30],concept:"Read the outfielder's catch — if he's off-balance, go. If he's set, stay",anim:"score"},
-    {id:"r27",title:"Line Drive — Freeze!",diff:2,cat:"tagging",
+    {id:"r27",title:"Line Drive — Freeze!",diff:2,cat:"tagging",conceptTag:"tag-up",
       description:"Bot 3rd, you're on 2nd, nobody out, tied 2-2. The batter hits a screaming line drive to left-center. You took a few steps toward third on contact.",
       situation:{inning:"Bot 3",outs:0,count:"-",runners:[2],score:[2,2]},
       options:["Keep going to third — it's a hit!","Freeze and get back to second immediately","Go halfway and see if it's caught","Sprint home — it's in the gap!"],
       best:1,explanations:["Line drives can be caught by diving outfielders. If you're off the base and it's caught, you're doubled off for an easy double play.","On line drives, FREEZE and get back to your base. Line drives are caught at a much higher rate than fly balls, and if you're off the base, you're doubled off. Wait until the ball gets past the fielders, THEN run.","Going halfway is for fly balls, not line drives. Line drives are too fast — by the time you see if it's caught, it's too late to get back.","Sprinting home on a line drive is the fastest way to get doubled off."],
       rates:[20,85,30,5],concept:"On line drives, freeze and get back to your base — if it's caught, you can't get doubled off",anim:"freeze"},
-    {id:"r28",title:"Sacrifice Fly Timing",diff:2,cat:"tagging",
+    {id:"r28",title:"Sacrifice Fly Timing",diff:2,cat:"tagging",conceptTag:"tag-up",
       description:"Top of the 7th, you're on 3rd, 1 out, up 5-4. Deep fly ball to center. You're tagging up. When exactly do you leave?",
       situation:{inning:"Top 7",outs:1,count:"-",runners:[3],score:[5,4]},
       options:["Leave right when the ball is hit — get a head start","Leave right when the ball touches the glove","Leave a split second before the catch — anticipate it","Wait until the outfielder's throw is in the air"],
@@ -1845,7 +1845,7 @@ const SCENARIOS = {
       options:["Both tag — score the tying run and advance your teammate","Only you tag — don't risk your teammate getting thrown out","Stay at third — let your teammate tag to 3rd instead","Run without tagging — get home as fast as possible"],
       best:0,explanations:["When two runners tag up, the lead runner goes first. If you score, your teammate advances to 3rd because the throw goes home. Both tagging creates maximum pressure on the defense.","Only you tagging is too conservative. If both tag, the defense has to choose — throw home or throw to 3rd. They can't do both.","Staying while your teammate tags to 3rd would put two runners on the same base — automatic out!","Running without tagging means you'll be called out on appeal. Always tag first."],
       rates:[85,45,5,10],concept:"When two runners can tag, both should go — the defense can only make one throw",anim:"score"},
-    {id:"r30",title:"Foul Ball Tag-Up",diff:3,cat:"tagging",
+    {id:"r30",title:"Foul Ball Tag-Up",diff:3,cat:"tagging",conceptTag:"tag-up",
       description:"Top of the 9th, you're on 3rd, 1 out, tied 7-7. The batter pops up a foul ball deep down the first base line. The first baseman drifts toward the dugout and catches it.",
       situation:{inning:"Top 9",outs:1,count:"-",runners:[3],score:[7,7]},
       options:["Tag up and score — a catch is a catch, even in foul territory","Stay at third — you can't tag on foul balls","Go halfway and watch the play","Sprint home before the catch"],
@@ -1949,7 +1949,7 @@ const SCENARIOS = {
       options:["Take third — the ball went to the wrong base","Stop at second — don't overrun the play","Watch the third baseman — if he's not there, go","Sprint home — total chaos"],
       best:0,explanations:["When the outfielder throws to the wrong base, TAKE THE EXTRA BASE. The ball is at third with no one covering — by the time someone retrieves it, you're standing on third safely. Smart baserunners exploit defensive mistakes.","Stopping at second when the ball went to an unoccupied third base wastes a free base.","Watching takes too long. If you can see the ball is at an empty bag, go immediately.","Home is too far unless the ball gets away from third base too."],
       rates:[85,25,45,15],concept:"When the defense throws to the wrong base, take the extra base — exploit their mistakes",anim:"advance"},
-    {id:"r47",title:"Hit and Run — Batter Misses",diff:2,cat:"baserunning",
+    {id:"r47",title:"Hit and Run — Batter Misses",diff:2,cat:"baserunning",conceptTag:"hit-and-run",
       description:"Bot 4th, you're on 1st, 1 out. The hit-and-run is called — you take off running. But the batter swings and MISSES. You're now a sitting duck between first and second.",
       situation:{inning:"Bot 4",outs:1,count:"1-1",runners:[1],score:[2,2]},
       options:["Keep going — try to steal second","Stop and get back to first","Slide into second and hope the catcher's throw is bad","Get in a rundown to let the batter get set for the next pitch"],
@@ -1973,7 +1973,7 @@ const SCENARIOS = {
       options:["Advance to second — all runners advance one base on a balk","Stay at first — a balk is just a warning","Go to second only if the umpire tells you","Run as far as you can — it's a dead ball"],
       best:0,explanations:["On a balk, ALL runners advance one base. You go from first to second for free. A balk is called when the pitcher makes an illegal motion — like starting and stopping his delivery. It's a free base for all runners, no exceptions.","A balk is not a warning — it's an immediate penalty. All runners advance one base.","You don't need to wait for the umpire to tell you. Once a balk is called, it's automatic — advance one base.","You only advance one base on a balk, not as many as you want. It's a dead ball."],
       rates:[85,5,30,15],concept:"On a balk, all runners advance one base — it's a free base when the pitcher makes an illegal motion",anim:"advance"},
-    {id:"r51",title:"Rundown — Make Them Throw",diff:3,cat:"baserunning",
+    {id:"r51",title:"Rundown — Make Them Throw",diff:3,cat:"baserunning",conceptTag:"rundown-mechanics",
       description:"Bot 8th, you're caught in a rundown between second and third. Two fielders are chasing you. You're probably going to be out, but how can you help your team?",
       situation:{inning:"Bot 8",outs:1,count:"-",runners:[1,2],score:[4,5]},
       options:["Sprint toward third — maybe you'll be safe","Make them throw as many times as possible — buy time","Give up and get tagged — save your energy","Run toward the fielder with the ball to force a bad throw"],
@@ -1986,7 +1986,7 @@ const SCENARIOS = {
       best:0,explanations:["When the pickoff throw gets away, sprint to second immediately! Don't wait, don't think, just react. The ball is loose and the first baseman has to chase it. By the time he recovers, you should be safe at second. Aggressive baserunners turn defensive mistakes into scoring opportunities.","It's not a trick — the ball is on the ground. React!","You should already be sprinting while verifying. Don't stand and watch.","Third might be possible if the ball goes far, but second is the guaranteed safe advance."],
       rates:[85,10,40,35],concept:"On dropped pickoff throws, react immediately — sprint to the next base while the ball is loose",anim:"advance"},
     // Batch 5 — Special Situations
-    {id:"r53",title:"Infield Fly Rule — What Do I Do?",diff:2,cat:"rules",
+    {id:"r53",title:"Infield Fly Rule — What Do I Do?",diff:2,cat:"rules",conceptTag:"infield-fly",
       description:"Bot 3rd, runners on 1st and 2nd, 1 out. The batter pops up a high fly to the shortstop. The umpire yells 'INFIELD FLY — BATTER IS OUT!' What do you do as the runner on 2nd?",
       situation:{inning:"Bot 3",outs:1,count:"-",runners:[1,2],score:[2,2]},
       options:["Run to third — the batter is out, I'm free to go","Stay on second — the infield fly means stay put","Tag up and advance if the ball is caught","Stay near your base — advance at your own risk"],
@@ -2018,7 +2018,7 @@ const SCENARIOS = {
       rates:[15,30,85,5],concept:"When the runner behind you is forced out, your force is removed — you must be tagged, not just forced",anim:"advance"},
   ],
   manager: [
-    {id:"m1",title:"Intentional Walk",diff:2,cat:"late-game",
+    {id:"m1",title:"Intentional Walk",diff:2,cat:"late-game",conceptTag:"force-vs-tag",
       description:"Bottom 9th, runner on 2nd, 1 out, up by 1. The .310 hitter is up. .220 hitter (8 HRs) on deck.",
       situation:{inning:"Bot 9",outs:1,count:"-",runners:[2],score:[5,4]},
       options:["Walk him — set up the DP","Pitch to him","Walk both — load bases","Bring in a new pitcher"],
@@ -2180,7 +2180,7 @@ const SCENARIOS = {
       options:["Squeeze bunt — guarantee a run","Let him swing — bases loaded with a wild pitcher","Hit and run","Take all the way — walk forces a run"],
       best:1,explanations:["A squeeze bunt with bases loaded and nobody out limits you to one run. With nobody out and a wild pitcher, you could score 3-4 runs this inning.","With bases loaded, nobody out, and a wild pitcher, let your hitter swing. Any hit scores runs. A walk forces a run in. An error scores runs. Everything good can happen — don't limit yourself to one run with a squeeze bunt.","A hit and run with bases loaded is unnecessary — the runners will be moving on contact with nobody out anyway.","Taking is okay if the pitcher is truly wild, but your hitter should be ready to drive a mistake pitch."],
       rates:[30,85,20,45],concept:"Bases loaded with nobody out and a wild pitcher — don't squeeze for one run when you can score several",anim:"hit"},
-    {id:"m26",title:"Steal or Hit and Run?",diff:2,cat:"plays",
+    {id:"m26",title:"Steal or Hit and Run?",diff:2,cat:"plays",conceptTag:"hit-and-run",
       description:"Bot 5th, runner on 1st, 1 out, tied 2-2. Your fastest player is on first. The pitcher is slow to the plate. Count is 1-0.",
       situation:{inning:"Bot 5",outs:1,count:"1-0",runners:[1],score:[2,2]},
       options:["Straight steal — he's your fastest player","Hit and run — the batter must make contact","Let the batter hit naturally","Sacrifice bunt to move the runner"],
@@ -2235,7 +2235,7 @@ const SCENARIOS = {
       options:["Call time and tell the catcher to watch for a steal","Tell the pitcher to use the slide step","Call a pitchout on the first pitch","Just let the battery handle it"],
       best:0,explanations:["As a manager, it's your job to recognize threats. Call timeout and remind your catcher that the fastest runner in the league is on first. Make sure the pitcher and catcher are ready for the steal attempt. Communication prevents easy stolen bases.","The slide step helps, but the whole team needs to be aware. Start with communication.","A pitchout on the first pitch is too predictable and puts your pitcher behind 1-0. Save it for later.","Letting the battery handle it when they clearly aren't paying attention is negligent managing."],
       rates:[85,55,25,15],concept:"When a dangerous basestealer reaches base, communicate — make sure your catcher and pitcher are ready",anim:"freeze"},
-    {id:"m35",title:"Pull Hitter at the Plate — Shift?",diff:2,cat:"defense",
+    {id:"m35",title:"Pull Hitter at the Plate — Shift?",diff:2,cat:"defense",conceptTag:"dp-positioning",
       description:"Top of the 5th, nobody on, 2 outs, tied 2-2. Their left-handed cleanup hitter is up — he's pulled every ball to the right side today. He's hit 2 hard ground balls to the right.",
       situation:{inning:"Top 5",outs:2,count:"-",runners:[],score:[2,2]},
       options:["Shift — move the shortstop to the right side","Play straight up — standard positioning","Shift slightly — shade toward the right but don't overshift","Only shift with the bases empty"],
@@ -2259,7 +2259,7 @@ const SCENARIOS = {
       options:["Guard the lines — move 1B and 3B closer to the foul lines","Play straight up — don't overadjust","Shift toward the pull side","Bring the outfield in to prevent extra bases"],
       best:0,explanations:["With 2 outs and a 2-run lead in the 9th, guard the lines! A double down the line keeps the inning alive and brings the tying run to the plate. A single through the normal hole is less dangerous. You'd rather give up a single up the middle than a double down the line in this situation.","Playing straight up risks a double down the line that extends the inning in the worst way.","Shifting ignores the extra-base hit risk on the non-pull side.","Bringing the outfield in is for single-run situations. With a 2-run lead, you can afford a single — you can't afford a double."],
       rates:[85,30,25,20],concept:"In the 9th with a lead, guard the foul lines — a double is more dangerous than a single",anim:"catch"},
-    {id:"m39",title:"Power Hitter Up — DP or Guard Lines?",diff:3,cat:"defense",
+    {id:"m39",title:"Power Hitter Up — DP or Guard Lines?",diff:3,cat:"defense",conceptTag:"dp-positioning",
       description:"Bot 8th, runner on 1st, nobody out, up 6-4. Their power hitter is up — he's hit 2 homers today. But a double play ends the threat.",
       situation:{inning:"Bot 8",outs:0,count:"-",runners:[1],score:[6,4]},
       options:["Play for the double play — DP depth","Guard the lines — prevent extra bases","Play straight up — balanced approach","Bring the outfield way back to prevent a homer"],
@@ -2395,7 +2395,7 @@ const SCENARIOS = {
       options:["Drop to both knees and center your body on the ball","Reach out and try to catch it with your mitt","Stay standing and swipe at it","Turn sideways to create a wider wall"],
       best:0,explanations:["Textbook! Drop to knees, tuck chin, center body on ball, keep it in front. Runner stays at 3rd.","Trying to backhand a ball in the dirt often leads to it squirting away. Block first, catch second.","Staying standing leaves a huge gap underneath. The ball will roll to the backstop.","Turning sideways can deflect the ball unpredictably. Square up and smother it."],
       rates:[85,30,15,40],concept:"Block first, catch second — keep your body centered behind the ball in the dirt",anim:"catch"},
-    {id:"ct3",title:"Steal Attempt at 2nd",diff:2,cat:"throwing",
+    {id:"ct3",title:"Steal Attempt at 2nd",diff:2,cat:"throwing",conceptTag:"steal-breakeven",
       description:"Fast runner on 1st takes off for 2nd on the pitch. Fastball, good location. What's your play?",
       situation:{inning:"Top 3",outs:0,count:"0-1",runners:[1],score:[1,0]},
       options:["Fire to 2nd immediately","Pump fake, then throw","Hold the ball — don't risk a wild throw","Throw to the pitcher for a rundown"],
@@ -2738,7 +2738,7 @@ const SCENARIOS = {
       best:1,explanations:["Leaving early means the defense can throw to 3rd for an appeal out.","The runner must 'tag up' — keep his foot on 3rd base until the ball is CAUGHT, then sprint home. If he leaves early and the defense appeals, he's out.","There's no special umpire signal — you have to watch the catch yourself.","Runners absolutely can advance after a catch — that's the whole point of a sacrifice fly."],
       rates:[25,85,15,10],concept:"Tag up: on a fly ball, touch your base until the catch is made, THEN you can advance",anim:"score"},
 
-    {id:"rl9",title:"Infield Fly Rule",diff:2,cat:"rules",
+    {id:"rl9",title:"Infield Fly Rule",diff:2,cat:"rules",conceptTag:"infield-fly",
       description:"Runners on first and second with one out. The batter pops up a high fly ball to the shortstop area. The umpire immediately points up and yells 'Infield fly!' before the ball even comes down. The shortstop lets the ball drop on purpose. What happens?",
       situation:{inning:"Top 5",outs:1,count:"1-2",runners:[1,2],score:[2,3]},
       options:["The batter is out automatically \u2014 the infield fly rule protects the runners","The ball is dead and all runners return to their bases","It's a live ball and the shortstop can throw to second for a double play","The batter gets to run to first because the fielder dropped it on purpose"],
@@ -2768,7 +2768,7 @@ const SCENARIOS = {
       options:["All runners advance one base \u2014 the balk gives them a free base","The pitch is just called a ball and the count changes","The runner on first is sent back and the pitcher gets a warning","The play is dead and everything resets \u2014 do-over for the pitcher"],
       best:0,explanations:["Correct! A balk means all runners advance one base for free. A balk is an illegal motion by the pitcher designed to trick the runners. The most common balks are: starting your windup and stopping, faking a throw to first without stepping off the rubber, or making a pitching motion without throwing. The rule prevents pitchers from deceiving runners.","A balk is not just a ball added to the count. It's a much bigger penalty \u2014 all runners move up one base. If a runner is on third, a balk scores a run! Pitchers have to be very careful with their motions.","There are no warnings for balks in baseball. Once the umpire sees an illegal motion, the balk is called immediately and runners advance. Pitchers learn proper mechanics to avoid balks.","The play doesn't reset. The balk has a real consequence \u2014 runners advance. You can't just call a do-over when a pitcher makes an illegal move. The penalty is there to keep the game fair for baserunners."],
       rates:[85,30,15,10],concept:"A balk is an illegal motion by the pitcher. When called, all runners advance one base for free. Pitchers must follow the rules of their windup!",anim:"advance"},
-    {id:"rl14",title:"Tag Up on Foul Fly",diff:1,cat:"rules",
+    {id:"rl14",title:"Tag Up on Foul Fly",diff:1,cat:"rules",conceptTag:"tag-up",
       description:"Runners on first and third with one out. The batter hits a towering pop-up that drifts into foul territory near the third base dugout. The third baseman makes the catch. The runner on third touches the base and sprints home. The runner on first stays put. Is this play legal?",
       situation:{inning:"Bot 5",outs:1,count:"1-1",runners:[1,3],score:[1,2]},
       options:["Yes \u2014 you can tag up on any caught fly ball, including foul balls","No \u2014 you cannot tag up on a ball caught in foul territory","Only the runner on third can tag up, not the runner on first","It's the umpire's judgment call whether the catch was close enough to fair"],
@@ -2836,7 +2836,7 @@ const SCENARIOS = {
       options:["Swing at anything close — can't take strike 3","Be selective — wait for YOUR pitch in YOUR zone","Take the pitch — if it's a ball, you walk","Swing for extra bases to drive in the runner"],
       best:1,explanations:["Swinging at everything leads to weak contact on bad pitches.","Even on 3-2 with 2 outs, be selective within the zone. You don't need to swing at balls. LOOK for a pitch you can drive. The runner is going, so contact puts him in scoring position.","You can't just take on 3-2 — if it catches the corner, you're out looking.","Trying to do too much leads to overswinging. Just find a good pitch and put a good swing on it."],
       rates:[30,85,25,35],concept:"Full count discipline: be aggressively selective — swing at strikes, lay off balls, even with 2 strikes",anim:"hit"},
-    {id:"cn7",title:"First Pitch After a Walk (Pitcher)",diff:1,cat:"counts",
+    {id:"cn7",title:"First Pitch After a Walk (Pitcher)",diff:1,cat:"counts",conceptTag:"first-pitch-strike",
       description:"You just walked the previous batter. New batter up. What should your first pitch be?",
       situation:{inning:"Top 5",outs:0,count:"0-0",runners:[1],score:[2,2]},
       options:["A careful pitch on the corner — don't fall behind again","A first-pitch strike — get ahead immediately","A pitchout to check the runner","Whatever you're most comfortable with"],
@@ -2891,7 +2891,7 @@ const SCENARIOS = {
       options:["Throw a pitch just outside the zone \u2014 tempt the batter to chase a bad pitch","Throw your best fastball right down the middle to put him away","Throw at his feet to intimidate him, then come back with a strike","Throw the same pitch that got strike two \u2014 it worked once, it'll work again"],
       best:0,explanations:["This is called a 'waste pitch' and it's one of pitching's smartest strategies. At 0-2, you can afford to throw a ball. Throw something that LOOKS like a strike but breaks off the plate \u2014 a slider down and away, a fastball up and in, or a curve in the dirt. If the batter chases, great. If not, you're at 1-2 and still in command.","Grooving a fastball right down the middle on 0-2 is a gift to the hitter. You have the count in your favor \u2014 there's no reason to throw a pitch right over the heart of the plate. Make the batter earn it by expanding the zone.","Throwing at a batter is dangerous and unsportsmanlike. You could hurt someone, get ejected, or start a conflict. There are much smarter ways to use an 0-2 count than trying to intimidate with inside pitches at the feet.","Repeating the same pitch that worked for strike two is predictable. Good hitters adjust and are now looking for that pitch. Change speeds, change locations, keep the batter guessing. Pitching is about deception."],
       rates:[85,15,10,30],concept:"At 0-2, use a 'waste pitch' just off the plate. You can afford a ball, and if the batter chases, you get an easy out. Expand the zone!",anim:"strike"},
-    {id:"cn16",title:"3-1 Green Light",diff:2,cat:"counts",
+    {id:"cn16",title:"3-1 Green Light",diff:2,cat:"counts",conceptTag:"count-leverage",
       description:"The count is 3-1 and your coach flashes you the green light \u2014 you're allowed to swing. The pitcher absolutely needs to throw a strike here or walk you. There's a runner on second with one out and your team is tied in the 6th inning. A hit here could put your team ahead.",
       situation:{inning:"Bot 6",outs:1,count:"3-1",runners:[2],score:[4,4]},
       options:["Look fastball and drive it \u2014 the pitcher needs to throw a strike, so sit on your pitch","Swing at any pitch in the zone \u2014 you got the green light so use it","Take the pitch anyway and try to draw the walk at 3-1","Swing at the first pitch no matter what \u2014 show the pitcher you're aggressive"],
@@ -3157,6 +3157,289 @@ function getRelevantAudits(position) {
     .join('\n');
 }
 
+// ============================================================================
+// BASEBALL BRAIN — Centralized knowledge engine for all game features
+// Stats from FanGraphs RE24 (2015-2024 avg), Baseball Reference count data
+// ============================================================================
+const BRAIN = { stats: {
+  // Run Expectancy Matrix: RE24[runnersKey][outs] = expected runs from this state onward
+  // Keys: "---"=empty, "1--"=1st, "-2-"=2nd, "--3"=3rd, "12-"=1st+2nd, "1-3"=1st+3rd, "-23"=2nd+3rd, "123"=loaded
+  RE24: {
+    "---":[0.54,0.29,0.11], "1--":[0.94,0.56,0.24], "-2-":[1.17,0.71,0.33],
+    "--3":[1.43,0.98,0.37], "12-":[1.56,0.96,0.46], "1-3":[1.83,1.21,0.52],
+    "-23":[2.05,1.44,0.60], "123":[2.29,1.59,0.77],
+  },
+  // Count leverage: countData[count] = batting metrics and label
+  countData: {
+    "0-0":{ba:.340,obp:.340,slg:.555,label:"First Pitch",edge:"neutral"},
+    "1-0":{ba:.345,obp:.345,slg:.550,label:"Hitter's Advantage",edge:"hitter"},
+    "2-0":{ba:.400,obp:.400,slg:.665,label:"Best Hitter's Count",edge:"hitter"},
+    "3-0":{ba:.375,obp:.900,slg:.590,label:"Free Pass Territory",edge:"hitter"},
+    "3-1":{ba:.370,obp:.500,slg:.615,label:"Premium Hitter's Count",edge:"hitter"},
+    "0-1":{ba:.300,obp:.300,slg:.460,label:"Pitcher Got Ahead",edge:"pitcher"},
+    "0-2":{ba:.167,obp:.170,slg:.240,label:"Pitcher Dominant",edge:"pitcher"},
+    "1-1":{ba:.310,obp:.310,slg:.480,label:"Even Battle",edge:"neutral"},
+    "1-2":{ba:.180,obp:.190,slg:.270,label:"Pitcher's Count",edge:"pitcher"},
+    "2-1":{ba:.340,obp:.340,slg:.540,label:"Hitter Leaning",edge:"hitter"},
+    "2-2":{ba:.205,obp:.210,slg:.310,label:"Toss-Up",edge:"neutral"},
+    "3-2":{ba:.230,obp:.350,slg:.380,label:"Full Count",edge:"neutral"},
+  },
+  stealBreakEven: {0:0.72, 1:0.72, 2:0.67},  // by outs
+  buntDelta: {"1--_0":-0.23, "-2-_0":-0.19, "12-_0":-0.08},  // RE24 cost of sac bunt
+  ttoEffect: [0, 15, 30],  // BA points penalty by times-through-order (1st, 2nd, 3rd)
+  platoonEdge: 18,          // ~18 BA points for opposite-hand matchup
+  popTime: {elite:1.85, average:2.0, slow:2.15},
+  timeToPlate: {quick:1.2, average:1.4, slow:1.6},
+},
+concepts: {
+  "force-vs-tag":       {name:"Force vs Tag Plays",       domain:"rules",       prereqs:[],                       ageMin:6,  diff:1},
+  "fly-ball-priority":  {name:"Fly Ball Priority",         domain:"defense",     prereqs:[],                       ageMin:6,  diff:1},
+  "backup-duties":      {name:"Backup Responsibilities",   domain:"defense",     prereqs:[],                       ageMin:8,  diff:1},
+  "rundown-mechanics":  {name:"Rundown Procedure",         domain:"defense",     prereqs:[],                       ageMin:8,  diff:1},
+  "tag-up":             {name:"Tagging Up on Fly Balls",   domain:"baserunning", prereqs:["fly-ball-priority"],     ageMin:8,  diff:1},
+  "first-pitch-strike": {name:"First-Pitch Strikes",       domain:"pitching",    prereqs:[],                       ageMin:6,  diff:1},
+  "cutoff-roles":       {name:"Who Is the Cutoff Man",     domain:"defense",     prereqs:["force-vs-tag"],          ageMin:9,  diff:2},
+  "count-leverage":     {name:"Count Leverage",            domain:"pitching",    prereqs:["first-pitch-strike"],    ageMin:9,  diff:2},
+  "double-play-turn":   {name:"Turning the Double Play",   domain:"defense",     prereqs:["force-vs-tag"],          ageMin:9,  diff:2},
+  "two-strike-approach":{name:"Two-Strike Approach",       domain:"hitting",     prereqs:["count-leverage"],        ageMin:9,  diff:2},
+  "bunt-defense":       {name:"Bunt Defense Assignments",  domain:"defense",     prereqs:["cutoff-roles"],          ageMin:10, diff:2},
+  "steal-breakeven":    {name:"Steal Break-Even Rate",     domain:"baserunning", prereqs:[],                       ageMin:11, diff:2},
+  "dp-positioning":     {name:"DP Depth vs Normal",        domain:"defense",     prereqs:["double-play-turn"],      ageMin:11, diff:2},
+  "situational-hitting":{name:"Situational Hitting",       domain:"hitting",     prereqs:["count-leverage"],        ageMin:11, diff:2},
+  "hit-and-run":        {name:"Hit-and-Run Play",          domain:"strategy",    prereqs:["steal-breakeven"],       ageMin:11, diff:2},
+  "first-third":        {name:"First-and-Third Defense",   domain:"defense",     prereqs:["cutoff-roles"],          ageMin:11, diff:3},
+  "relay-double-cut":   {name:"Double Cut Relays",         domain:"defense",     prereqs:["cutoff-roles"],          ageMin:11, diff:3},
+  "pitch-sequencing":   {name:"Pitch Sequencing",          domain:"pitching",    prereqs:["count-leverage"],        ageMin:11, diff:3},
+  "bunt-re24":          {name:"Sacrifice Bunt RE24",       domain:"strategy",    prereqs:["steal-breakeven"],       ageMin:11, diff:3},
+  "infield-fly":        {name:"Infield Fly Rule",          domain:"rules",       prereqs:["force-vs-tag"],          ageMin:9,  diff:2},
+},
+coaching: {
+  situational: {
+    "high-re24":"With {re24} runs expected here, every decision counts!",
+    "low-re24":"Only {re24} expected runs — need to make this opportunity count.",
+    "hitters-count":"{count} is a {label} — hitters bat {ba} here!",
+    "pitchers-count":"Down {count}, hitters only bat {ba}. Expand the zone!",
+    "full-count":"Full count — hitters bat .230 but walk rate jumps. Be ready!",
+    "steal-risky":"Need {breakeven}% success to break even on a steal here.",
+    "bunt-bad-re24":"Bunting costs {delta} expected runs here — look for something better.",
+    "bunt-ok":"With a weak hitter needing exactly 1 run, a bunt can make sense here.",
+    "high-leverage":"This is a championship moment. One play changes everything!",
+    "fatigue-warning":"Third time through — batters hit {penalty} points better now.",
+    "bases-loaded":"Bases loaded! {re24} expected runs — every pitch is magnified.",
+    "risp":"Runner in scoring position with {outs} out — situational hitting time!",
+    "lead-protect":"Protecting a lead means pitching smart, not hard.",
+    "comeback":"Down in the count — battle and make the pitcher work.",
+    "two-outs":"Two outs changes everything — run on contact!",
+    "empty-bases":"Nobody on — focus on getting on base any way you can.",
+    "first-inning":"Top of the game — set the tone with smart play!",
+    "late-close":"Late and close — every decision is amplified!",
+    "dp-situation":"Double play situation — ground ball is the pitcher's best friend.",
+    "nobody-out":"Nobody out — don't give away outs! Make them earn it.",
+  }
+}};
+
+// ── Brain API — Pure utility functions ──
+function runnersKey(runners) {
+  if (!runners || runners.length === 0) return "---";
+  const r = new Set(runners);
+  return (r.has(1)?"1":"-")+(r.has(2)?"2":"-")+(r.has(3)?"3":"-");
+}
+function getRunExpectancy(runners, outs) {
+  if (outs < 0 || outs > 2) return 0;
+  const key = runnersKey(runners);
+  return BRAIN.stats.RE24[key]?.[outs] ?? 0;
+}
+function getPressure(situation) {
+  if (!situation) return 0;
+  const {runners=[], outs=0, inning="", score=[0,0]} = situation;
+  const re24 = getRunExpectancy(runners, outs);
+  // RE24 component: 0-40 points (bases loaded 0 out = 40)
+  const re24Score = Math.min(40, Math.round((re24 / 2.29) * 40));
+  // Inning leverage: late innings are higher pressure (0-30)
+  const innNum = parseInt((inning||"").replace(/\D/g,"")) || 1;
+  const inningScore = innNum >= 9 ? 30 : innNum >= 7 ? 20 : innNum >= 5 ? 10 : 0;
+  // Score closeness: tie or 1-run game = high pressure (0-30)
+  const diff = Math.abs((score[0]||0) - (score[1]||0));
+  const closeScore = diff === 0 ? 30 : diff === 1 ? 25 : diff === 2 ? 15 : diff <= 4 ? 5 : 0;
+  return Math.min(100, re24Score + inningScore + closeScore);
+}
+function getCountIntel(count) {
+  if (!count || count === "-") return null;
+  return BRAIN.stats.countData[count] || null;
+}
+function evaluateBunt(runners, outs) {
+  const key = runnersKey(runners) + "_" + outs;
+  const delta = BRAIN.stats.buntDelta[key];
+  if (delta === undefined) return {delta: null, worthIt: false, explanation: "No bunt data for this situation."};
+  return {delta, worthIt: delta > -0.10, explanation: delta <= -0.10
+    ? `Bunting costs ${Math.abs(delta).toFixed(2)} expected runs here — usually not worth it.`
+    : `Small RE24 cost of ${Math.abs(delta).toFixed(2)} — can be worth it late with a weak hitter needing 1 run.`
+  };
+}
+function evaluateSteal(outs, successRate) {
+  const breakeven = BRAIN.stats.stealBreakEven[outs] || 0.72;
+  return {breakeven: Math.round(breakeven * 100), worthIt: successRate >= breakeven,
+    explanation: successRate >= breakeven
+      ? `${Math.round(successRate*100)}% success beats the ${Math.round(breakeven*100)}% break-even — green light!`
+      : `${Math.round(successRate*100)}% success is below the ${Math.round(breakeven*100)}% break-even — too risky.`
+  };
+}
+function isConceptReady(tag, mastered, ageGroup) {
+  const concept = BRAIN.concepts[tag];
+  if (!concept) return {ready: true, missing: []};
+  // Age check
+  const ageMin = concept.ageMin || 6;
+  const ageNum = ageGroup === "6-8" ? 7 : ageGroup === "9-10" ? 9 : ageGroup === "11-12" ? 11 : 13;
+  if (ageNum < ageMin) return {ready: false, missing: [`Age ${ageMin}+ required`]};
+  // Prerequisite check
+  const missing = (concept.prereqs || []).filter(p => !mastered.includes(p));
+  return {ready: missing.length === 0, missing};
+}
+function findConceptTag(conceptText) {
+  if (!conceptText) return null;
+  const lower = conceptText.toLowerCase();
+  // Direct keyword mapping from concept text to BRAIN tag
+  const keywords = {
+    "force":{tags:["force-vs-tag"],weight:2},"tag play":{tags:["force-vs-tag"],weight:2},
+    "fly ball priority":{tags:["fly-ball-priority"],weight:3},"priority":{tags:["fly-ball-priority"],weight:1},
+    "backup":{tags:["backup-duties"],weight:2},"back up":{tags:["backup-duties"],weight:2},
+    "rundown":{tags:["rundown-mechanics"],weight:2},"tag up":{tags:["tag-up"],weight:3},"tagging up":{tags:["tag-up"],weight:3},
+    "first.pitch strike":{tags:["first-pitch-strike"],weight:3},"get ahead":{tags:["first-pitch-strike"],weight:1},
+    "cutoff":{tags:["cutoff-roles"],weight:2},"relay":{tags:["relay-double-cut","cutoff-roles"],weight:2},
+    "count":{tags:["count-leverage"],weight:1},"leverage":{tags:["count-leverage"],weight:2},
+    "double play":{tags:["double-play-turn"],weight:2},"turning two":{tags:["double-play-turn"],weight:3},
+    "two.strike":{tags:["two-strike-approach"],weight:3},"0-2":{tags:["two-strike-approach"],weight:1},
+    "bunt defense":{tags:["bunt-defense"],weight:3},"bunt assign":{tags:["bunt-defense"],weight:3},
+    "steal":{tags:["steal-breakeven"],weight:1},"break.even":{tags:["steal-breakeven"],weight:2},
+    "dp depth":{tags:["dp-positioning"],weight:3},"dp position":{tags:["dp-positioning"],weight:3},
+    "situational hit":{tags:["situational-hitting"],weight:3},"hit behind":{tags:["situational-hitting"],weight:2},
+    "hit.and.run":{tags:["hit-and-run"],weight:3},"hit and run":{tags:["hit-and-run"],weight:3},
+    "first.and.third":{tags:["first-third"],weight:3},"1st and 3rd":{tags:["first-third"],weight:3},
+    "double cut":{tags:["relay-double-cut"],weight:3},"pitch sequenc":{tags:["pitch-sequencing"],weight:3},
+    "sacrifice bunt":{tags:["bunt-re24"],weight:2},"sac bunt":{tags:["bunt-re24"],weight:3},
+    "infield fly":{tags:["infield-fly"],weight:3},
+  };
+  let best = null, bestWeight = 0;
+  for (const [kw, info] of Object.entries(keywords)) {
+    const rx = new RegExp(kw, "i");
+    if (rx.test(lower) && info.weight > bestWeight) { best = info.tags[0]; bestWeight = info.weight; }
+  }
+  return best;
+}
+function enrichFeedback(scenario, choiceIdx, situation) {
+  if (!situation) return [];
+  const insights = [];
+  const {runners=[], outs=0, count, score=[0,0]} = situation;
+  const re24 = getRunExpectancy(runners, outs);
+  if (re24 > 0.5 && runners.length > 0)
+    insights.push({icon:"📊", text:`With ${runners.length === 3 ? "bases loaded" : runners.length === 2 ? "2 runners on" : "a runner on"}, your team expects ${re24.toFixed(2)} runs from here.`});
+  const ci = getCountIntel(count);
+  if (ci)
+    insights.push({icon:"🔢", text:`At ${count} (${ci.label}), hitters bat .${Math.round(ci.ba*1000)}.`});
+  const pressure = getPressure(situation);
+  if (pressure >= 50)
+    insights.push({icon:"🔥", text:`Pressure: ${pressure}/100 — ${pressure>=80?"Clutch time!":pressure>=60?"High stakes!":"Heating up!"}`});
+  // Bunt insight if concept mentions bunt
+  if (scenario?.concept && /bunt/i.test(scenario.concept)) {
+    const bunt = evaluateBunt(runners, outs);
+    if (bunt.delta !== null) insights.push({icon:"📉", text:bunt.explanation});
+  }
+  // Steal insight if concept mentions steal
+  if (scenario?.concept && /steal/i.test(scenario.concept)) {
+    const steal = evaluateSteal(outs, 0.72);
+    insights.push({icon:"🏃", text:`Need ${steal.breakeven}% success rate to break even on a steal here.`});
+  }
+  return insights.slice(0, 3);
+}
+function getSmartCoachLine(cat, situation, position, streak, isPro) {
+  // Pro users get situation-aware lines from the brain
+  if (isPro && situation) {
+    const {runners=[], outs=0, count, score=[0,0], inning=""} = situation;
+    const re24 = getRunExpectancy(runners, outs);
+    const ci = getCountIntel(count);
+    const pressure = getPressure(situation);
+    // Streak lines still take priority
+    if (cat==="success" && streak>=3 && COACH_LINES.streakLines[Math.min(streak,10)])
+      return COACH_LINES.streakLines[Math.min(streak,10)];
+    // 40% chance of a situational brain line for Pro
+    if (Math.random() < 0.4) {
+      const innNum = parseInt((inning||"").replace(/\D/g,"")) || 1;
+      const diff = Math.abs((score[0]||0) - (score[1]||0));
+      // Pick the most relevant situational line
+      let key = null, vars = {};
+      if (runners.length === 3) { key = "bases-loaded"; vars = {re24: re24.toFixed(2)}; }
+      else if (pressure >= 75 && innNum >= 7) { key = "high-leverage"; }
+      else if (ci && ci.edge === "hitter" && cat === "success") { key = "hitters-count"; vars = {count, ba: "."+Math.round(ci.ba*1000), label: ci.label}; }
+      else if (ci && ci.edge === "pitcher") { key = "pitchers-count"; vars = {count, ba: "."+Math.round(ci.ba*1000)}; }
+      else if (count === "3-2") { key = "full-count"; }
+      else if (re24 > 1.5) { key = "high-re24"; vars = {re24: re24.toFixed(2)}; }
+      else if (runners.some(r => r >= 2) && outs < 2) { key = "risp"; vars = {outs}; }
+      else if (innNum >= 7 && diff <= 2) { key = "late-close"; }
+      else if (outs === 2) { key = "two-outs"; }
+      else if (outs === 0 && runners.length > 0) { key = "nobody-out"; }
+      else if (innNum <= 1) { key = "first-inning"; }
+      if (key && BRAIN.coaching.situational[key]) {
+        let line = BRAIN.coaching.situational[key];
+        for (const [k, v] of Object.entries(vars)) line = line.replace(`{${k}}`, v);
+        return line;
+      }
+    }
+  }
+  // Fall through to original getCoachLine logic
+  return getCoachLine(cat, position, streak, isPro);
+}
+function formatBrainStats(position) {
+  const lines = [];
+  // Everyone gets key RE24 states
+  lines.push("RUN EXPECTANCY (RE24): ---/0out=0.54, 1--/0out=0.94, -2-/0out=1.17, 123/0out=2.29, ---/2out=0.11");
+  // Pitchers/batters/catchers/counts get count data
+  if (["pitcher","batter","catcher","counts"].includes(position)) {
+    lines.push("COUNT LEVERAGE: 0-0=.340BA, 0-2=.167BA, 2-0=.400BA, 3-1=.370BA, 3-2=.230BA, 1-2=.180BA");
+  }
+  // Baserunners/managers get steal break-even
+  if (["baserunner","manager","batter"].includes(position)) {
+    lines.push("STEAL BREAK-EVEN: 72% success needed (0-1 out), 67% needed (2 out). Below = hurting the team.");
+  }
+  // Managers get TTO effect
+  if (position === "manager") {
+    lines.push("TIMES THROUGH ORDER: Batters hit +15 BA pts 2nd time, +30 pts 3rd time vs same pitcher.");
+  }
+  // Bunt RE24 for relevant positions
+  if (["batter","manager","baserunner"].includes(position)) {
+    lines.push("BUNT RE24: Runner 1st/0out costs -0.23 runs. Runner 2nd/0out costs -0.19. Usually bad except: weak hitter, late, need 1 run.");
+  }
+  // Everyone gets fly ball priority
+  lines.push("FLY BALL PRIORITY: OF in > IF back. Center > corners. Ball drifts TOWARD OF, AWAY from IF.");
+  lines.push("FORCE PLAY: Removed when runner ahead is put out → remaining plays become TAG plays.");
+  return lines.join("\n- ");
+}
+function getTeachingContext(position, mastered, ageGroup) {
+  const unmasteredConcepts = Object.entries(BRAIN.concepts)
+    .filter(([tag, c]) => {
+      const {ready} = isConceptReady(tag, mastered || [], ageGroup || "11-12");
+      return ready && !(mastered || []).includes(tag);
+    })
+    .map(([tag, c]) => `${tag} (${c.name})`)
+    .slice(0, 5);
+  return unmasteredConcepts.length > 0
+    ? `\nTEACH ONE OF THESE UNMASTERED CONCEPTS: ${unmasteredConcepts.join(", ")}`
+    : "";
+}
+function filterByReadiness(scenarios, masteredTags, ageGroup) {
+  return scenarios.filter(s => {
+    const tag = s.conceptTag || findConceptTag(s.concept);
+    if (!tag) return true; // No tag = always eligible
+    const {ready} = isConceptReady(tag, masteredTags, ageGroup);
+    return ready;
+  });
+}
+function getPressureLabel(pressure) {
+  if (pressure >= 80) return {text:"CLUTCH TIME", color:"#ef4444"};
+  if (pressure >= 55) return {text:"HIGH STAKES", color:"#f97316"};
+  if (pressure >= 30) return {text:"HEATING UP", color:"#f59e0b"};
+  return {text:"WARMING UP", color:"#22c55e"};
+}
+
 async function generateAIScenario(position, stats, conceptsLearned = [], recentWrong = [], signal = null, targetConcept = null) {
   const lvl = getLvl(stats.pts);
   const posStats = stats.ps[position] || { p: 0, c: 0 };
@@ -3186,15 +3469,9 @@ ${CUTOFF_RELAY_MAP}
 
 ${getRelevantMaps(position)}
 
-DATA REFERENCE (use these real statistics in explanations when relevant):
-- Run expectancy with runner on 1st, 0 out: ~0.94 runs. Runner on 2nd, 0 out: ~1.17 runs. Bases loaded, 0 out: ~2.29 runs.
-- Sacrifice bunts usually LOWER run expectancy (e.g., runner on 2nd with 0 out: 1.17 → runner on 3rd with 1 out: 0.99). Exception: weak hitter, late game, need exactly 1 run.
-- Stolen base break-even: ~72% success rate needed to be worthwhile (per RE24).
-- Batting average by count: 0-0 ~.340 first-pitch strikes, 0-2 ~.167, 2-0 ~.400, 3-1 ~.370, full count ~.230.
-- Batters hit ~30 points better the 3rd time through the order vs the 1st time.
-- Fly ball priority hierarchy: OF coming in > IF going back. Center > corners. Ball drifts TOWARD outfielder, AWAY from infielder.
-- Relay default: always toward HOME plate. Preventing runs is the #1 priority.
-- Force play: removed when the runner ahead is put out. Remaining plays become TAG plays.
+DATA REFERENCE (position-filtered, use in explanations when relevant):
+- ${formatBrainStats(position)}
+${getTeachingContext(position, conceptsLearned, stats.ageGroup||"11-12")}
 
 SELF-AUDIT — Before outputting, verify ALL of these:
 1. Is the game situation physically possible? (outs 0-2, count valid, runners/score make sense together)
@@ -3703,28 +3980,33 @@ const COACH_LINES={
     "The game is the best teacher!","That's why we practice!"
   ],
   posSuccess:{
-    pitcher:"That's an ace-level pitch call!",catcher:"You're the quarterback of this defense!",
-    firstBase:"Stretch and scoop — that's Gold Glove material!",secondBase:"Silky smooth! That's a double play artist!",
-    shortstop:"Captain of the infield — nailed it!",thirdBase:"Hot corner hero! Lightning reflexes!",
-    leftField:"Tracking that ball like a pro!",centerField:"That's why CF is the captain of the outfield!",
-    rightField:"Cannon arm! That throw was perfect!",
-    batter:"You've got the eye of a cleanup hitter!",baserunner:"Speed AND smarts — that's rare!",
-    manager:"Skipper, that's a World Series move!",
+    pitcher:["That's an ace-level pitch call!","First-pitch strikes cut BA from .340 to .167 on 0-2 — you got ahead!","Pitching smart beats pitching hard every time!","That's Cy Young thinking!"],
+    catcher:["You're the quarterback of this defense!","Elite catchers think two pitches ahead — just like you!","That's a 1.85-second pop time decision!","Field general material!"],
+    firstBase:["Stretch and scoop — that's Gold Glove material!","Knowing when to hold vs charge is what separates pros!","That's why 1B is the cutoff on CF/RF throws home!","Smooth first base work!"],
+    secondBase:["Silky smooth! That's a double play artist!","Quick pivot, strong relay — textbook!","Knowing when to cover 1B vs 2B is advanced stuff!","DP artist in the making!"],
+    shortstop:["Captain of the infield — nailed it!","Communication is king at short — you've got it!","That's a Gold Glove relay!","You own the left side!"],
+    thirdBase:["Hot corner hero! Lightning reflexes!","Charging bunts takes courage — you've got it!","Line guard in the 9th — that's veteran savvy!","Hot corner MVP!"],
+    leftField:["Tracking that ball like a pro!","Backing up 3B is an OF's hidden superpower — you know it!","That throw hit the cutoff perfectly!","Reading the ball like a scout!"],
+    centerField:["That's why CF is the captain of the outfield!","You called it loud and early — that's leadership!","Gap to gap coverage — elite range!","The OF captain speaks!"],
+    rightField:["Cannon arm! That throw was perfect!","Backing up 1B on every grounder — that's elite hustle!","Strong arm, smart throw — deadly combo!","Right field rocket arm!"],
+    batter:["You've got the eye of a cleanup hitter!","Knowing hitter's counts from pitcher's counts is an edge!","That's situational hitting — moving runners is how you win!","Patient and powerful — the perfect combo!"],
+    baserunner:["Speed AND smarts — that's rare!","72% break-even for steals — you know the math!","Reading the pitcher's first move is an art!","That's heads-up base running!"],
+    manager:["Skipper, that's a World Series move!","RE24 says that was the right call — and so do I!","Managing the pitching staff is the hardest job — nailed it!","That's a championship decision!"],
     famous:"History lesson: aced!",rules:"You know the rulebook inside out!",counts:"Count IQ is off the charts!"
   },
   posDanger:{
-    pitcher:"Pitching is all about outsmarting the hitter — you'll get there!",
-    catcher:"Calling a game is the toughest job on the field — keep studying!",
-    firstBase:"First base is all about footwork and focus — keep at it!",
-    secondBase:"Turning two is an art — you'll get smoother with reps!",
-    shortstop:"Shortstop is the hardest infield position — keep grinding!",
-    thirdBase:"The hot corner is all about reactions — they'll get faster!",
-    leftField:"Reading the ball off the bat takes practice — you're learning!",
-    centerField:"Covering all that ground takes experience — keep running them down!",
-    rightField:"That arm will get stronger — keep making those throws!",
-    batter:"Even the best hitters fail 7 out of 10 times. Keep swinging!",
-    baserunner:"Base running is the hardest thing to teach — you're learning!",
-    manager:"Managing is all about the next decision. Reset and go!",
+    pitcher:["Pitching is all about outsmarting the hitter — you'll get there!","Remember: location beats velocity in high leverage!","Getting ahead 0-1 changes everything — work on first-pitch strikes!","The best pitchers think two pitches ahead."],
+    catcher:["Calling a game is the toughest job on the field — keep studying!","Remember: direct the cutoff man with your voice!","Pop time starts with a quick transfer — keep working on it!","The catcher sees the whole field — use that view!"],
+    firstBase:["First base is all about footwork and focus — keep at it!","Scoops save games — short-hop practice pays off!","Remember: you're the cutoff on CF and RF throws home!","Knowing when 2B covers for you is key."],
+    secondBase:["Turning two is an art — you'll get smoother with reps!","Cover 1B when 1B charges bunts — it's your job!","The DP pivot takes a thousand reps — keep at it!","Left side relay is SS, right side is you — know your assignments!"],
+    shortstop:["Shortstop is the hardest infield position — keep grinding!","Firm, chest-high feeds make the DP work!","You cut throws to 3B — know your assignments!","Communication is your superpower — use it!"],
+    thirdBase:["The hot corner is all about reactions — they'll get faster!","Bare-hand bunts take practice — keep charging!","Guard the line late and close — don't give up extra bases!","SS covers 3B when you're the cutoff — trust your teammates!"],
+    leftField:["Reading the ball off the bat takes practice — you're learning!","3B is your cutoff man on throws home — hit him!","Back up 3B on ALL infield plays — that's your hidden job!","Coming in on a ball is always easier than going back."],
+    centerField:["Covering all that ground takes experience — keep running them down!","You have priority on EVERY fly ball you can reach!","Angle routes beat straight-back routes — save steps!","Back up 2B on steal attempts — hustle pays off!"],
+    rightField:["That arm will get stronger — keep making those throws!","Back up 1B on EVERY grounder — most important routine OF job!","1B is your cutoff on throws home — hit the target!","Coming in is always easier than going back."],
+    batter:["Even the best hitters fail 7 out of 10 times. Keep swinging!","On 0-2, expand your zone slightly and fight off tough pitches.","2-0 is the best hitter's count — .400 BA! Be ready for your pitch.","Situational hitting wins games — think about moving runners!"],
+    baserunner:["Base running is the hardest thing to teach — you're learning!","Below 72% success rate, a steal attempt hurts your team.","Never make the first or third out at third base!","Tag up: watch the fielder's feet, leave on the catch."],
+    manager:["Managing is all about the next decision. Reset and go!","Batters hit 30 points better the 3rd time through — use that info!","Sacrifice bunts usually cost runs — check the RE24!","Late and close: every decision is magnified."],
     famous:"These famous plays tripped up real pros too!",
     rules:"Even umpires argue about rules sometimes!",
     counts:"Counts are tricky — even big leaguers get fooled!"
@@ -3734,7 +4016,13 @@ const COACH_LINES={
     "Three in a row! You're heating up!","Four straight! Stay locked in!",
     "Five in a row! You're on fire!","Six straight! Can't stop, won't stop!",
     "Seven! That's a whole week of perfection!","Incredible streak going!",
-    "Double digits! You're unstoppable!","This streak is legendary!"
+    "Double digits! You're unstoppable!","This streak is legendary!",
+    null,null,null,null,
+    "FIFTEEN straight! You're writing history!",
+    null,null,null,null,
+    "TWENTY! Hall of Fame material right here!",
+    null,null,null,null,
+    "TWENTY-FIVE! Is there anything you don't know?!"
   ],
   facts:[
     "Did you know? A MLB game has about 300 strategic decisions!",
@@ -3748,7 +4036,20 @@ const COACH_LINES={
     "Did you know? Catchers squat and stand up over 200 times per game!",
     "Fun fact: A curveball can break up to 17 inches from its starting path!",
     "Did you know? The hit-and-run play has been used since the 1890s!",
-    "Fun fact: Relief pitchers didn't become common until the 1950s!"
+    "Fun fact: Relief pitchers didn't become common until the 1950s!",
+    "Brain stat: With bases loaded and 0 outs, teams score an average of 2.29 runs!",
+    "Brain stat: A sacrifice bunt with a runner on 1st costs 0.23 expected runs!",
+    "Brain stat: On 2-0 counts, hitters bat .400 — the best count in baseball!",
+    "Brain stat: Batters hit .167 on 0-2 counts — get ahead early!",
+    "Brain stat: Platoon advantage is worth about 18 points of batting average!",
+    "Brain stat: Elite catchers have a 1.85-second pop time — lightning fast!",
+    "Brain stat: The steal break-even rate is 72% — below that, you're hurting your team!",
+    "Brain stat: Runners on 2nd and 3rd with 0 outs? Teams average 2.05 runs!",
+    "Did you know? The force play is removed when the runner ahead is put out!",
+    "Fun fact: Center fielders have priority over ALL other fielders on fly balls!",
+    "Did you know? On a full count, the walk rate jumps but BA drops to .230!",
+    "Fun fact: The double play is called the pitcher's best friend!",
+    "Brain stat: With no one on and 2 outs, teams only average 0.11 runs. Every base counts!"
   ]
 };
 function Coach({mood="neutral",msg=null}){
@@ -3768,11 +4069,15 @@ function Coach({mood="neutral",msg=null}){
 function getCoachLine(cat,pos,streak,isPro=false){
   // Pro: full coach with streak reactions, facts, position tips
   if(isPro){
-    if(cat==="success"&&streak>=3&&COACH_LINES.streakLines[Math.min(streak,10)])return COACH_LINES.streakLines[Math.min(streak,10)];
+    const maxSt=COACH_LINES.streakLines.length-1;
+    if(cat==="success"&&streak>=3&&COACH_LINES.streakLines[Math.min(streak,maxSt)])return COACH_LINES.streakLines[Math.min(streak,maxSt)];
     if(cat==="success"&&Math.random()<0.2){const f=COACH_LINES.facts;return f[Math.floor(Math.random()*f.length)];}
     if(pos&&Math.random()<0.3){
       const posLines=cat==="success"?COACH_LINES.posSuccess:cat==="danger"?COACH_LINES.posDanger:null;
-      if(posLines&&posLines[pos])return posLines[pos];
+      if(posLines&&posLines[pos]){
+        const v=posLines[pos];
+        return Array.isArray(v)?v[Math.floor(Math.random()*v.length)]:v;
+      }
     }
   }
   // Free: generic success/warning/danger lines only
@@ -4103,7 +4408,10 @@ export default function App(){
     let effMaxDiff=maxDiff;
     if(stats.ageGroup==="6-8"&&(stats.posGrad||{})[p])effMaxDiff=Math.max(effMaxDiff,2);
     const pool=raw.filter(s=>s.diff<=effMaxDiff);const fallback=raw;
-    const src=pool.length>0?pool:fallback;const seen=hist[p]||[];
+    // Prerequisite filter: only show scenarios whose concepts the player is ready for
+    const masteredTags=(stats.cl||[]).map(c=>findConceptTag(c)).filter(Boolean);
+    const ready=filterByReadiness(pool,masteredTags,stats.ageGroup);
+    const src=ready.length>0?ready:pool.length>0?pool:fallback;const seen=hist[p]||[];
     const unseen=src.filter(s=>!seen.includes(s.id));
     // Spaced repetition: pick a DIFFERENT scenario, not the exact same one
     const wc=stats.wrongCounts||{};
@@ -4221,7 +4529,7 @@ export default function App(){
     // Speed Round bonus: +1 pt per second remaining
     let speedBonus=0;
     if(speedMode&&isOpt&&timer>0){speedBonus=timer;pts+=speedBonus;}
-    setFo(cat);setAk(k=>k+1);snd.play(isOpt?'correct':rate>=55?'near':'wrong');setCoachMsg(getCoachLine(cat,pos,isOpt?stats.str+1:0,stats.isPro));
+    setFo(cat);setAk(k=>k+1);snd.play(isOpt?'correct':rate>=55?'near':'wrong');setCoachMsg(getSmartCoachLine(cat,sc.situation,pos,isOpt?stats.str+1:0,stats.isPro));
     // Crowd cheer on perfect answers, jackpot on every 5th streak
     if(isOpt){setTimeout(()=>snd.play('cheer'),300);const newStr=stats.str+1;if(newStr>0&&newStr%5===0)setTimeout(()=>snd.play('jackpot'),500);}
     // Use simplified explanations for young players when available
@@ -5222,6 +5530,19 @@ export default function App(){
             <div style={{marginTop:3}}><Board sit={sc.situation}/></div>
           </div>
 
+          {/* Pressure Meter */}
+          {(()=>{const p=getPressure(sc.situation);if(p<=20)return null;const pl=getPressureLabel(p);
+            return(<div style={{marginBottom:8,padding:"5px 10px",background:"rgba(0,0,0,.15)",borderRadius:8,border:"1px solid rgba(255,255,255,.04)"}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:3}}>
+                <span style={{fontSize:9,fontWeight:700,color:pl.color,textTransform:"uppercase",letterSpacing:1}}>{pl.text}</span>
+                <span style={{fontSize:9,color:"#6b7280",fontWeight:600}}>{p}/100</span>
+              </div>
+              <div style={{height:4,background:"rgba(255,255,255,.06)",borderRadius:2,overflow:"hidden"}}>
+                <div style={{height:"100%",width:`${p}%`,borderRadius:2,background:`linear-gradient(90deg,#22c55e,${p>=55?"#f59e0b":"#22c55e"},${p>=80?"#ef4444":p>=55?"#f59e0b":"#22c55e"})`,transition:"width .5s ease"}}/>
+              </div>
+            </div>);
+          })()}
+
           <div style={{...card,marginBottom:8,padding:12}}>
             <h3 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:18,letterSpacing:1,color:"#f59e0b",marginBottom:4}}>{sc.title}</h3>
             <p style={{fontSize:14,lineHeight:1.55,color:"#d1d5db"}}>{sc.description}</p>
@@ -5286,6 +5607,23 @@ export default function App(){
             <div style={{fontSize:9,color:"#60a5fa",textTransform:"uppercase",letterSpacing:1,fontWeight:700,marginBottom:3}}>Key Concept</div>
             <p style={{fontSize:14,fontWeight:600,color:"white",lineHeight:1.45}}>{od.concept}</p>
           </div>}
+
+          {/* Brain Insights — statistical context for ages 11+ */}
+          {showC&&stats.ageGroup!=="6-8"&&stats.ageGroup!=="9-10"&&(()=>{
+            const insights=enrichFeedback(sc,choice,sc.situation);
+            if(insights.length===0)return null;
+            return(<div style={{background:"linear-gradient(135deg,rgba(168,85,247,.04),rgba(59,130,246,.04))",border:"1px solid rgba(168,85,247,.12)",borderRadius:12,padding:12,marginTop:8}}>
+              <div style={{fontSize:9,color:"#a855f7",textTransform:"uppercase",letterSpacing:1,fontWeight:700,marginBottom:6,textAlign:"center"}}>Brain Insights</div>
+              <div style={{display:"flex",flexDirection:"column",gap:5}}>
+                {insights.map((ins,i)=>(
+                  <div key={i} style={{display:"flex",alignItems:"flex-start",gap:6}}>
+                    <span style={{fontSize:13,flexShrink:0}}>{ins.icon}</span>
+                    <span style={{fontSize:12,color:"#d1d5db",lineHeight:1.4}}>{ins.text}</span>
+                  </div>
+                ))}
+              </div>
+            </div>);
+          })()}
 
           <button onClick={next} style={{...btn(dailyMode?"linear-gradient(135deg,#d97706,#f59e0b)":"linear-gradient(135deg,#2563eb,#3b82f6)"),...{marginTop:12,boxShadow:dailyMode?"0 4px 12px rgba(245,158,11,.25)":"0 4px 12px rgba(37,99,235,.25)"}}}>{dailyMode?"Back to Home →":"Next Challenge →"}</button>
           <div style={{display:"flex",justifyContent:"center",gap:8,marginTop:6}}>
