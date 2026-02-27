@@ -12,10 +12,31 @@ const ALLOWED_ORIGINS = [
 const RATE_LIMIT_AI = 10; // AI proxy: req/min/IP
 const RATE_LIMIT_AUTH = 20; // auth endpoints: req/min/IP
 const RATE_LIMIT_SYNC = 30; // sync: req/min/user
+const RATE_LIMIT_VERIFY = 20; // verify-pro: req/min/IP
 const LOGIN_MAX_ATTEMPTS = 5; // per email per 15 min
 const SESSION_TTL = 30 * 24 * 60 * 60 * 1000; // 30 days
 const VERIFY_TTL = 24 * 60 * 60 * 1000; // 24 hours
 const PBKDF2_ITERATIONS = 100_000;
+
+// D1 migration for subscriptions table (run once):
+// CREATE TABLE IF NOT EXISTS subscriptions (
+//   id TEXT PRIMARY KEY,
+//   user_id TEXT,
+//   email TEXT NOT NULL,
+//   stripe_customer_id TEXT,
+//   stripe_subscription_id TEXT,
+//   plan TEXT NOT NULL DEFAULT 'monthly',
+//   status TEXT NOT NULL DEFAULT 'active',
+//   current_period_start INTEGER,
+//   current_period_end INTEGER,
+//   cancel_at_period_end INTEGER DEFAULT 0,
+//   promo_code TEXT,
+//   created_at INTEGER NOT NULL,
+//   updated_at INTEGER NOT NULL
+// );
+// CREATE INDEX IF NOT EXISTS idx_subs_email ON subscriptions(email);
+// CREATE INDEX IF NOT EXISTS idx_subs_stripe_cust ON subscriptions(stripe_customer_id);
+// CREATE INDEX IF NOT EXISTS idx_subs_stripe_sub ON subscriptions(stripe_subscription_id);
 
 const rateCounts = new Map();
 const loginAttempts = new Map();
@@ -401,6 +422,436 @@ async function handleVerifyEmail(request, env, cors) {
   `, 200, cors);
 }
 
+// --- Sprint 4.1: Server-side Pro verification ---
+
+// POST /verify-pro — check Pro status from server
+// Accepts: { email, isPro, proExpiry, proPlan } from client
+// Returns: { ok, isPro, proExpiry, proPlan, source } — authoritative server answer
+async function handleVerifyPro(request, env, cors) {
+  let body;
+  try { body = await request.json(); } catch {
+    return jsonResponse({ ok: false, error: "Invalid JSON" }, 400, cors);
+  }
+
+  const email = (body.email || "").trim().toLowerCase();
+  if (!email) {
+    // No email — can't verify server-side, trust client (graceful degradation)
+    return jsonResponse({ ok: true, isPro: !!body.isPro, source: "client_trusted" }, 200, cors);
+  }
+
+  // Check subscriptions table for active subscription
+  const sub = await env.DB.prepare(
+    "SELECT * FROM subscriptions WHERE email = ? AND status IN ('active', 'trialing') ORDER BY updated_at DESC LIMIT 1"
+  ).bind(email).first();
+
+  if (sub) {
+    const now = Date.now();
+    const isActive = !sub.current_period_end || sub.current_period_end > now;
+    if (isActive) {
+      return jsonResponse({
+        ok: true,
+        isPro: true,
+        proExpiry: sub.current_period_end || null,
+        proPlan: sub.plan,
+        source: "server_subscription",
+        cancelAtPeriodEnd: !!sub.cancel_at_period_end,
+      }, 200, cors);
+    }
+    // Subscription exists but expired — mark inactive
+    await env.DB.prepare(
+      "UPDATE subscriptions SET status = 'expired', updated_at = ? WHERE id = ?"
+    ).bind(now, sub.id).run();
+  }
+
+  // Check for promo-based Pro (stored in KV or subscriptions with promo plan)
+  const promoSub = await env.DB.prepare(
+    "SELECT * FROM subscriptions WHERE email = ? AND plan LIKE 'promo-%' AND status = 'active' ORDER BY updated_at DESC LIMIT 1"
+  ).bind(email).first();
+
+  if (promoSub) {
+    const now = Date.now();
+    if (!promoSub.current_period_end || promoSub.current_period_end > now) {
+      return jsonResponse({
+        ok: true,
+        isPro: true,
+        proExpiry: promoSub.current_period_end || null,
+        proPlan: promoSub.plan,
+        source: "server_promo",
+      }, 200, cors);
+    }
+    await env.DB.prepare(
+      "UPDATE subscriptions SET status = 'expired', updated_at = ? WHERE id = ?"
+    ).bind(now, promoSub.id).run();
+  }
+
+  // No active subscription found — check if client claims Pro
+  if (body.isPro && body.proExpiry && body.proExpiry > Date.now()) {
+    // Client says Pro but server has no record — create a reconciliation record
+    // This handles the transition for existing Pro users before server tracking existed
+    const subId = generateId();
+    const now = Date.now();
+    await env.DB.prepare(
+      "INSERT INTO subscriptions (id, email, plan, status, current_period_end, created_at, updated_at) VALUES (?, ?, ?, 'active', ?, ?, ?)"
+    ).bind(subId, email, body.proPlan || "monthly", body.proExpiry, now, now).run();
+    return jsonResponse({
+      ok: true,
+      isPro: true,
+      proExpiry: body.proExpiry,
+      proPlan: body.proPlan || "monthly",
+      source: "client_reconciled",
+    }, 200, cors);
+  }
+
+  // Not Pro
+  return jsonResponse({ ok: true, isPro: false, source: "server_none" }, 200, cors);
+}
+
+// POST /stripe-webhook — Stripe sends payment events here
+// Secret: STRIPE_WEBHOOK_SECRET (env binding)
+async function handleStripeWebhook(request, env, cors) {
+  const signature = request.headers.get("stripe-signature");
+  if (!signature) {
+    return jsonResponse({ error: "Missing signature" }, 400, cors);
+  }
+
+  const rawBody = await request.text();
+
+  // Verify Stripe webhook signature
+  let event;
+  try {
+    event = await verifyStripeSignature(rawBody, signature, env.STRIPE_WEBHOOK_SECRET);
+  } catch (err) {
+    console.error("[BSM Worker] Stripe webhook signature verification failed:", err.message);
+    return jsonResponse({ error: "Invalid signature" }, 401, cors);
+  }
+
+  const now = Date.now();
+
+  // Handle relevant event types
+  switch (event.type) {
+    case "checkout.session.completed": {
+      const session = event.data.object;
+      const email = (session.customer_email || session.customer_details?.email || "").toLowerCase();
+      const customerId = session.customer;
+      const subscriptionId = session.subscription;
+      const plan = session.metadata?.plan || (session.amount_total >= 2000 ? "yearly" : "monthly");
+
+      if (!email) break;
+
+      // Calculate period end based on plan
+      const periodEnd = plan === "yearly"
+        ? now + 365 * 86400000
+        : now + 31 * 86400000;
+
+      // Upsert subscription
+      const subId = generateId();
+      await env.DB.prepare(`
+        INSERT INTO subscriptions (id, email, stripe_customer_id, stripe_subscription_id, plan, status, current_period_start, current_period_end, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, 'active', ?, ?, ?, ?)
+        ON CONFLICT(id) DO UPDATE SET status = 'active', plan = excluded.plan, stripe_customer_id = excluded.stripe_customer_id, stripe_subscription_id = excluded.stripe_subscription_id, current_period_start = excluded.current_period_start, current_period_end = excluded.current_period_end, updated_at = excluded.updated_at
+      `).bind(subId, email, customerId, subscriptionId, plan, now, periodEnd, now, now).run();
+      break;
+    }
+
+    case "customer.subscription.updated": {
+      const sub = event.data.object;
+      const customerId = sub.customer;
+      const status = sub.status === "active" || sub.status === "trialing" ? "active" : sub.status;
+      const periodEnd = sub.current_period_end ? sub.current_period_end * 1000 : null;
+      const cancelAtEnd = sub.cancel_at_period_end ? 1 : 0;
+
+      await env.DB.prepare(`
+        UPDATE subscriptions SET status = ?, current_period_end = ?, cancel_at_period_end = ?, updated_at = ?
+        WHERE stripe_customer_id = ? OR stripe_subscription_id = ?
+      `).bind(status, periodEnd, cancelAtEnd, now, customerId, sub.id).run();
+      break;
+    }
+
+    case "customer.subscription.deleted": {
+      const sub = event.data.object;
+      await env.DB.prepare(`
+        UPDATE subscriptions SET status = 'canceled', updated_at = ?
+        WHERE stripe_customer_id = ? OR stripe_subscription_id = ?
+      `).bind(now, sub.customer, sub.id).run();
+      break;
+    }
+
+    case "invoice.payment_failed": {
+      const invoice = event.data.object;
+      const customerId = invoice.customer;
+      await env.DB.prepare(`
+        UPDATE subscriptions SET status = 'past_due', updated_at = ?
+        WHERE stripe_customer_id = ?
+      `).bind(now, customerId).run();
+      break;
+    }
+
+    default:
+      // Unhandled event type — acknowledge receipt
+      break;
+  }
+
+  return jsonResponse({ received: true }, 200, cors);
+}
+
+// Stripe webhook signature verification (HMAC-SHA256)
+async function verifyStripeSignature(payload, sigHeader, secret) {
+  if (!secret) throw new Error("No webhook secret configured");
+
+  const parts = {};
+  sigHeader.split(",").forEach(item => {
+    const [key, value] = item.split("=");
+    parts[key.trim()] = value;
+  });
+
+  const timestamp = parts.t;
+  const signature = parts.v1;
+  if (!timestamp || !signature) throw new Error("Invalid signature format");
+
+  // Reject timestamps older than 5 minutes
+  const age = Math.abs(Date.now() / 1000 - parseInt(timestamp));
+  if (age > 300) throw new Error("Timestamp too old");
+
+  const signedPayload = `${timestamp}.${payload}`;
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    "raw", enc.encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]
+  );
+  const sig = await crypto.subtle.sign("HMAC", key, enc.encode(signedPayload));
+  const expectedSig = Array.from(new Uint8Array(sig), b => b.toString(16).padStart(2, "0")).join("");
+
+  if (expectedSig !== signature) throw new Error("Signature mismatch");
+
+  return JSON.parse(payload);
+}
+
+// POST /activate-pro — called after Stripe redirect to record subscription server-side
+async function handleActivatePro(request, env, cors) {
+  let body;
+  try { body = await request.json(); } catch {
+    return jsonResponse({ ok: false, error: "Invalid JSON" }, 400, cors);
+  }
+
+  const email = (body.email || "").trim().toLowerCase();
+  const plan = body.plan || "monthly";
+  const proExpiry = body.proExpiry;
+
+  if (!email) {
+    return jsonResponse({ ok: true, recorded: false, reason: "no_email" }, 200, cors);
+  }
+
+  // Check for existing active subscription
+  const existing = await env.DB.prepare(
+    "SELECT id FROM subscriptions WHERE email = ? AND status = 'active'"
+  ).bind(email).first();
+
+  if (existing) {
+    // Already active — just update expiry
+    await env.DB.prepare(
+      "UPDATE subscriptions SET plan = ?, current_period_end = ?, updated_at = ? WHERE id = ?"
+    ).bind(plan, proExpiry, Date.now(), existing.id).run();
+    return jsonResponse({ ok: true, recorded: true, updated: true }, 200, cors);
+  }
+
+  // Create new subscription record
+  const subId = generateId();
+  const now = Date.now();
+  await env.DB.prepare(
+    "INSERT INTO subscriptions (id, email, plan, status, current_period_start, current_period_end, created_at, updated_at) VALUES (?, ?, ?, 'active', ?, ?, ?, ?)"
+  ).bind(subId, email, plan, now, proExpiry, now, now).run();
+
+  return jsonResponse({ ok: true, recorded: true }, 201, cors);
+}
+
+// --- Sprint 4.2: Real-time analytics pipeline ---
+
+// D1 migration for analytics table:
+// CREATE TABLE IF NOT EXISTS analytics_events (
+//   id INTEGER PRIMARY KEY AUTOINCREMENT,
+//   session_hash TEXT NOT NULL,
+//   event_type TEXT NOT NULL,
+//   event_data TEXT,
+//   age_group TEXT,
+//   is_pro INTEGER DEFAULT 0,
+//   platform TEXT,
+//   created_at INTEGER NOT NULL
+// );
+// CREATE INDEX IF NOT EXISTS idx_analytics_type ON analytics_events(event_type);
+// CREATE INDEX IF NOT EXISTS idx_analytics_date ON analytics_events(created_at);
+// CREATE INDEX IF NOT EXISTS idx_analytics_session ON analytics_events(session_hash);
+
+const RATE_LIMIT_ANALYTICS = 60; // analytics: req/min/IP
+
+// POST /analytics — batch event ingestion (anonymized)
+async function handleAnalytics(request, env, cors) {
+  let body;
+  try { body = await request.json(); } catch {
+    return jsonResponse({ ok: false, error: "Invalid JSON" }, 400, cors);
+  }
+
+  const events = body.events;
+  if (!Array.isArray(events) || events.length === 0 || events.length > 50) {
+    return jsonResponse({ ok: false, error: "Events array required (1-50)" }, 400, cors);
+  }
+
+  const now = Date.now();
+  const sessionHash = body.sessionHash || "anon";
+
+  // Batch insert (D1 supports batch)
+  const stmts = events.map(evt => {
+    const eventType = (evt.type || "unknown").slice(0, 50);
+    const eventData = evt.data ? JSON.stringify(evt.data).slice(0, 2000) : null;
+    const ageGroup = (evt.ageGroup || "").slice(0, 10);
+    const isPro = evt.isPro ? 1 : 0;
+    const platform = (evt.platform || "web").slice(0, 20);
+    const ts = evt.ts || now;
+
+    return env.DB.prepare(
+      "INSERT INTO analytics_events (session_hash, event_type, event_data, age_group, is_pro, platform, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)"
+    ).bind(sessionHash, eventType, eventData, ageGroup, isPro, platform, ts);
+  });
+
+  try {
+    await env.DB.batch(stmts);
+    return jsonResponse({ ok: true, count: events.length }, 200, cors);
+  } catch (err) {
+    console.error("[BSM Worker] Analytics insert error:", err);
+    return jsonResponse({ ok: false, error: "Insert failed" }, 500, cors);
+  }
+}
+
+// GET /analytics/summary — aggregate dashboard (admin only, protected by header)
+async function handleAnalyticsSummary(request, env, cors) {
+  const adminKey = request.headers.get("X-Admin-Key");
+  if (!adminKey || adminKey !== env.ADMIN_KEY) {
+    return jsonResponse({ error: "Unauthorized" }, 401, cors);
+  }
+
+  const now = Date.now();
+  const day = 86400000;
+  const week = 7 * day;
+
+  try {
+    const [dailyActive, weeklyActive, topEvents, proRate, ageDistribution] = await Promise.all([
+      env.DB.prepare("SELECT COUNT(DISTINCT session_hash) as count FROM analytics_events WHERE created_at > ?").bind(now - day).first(),
+      env.DB.prepare("SELECT COUNT(DISTINCT session_hash) as count FROM analytics_events WHERE created_at > ?").bind(now - week).first(),
+      env.DB.prepare("SELECT event_type, COUNT(*) as count FROM analytics_events WHERE created_at > ? GROUP BY event_type ORDER BY count DESC LIMIT 20").bind(now - week).all(),
+      env.DB.prepare("SELECT is_pro, COUNT(DISTINCT session_hash) as count FROM analytics_events WHERE created_at > ? GROUP BY is_pro").bind(now - week).all(),
+      env.DB.prepare("SELECT age_group, COUNT(DISTINCT session_hash) as count FROM analytics_events WHERE created_at > ? AND age_group != '' GROUP BY age_group ORDER BY count DESC").bind(now - week).all(),
+    ]);
+
+    return jsonResponse({
+      ok: true,
+      daily_active_users: dailyActive?.count || 0,
+      weekly_active_users: weeklyActive?.count || 0,
+      top_events: topEvents?.results || [],
+      pro_distribution: proRate?.results || [],
+      age_distribution: ageDistribution?.results || [],
+    }, 200, cors);
+  } catch (err) {
+    return jsonResponse({ error: "Query failed" }, 500, cors);
+  }
+}
+
+// --- Sprint 4.4: Error monitoring + alerting ---
+
+// D1 migration for error_logs table:
+// CREATE TABLE IF NOT EXISTS error_logs (
+//   id INTEGER PRIMARY KEY AUTOINCREMENT,
+//   error_type TEXT NOT NULL,
+//   error_message TEXT,
+//   error_context TEXT,
+//   session_hash TEXT,
+//   user_agent TEXT,
+//   created_at INTEGER NOT NULL
+// );
+// CREATE INDEX IF NOT EXISTS idx_errors_type ON error_logs(error_type);
+// CREATE INDEX IF NOT EXISTS idx_errors_date ON error_logs(created_at);
+
+const RATE_LIMIT_ERRORS = 30; // error reports: req/min/IP
+
+// POST /error-report — client error collection
+async function handleErrorReport(request, env, cors) {
+  let body;
+  try { body = await request.json(); } catch {
+    return jsonResponse({ ok: false }, 400, cors);
+  }
+
+  const errors = Array.isArray(body.errors) ? body.errors.slice(0, 20) : [body];
+  const now = Date.now();
+  const ua = (request.headers.get("User-Agent") || "").slice(0, 200);
+
+  const stmts = errors.map(err => {
+    return env.DB.prepare(
+      "INSERT INTO error_logs (error_type, error_message, error_context, session_hash, user_agent, created_at) VALUES (?, ?, ?, ?, ?, ?)"
+    ).bind(
+      (err.type || "unknown").slice(0, 50),
+      (err.message || "").slice(0, 500),
+      err.context ? JSON.stringify(err.context).slice(0, 2000) : null,
+      (err.sessionHash || "anon").slice(0, 32),
+      ua,
+      err.ts || now
+    );
+  });
+
+  try {
+    await env.DB.batch(stmts);
+
+    // Check for alert threshold — if >10 AI errors in last 5 minutes, send alert
+    const recent = await env.DB.prepare(
+      "SELECT COUNT(*) as count FROM error_logs WHERE error_type LIKE 'ai_%' AND created_at > ?"
+    ).bind(now - 5 * 60 * 1000).first();
+
+    if (recent && recent.count >= 10 && env.ALERT_WEBHOOK_URL) {
+      // Send alert via webhook (Discord/Slack compatible)
+      fetch(env.ALERT_WEBHOOK_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          content: `🚨 **BSM AI Alert**: ${recent.count} AI errors in the last 5 minutes. Most recent: ${errors[0]?.message || "unknown"}`,
+        }),
+      }).catch(() => {});
+    }
+
+    return jsonResponse({ ok: true, count: errors.length }, 200, cors);
+  } catch (err) {
+    return jsonResponse({ ok: false }, 500, cors);
+  }
+}
+
+// GET /errors/summary — error dashboard (admin only)
+async function handleErrorsSummary(request, env, cors) {
+  const adminKey = request.headers.get("X-Admin-Key");
+  if (!adminKey || adminKey !== env.ADMIN_KEY) {
+    return jsonResponse({ error: "Unauthorized" }, 401, cors);
+  }
+
+  const now = Date.now();
+  const hour = 3600000;
+  const day = 86400000;
+
+  try {
+    const [hourlyErrors, dailyByType, recentErrors] = await Promise.all([
+      env.DB.prepare("SELECT COUNT(*) as count FROM error_logs WHERE created_at > ?").bind(now - hour).first(),
+      env.DB.prepare("SELECT error_type, COUNT(*) as count FROM error_logs WHERE created_at > ? GROUP BY error_type ORDER BY count DESC LIMIT 10").bind(now - day).all(),
+      env.DB.prepare("SELECT error_type, error_message, created_at FROM error_logs ORDER BY created_at DESC LIMIT 20").all(),
+    ]);
+
+    return jsonResponse({
+      ok: true,
+      errors_last_hour: hourlyErrors?.count || 0,
+      daily_by_type: dailyByType?.results || [],
+      recent: (recentErrors?.results || []).map(r => ({
+        type: r.error_type,
+        message: r.error_message,
+        time: new Date(r.created_at).toISOString(),
+      })),
+    }, 200, cors);
+  } catch {
+    return jsonResponse({ error: "Query failed" }, 500, cors);
+  }
+}
+
 // --- Existing handlers ---
 
 // POST /validate-code — redeem a single-use promo code
@@ -427,6 +878,19 @@ async function handleValidateCode(request, env, cors) {
   entry.used = true;
   entry.usedAt = Date.now();
   await env.PROMO_CODES.put(kvKey, JSON.stringify(entry));
+
+  // Sprint 4.1: Record promo subscription server-side if email provided
+  const email = (body.email || "").trim().toLowerCase();
+  if (email) {
+    const subId = generateId();
+    const now = Date.now();
+    const proExpiry = entry.type === "30day" ? now + 30 * 86400000 : null;
+    try {
+      await env.DB.prepare(
+        "INSERT INTO subscriptions (id, email, plan, status, promo_code, current_period_end, created_at, updated_at) VALUES (?, ?, ?, 'active', ?, ?, ?, ?)"
+      ).bind(subId, email, "promo-" + entry.type, code, proExpiry, now, now).run();
+    } catch {}
+  }
 
   return jsonResponse({ valid: true, type: entry.type }, 200, cors);
 }
@@ -504,6 +968,81 @@ export default {
         return jsonResponse({ error: "Not found" }, 404, cors);
       } catch (err) {
         return jsonResponse({ error: "Server error" }, 500, cors);
+      }
+    }
+
+    // Sprint 4.4: Error monitoring endpoints
+    if (path === "/error-report" && request.method === "POST") {
+      if (!checkRateLimit(`errors:${ip}`, RATE_LIMIT_ERRORS)) {
+        return jsonResponse({ ok: false }, 429, cors);
+      }
+      try {
+        return await handleErrorReport(request, env, cors);
+      } catch {
+        return jsonResponse({ ok: false }, 500, cors);
+      }
+    }
+
+    if (path === "/errors/summary" && request.method === "GET") {
+      try {
+        return await handleErrorsSummary(request, env, cors);
+      } catch {
+        return jsonResponse({ error: "Server error" }, 500, cors);
+      }
+    }
+
+    // Sprint 4.2: Analytics endpoints
+    if (path === "/analytics" && request.method === "POST") {
+      if (!checkRateLimit(`analytics:${ip}`, RATE_LIMIT_ANALYTICS)) {
+        return jsonResponse({ ok: false, error: "Rate limited" }, 429, cors);
+      }
+      try {
+        return await handleAnalytics(request, env, cors);
+      } catch {
+        return jsonResponse({ ok: false }, 500, cors);
+      }
+    }
+
+    if (path === "/analytics/summary" && request.method === "GET") {
+      try {
+        return await handleAnalyticsSummary(request, env, cors);
+      } catch {
+        return jsonResponse({ error: "Server error" }, 500, cors);
+      }
+    }
+
+    // Sprint 4.1: Stripe webhook (POST, no CORS — Stripe calls directly)
+    if (path === "/stripe-webhook" && request.method === "POST") {
+      try {
+        return await handleStripeWebhook(request, env, cors);
+      } catch (err) {
+        console.error("[BSM Worker] Stripe webhook error:", err);
+        return jsonResponse({ error: "Webhook error" }, 500, cors);
+      }
+    }
+
+    // Sprint 4.1: Pro verification
+    if (path === "/verify-pro" && request.method === "POST") {
+      if (!checkRateLimit(`verify:${ip}`, RATE_LIMIT_VERIFY)) {
+        return jsonResponse({ error: "Rate limited" }, 429, cors);
+      }
+      try {
+        return await handleVerifyPro(request, env, cors);
+      } catch (err) {
+        // Graceful degradation — if server check fails, don't block the user
+        return jsonResponse({ ok: true, isPro: false, source: "server_error" }, 200, cors);
+      }
+    }
+
+    // Sprint 4.1: Activate Pro after Stripe redirect
+    if (path === "/activate-pro" && request.method === "POST") {
+      if (!checkRateLimit(`verify:${ip}`, RATE_LIMIT_VERIFY)) {
+        return jsonResponse({ error: "Rate limited" }, 429, cors);
+      }
+      try {
+        return await handleActivatePro(request, env, cors);
+      } catch (err) {
+        return jsonResponse({ ok: false, error: "Server error" }, 500, cors);
       }
     }
 

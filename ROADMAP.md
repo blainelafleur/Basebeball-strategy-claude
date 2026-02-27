@@ -257,16 +257,16 @@ Comprehensive improvement plan based on full audit (see `AUDIT_REPORT.md`). Four
 | 4 | Session coherence system (scenarios build on each other) | DONE | Prereq chain progression, wrong-answer reinforcement, domain coherence |
 | 5 | "What should I practice?" recommendation engine | DONE | getPracticeRecommendations() — 6 rec types, priority-sorted, home screen UI |
 
-### Sprint 4: Scale Preparation (Weeks 8-10)
+### Sprint 4: Scale Preparation (Weeks 8-10) — COMPLETE
 **Goal:** Make the app production-ready for real users and revenue.
 
-| # | Task | Effort | Impact |
-|---|------|--------|--------|
-| 1 | Server-side Pro verification via Cloudflare Worker | 4-5 hrs | Critical — revenue protection |
-| 2 | Real-time analytics pipeline (anonymized) | 3-4 hrs | High — understand user behavior |
-| 3 | A/B testing framework for AI prompts | 3-4 hrs | Medium — optimize AI quality |
-| 4 | Error monitoring + alerting for AI failures | 2-3 hrs | Medium — operational reliability |
-| 5 | Performance audit (1.2MB file, bundle optimization) | 3-4 hrs | Medium — mobile load time |
+| # | Task | Status | Notes |
+|---|------|--------|-------|
+| 1 | Server-side Pro verification via Cloudflare Worker | DONE | /verify-pro, /activate-pro, /stripe-webhook endpoints; D1 subscriptions table; graceful degradation with client fallback; reconciliation for existing Pro users |
+| 2 | Real-time analytics pipeline (anonymized) | DONE | Batched event ingestion (30s flush), per-session random hash (no PII), 5 event types, /analytics + /analytics/summary endpoints, D1 analytics_events table |
+| 3 | A/B testing framework for AI prompts | DONE | Deterministic hash-based bucket assignment, 2 active tests (ai_temperature, ai_system_prompt), weighted variant selection, tracked in analytics |
+| 4 | Error monitoring + alerting for AI failures | DONE | Batched error reporting, auto-alert webhook (10 AI errors in 5 min), global JS/promise handlers, /error-report + /errors/summary endpoints, D1 error_logs table |
+| 5 | Performance audit (bundle optimization) | DONE | 1.3MB raw / 352KB gzipped, shared style constants (S object), React.memo on Field + Board components, load time tracking in analytics |
 
 ---
 

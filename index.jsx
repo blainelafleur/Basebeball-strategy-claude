@@ -3452,6 +3452,107 @@ const STRIPE_MONTHLY_URL = "https://buy.stripe.com/4gM00ifyYbLI67way56kg00";
 const STRIPE_YEARLY_URL = "https://buy.stripe.com/4gM7sKgD2g1YbrQ9u16kg01";
 const WORKER_BASE = "https://bsm-ai-proxy.blafleur.workers.dev";
 const AI_PROXY_URL = WORKER_BASE + "/v1/chat/completions";
+
+// Sprint 4.2: Anonymized analytics pipeline
+const ANALYTICS_BATCH_INTERVAL = 30000 // flush every 30 seconds
+const ANALYTICS_MAX_BATCH = 50
+const analyticsQueue = []
+const analyticsSessionHash = (() => {
+  // Generate a per-session hash (no PII) — resets each browser session
+  const bytes = new Uint8Array(8)
+  crypto.getRandomValues(bytes)
+  return Array.from(bytes, b => b.toString(16).padStart(2, "0")).join("")
+})()
+function trackAnalyticsEvent(type, data, context) {
+  analyticsQueue.push({
+    type,
+    data: data || null,
+    ageGroup: context?.ageGroup || "",
+    isPro: context?.isPro || false,
+    platform: /Mobi|Android/i.test(navigator.userAgent) ? "mobile" : "desktop",
+    ts: Date.now()
+  })
+  // Flush if batch is full
+  if (analyticsQueue.length >= ANALYTICS_MAX_BATCH) flushAnalytics()
+}
+function flushAnalytics() {
+  if (analyticsQueue.length === 0) return
+  const events = analyticsQueue.splice(0, ANALYTICS_MAX_BATCH)
+  fetch(WORKER_BASE + "/analytics", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ sessionHash: analyticsSessionHash, events })
+  }).catch(() => {
+    // If flush fails, re-queue events (once only, don't retry forever)
+    if (events[0] && !events[0]._retried) {
+      events.forEach(e => { e._retried = true })
+      analyticsQueue.push(...events)
+    }
+  })
+}
+// Auto-flush on interval and page unload
+if (typeof window !== "undefined") {
+  setInterval(flushAnalytics, ANALYTICS_BATCH_INTERVAL)
+  window.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") flushAnalytics()
+  })
+  window.addEventListener("beforeunload", flushAnalytics)
+}
+
+// Sprint 4.4: Error monitoring + alerting
+const errorQueue = []
+const ERROR_FLUSH_INTERVAL = 60000
+function reportError(type, message, context) {
+  console.error(`[BSM Error] ${type}: ${message}`, context || "")
+  errorQueue.push({
+    type,
+    message: (message || "").slice(0, 500),
+    context: context || null,
+    sessionHash: analyticsSessionHash,
+    ts: Date.now()
+  })
+  if (errorQueue.length >= 10) flushErrors()
+}
+function flushErrors() {
+  if (errorQueue.length === 0) return
+  const errors = errorQueue.splice(0, 20)
+  fetch(WORKER_BASE + "/error-report", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ errors })
+  }).catch(() => {})
+}
+if (typeof window !== "undefined") {
+  setInterval(flushErrors, ERROR_FLUSH_INTERVAL)
+  window.addEventListener("error", (e) => {
+    reportError("js_error", e.message || "Unknown error", {
+      filename: (e.filename || "").split("/").pop(),
+      line: e.lineno, col: e.colno
+    })
+  })
+  window.addEventListener("unhandledrejection", (e) => {
+    reportError("promise_rejection", String(e.reason || "Unhandled promise rejection").slice(0, 200))
+  })
+}
+
+// Sprint 4.5: Performance — shared style constants (reduce inline object allocation)
+const S = {
+  card: {background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.06)",borderRadius:16,padding:"16px 18px"},
+  cardSm: {background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.06)",borderRadius:12,padding:"10px 12px"},
+  btn: {border:"none",borderRadius:10,cursor:"pointer",fontWeight:700,fontSize:14,padding:"12px 20px"},
+  btnSm: {border:"none",borderRadius:8,cursor:"pointer",fontWeight:600,fontSize:12,padding:"8px 14px"},
+  center: {textAlign:"center"},
+  flexCol: {display:"flex",flexDirection:"column"},
+  flexRow: {display:"flex",alignItems:"center"},
+  flexBetween: {display:"flex",justifyContent:"space-between",alignItems:"center"},
+  muted: {color:"#9ca3af",fontSize:12},
+  heading: {color:"white",fontWeight:800,margin:0},
+  gold: {color:"#f59e0b"},
+  green: {color:"#22c55e"},
+  red: {color:"#ef4444"},
+  overlay: {position:"fixed",inset:0,background:"rgba(0,0,0,.7)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:999,padding:16},
+}
+
 const FREE_THEMES = ["default","sunny","retro"];
 const FREE_JERSEYS = 2;
 const FREE_CAPS = 2;
@@ -5706,6 +5807,57 @@ const CONSISTENCY_RULES = {
   }
 }
 
+// Sprint 4.3: A/B testing framework for AI prompts
+const AB_TESTS = {
+  // Each test: { id, variants: [{id, weight, config}], startDate, endDate }
+  ai_temperature: {
+    id: "ai_temperature_v1",
+    variants: [
+      { id: "control", weight: 50, config: { temperature: 0.4 } },
+      { id: "creative", weight: 50, config: { temperature: 0.6 } }
+    ]
+  },
+  ai_system_prompt: {
+    id: "ai_system_prompt_v1",
+    variants: [
+      { id: "control", weight: 50, config: { systemSuffix: "" } },
+      { id: "encouraging", weight: 50, config: { systemSuffix: " Make explanations encouraging and highlight what the player can learn from mistakes." } }
+    ]
+  }
+}
+
+function getABGroup(testId, sessionHash) {
+  // Deterministic assignment based on session hash + test ID
+  const str = (sessionHash || analyticsSessionHash) + ":" + testId
+  let hash = 0
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) - hash) + str.charCodeAt(i)
+    hash |= 0
+  }
+  return Math.abs(hash) % 100
+}
+
+function getABVariant(testName, sessionHash) {
+  const test = AB_TESTS[testName]
+  if (!test) return { id: "control", config: {} }
+  const bucket = getABGroup(test.id, sessionHash)
+  let cumulative = 0
+  for (const variant of test.variants) {
+    cumulative += variant.weight
+    if (bucket < cumulative) return variant
+  }
+  return test.variants[0]
+}
+
+function getActiveABConfigs(sessionHash) {
+  const configs = {}
+  for (const [name] of Object.entries(AB_TESTS)) {
+    const variant = getABVariant(name, sessionHash)
+    configs[name] = { variant: variant.id, ...variant.config }
+  }
+  return configs
+}
+
 async function generateAIScenario(position, stats, conceptsLearned = [], recentWrong = [], signal = null, targetConcept = null, aiHistory = []) {
   const lvl = getLvl(stats.pts);
   const posStats = stats.ps[position] || { p: 0, c: 0 };
@@ -5802,15 +5954,23 @@ RATES CONSTRAINT: rates[best] MUST be the highest value in the rates array. If b
 EXPLANATION ORDER: explanations[0] explains ONLY options[0], explanations[1] explains ONLY options[1], etc. Each explanation must reference the specific action in its corresponding option. The best answer's explanation should start positive. Wrong answer explanations should explain WHY it fails.`;
 
   try {
+    // Sprint 4.3: Apply A/B test configs to AI generation
+    const abConfigs = getActiveABConfigs()
+    const tempConfig = abConfigs.ai_temperature || {}
+    const promptConfig = abConfigs.ai_system_prompt || {}
+    const aiTemp = tempConfig.temperature || 0.4
+    const systemSuffix = promptConfig.systemSuffix || ""
+    const abVariants = { temp: tempConfig.variant || "control", prompt: promptConfig.variant || "control" }
+
     const fetchOpts = {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         model: "grok-4-1-fast",
         max_tokens: 1500,
-        temperature: 0.4,
+        temperature: aiTemp,
         messages: [
-          { role: "system", content: "You are an expert baseball coach creating personalized training scenarios for the Baseball Strategy Master app. You always respond with ONLY a valid JSON object — no markdown, no code fences, no explanation text. Just the raw JSON." },
+          { role: "system", content: "You are an expert baseball coach creating personalized training scenarios for the Baseball Strategy Master app. You always respond with ONLY a valid JSON object — no markdown, no code fences, no explanation text. Just the raw JSON." + systemSuffix },
           { role: "user", content: prompt }
         ]
       })
@@ -5825,6 +5985,7 @@ EXPLANATION ORDER: explanations[0] explains ONLY options[0], explanations[1] exp
     if (!response.ok) {
       const errBody = await response.text().catch(() => "");
       console.error("[BSM] AI API error:", response.status, errBody);
+      reportError("ai_api", `HTTP ${response.status}`, { position, body: errBody.slice(0, 200) });
       throw new Error(`API ${response.status}`);
     }
     const data = await response.json();
@@ -5967,7 +6128,7 @@ EXPLANATION ORDER: explanations[0] explains ONLY options[0], explanations[1] exp
     scenario.isAI = true;
     scenario.cat = "ai-generated";
 
-    return { scenario };
+    return { scenario, abVariants };
   } catch (err) {
     const msg = err.message || "";
     const errType = err.name === "AbortError" ? "aborted"
@@ -5980,6 +6141,8 @@ EXPLANATION ORDER: explanations[0] explains ONLY options[0], explanations[1] exp
       : "parse";
     const detail = msg.startsWith("Parse:") ? msg.slice(7) : msg;
     console.error("[BSM] AI generation failed:", errType, detail);
+    // Sprint 4.4: Report AI errors for monitoring
+    reportError("ai_" + errType, detail || errType, { position });
     return { scenario: null, error: errType, detail };
   }
 }
@@ -6035,7 +6198,8 @@ function Confetti({active}){
 }
 
 // Field SVG — Bright, fun, kid-friendly baseball field
-function Field({runners=[],outcome=null,ak=0,anim=null,theme=null,avatar=null,pos=null}){
+// Sprint 4.5: React.memo for heavy SVG component
+const Field=React.memo(function Field({runners=[],outcome=null,ak=0,anim=null,theme=null,avatar=null,pos=null}){
   const t=theme||FIELD_THEMES[0];
   const on=n=>runners.includes(n);
   // Coords: Home(200,290) 1B(290,210) 2B(200,135) 3B(110,210) Mound(200,218)
@@ -6278,9 +6442,9 @@ function Field({runners=[],outcome=null,ak=0,anim=null,theme=null,avatar=null,po
       {!outcome&&<circle r="2" fill="white" opacity=".7"><animateMotion dur="1.8s" repeatCount="indefinite" path="M200,214 Q200,204 200,208 Q200,212 200,214"/><animate attributeName="opacity" values=".7;.3;.7" dur="1.8s" repeatCount="indefinite"/></circle>}
     </svg>
   );
-}
+});
 // Promo code input — shown in upgrade panel
-function PromoCodeInput({setStats,setToast,snd,setPanel}){
+function PromoCodeInput({setStats,setToast,snd,setPanel,email}){
   const[show,setShow]=React.useState(false);
   const[val,setVal]=React.useState("");
   const[loading,setLoading]=React.useState(false);
@@ -6288,7 +6452,8 @@ function PromoCodeInput({setStats,setToast,snd,setPanel}){
   function redeem(){
     const code=val.trim();if(!code||loading)return;
     setLoading(true);setErr(null);
-    fetch(WORKER_BASE+"/validate-code",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({code})})
+    // Sprint 4.1: pass email for server-side subscription tracking
+    fetch(WORKER_BASE+"/validate-code",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({code,email:email||""})})
       .then(r=>r.json()).then(d=>{
         setLoading(false);
         if(d.valid){
@@ -6319,13 +6484,14 @@ function PromoCodeInput({setStats,setToast,snd,setPanel}){
     {err&&<div style={{fontSize:10,color:err.startsWith("!")?"#22c55e":"#ef4444",marginTop:6}}>{err.startsWith("!")?err.slice(1):err}</div>}
   </div>);
 }
-function Board({sit}){
+// Sprint 4.5: React.memo for scoreboard
+const Board=React.memo(function Board({sit}){
   if(!sit)return null;const{inning,outs,count,score}=sit;
   return(<div style={{background:"linear-gradient(135deg,#0d1117,#161b22)",borderRadius:10,padding:"6px 10px",display:"flex",justifyContent:"space-around",alignItems:"center",fontFamily:"'Courier New',monospace",border:"1px solid #21262d"}}>
     {[{l:"INN",v:inning,c:"#f59e0b"},{l:"SCORE",v:<><span style={{color:"#58a6ff"}}>{score?.[0]||0}</span><span style={{color:"#484f58",margin:"0 2px"}}>-</span><span style={{color:"#f85149"}}>{score?.[1]||0}</span></>,c:"white"},{l:"COUNT",v:count&&count!=="-"?count:"--",c:"#3fb950"}].map((it,i)=>(<div key={i} style={{textAlign:"center",minWidth:40}}><div style={{fontSize:7,color:"#6e7681",textTransform:"uppercase",letterSpacing:1.5,marginBottom:1,fontWeight:700}}>{it.l}</div><div style={{fontSize:16,fontWeight:900,color:it.c,lineHeight:1}}>{it.v}</div></div>))}
     <div style={{textAlign:"center"}}><div style={{fontSize:7,color:"#6e7681",textTransform:"uppercase",letterSpacing:1.5,marginBottom:2,fontWeight:700}}>OUTS</div><div style={{display:"flex",gap:3}}>{[0,1,2].map(i=><div key={i} style={{width:10,height:10,borderRadius:"50%",background:i<(outs||0)?"#f85149":"rgba(255,255,255,.05)",border:`1.5px solid ${i<(outs||0)?"#da3633":"#21262d"}`}}/>)}</div></div>
   </div>);
-}
+});
 
 // Coach Mascot — friendly baseball character with expressions
 const COACH_LINES={
@@ -6713,7 +6879,14 @@ export default function App(){
     if(params.get("pro")==="success"){
       const plan=params.get("plan")||"monthly";
       const expiry=plan==="yearly"?Date.now()+365*86400000:Date.now()+31*86400000;
-      setStats(p=>({...p,isPro:true,proPlan:plan,proPurchaseDate:Date.now(),proExpiry:expiry,funnel:[...(p.funnel||[]).slice(-99),{event:"pro_activated",ts:Date.now()}]}));
+      setStats(p=>{
+        // Sprint 4.1: Record activation server-side
+        const email=(p.email||authUser?.email||"").trim().toLowerCase();
+        if(email){
+          fetch(WORKER_BASE+"/activate-pro",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email,plan,proExpiry:expiry})}).catch(()=>{});
+        }
+        return {...p,isPro:true,proPlan:plan,proPurchaseDate:Date.now(),proExpiry:expiry,funnel:[...(p.funnel||[]).slice(-99),{event:"pro_activated",ts:Date.now()}]};
+      });
       setTimeout(()=>{setToast({e:"⭐",n:"Welcome to All-Star Pass!",d:"Unlimited play, AI coaching, and more!"});snd.play('ach');setTimeout(()=>setToast(null),4000)},500);
       window.history.replaceState({},"",window.location.pathname+window.location.hash);
     }
@@ -6721,7 +6894,9 @@ export default function App(){
     const urlCode=params.get("code");
     if(urlCode){
       window.history.replaceState({},"",window.location.pathname+window.location.hash);
-      fetch(WORKER_BASE+"/validate-code",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({code:urlCode})})
+      // Sprint 4.1: pass email for server-side promo tracking
+      const promoEmail=(authUser?.email||"").trim().toLowerCase();
+      fetch(WORKER_BASE+"/validate-code",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({code:urlCode,email:promoEmail})})
         .then(r=>r.json()).then(d=>{
           if(d.valid){
             const expiry=d.type==="30day"?Date.now()+30*86400000:null;
@@ -6733,6 +6908,11 @@ export default function App(){
         }).catch(()=>{setTimeout(()=>{setToast({e:"⚠️",n:"Error",d:"Could not verify promo code. Try again later."});setTimeout(()=>setToast(null),4000)},500)});
     }
   })()},[]);
+  // Sprint 4.2+4.5: Track session start with load performance
+  useEffect(()=>{
+    const perf=typeof performance!=="undefined"?performance.now():null;
+    trackAnalyticsEvent("session_start",{level:stats.lv||1,gamesPlayed:stats.gp||0,scenariosCompleted:(stats.cl||[]).length,loadTimeMs:perf?Math.round(perf):null},{ageGroup:stats.ageGroup,isPro:stats.isPro});
+  },[]);
   // Save (local + debounced server sync)
   useEffect(()=>{
     (async()=>{try{await window.storage.set(STORAGE_KEY,JSON.stringify(stats))}catch{}})();
@@ -6745,11 +6925,40 @@ export default function App(){
       },3000);
     }
   },[stats,authToken,syncToServer]);
-  // Pro expiry check
-  useEffect(()=>{if(stats.isPro&&stats.proExpiry&&stats.proExpiry<Date.now()){
-    setStats(p=>({...p,isPro:false}));
-    setTimeout(()=>{setToast({e:"⏰",n:"All-Star Pass Expired",d:"Renew to keep unlimited play and AI coaching."});setTimeout(()=>setToast(null),4000)},500);
-  }},[stats.isPro,stats.proExpiry]);
+  // Sprint 4.1: Server-side Pro verification on mount + Pro expiry check
+  const proVerifiedRef=useRef(false);
+  useEffect(()=>{
+    // Client-side expiry check (fast, immediate)
+    if(stats.isPro&&stats.proExpiry&&stats.proExpiry<Date.now()){
+      setStats(p=>({...p,isPro:false}));
+      setTimeout(()=>{setToast({e:"⏰",n:"All-Star Pass Expired",d:"Renew to keep unlimited play and AI coaching."});setTimeout(()=>setToast(null),4000)},500);
+      return;
+    }
+    // Server-side verification (once per session)
+    if(proVerifiedRef.current)return;
+    proVerifiedRef.current=true;
+    const email=(stats.email||authUser?.email||"").trim().toLowerCase();
+    fetch(WORKER_BASE+"/verify-pro",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({email,isPro:stats.isPro,proExpiry:stats.proExpiry,proPlan:stats.proPlan})
+    }).then(r=>r.json()).then(d=>{
+      if(!d.ok)return;
+      if(d.isPro&&!stats.isPro){
+        // Server says Pro but client doesn't know — restore Pro
+        setStats(p=>({...p,isPro:true,proExpiry:d.proExpiry||p.proExpiry,proPlan:d.proPlan||p.proPlan}));
+        setTimeout(()=>{setToast({e:"⭐",n:"Pro Restored!",d:"Your All-Star Pass is active."});setTimeout(()=>setToast(null),3000)},500);
+      } else if(!d.isPro&&stats.isPro&&d.source!=="client_trusted"&&d.source!=="server_error"){
+        // Server says NOT Pro but client thinks Pro — revoke (unless graceful degradation)
+        setStats(p=>({...p,isPro:false,proExpiry:null}));
+        setTimeout(()=>{setToast({e:"⏰",n:"All-Star Pass Expired",d:"Renew to keep unlimited play and AI coaching."});setTimeout(()=>setToast(null),4000)},500);
+      }
+      // If server confirms Pro, optionally update expiry from server
+      if(d.isPro&&d.proExpiry&&stats.isPro){
+        setStats(p=>({...p,proExpiry:d.proExpiry}));
+      }
+    }).catch(()=>{/* Network error — keep local state, graceful degradation */});
+  },[stats.isPro,stats.proExpiry]);
   // Leaderboard: update weekly entry
   const[lbData,setLbData]=useState({week:"",entries:[]});
   useEffect(()=>{(async()=>{try{const r=await window.storage.get(LB_KEY);if(r?.value)setLbData(JSON.parse(r.value))}catch{}})()},[]);
@@ -7097,6 +7306,8 @@ export default function App(){
       if(result?.scenario){
         aiFailRef.current.consecutive=0;
         console.log("[BSM] AI scenario accepted:", result.scenario.title);
+        // Sprint 4.2+4.3: Track AI scenario generation success with A/B variants
+        trackAnalyticsEvent("ai_scenario_generated",{pos:p,concept:result.scenario.conceptTag||"",diff:result.scenario.diff,ab:result.abVariants||{}},{ageGroup:stats.ageGroup,isPro:stats.isPro});
         // Persist AI scenario to history (Sprint 1.5)
         setStats(prev=>{
           const entry={id:result.scenario.id,title:result.scenario.title,position:p,diff:result.scenario.diff,
@@ -7109,6 +7320,8 @@ export default function App(){
         result.scenario.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80);});
       } else {
         aiFailRef.current.consecutive++;
+        // Sprint 4.2: Track AI scenario failure
+        trackAnalyticsEvent("ai_scenario_failed",{pos:p,error:result?.error||"unknown",consecutive:aiFailRef.current.consecutive},{ageGroup:stats.ageGroup,isPro:stats.isPro});
         if(aiFailRef.current.consecutive>=3){
           aiFailRef.current.cooldownUntil=Date.now()+5*60*1000;
           console.warn("[BSM] AI cooldown activated after",aiFailRef.current.consecutive,"consecutive failures");
@@ -7164,6 +7377,8 @@ export default function App(){
     if(choice!==null||!sc)return;setChoice(idx);
     const conceptTagForEffectiveness = findConceptTag(sc.concept);
     const isOpt=idx===sc.best;const rate=sc.rates[idx];const cat=isOpt?"success":rate>=55?"warning":"danger";
+    // Sprint 4.2: Track scenario answer
+    trackAnalyticsEvent("scenario_answer",{pos:curPos,correct:isOpt,diff:sc.diff||1,concept:conceptTagForEffectiveness||"",isAI:!!sc.aiGenerated},{ageGroup:stats.ageGroup,isPro:stats.isPro});
     let pts=isOpt?15:rate>=55?8:rate>=35?4:2;
     if(dailyMode)pts*=2; // 2x XP for Daily Diamond Play
     if(stats.isPro)pts*=2; // 2x XP for Pro
@@ -7308,7 +7523,7 @@ export default function App(){
   },[speedMode,survivalMode,seasonMode,dailyMode,screen]);
   goHomeRef.current=goHome;
   const next=useCallback(()=>{setLvlUp(null);setExplainMore(null);setExplainLoading(false);if(speedMode){speedNextRef.current?.()}else if(survivalMode){survivalNextRef.current?.()}else if(seasonMode){seasonNextRef.current?.()}else if(dailyMode){goHomeRef.current?.()}else if(atLimit){setScreen("home");setTimeout(()=>setPanel('limit'),100)}else{startGame(pos,aiMode)}},[pos,startGame,dailyMode,speedMode,survivalMode,seasonMode,atLimit,aiMode]);
-  const finishOnboard=useCallback(()=>{setStats(p=>({...p,onboarded:true,todayDate:new Date().toDateString()}));setScreen("home")},[]);
+  const finishOnboard=useCallback(()=>{setStats(p=>({...p,onboarded:true,todayDate:new Date().toDateString()}));setScreen("home");trackAnalyticsEvent("onboard_complete",null,{ageGroup:stats.ageGroup,isPro:stats.isPro})},[stats.ageGroup,stats.isPro]);
 
   // Auth: signup
   const handleSignup=useCallback(async(formData)=>{
@@ -8038,7 +8253,7 @@ export default function App(){
                 ))}
               </div>
               <div style={{fontSize:9,color:"#6b7280",marginBottom:8}}>After subscribing, return to this page. Your pass activates automatically.</div>
-              <PromoCodeInput setStats={setStats} setToast={setToast} snd={snd} setPanel={setPanel} />
+              <PromoCodeInput setStats={setStats} setToast={setToast} snd={snd} setPanel={setPanel} email={(authUser?.email||"").toLowerCase()} />
             </div>}
             <button onClick={()=>setPanel(null)} style={{...ghost,fontSize:11,marginTop:4}}>← Back</button>
           </div>}
