@@ -3197,7 +3197,31 @@ DAYLIGHT PLAY at 2B: SS or 2B breaks toward 2nd base FIRST. If daylight (gap) ap
 1B PICKOFF TIMING: After 2+ looks, change timing — throw early, throw late, step off instead. Predictable pickoff timing = zero deception.
 PITCHOUT to STEAL: Pitcher throws outside by 2+ feet. Catcher steps to right side and fires. Costs a ball in count — use on 1-0, 2-0, 3-1 counts only.
 PICKOFF TELLS (runner): Weight forward, big lean, exaggerated secondary lead — these are times to throw. Never throw to an empty base for no reason.
-NEVER: Throw to an unoccupied base (balk). Fake to first and then throw to first (balk). Throw to 3rd, spin and throw to 1st (balk). Drop the ball during a pickoff motion (balk).`,
+NEVER: Throw to an unoccupied base (balk). Fake to 1B from set without stepping off (balk). Fake 3B then throw 1B (balk — banned since 2013). Drop the ball while on the rubber (balk). See BALK_MAP for all 13 balk types.`,
+  BALK_MAP: `BALK RULE — ALL 13 TYPES (non-negotiable per MLB Rule 6.02(a)):
+WHY BALKS EXIST: The balk rule prevents pitchers from deceiving baserunners with fake or illegal motions. When a balk is called: ball is DEAD, ALL runners advance one base automatically, batter's count is unchanged.
+CORE PRINCIPLE: Once a pitcher begins any motion, he must complete it legally. Any hesitation, fake, or illegal move a runner could misread = balk.
+GROUP 1 — DELIVERY BALKS:
+BALK 1 (Flinch): Starts pitching motion then stops. Runner committed to lead — stopping is pure deception.
+BALK 2 (Quick Pitch): Delivers before batter is set. Illegal — danger to batter, deception of defense.
+BALK 3 (Windup With Runner): Pitches from windup with a runner on base. MUST use set position with any runner on.
+BALK 4 (Wrong Position): Not in contact with rubber when delivering. Illegal release point.
+GROUP 2 — FOOTWORK BALKS:
+BALK 5 (No Step): Throws to a base without stepping directly toward it. Step requirement ensures genuine pickoff.
+BALK 6 (Wrong Step): Steps toward one base, throws to another. Direction of step must match direction of throw.
+BALK 7 (Unoccupied Base): Steps toward and throws to a base with no runner. No play attempt = pure deception.
+GROUP 3 — FAKE/THROW SEQUENCE BALKS:
+BALK 8 (Fake to First From Set): RHP fakes a throw to 1B without stepping off rubber. ALWAYS a balk — must throw or step off.
+BALK 9 (Fake 3B/Throw 1B): Fakes to third, throws to first. BANNED since 2013. Does not exist in baseball anymore.
+BALK 10 (Throw to Unoccupied): Throws to base with no runner and no runner advancing. Deliberate delay.
+GROUP 4 — SET POSITION BALKS:
+BALK 11 (No Stop): Does not come to a complete discernible stop in set position. The stop is the runner's read — skipping it = deception.
+BALK 12 (Drop Ball): Drops ball while in contact with rubber. Ball is live on ground — runners can advance — chaos = illegal.
+BALK 13 (No Catcher): Delivers pitch while catcher is not in the catcher's box.
+LEGAL ALWAYS: Step off the rubber (back foot clears) → you are a fielder, zero balk rules apply. Throw anywhere, fake anywhere after stepping off. Vary timing at set position (1 second or 5 seconds — both legal as long as you STOP completely).
+ILLEGAL ALWAYS: Fake to 1B from set without stepping off. Fake 3B then throw 1B (banned 2013). Start pitching motion and stop. Pitch while catcher is outside the box.
+STEP-OFF RESET: When in doubt, step off. Back foot clears rubber = fielder. Never improvise a move from the rubber.
+PITCH CLOCK INTERSECTION: With 2 disengagements used, a 3rd step-off = balk UNLESS the runner is picked off. Step-offs count as disengagements.`,
   PITCH_CLOCK_MAP: `PITCH CLOCK STRATEGY (non-negotiable per 2023 MLB Rules):
 PITCHER CLOCK: 15 seconds with bases empty. 20 seconds with runners on. Violation = automatic BALL added to count.
 BATTER CLOCK: Must be alert in batter's box with 8 seconds remaining. 1 timeout per PA. Violation = automatic STRIKE added to count.
@@ -3415,6 +3439,7 @@ const MAP_RELEVANCE = {
   DP_POSITIONING_MAP:   ['pitcher','firstBase','secondBase','shortstop','thirdBase','manager'],
   HIT_RUN_MAP:          ['secondBase','shortstop','batter','baserunner','manager'],
   PICKOFF_MAP:          ['pitcher','catcher','firstBase','secondBase','shortstop','thirdBase','baserunner','manager'],
+  BALK_MAP:             ['pitcher','catcher','baserunner','manager','rules'],
   PITCH_CLOCK_MAP:      ['pitcher','catcher','batter','baserunner','manager'],
   WP_PB_MAP:            ['pitcher','catcher','firstBase','thirdBase','baserunner','manager'],
   SQUEEZE_MAP:          ['pitcher','catcher','firstBase','thirdBase','batter','baserunner','manager'],
@@ -3436,6 +3461,7 @@ const MAP_AUDIT = {
   DP_POSITIONING_MAP:   "DP POSITIONING: DP depth only with <2 outs and force at 2nd. Never DP depth with 2 outs. Infield in only with R3 and <2 outs. Loaded = force at every base including home.",
   HIT_RUN_MAP:          "HIT-AND-RUN: Batter MUST swing. Coverage depends on batter handedness (LHH=SS, RHH=2B). Batter missing sign = runner hung out. Pitchout counters the hit-and-run.",
   PICKOFF_MAP:          "PICKOFF: Legal step requirement for RHP (step toward base + throw). LHP can throw to 1B freely. Fake-3B/throw-1B is a balk since 2013. Daylight play: fielder breaks first.",
+  BALK_MAP:             "BALK: Is the pitcher's action legal? Check: set position with runners on, complete stop, step matches throw direction, no fake to 1B from set, no fake-3B/throw-1B. Step-off = legal reset.",
   PITCH_CLOCK_MAP:      "PITCH CLOCK: 15 sec empty, 20 sec runners. Pitcher violation = ball, batter violation = strike. 2 disengagements per batter — 3rd = balk unless pickoff succeeds.",
   WP_PB_MAP:            "WILD PITCH/PASSED BALL: Catcher goes to ball first (never look at runner first). Pitcher sprints home immediately. 3B backs up home with R3. 2-out variant same assignments.",
   SQUEEZE_MAP:          "SQUEEZE: Safety=on contact, suicide=on first move. Never suicide with 2 strikes (foul=K + runner dead). Pitcher defends with high-tight pitch. Pop-up on squeeze = double play.",
