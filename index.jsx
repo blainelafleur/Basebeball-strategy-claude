@@ -2022,6 +2022,12 @@ const SCENARIOS = {
       options:["Keep going — I'm still forced to third","Go back to second — the force was removed when my teammate was out","Keep going but now I have to be tagged, not forced","The play is dead — stop where I am"],
       best:2,explanations:["The force on you was removed when the runner behind you was called out. You can still advance, but you must be tagged.","Going back to second could actually be smart, but you're not required to — the force was removed. You can choose to advance.","When the runner behind you (on first) was forced out at second, there's no longer anyone behind you requiring you to advance. The force on you is REMOVED. You can still run to third, but now the defense must TAG you — they can't just step on third base. This changes the play significantly.","The play is definitely not dead. The ball is still live and the game continues."],
       rates:[15,30,85,5],concept:"When the runner behind you is forced out, your force is removed — you must be tagged, not just forced",anim:"advance"},
+    {id:"r59",title:"Touch Every Base!",diff:2,cat:"rules",conceptTag:"appeal-play",
+      description:"Bot 8th, 2 outs, you're on 1st base, your team trails 4-3. Your teammate smashes a double off the wall in left-center! You're flying around the bases. As you round 2nd, you cut the corner wide and your foot barely misses the bag. You score easily. But the opposing catcher is yelling at his pitcher. What should you be worried about?",
+      situation:{inning:"Bot 8",outs:2,count:"-",runners:[1],score:[3,4]},
+      options:["Nothing — I scored, the run counts","The defense might appeal that I missed 2nd base","I should go back and re-touch 2nd base right now","The umpire would have called me out already if I missed it"],
+      best:1,explanations:["The run does NOT automatically count just because you crossed home plate. If the defense appeals at 2nd base before the next pitch, you're out and the run is erased.","Exactly right. If you missed 2nd base, the defense can appeal by having the pitcher step off the rubber and throw to 2nd. If the umpire confirms you missed it, you're out — and since you'd be the 3rd out, your run does NOT count. This is a time play: a 3rd out on an appeal erases any run scored on the same play.","Going back to re-touch would be smart IF the ball is still live, but you'd need to touch bases in reverse order (home → 3rd → 2nd). Once you're in the dugout, it's too late.","Umpires do NOT automatically call missed bases — the defense must formally appeal. That's exactly what the catcher is setting up."],
+      rates:[15,85,50,10],concept:"Umpires don't call missed bases automatically — the defense must appeal before the next pitch, and a 3rd-out appeal erases any run scored on the play",anim:"score"},
   ],
   manager: [
     {id:"m1",title:"Intentional Walk",diff:2,cat:"late-game",conceptTag:"force-vs-tag",
@@ -2387,6 +2393,12 @@ const SCENARIOS = {
       options:["Infield in — stop the run from scoring","Infield back — get the out and worry about the run later","Play normal depth — balanced approach","Only bring the corners in"],
       best:0,explanations:["With the tying or winning run on 3rd and less than 2 outs in a tie game, bring the infield in. Yes, you give up range, but preventing the run from scoring is the priority. A ground ball to a drawn-in infielder gives you a play at home.","Infield back means any ground ball scores the runner from 3rd. In a tie game, you can't afford to let that run score.","Normal depth doesn't give you a throw home on a routine grounder.","Only corners in is a compromise — but in a tie game, you need the full infield in to maximize your chance at the play at home."],
       rates:[85,20,35,50],concept:"With a runner on 3rd in a tie game, bring the infield in — preventing the run is the priority",anim:"groundout"},
+    {id:"m59",title:"The Appeal Window",diff:3,cat:"game-management",conceptTag:"appeal-play",
+      description:"Bot 9th, 2 outs, tie game. The opposing batter hits a deep fly ball to center. Runner on 3rd tags up and scores what appears to be the winning run. But your center fielder signals that the runner on 2nd left early on the tag-up. You're the manager. The pitcher has the ball. What do you tell him to do?",
+      situation:{inning:"Bot 9",outs:2,count:"-",runners:[2,3],score:[5,5]},
+      options:["Appeal at 2nd base — the runner left early","Appeal at 3rd base — that's where the runner advanced to","Forget it — the run already scored, the game is over","Appeal at home plate — challenge the run itself"],
+      best:0,explanations:["Correct! On an appeal for leaving early on a tag-up, you throw to the base the runner LEFT FROM — not where they went. The pitcher steps off the rubber and throws to 2nd. If the umpire confirms the runner left early, that's the 3rd out. And here's the key: because it's a 3rd out on an appeal play, the run that 'scored' from 3rd is ERASED. The game continues tied. This is the time play rule — runs don't count when the 3rd out is a force or appeal.","The appeal must go to the base the runner left from (2nd), not the base they advanced to. Throwing to 3rd wastes the appeal.","The game is NOT over until the umpire says it is. You have until the next pitch (or until all fielders leave fair territory) to make an appeal. This could save the game.","You can't appeal at home plate for this violation. The appeal goes to the base the runner departed from early."],
+      rates:[85,15,10,20],concept:"Appeal at the base the runner LEFT FROM, not where they went — and a 3rd-out appeal erases any run scored on the same play",anim:"throwHome"},
   ],
   catcher: [
     {id:"ct1",title:"Pitch Calling — Full Count",diff:2,cat:"pitch-calling",
@@ -2705,6 +2717,12 @@ const SCENARIOS = {
       options:["Turn on the inside fastball and drive it \u2014 this is your moment","Take the pitch and look for something on the outer half","Bunt to squeeze the tying run home from third","Try to hit it on the ground to the right side to score a run"],
       best:0,explanations:["Bobby Thomson turned on Branca's fastball and launched it into the left field stands for a three-run homer that won the pennant. Radio announcer Russ Hodges screamed 'The Giants win the pennant!' four times in one of the most famous calls in sports history. It capped an incredible comeback \u2014 the Giants had trailed the Dodgers by 13.5 games in August.","With the game on the line, you can't afford to be passive looking for a specific location. Thomson knew he needed a big hit, and when he got a fastball he could handle, he jumped on it. Aggressive approach in big moments.","A squeeze bunt ties one run but doesn't win the game, and it's an extremely risky play with one out. If the bunt is popped up or missed, the rally dies. Thomson needed to swing the bat to make history.","A ground ball to the right side might score one run, but the Giants needed three. Playing for one run when you're down two is playing not to lose. Thomson's aggressive swing gave the Giants everything they needed."],
       rates:[85,20,25,30],concept:"In baseball's biggest moments, the greatest players look to drive the ball. Bobby Thomson's homer is proof that aggressive confidence can produce miracles.",anim:"hit"},
+    {id:"fp21",title:"Merkle's Boner — 1908",diff:3,cat:"famous",conceptTag:"appeal-play",
+      description:"September 23, 1908. Giants vs Cubs, bottom of the 9th, tie game 1-1. Al Bridwell singles to center, apparently scoring the winning run from 3rd. The crowd pours onto the field in celebration. But Cubs second baseman Johnny Evers notices that 19-year-old Fred Merkle — the runner on 1st — never touched 2nd base. He turned and ran to the clubhouse instead. Evers is screaming for the ball. You're the Cubs manager. What do you do?",
+      situation:{inning:"Bot 9",outs:1,count:"-",runners:[1,3],score:[1,1]},
+      options:["Appeal at 2nd base immediately — Merkle never touched it","Let it go — the winning run already scored","Appeal at 1st base — make Merkle go back","Argue that the hit should be ruled foul"],
+      best:0,explanations:["This is exactly what happened — and it changed baseball history. Johnny Evers got a baseball (the actual game ball was lost in the crowd chaos), touched 2nd base, and appealed. Umpire Hank O'Day ruled Merkle out as the 3rd out via force play. Because the 3rd out was a force, the run that crossed home plate did NOT count. The game was declared a tie and replayed at season's end — the Cubs won that replay and the pennant. 'Merkle's Boner' became the most famous baserunning mistake in history and established forever that EVERY base must be touched.","The run does NOT automatically count. Under the rules, Merkle was forced to advance to 2nd (the batter's single forced him). If the defense touches 2nd with the ball before Merkle does, he's out on a force. And a 3rd out that's a force play erases ANY run scored on that play — even if the runner crossed home first.","The appeal must happen at the base the runner failed to touch — 2nd base, not 1st. Merkle left 1st legally; he just never arrived at 2nd.","The hit was clearly fair. There's no basis to argue otherwise. The appeal at 2nd is the only play."],
+      rates:[85,15,10,5],concept:"Touch every base — Merkle's failure to touch 2nd in 1908 cost the Giants the pennant and established that force-play appeals erase runs scored on the same play",anim:"safe"},
   ],
   rules: [
     {id:"rl1",title:"Infield Fly Rule",diff:2,cat:"rules",
@@ -3222,6 +3240,44 @@ LEGAL ALWAYS: Step off the rubber (back foot clears) → you are a fielder, zero
 ILLEGAL ALWAYS: Fake to 1B from set without stepping off. Fake 3B then throw 1B (banned 2013). Start pitching motion and stop. Pitch while catcher is outside the box.
 STEP-OFF RESET: When in doubt, step off. Back foot clears rubber = fielder. Never improvise a move from the rubber.
 PITCH CLOCK INTERSECTION: With 2 disengagements used, a 3rd step-off = balk UNLESS the runner is picked off. Step-offs count as disengagements.`,
+  APPEAL_PLAY_MAP: `APPEAL PLAYS (non-negotiable per MLB Rule 5.09(c)):
+WHY APPEALS EXIST: The defense must EARN their outs. Umpires do NOT automatically call missed bases or early tag-ups — the defense must recognize the violation and formally appeal. If no appeal is made before the next pitch, the infraction is forgiven.
+APPEAL WINDOW: Defense must appeal BEFORE the next pitch is thrown to any batter. At inning end: before all fielders and the pitcher leave fair territory. Window closes permanently after that.
+APPEAL TYPE 1 — MISSING A BASE:
+WHEN: Runner's foot does not contact a base while advancing OR while returning.
+HOW TO APPEAL: Pitcher steps off rubber → throws to the missed base → fielder catches at base.
+Tag the BASE if runner has passed it. Tag the RUNNER if runner is still between bases.
+Any base can be appealed, any runner, in any order.
+Result: Runner called out.
+APPEAL TYPE 2 — LEAVING EARLY ON TAG-UP:
+WHEN: Runner leaves their base before the fielder's glove contacts the fly ball.
+HOW TO APPEAL: Throw to the base the runner LEFT FROM — not the base they advanced to.
+Example: Runner on 2B tags up to 3B but left early → appeal at SECOND BASE.
+Result: Runner called out. If this is the 3rd out, see TIME PLAY below.
+APPEAL TYPE 3 — BATTING OUT OF ORDER:
+WHEN: A batter bats in a different position than listed on the official lineup card.
+WHO IS OUT: The PROPER BATTER (who should have batted) is called out — not the batter who actually batted.
+All runners who advanced on the out-of-order at-bat return to original bases.
+Appeal window: before the next pitch is delivered after the out-of-order at-bat.
+After appeal: next legal batter is whoever follows the called-out proper batter in the lineup.
+If no appeal before next pitch: the out-of-order at-bat stands as legal.
+TIME PLAY — DOES THE RUN COUNT?:
+Run does NOT count if the 3rd out is: (a) a force play, (b) an appeal play, or (c) batter-runner put out before reaching 1B.
+Run DOES count if: the runner scored BEFORE the 3rd out was recorded AND the 3rd out was NOT a force or appeal.
+Test: Did the run cross the plate before the out? Was the out a force/appeal? If yes to both — run is erased.
+HOW TO MAKE A LEGAL APPEAL:
+Step 1: Ball must be live (if time was called, put ball in play first).
+Step 2: Pitcher steps off the rubber (removes balk restrictions).
+Step 3: Throw to the appropriate base.
+Step 4: Fielder receives at base — umpire rules.
+INVALIDATED APPEALS: Wrong base thrown to. Next pitch thrown before appeal. Ball not live when appeal attempted. All fielders left fair territory (inning end — permanent close).
+RUNNER OBLIGATIONS — TOUCH EVERY BASE:
+Touch each base deliberately with your foot. Missing a base is always appealable — even on home runs.
+Return path: re-touch bases in REVERSE ORDER when going back (3B → 2B → 1B).
+Tag-up: leave ONLY when fielder's glove contacts the ball — not before, not after.
+Home plate: must be touched to score. Missing home is appealable — the run is erased until corrected.
+NEVER celebrate early on a home run. Touch all four bases deliberately. One missed base = one appealable out.
+NEVER: Assume a missed base will go unnoticed. Skip a base while rounding on an extra-base hit. Leave the base before the catch on a tag-up. Let the window close without appealing a clear violation.`,
   PITCH_CLOCK_MAP: `PITCH CLOCK STRATEGY (non-negotiable per 2023 MLB Rules):
 PITCHER CLOCK: 15 seconds with bases empty. 20 seconds with runners on. Violation = automatic BALL added to count.
 BATTER CLOCK: Must be alert in batter's box with 8 seconds remaining. 1 timeout per PA. Violation = automatic STRIKE added to count.
@@ -3356,7 +3412,7 @@ OF THROW MECHANICS ON TAG-UP:
   Throw to the BASE before the runner arrives, not at the runner.
   Hit the cutoff man unless throw is clearly going to beat the runner.
   CF tag-up throw home: 1B is the cutoff. LF tag-up throw home: 3B is the cutoff.
-NEVER: Leave before the catch (early departure = appealable out). Look at the ball in flight instead of watching the fielder's glove. Throw at the runner instead of the base.`,
+NEVER: Leave before the catch — early departure is an APPEALABLE OUT. Defense throws to the base you LEFT FROM (not where you advanced to) to make the appeal. If this creates the 3rd out, any run that scored on the same play is erased (time play). Touch every base deliberately — missed bases are also appealable even after you've scored. Look at the ball in flight instead of watching the fielder's glove. Throw at the runner instead of the base.`,
   PITCHING_CHANGE_MAP: `PITCHING CHANGE MECHANICS (non-negotiable):
 WHEN MANAGER VISITS MOUND:
   If manager crosses the foul line = automatic pitching change UNLESS:
@@ -3440,6 +3496,7 @@ const MAP_RELEVANCE = {
   HIT_RUN_MAP:          ['secondBase','shortstop','batter','baserunner','manager'],
   PICKOFF_MAP:          ['pitcher','catcher','firstBase','secondBase','shortstop','thirdBase','baserunner','manager'],
   BALK_MAP:             ['pitcher','catcher','baserunner','manager','rules'],
+  APPEAL_PLAY_MAP:      ['pitcher','catcher','firstBase','secondBase','shortstop','thirdBase','leftField','centerField','rightField','batter','baserunner','manager','rules'],
   PITCH_CLOCK_MAP:      ['pitcher','catcher','batter','baserunner','manager'],
   WP_PB_MAP:            ['pitcher','catcher','firstBase','thirdBase','baserunner','manager'],
   SQUEEZE_MAP:          ['pitcher','catcher','firstBase','thirdBase','batter','baserunner','manager'],
@@ -3462,6 +3519,7 @@ const MAP_AUDIT = {
   HIT_RUN_MAP:          "HIT-AND-RUN: Batter MUST swing. Coverage depends on batter handedness (LHH=SS, RHH=2B). Batter missing sign = runner hung out. Pitchout counters the hit-and-run.",
   PICKOFF_MAP:          "PICKOFF: Legal step requirement for RHP (step toward base + throw). LHP can throw to 1B freely. Fake-3B/throw-1B is a balk since 2013. Daylight play: fielder breaks first.",
   BALK_MAP:             "BALK: Is the pitcher's action legal? Check: set position with runners on, complete stop, step matches throw direction, no fake to 1B from set, no fake-3B/throw-1B. Step-off = legal reset.",
+  APPEAL_PLAY_MAP:      "APPEAL PLAYS: Does any scenario involve a runner advancing or tagging up? If yes — could a missed base or early departure be part of the situation? Does the scenario correctly show the appeal window (before next pitch)? Is the time play rule applied correctly when a run scores on the same play as a third out?",
   PITCH_CLOCK_MAP:      "PITCH CLOCK: 15 sec empty, 20 sec runners. Pitcher violation = ball, batter violation = strike. 2 disengagements per batter — 3rd = balk unless pickoff succeeds.",
   WP_PB_MAP:            "WILD PITCH/PASSED BALL: Catcher goes to ball first (never look at runner first). Pitcher sprints home immediately. 3B backs up home with R3. 2-out variant same assignments.",
   SQUEEZE_MAP:          "SQUEEZE: Safety=on contact, suicide=on first move. Never suicide with 2 strikes (foul=K + runner dead). Pitcher defends with high-tight pitch. Pop-up on squeeze = double play.",
