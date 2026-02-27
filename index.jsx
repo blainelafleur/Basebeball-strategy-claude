@@ -388,6 +388,12 @@ const SCENARIOS = {
       options:["Throw the fastball down the middle — you need a strike","Throw a changeup — surprise him in a hitter's count","Try to paint the corner with a fastball","Throw a sinker low in the zone — get a ground ball for a DP"],
       best:3,explanations:["A fastball down the middle in a 2-0 count is what the hitter is sitting on. Batters hit .400 in 2-0 counts — they're looking for exactly this pitch. You're throwing batting practice.","A changeup in 2-0 is high-risk. If it misses, you're 3-0 and basically walking him. The element of surprise doesn't outweigh the risk of falling further behind.","Painting the corner sounds smart, but in 2-0 you NEED a strike. Trying to paint often results in ball three. The margin for error is too thin.","A sinker low in the zone is the best play. With a runner on 1st and 1 out, a ground ball could turn a double play. The sinker's natural downward movement makes it hard to elevate even when hitters are sitting fastball. You get your strike AND your best chance at a DP."],
       rates:[25,15,40,85],concept:"In a 2-0 hitter's count, pitch to contact on YOUR terms — a sinker for a ground ball DP is better than a fastball down the middle",anim:"doubleplay"},
+    {id:"p63",title:"Coors Field — Change Your Game Plan",diff:3,cat:"strategy",
+      description:"You're a visiting pitcher at Coors Field in Denver (altitude ~5,280 ft). Top 1st, nobody on, no outs. You're a breaking ball pitcher — your slider and curveball are your best weapons at sea level. But you know the thin air at altitude reduces breaking ball movement by about 15%. The leadoff hitter is a .275 hitter who struggles with fastballs up. How do you approach this at-bat?",
+      situation:{inning:"Top 1",outs:0,count:"0-0",runners:[],score:[0,0]},
+      options:["Lean on your fastball command — breaking balls lose movement at altitude","Throw your normal game — your breaking balls are still your best pitches","Throw only changeups — they rely on speed difference, not spin movement","Throw harder than usual — the thin air means less drag on your fastball"],
+      best:0,explanations:["At Coors Field, the thin air reduces spin-induced movement by ~15%. Your slider that breaks 6 inches at sea level only breaks 5 inches here. Your curveball drops less. But your fastball command doesn't change with altitude. Since this hitter struggles with fastballs up, use your fastball as the primary pitch and mix in breaking balls as secondary — don't rely on them for put-aways.","Your breaking balls ARE still good pitches, but they're diminished at altitude. A slider that looks like a strike but doesn't break as much stays over the plate — hittable. You must adjust your pitch mix to account for the 15% movement loss.","Changeups lose effectiveness too — the speed difference is the same, but the ball carries more at altitude. A hanging changeup at Coors becomes a home run. You need fastball command as your base.","You can't just 'throw harder' — that's not how pitching works. Your velocity is what it is. The thin air does slightly reduce drag, adding ~1-2 mph, but the benefit is offset by the ball carrying farther if hit. Focus on location, not velocity."],
+      rates:[85,30,15,20],concept:"At altitude (Coors Field), breaking balls lose ~15% movement — adjust your pitch mix to rely more on fastball command and less on spin-based movement",anim:"strike"},
   ],
   batter: [
     {id:"b1",title:"RBI Opportunity",diff:1,cat:"situational",
@@ -1157,6 +1163,12 @@ const SCENARIOS = {
       options:["Crow-hop and throw a strong one-hopper to the cutoff man, letting him decide to cut or let it go","Throw directly home on the fly, skipping the cutoff man","Lob it to second base to keep the runner on first from advancing","Hold the ball since the runner will score easily anyway"],
       best:0,explanations:["The crow-hop gives your throw power and accuracy. Hitting the cutoff man lets him make the final decision \u2014 if the runner at third left early or stumbles, the cutoff lets the throw through. If the run is going to score, the cutoff can redirect to keep the runner on first from advancing. Two plays for the price of one.","A 250-foot throw on the fly from medium center is extremely difficult. If the throw sails or bounces wide without a cutoff, the runner on first moves up to second or third. You've given up an extra base trying to be a hero. Trust your cutoff man.","Throwing to second base completely ignores the runner scoring. Your primary job is to give your team a chance at the plate. Even if the runner is likely to score, you have to make the throw home through the cutoff \u2014 that's the play that matters.","Holding the ball gives away the play and lets the runner on first advance for free. Even if the run will likely score, your throw through the cutoff man keeps the other runner honest at first base."],
       rates:[85,25,15,20],concept:"Always hit your cutoff man with a crow-hop throw \u2014 it gives your team two chances to make a play instead of one.",anim:"throwHome"},
+    {id:"cf60",title:"Wind Out — How Deep Do You Play?",diff:2,cat:"fielder",conceptTag:"of-depth-arm-value",
+      description:"You're playing center field. Top 3rd, nobody on, tied 1-1. The wind is blowing straight out at about 15 mph — you've already seen two fly balls carry farther than expected in the first two innings. The cleanup hitter is up with a 1-0 count. Where do you set up?",
+      situation:{inning:"Top 3",outs:1,count:"1-0",runners:[],score:[1,1]},
+      options:["Play 10-15 feet deeper than normal — the wind is carrying everything","Play normal depth — adjust on each ball as it comes","Play a few steps shallower — the wind will push the ball back toward you","Stay where you are but shade toward the pull side"],
+      best:0,explanations:["With 15 mph wind blowing out, fly balls carry 10-15 feet farther than normal. You've already seen evidence of this in innings 1-2. Playing deeper gives you the cushion to run in on short flies, but prevents balls from sailing over your head. Against the cleanup hitter in a hitter's count, depth is critical.","Adjusting 'on each ball' means you're constantly reacting late. Set your depth BEFORE the pitch based on known conditions. Two innings of evidence tells you the wind is real.","Shallower is exactly backwards. Wind OUT means balls carry FARTHER, not closer. Playing shallow means routine fly balls become extra-base hits over your head.","Shading to the pull side is a reasonable secondary adjustment, but it doesn't address the primary issue — you need to be DEEPER. Wind direction trumps pull tendency when the wind is this strong."],
+      rates:[85,30,10,45],concept:"When the wind blows out at 10+ mph, play 7-15 feet deeper than normal — fly balls carry farther and you need the extra cushion",anim:"catch"},
   ],
   leftField: [
     {id:"f4",title:"Hit the Cutoff",diff:1,cat:"outfield",conceptTag:"cutoff-roles",
@@ -2435,6 +2447,12 @@ const SCENARIOS = {
       options:["Pull the starter now — 3rd TTO against the top of the order is too dangerous","Let him face the leadoff LHH, then bring in the lefty setup man","Leave him in for the 6th — 78 pitches isn't tired and you have a 2-run lead","Bring in the righty closer early to finish the game"],
       best:0,explanations:["Correct! Your RHP starter facing the order a 3rd time will see +30 BA points from TTO effect. The leadoff LHH already hits .270 — add TTO (+30) and opposite-hand advantage (+18) and you're looking at a projected .318+ BA. Two of the next three are left-handed. Your lefty setup man neutralizes them with same-hand advantage. Pull the starter NOW while you have a clean inning and a 2-run cushion.","Letting him face even one batter in the 3rd TTO is risky. The leadoff hitter is left-handed (opposite hand) AND sees him for the 3rd time — that's a compound +48 point disadvantage. If he reaches, you're in a jam with the heart of the order up.","78 pitches isn't about fatigue — it's about FAMILIARITY. The TTO effect isn't tired arms, it's that hitters have seen his pitch sequences twice and can now predict better. Even a fresh pitcher gets hit harder the 3rd time through.","Using your closer for 4 innings in a 3-1 game burns him for tomorrow. Setup man handles the 6th-7th, closer gets the 8th-9th if needed. Don't waste the closer's arm in a manageable situation."],
       rates:[85,45,20,15],concept:"TTO effect (+30 BA pts) COMPOUNDS with platoon disadvantage (+18 pts) — a RHP facing LHH for the 3rd time faces a +48 point BA spike",anim:"freeze"},
+    {id:"m62",title:"Turf Speed — Adjust Your Depth",diff:2,cat:"game-management",
+      description:"You're the manager. Your team is playing on artificial turf for the first time this season. Top 1st, runner on 1st, no outs. The opposing hitter is a ground ball hitter (.280 BA, 55% ground ball rate). Your infielders are set at their normal grass-field depth. Your second baseman asks if he should adjust. What do you tell the infield?",
+      situation:{inning:"Top 1",outs:0,count:"-",runners:[1],score:[0,0]},
+      options:["Play 1-2 steps deeper — ground balls travel faster on turf","Play normal depth — your fielders know how to play","Play shallower — you want to cut off the runner at 2nd","Shift the infield to the pull side instead of adjusting depth"],
+      best:0,explanations:["On artificial turf, ground balls travel 15-20% faster than on grass. Your infielders need 1-2 extra steps of depth to compensate — this gives them the same reaction time they'd have on grass at normal depth. With a ground ball hitter up, this adjustment is critical. The faster surface also means you might still get the DP even from the deeper position.","Normal depth on turf means your fielders are effectively too shallow. A sharp grounder that's routine on grass can handcuff an infielder on turf because the ball gets there faster. The surface changes the game — you must adjust.","Playing shallower on turf is dangerous. The ball is already coming at your fielders faster. Shallower means even less reaction time. You'll get eaten up by hard grounders through the infield.","A pull-side shift might be appropriate for some hitters, but it doesn't address the core issue — turf speed. You need depth adjustment FIRST, then consider lateral positioning. Address the surface before the scouting report."],
+      rates:[85,25,15,40],concept:"On artificial turf, ground balls travel 15-20% faster — infielders must play 1-2 steps deeper to compensate for the reduced reaction time",anim:"groundout"},
   ],
   catcher: [
     {id:"ct1",title:"Pitch Calling — Full Count",diff:2,cat:"pitch-calling",
@@ -3370,8 +3388,17 @@ FOUL TERRITORY POP-UPS: Nearest fielder calls it. OF has priority over infielder
 TWO-OF CONVERGENCE: If both corner OFs converge on a ball in LF-CF or RF-CF gap, CF has priority. Corner OF calls "YOU! YOU!" to wave CF off only if CF clearly cannot reach and corner OF can.
 SUN BALLS: Glove shield PRIMARY, sunglasses SUPPLEMENTARY. Keep eyes on the ball at all times — never look directly into sun. Call for sun ball help from teammates.
 WALL PLAY: Find the warning track (texture change) with feet — never take eyes off the ball to find the wall. Use the wall with the glove hand, not the throwing hand.
-PRE-PITCH ADJUSTMENTS: Shade toward pull side for known pull hitters. Communicate wind direction and sun angle to teammates before each inning begins.
+PRE-PITCH ADJUSTMENTS: Shade toward pull side for known pull hitters.
+WIND OUT (10+ mph): Play 7-15 feet deeper — fly balls carry significantly farther. Pitcher should work down in the zone. WIND IN (10+ mph): Play 5-10 feet shallower — fly balls die. WIND ACROSS (15+ mph): Shade toward where the wind carries fly balls — watch the flags. WIND UNDER 5 MPH: No adjustment needed. PRE-INNING: CF calls out wind direction and speed to corner OFs before every inning — required, not optional. See PARK_ENVIRONMENT_MAP for full context.
 NEVER: Allow a no-call fly ball between two fielders. Call off CF after he has already called the ball. Take eyes off a fly ball to find the wall with your eyes.`,
+  PARK_ENVIRONMENT_MAP: `PARK & ENVIRONMENT ADJUSTMENTS (Tier 4 — situational modifiers, never override Tier 1-3 rules):
+SOURCE: Baseball Reference park factors 2021-2023, Statcast environmental data, ABCA coaching consensus.
+PARK FACTOR BASICS: Park factor 100 = neutral. Above 100 = hitter-friendly. Below 100 = pitcher-friendly. Hitter parks (>105, e.g. Coors ~120): RE24 higher across all states — every baserunner more dangerous. Pitcher parks (<95, e.g. Petco ~95): every run harder to score — steals and small ball gain relative value. NEVER: Use park factor to justify a play that is wrong by RE24 in a neutral park. Park factors adjust the margin, not the decision.
+WIND OUT (10+ mph): OF plays 7-15 feet deeper. Pitcher works DOWN in the zone — elevated pitches carry. Hitters should look to elevate. WIND IN (10+ mph): OF plays 5-10 feet shallower. Pitcher can work up in zone — fly balls die. Running game slightly more valuable. WIND ACROSS (15+ mph): Breaking ball movement affected — LHP break amplified by L→R wind, reduced by R→L. Watch the flags. WIND UNDER 5 MPH: No adjustment. PRE-INNING: CF calls out wind direction and speed to corner OFs before every inning — required habit.
+SURFACE — TURF: Grounders travel 15-20% faster than grass. Infield plays 1-2 steps DEEPER. Bunt defense charges EARLIER — less reaction time. OF plays 2-3 steps deeper for gap roll. SURFACE — GRASS: Standard positioning. No adjustment from baseline.
+TEMPERATURE — COLD (<50F): Ball carries ~6% less. OF can shade slightly shallower. Breaking ball grip is harder — pitcher may go more fastball-heavy. TEMPERATURE — HEAT (>85F): Ball carries slightly farther. Pitcher fatigue accelerates — pitch count thresholds matter earlier. ALTITUDE (Coors/Denver): Ball carries ~10% farther. Breaking balls lose ~15% movement (thinner air = less spin drag). OF plays 10-15 feet deeper. Pitcher relies on fastball command over breaking ball movement. HUMIDITY: NO meaningful effect on ball flight — common myth, do not adjust.
+SUN DIRECTLY IN FLIGHT PATH: Glove shield PRIMARY, sunglasses supplementary. Eyes always on the ball. NEVER look directly at the sun. SUN BEHIND FIELDER: Step to the side before the pitch so sun is not in the tracking path. PRE-GAME: Identify sun field position before the game. Communicate to teammates.
+QUICK CHECKLIST (pre-game): (1) Wind speed/direction, (2) Surface type, (3) Temperature, (4) Sun field position, (5) Park factor category. Communicate to team before first pitch.`,
   POPUP_PRIORITY_MAP: `POP-UP PRIORITY & MECHANICS (non-negotiable):
 INFIELD POP-UPS (fair territory):
   SS and 2B have priority over 1B and 3B on pop-ups between them.
@@ -3582,6 +3609,7 @@ const MAP_RELEVANCE = {
   INTENTIONAL_WALK_MAP:           ['pitcher','catcher','batter','baserunner','manager'],
   LEGAL_SHIFT_MAP:                ['firstBase','secondBase','shortstop','thirdBase','batter','baserunner','manager'],
   BASERUNNER_READS_MAP:           ['baserunner','pitcher','catcher','manager'],
+  PARK_ENVIRONMENT_MAP:           ['pitcher','catcher','leftField','centerField','rightField','firstBase','secondBase','shortstop','thirdBase','batter','manager'],
 };
 const MAP_AUDIT = {
   CUTOFF_RELAY_MAP:     "CUTOFF/RELAY: Assignments correct per map? 3B cuts LF→Home, 1B cuts CF/RF→Home. SS relays left side, 2B relays right side. Pitcher backs up target base, never cuts. Trail man in position.",
@@ -3606,6 +3634,7 @@ const MAP_AUDIT = {
   INTENTIONAL_WALK_MAP:          "IBB: 2023+ = signal only, no pitches. IBB always costs RE. Justified only with 1B open + weaker next hitter. Never with bases loaded. Forced runners advance one base only.",
   LEGAL_SHIFT_MAP:               "SHIFT: 2023+ requires 2 infielders each side of 2B at pitch. 3 infielders one side = illegal. Outfield shifts still legal. Infield in still legal. Deep positioning legal.",
   BASERUNNER_READS_MAP:          "BASERUNNER READS: Pickoff tells correct (RHP=front heel, LHP=front knee)? Double steal read = catcher commitment, not R1 break. First-to-third reads correct? 3rd out rule applied? Never make 3rd out at home with <2 outs.",
+  PARK_ENVIRONMENT_MAP:          "ENVIRONMENT: Does this scenario take place in a notable park or condition (wind, turf, cold, altitude)? If yes — are positioning and strategy adjustments applied? These are Tier 4 modifiers ONLY — never let them override a Tier 1 rule answer.",
 };
 function getRelevantMaps(position) {
   return Object.entries(MAP_RELEVANCE)
@@ -3678,6 +3707,36 @@ const BRAIN = { stats: {
       "76-90": { tto1: .318, tto2: .335, tto3: .358 },
       "91-100":{ tto1: .332, tto2: .352, tto3: .380 },
       "100+":  { tto1: .348, tto2: .372, tto3: .405 },
+    },
+  },
+  parkAndEnvironment: {
+    parkFactors: {
+      hittersParks:  { examples: ["Coors Field (~120)", "Great American Ballpark (~108)", "Fenway Park (~106)"], threshold: 105 },
+      pitchersParks: { examples: ["Petco Park (~95)", "Oracle Park (~96)", "Tropicana Field (~97)"], threshold: 95 },
+      neutral:       { range: [96, 104] },
+      hitterspark: { stealValueAdjust: -0.02, buntCostAdjust: +0.03, ibbRiskAdjust: +0.04 },
+      pitcherspark: { stealValueAdjust: +0.02, buntCostAdjust: -0.02, ibbRiskAdjust: -0.02 },
+    },
+    wind: {
+      negligible: 5, moderate: 10, significant: 15, strong: 20,
+      depthAdjust: { out_10mph: +7, out_15mph: +10, out_20mph: +15, in_10mph: -7, in_15mph: -10, in_20mph: -12 },
+      pitcherAdjust: {
+        windOut: "Work down in the zone. Ground balls and low contact. Avoid elevated pitches.",
+        windIn: "Can work up in the zone. Fly balls become warning track outs.",
+        windCross: "Breaking ball movement affected. Watch the flags.",
+      },
+    },
+    surface: {
+      grass: { grounderSpeedFactor: 1.0, infieldDepthAdjust: 0 },
+      turf:  { grounderSpeedFactor: 1.175, infieldDepthAdjust: 1.5, outfieldDepthAdjust: 2.5 },
+    },
+    temperature: {
+      carryAdjust: { below50F: -0.06, t50to65F: -0.02, t65to80F: 0.00, t80to90F: +0.02, above90F: +0.04 },
+      altitude: {
+        coors:    { carryBonus: +0.10, breakingBallPenalty: -0.15, description: "~10% more carry, breaking balls lose ~15% movement" },
+        standard: { carryBonus: 0, breakingBallPenalty: 0 },
+      },
+      humidityEffect: false,
     },
   },
   platoonEdge: 18,          // ~18 BA points for opposite-hand matchup
