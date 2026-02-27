@@ -242,6 +242,369 @@ When runner on 1st steals with runner on 3rd, the catcher has 4 standard options
   - RHH → 2B covers 2B (hole opens at SS side, batter aims there)
 - Pitcher should throw strikes to induce contact.
 
+### 3.12 Pickoff Move Mechanics (Authoritative — Sources: MLB Official Rules 6.02, ABCA)
+
+**Cardinal Rules:**
+1. From the stretch: step directly toward the base AND throw = legal pickoff. No step = balk.
+2. From the windup: pitcher must step off the rubber before pivoting toward a base.
+3. Fake to third, throw to first: ILLEGAL since 2013 (Rule 6.02(a)(4)). Always a balk.
+4. Stepping off the rubber: pitcher becomes a fielder — no balk restrictions apply.
+5. Throw to an unoccupied base without a play attempt = balk.
+
+**When to Throw to First:**
+| Situation | Action |
+|-----------|--------|
+| Runner takes extended lead (>12 feet) | Throw — challenge the lead |
+| Runner's weight is forward / leaning | Throw — catch him mid-lean |
+| Runner takes same lead 3x in a row | Throw — he's predictable |
+| Catcher gives pickoff sign | Throw — coordinated play |
+| No tell present | Don't throw — you're just tipping your rhythm |
+
+**Daylight Play (Pickoff at 2nd):**
+- SS or 2B breaks toward second base. If daylight appears between the fielder and the runner, the pitcher turns and throws.
+- Pitcher initiates on fielder movement — NEVER before.
+- Requires practiced timing and a runner with a large secondary lead.
+
+**Pitchout:**
+- Catcher signals pitchout. Pitcher throws outside, catcher steps out and fires to a base.
+- Best used on 1-0, 2-0, 3-1 counts when a steal or hit-and-run is expected.
+- Cost: adds a ball to the count. Use sparingly.
+
+**Balk Quick Reference (Most Common):**
+1. Start motion, don't finish (flinch balk)
+2. Throw to unoccupied base without a play
+3. Fake third, throw first (banned since 2013)
+4. Fail to step directly toward the base you're throwing to
+5. Drop the ball while in contact with the rubber
+
+**Never-Do Rules:**
+- Never throw to first blindly on every pitch — disrupts YOUR timing, not just theirs.
+- Never fake to second as a primary move — it rarely works and wastes a look.
+- Never throw to a base when the fielder isn't there.
+
+---
+
+### 3.13 Pitch Clock Strategy (Source: MLB Official Rules 5.07(c), 2023+)
+
+**The Rule:**
+- Pitcher: 15 seconds with bases empty, 20 seconds with runners on. Violation = automatic ball.
+- Batter: Must be in box and alert with 8 seconds remaining. Violation = automatic strike.
+- Each batter gets ONE timeout per plate appearance.
+
+**Why It Matters Strategically:**
+
+For Pitchers:
+- Working fast keeps your defense engaged and sharp. Slow tempo → fielders drift mentally.
+- In high-leverage counts (0-2, full count), use your full 20 seconds with runners on. Make the hitter wait.
+- Vary your tempo — quick pitch followed by a longer hold disrupts timing more than a constant pace.
+- Never rush a high-leverage pitch just to beat the clock. Own your tempo.
+
+For Batters:
+- You have 1 timeout per PA. Save it for a leverage moment (0-2 count, pitcher on a roll).
+- Pitch clock violations give you free balls. Recognize when a pitcher is rushing and may get the call.
+- Never use your timeout on a 0-0 or 1-0 count — save it.
+
+For Baserunners:
+- Pitchers can't hold the ball to reset your timing — the clock forces consistent delivery windows.
+- Steal timing becomes more predictable. Secondary leads are MORE valuable under the clock.
+
+For Catchers:
+- Sign sequences must be fast (under 9 seconds). Practice fast sign delivery.
+- Mound visits slow things down and reset the pitcher's adrenaline — use them strategically.
+
+**Never-Do Rules:**
+- Pitcher: never let the clock run out by accident. Own your pace.
+- Batter: never waste your one timeout on a low-leverage count.
+- Pitcher: never rush a 0-2 or full-count pitch to beat the clock — location beats velocity.
+
+---
+
+### 3.14 Wild Pitch / Passed Ball Coverage (Source: ABCA, coaching consensus)
+
+**Cardinal Rules:**
+1. Catcher goes to the ball immediately — do NOT look at the runner first.
+2. Pitcher breaks to cover home the instant the ball gets past the catcher.
+3. Third baseman backs up home on any ball in the dirt with a runner on 3rd.
+4. Baserunner reads the catcher's first step — that tells you whether to go or hold.
+
+**Coverage by Runner Situation:**
+| Runners | Catcher Action | Pitcher Action | 3B Action |
+|---------|---------------|----------------|-----------|
+| R3 only | Scramble to ball, look to retire R3 | Sprint to home, set up as backstop | Back up home (line up behind pitcher) |
+| R1 only | Retrieve, look to 2B | Cover home (backup) | Cover 3B |
+| R1 & R2 | Retrieve, look to 3B first | Sprint to home | Cover 3B |
+| Bases loaded | Retrieve, step on home for force | Sprint to home | Back up home |
+
+**Pitcher Coverage Detail:**
+- Ball rolls to backstop: sprint to home, set up on the FIRST-BASE SIDE of the plate (give catcher a lane to throw).
+- Take the throw in fair territory, apply the tag on the third-base side.
+- If ball stays close to home: catcher fields and makes the play — pitcher still sprints as backup.
+
+**Baserunner Read:**
+- R3: If catcher breaks to retrieve AND ball rolls 10+ feet past the plate, GO. Watch catcher's first step — hesitation means go.
+- R1: Look for a bobble or ball rolling away — if catcher fields cleanly in front of the plate, hold.
+- Never advance from second on a wild pitch if the catcher fields cleanly.
+
+**Never-Do Rules:**
+- Catcher: never look at the runner before going to the ball. Field first, throw second.
+- Pitcher: never stay on the mound when a wild pitch passes the catcher. Sprint immediately.
+- 3B: never stay at third when a wild pitch is thrown with R3. Sprint to the backup spot behind home.
+
+---
+
+### 3.15 Infield Fly Rule — Full Mechanics (Source: MLB Official Rules 5.09(b)(6))
+
+**The Rule:**
+An infield fly is declared by the umpire when ALL of the following are true:
+1. Fewer than 2 outs
+2. Runners on 1st and 2nd, OR bases are loaded
+3. A fair fly ball (not a line drive, not a bunt) that can be caught by an infielder with ordinary effort
+
+**What Happens:**
+- Batter is automatically OUT — regardless of whether the ball is caught or dropped.
+- Runners are NOT forced to advance — they may advance at their own risk.
+- If the ball drops fair untouched, runners may advance — but they may also stay.
+- If a fielder intentionally drops the ball after IFF is called, batter is STILL out.
+
+**Why the Rule Exists:**
+Without it, a fielder could intentionally drop the ball to get a cheap double play (force at second, force at first). The rule protects runners from this trap.
+
+**Edge Cases:**
+| Situation | Ruling |
+|-----------|--------|
+| IFF called, ball drops fair | Batter still out. Runners may advance at own risk. |
+| IFF called, ball caught | Batter out. Runners may tag up and advance. |
+| IFF called, ball drifts foul | IFF cancelled. Ordinary foul ball. |
+| Outfielder catches ball after IFF called | Still IFF — batter out. Location of fielder doesn't matter. |
+| Line drive that falls in | NOT an IFF. Force play rules apply normally. |
+| Pop-up near foul line | Umpire discretion — must judge "ordinary effort." |
+
+**Position Responsibilities:**
+- Fielder calling the ball: just make the catch. Don't let it drop on purpose — chaos results even though batter is out.
+- Baserunner: stay close to your base. The rule protects you — don't advance early and risk being doubled off.
+- Manager: know that IFF applies to outfielders too if they make the catch — the call is based on "ordinary effort," not field position.
+
+---
+
+### 3.16 Defensive Positioning Post-Shift Ban (Source: MLB Official Rules 5.02, 2023+)
+
+**The Rule (2023+):**
+- All four infielders must be positioned within the infield boundary when the pitch is delivered.
+- Two infielders must be on each side of second base.
+- Violation: offense may choose to accept the play result OR take an automatic ball.
+
+**What Is Still Legal:**
+| Strategy | Legal? | Notes |
+|----------|--------|-------|
+| 2B positioned deep in the hole toward 1B | Yes | Still on right side of 2B |
+| SS shading dramatically toward the 3B hole | Yes | Still on left side of 2B |
+| 3B playing on the outfield grass | No | Must remain in infield |
+| 3 infielders on one side of 2B | No | Requires 2 on each side |
+| Outfielders shifting dramatically | Yes | No positioning rule for outfielders |
+| Infield in (all 4 charging toward plate) | Yes | Legal — all 4 still within infield |
+
+**How Batters Exploit the New Rule:**
+- Left-handed pull hitters benefit most — the 3-infielder overshift is gone.
+- Pulling the ball is viable again for LHH. "Go the other way" is less mandatory.
+- Ground ball up the middle: with 2B required on the right side, this is no longer automatically an out.
+- Bunt to the third-base side: still effective against any defense that plays back.
+
+**Manager/Pitching Considerations:**
+- Cannot hide a weak fielder by positioning them away from likely contact.
+- Outfield overshift is still legal — teams compensate by shifting outfielders for pull hitters.
+- Pitchers must adjust: location that previously induced cheap outs (pull side) may now be hits.
+
+---
+
+### 3.17 Squeeze Play Variants & Defense (Source: ABCA, coaching consensus)
+
+**Two Types of Squeeze:**
+| Type | Batter Commitment | Runner Commitment | Risk |
+|------|------------------|-------------------|------|
+| **Safety Squeeze** | Bunts only if he can get it down | Runner goes on CONTACT | Lower — runner doesn't fully commit |
+| **Suicide Squeeze** | MUST bunt no matter what | Runner commits and goes on PITCHER'S FIRST MOVE | High — if batter misses, runner is dead |
+
+**When to Use Each:**
+- Safety squeeze: tie game, late innings, 0-1 out, batter is a reliable contact bunter.
+- Suicide squeeze: defense playing back, batter has the sign, runner is fast, run is critical.
+- NEVER run a suicide squeeze with 2 strikes — a foul bunt = strikeout AND the runner is dead.
+
+**Offensive Execution:**
+- Batter (suicide): show bunt as LATE as possible — square around only as pitcher commits to delivery. Must get the ball on the ground.
+- Runner (suicide): break on the pitcher's FIRST movement. Cannot hesitate. Going no matter what.
+- Batter (safety): read the pitch location. Good pitch = bunt. Bad pitch = pull back, runner holds or scrambles back.
+
+**Defensive Detection & Response:**
+| Read | Response |
+|------|----------|
+| Runner breaks hard from 3rd before pitch | Pitchout immediately if count allows |
+| Batter squares early | Charge hard, read batter's hands |
+| Full count with runner on 3rd | Suicide squeeze is a common setup — be ready |
+
+**Pitcher's Best Response:**
+- Best pitch against a squeeze: high and tight fastball — hardest to bunt, naturally lifts the bat.
+- Worst pitch against a squeeze: low and away breaking ball — easy to push down the line.
+- If you detect it early: throw HIGH AND TIGHT immediately.
+
+**Catcher Response:**
+- If runner breaks and batter pulls back: fire to 3B — runner may be hung out to dry.
+- If batter bunts: field the ball first, THEN look to retire the runner at home.
+- Never commit to a throw before you have possession of the ball.
+
+**Never-Do Rules:**
+- Offense: never run a suicide squeeze on 2 strikes. One foul = automatic out on the bases.
+- Defense: never pitch out without reading the runner breaking first.
+- Pitcher: never groove a fastball down the middle when a squeeze is suspected.
+
+---
+
+### 3.18 Times Through the Order — Pitching Change Framework (Source: FanGraphs TTO research, coaching consensus)
+
+**Times Through the Order (TTO) Effect:**
+| TTO | BA Increase vs 1st Time Through |
+|-----|----------------------------------|
+| 1st time through | Baseline |
+| 2nd time through | +15 points |
+| 3rd time through | +30 points |
+
+Source: FanGraphs (large sample, consistent across eras). Effect is real regardless of pitch count.
+
+**Why It Happens:**
+Batters see the pitcher's full arsenal during their first two trips to the plate. By the third, they've timed his fastball, identified his go-to breaking ball, and exploited any patterns. Familiarity compounds with each additional at-bat.
+
+**Decision Framework for Managers:**
+| Situation | Decision |
+|-----------|----------|
+| Starter entering 3rd TTO with a lead | Consider reliever regardless of pitch count |
+| Starter entering 3rd TTO with heart of order due | Strong case to pull — +30 BA points against your best hitters |
+| Starter entering 2nd TTO with 85+ pitches | Monitor closely, reliever warming |
+| Starter struggling in 1st TTO | Pitch count matters less — it's execution, not familiarity |
+
+**Platoon Compound Effect:**
+TTO + wrong-side platoon = massive disadvantage.
+RHP vs LHH for the 3rd time: +30 (TTO) + ~18 (platoon) = ~+48 BA points above baseline. This is when the pitching change is urgent.
+
+**The Reliever's Advantage:**
+A fresh reliever resets batter familiarity to zero. This is the strategic core of modern bullpen usage — not "saving" the closer, but eliminating the TTO penalty.
+
+**When to Override the Data:**
+- Pitcher is dominating (8+ K, low pitch count, max velocity) → let him face 3rd TTO
+- No reliable reliever available → manage within the frame, pitch carefully
+- Low-leverage situation (large lead) → pitcher survival reps have value
+
+---
+
+### 3.19 Intentional Walk Decision Framework (Source: RE24, coaching consensus)
+
+**The Core RE24 Reality:**
+An intentional walk always increases run expectancy by adding a baserunner. You are never "saving runs" by walking someone — you are trading a difficult at-bat for a worse base-out state in exchange for a matchup or tactical advantage.
+
+**RE24 Impact Example:**
+- Runner on 2nd, 1 out (RE: 0.71) → IBB → Runners on 1st & 2nd, 1 out (RE: 0.96)
+- You just added **0.25 expected runs**. This only makes sense if the matchup/tactical gain outweighs it.
+
+**When an IBB Makes Sense:**
+| Condition | Justification |
+|-----------|--------------|
+| First base is open | Creates force-out options, eliminates squeeze, enables DP |
+| Massive skill gap to next hitter | Next hitter is significantly and demonstrably weaker |
+| Large platoon advantage vs next hitter | L/R matchup swing is large enough to offset the RE cost |
+| Set up double play | Runner on 2nd, 1 out — IBB fills 1st, next hitter is a heavy ground ball type |
+
+**When an IBB Almost Never Makes Sense:**
+| Condition | Why |
+|-----------|-----|
+| Bases loaded | You force in a run. RE jumps to 2.29. Almost never justified. |
+| Two outs | Force plays exist regardless. You're just adding a baserunner for a 2-out situation. |
+| Next hitter is not meaningfully weaker | You're adding a runner with no matchup payoff. |
+| Score is close and inning is late | Every additional runner is compounding danger. |
+
+**Modern Note (2023+):**
+IBB is now signaled by the manager directly — no pitches thrown. The old risk of a wild IBB pitch is gone. This makes the decision purely strategic, with no execution risk.
+
+---
+
+### 3.20 Mound Visit Protocol (Source: MLB Official Rules 5.10(l), ABCA)
+
+**The Rules:**
+- Each team gets 5 mound visits per 9 innings (not including pitching changes).
+- A second mound visit to the same pitcher in the same inning = mandatory pitching change.
+- Catcher visits (without the manager) count as an official mound visit.
+- If a team has no remaining visits, the manager may still visit but must remove the pitcher.
+
+**Strategic Purposes:**
+| Reason | Who Should Visit |
+|--------|-----------------|
+| Change signs (runner on 2nd stealing signs) | Catcher |
+| Pitcher is rattled or overthrowing | Catcher or manager |
+| Defensive alignment check before key at-bat | Catcher or infielder |
+| Pitcher is tipping pitches | Manager (private conversation) |
+| Reset after error behind the pitcher | Catcher — show solidarity |
+| Clock/momentum management in high-leverage moment | Manager (costs a visit — use wisely) |
+
+**What to Actually Say:**
+- "Forget that. It's over. Let's get this guy." — Reset after a rough moment
+- "He's sitting on your fastball. Bury a breaking ball in the dirt." — Share a batter tendency
+- "New sequence: start cutter inside, breaking ball away." — Adjust the approach
+- "Your mechanics are off — you're flying open. Stay closed." — Quick technical fix
+- NEVER discuss the score, revisit the last pitch's result, or say anything that increases pressure. Focus forward only.
+
+**When NOT to Visit:**
+- Pitcher is in rhythm and throwing well — a visit disrupts timing and wastes a visit.
+- Fresh count, no damage done yet.
+- Just to stall — save your visits for genuine resets.
+
+**Sign Change Protocol (Runner on 2nd):**
+1. Catcher goes to mound
+2. Establish indicator system: "Third sign is real" or "Look for my thumb as the key"
+3. Keep it under 30 seconds
+4. After returning, briefly signal the new system to SS and 2B
+
+---
+
+### 3.21 Outfield Communication & Positioning (Source: ABCA, Pro Baseball Insider)
+
+**Priority System (Reinforcement of Section 3.5):**
+- CF has priority over ALL players — corner OF AND all infielders — on any ball he can reach.
+- Corner OF has priority over their nearest infielder (LF > 3B/SS on tweeners; RF > 1B/2B on tweeners).
+- Going IN = easier. Ball is in front of you. Going BACK = hardest catch in baseball.
+- Call early, call loud, call TWICE: "I got it! I got it!" — everyone else peels off after the second call.
+
+**Pre-Pitch Positioning Adjustments:**
+| Hitter Tendency | LF | CF | RF |
+|----------------|----|----|-----|
+| Dead pull RHH | Step toward LF line | Shade left-center | Play normal/shallow |
+| Dead pull LHH | Play shallow | Shade right-center | Step toward RF line |
+| Spray hitter | Normal | Normal | Normal |
+| Power pull RHH | Back up 15 ft + shade line | Deep left-center | Normal |
+| Ground ball pitcher | Shade in 10 feet | Shade in | Shade in |
+| Fly ball pitcher | Play deeper | Play deeper | Play deeper |
+
+**Gap Communication:**
+- Ball to LF-CF gap: CF calls it if he can reach. If CF calls it, LF peels off and backs up the throw. If CF doesn't call, LF takes it and calls loud.
+- Ball to CF-RF gap: CF calls it if he can reach. If RF calls it, CF backs up the throw.
+- Middle infielders: go to relay position — do NOT attempt a play on a ball an outfielder can reach.
+
+**Sun and Wind Conditions:**
+- Sun behind you: step to the side before the pitch so sun isn't directly in your tracking path.
+- Sun in front of you: glove shield first, then track the ball through the glove. Eyes ALWAYS on the ball.
+- Wind blowing out: play deeper than normal — fly balls carry more than expected.
+- Wind blowing in: play shallower — fly balls die faster.
+- Communicate conditions to teammates before the inning: "Wind is blowing out to left — play deeper."
+
+**Wall Play Principles:**
+- Find the wall with your hand BEFORE the ball arrives — one fingertip touch, eyes stay on the ball.
+- Never crash the wall at full speed without knowing where it is.
+- After a wall play, momentum carries you INTO the wall — release the throw quickly or let the relay man handle it.
+
+**Never-Do Rules:**
+- Never allow a no-call fly ball situation. SOMEONE must call every ball.
+- Never call off CF on a ball CF is already calling. His priority is final.
+- Never guess on a sun ball — the glove-shield method is always the answer.
+- Corner OF: never attempt a full throw home without hitting the cutoff first, unless you are absolutely certain of the play.
+
+---
+
 ### Left Field
 - Priority over ALL infielders on fly balls you can reach (coming in is easier).
 - Hit the cutoff man — don't throw all the way home unless the play is clearly there.
@@ -413,6 +776,10 @@ Every scenario — handcrafted or AI-generated — must pass ALL of these:
 - [ ] Rundown mechanics match Section 3.9 — chase BACK, one throw, no pump fakes
 - [ ] DP positioning matches Section 3.10 — never DP depth with 2 outs
 - [ ] Hit-and-run assignments match Section 3.11 — coverage depends on batter handedness
+- [ ] Pickoff moves match Section 3.12 — no fake-third/throw-first, step required, daylight play fielder breaks first
+- [ ] Squeeze play scenarios match Section 3.17 — safety vs suicide commitment timing is correct, never suicide on 2 strikes
+- [ ] Wild pitch coverage matches Section 3.14 — catcher goes to ball first, pitcher sprints home, 3B backs up
+- [ ] Outfield communication matches Section 3.21 — CF priority is correct, gap ball caller is correct, no no-call fly balls
 - [ ] Each option is an action the SPECIFIED position would perform in that moment
 
 ### Educational Quality
