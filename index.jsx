@@ -3440,6 +3440,16 @@ function getPressureLabel(pressure) {
   return {text:"WARMING UP", color:"#22c55e"};
 }
 
+function sanitizeAIResponse(content) {
+  if (!content || typeof content !== "string") return content;
+  let c = content.trim();
+  c = c.replace(/^[Aa]ssistant:\s*/g, "");
+  c = c.replace(/^```(?:json)?\s*/i, "").replace(/\s*```\s*$/i, "");
+  const s = c.indexOf("{"), e = c.lastIndexOf("}");
+  if (s > 0 && e > s) c = c.substring(s, e + 1);
+  return c.trim();
+}
+
 async function generateAIScenario(position, stats, conceptsLearned = [], recentWrong = [], signal = null, targetConcept = null) {
   const lvl = getLvl(stats.pts);
   const posStats = stats.ps[position] || { p: 0, c: 0 };
@@ -3523,14 +3533,17 @@ Rules for best: 0-indexed integer matching the optimal option in the options arr
         model: "grok-4-1-fast",
         max_tokens: 1000,
         temperature: 0.4,
-        messages: [{ role: "system", content: prompt }]
+        messages: [
+          { role: "system", content: "You are an expert baseball coach creating personalized training scenarios for the Baseball Strategy Master app. You always respond with ONLY a valid JSON object — no markdown, no code fences, no explanation text. Just the raw JSON." },
+          { role: "user", content: prompt }
+        ]
       })
     };
     if (signal) fetchOpts.signal = signal;
 
     const response = await Promise.race([
       fetch(AI_PROXY_URL, fetchOpts),
-      new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 15000))
+      new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 25000))
     ]);
 
     if (!response.ok) {
@@ -3543,9 +3556,8 @@ Rules for best: 0-indexed integer matching the optimal option in the options arr
     console.log("[BSM] AI response received, content length:", text.length);
     if (!text) throw new Error("API returned empty content");
     
-    // Parse JSON — strip any accidental markdown fences
-    const clean = text.replace(/```json|```/g, "").trim();
-    const scenario = JSON.parse(clean);
+    // Sanitize AI response before parsing
+    const scenario = JSON.parse(sanitizeAIResponse(text));
     
     // Validate
     if (!scenario.title || !scenario.options || scenario.options.length !== 4 ||
