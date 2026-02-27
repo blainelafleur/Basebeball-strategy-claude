@@ -452,6 +452,27 @@ async function handleAIProxy(request, env, cors) {
   });
 }
 
+// POST /flag-scenario — player flags a confusing AI scenario
+async function handleFlagScenario(request, env, cors) {
+  let body;
+  try { body = await request.json(); } catch {
+    return jsonResponse({ error: "Invalid JSON" }, 400, cors);
+  }
+  const { scenario_id, flag_count, position, flagged_at } = body;
+  if (!scenario_id) return jsonResponse({ error: "missing scenario_id" }, 400, cors);
+  try {
+    await env.DB.prepare(`
+      INSERT INTO flagged_scenarios (scenario_id, flag_count, position, flagged_at)
+      VALUES (?, ?, ?, ?)
+      ON CONFLICT(scenario_id) DO UPDATE SET
+        flag_count = flag_count + 1, flagged_at = excluded.flagged_at
+    `).bind(scenario_id, flag_count, position || "unknown", flagged_at).run();
+    return jsonResponse({ ok: true }, 200, cors);
+  } catch (e) {
+    return jsonResponse({ error: String(e) }, 500, cors);
+  }
+}
+
 // --- Router ---
 
 export default {
@@ -501,6 +522,7 @@ export default {
 
     try {
       if (path === "/validate-code") return await handleValidateCode(request, env, cors);
+      if (path === "/flag-scenario") return await handleFlagScenario(request, env, cors);
       return await handleAIProxy(request, env, cors);
     } catch (err) {
       return jsonResponse({ error: "Proxy error" }, 502, cors);

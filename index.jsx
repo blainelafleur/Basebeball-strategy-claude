@@ -3161,7 +3161,7 @@ const STADIUM_MILESTONES=[
   {games:200,label:"Fireworks",desc:"Fireworks on perfect answers!",icon:"🎆"},
   {games:330,label:"Legend Stadium",desc:"Golden border + Legend title!",icon:"👑"},
 ];
-const DEFAULT = {pts:0,str:0,bs:0,gp:0,co:0,ps:{},achs:[],cl:[],ds:0,lastDay:null,todayPlayed:0,todayDate:null,sp:0,isPro:false,onboarded:false,soundOn:true,recentWrong:[],dailyDone:false,dailyDate:null,streakFreezes:0,survivalBest:0,ageGroup:"11-12",displayName:"",teamCode:"",seasonGame:0,seasonCorrect:0,seasonComplete:false,fieldTheme:"default",avatarJersey:0,avatarCap:0,avatarBat:0,season:1,proPlan:null,proPurchaseDate:null,proExpiry:null,lastStreakFreezeDate:null,wrongCounts:{},posGrad:{},funnel:[],hist:{},posPlayed:{},firstPlayDate:null,lastPlayDate:null,sessionCount:0,tutorialDone:false,promoCode:null,promoActivatedDate:null,masteryShown:[],masteryData:{concepts:{},errorPatterns:{},sessionHistory:[]}};
+const DEFAULT = {pts:0,str:0,bs:0,gp:0,co:0,ps:{},achs:[],cl:[],ds:0,lastDay:null,todayPlayed:0,todayDate:null,sp:0,isPro:false,onboarded:false,soundOn:true,recentWrong:[],dailyDone:false,dailyDate:null,streakFreezes:0,survivalBest:0,ageGroup:"11-12",displayName:"",teamCode:"",seasonGame:0,seasonCorrect:0,seasonComplete:false,fieldTheme:"default",avatarJersey:0,avatarCap:0,avatarBat:0,season:1,proPlan:null,proPurchaseDate:null,proExpiry:null,lastStreakFreezeDate:null,wrongCounts:{},posGrad:{},funnel:[],hist:{},posPlayed:{},firstPlayDate:null,lastPlayDate:null,sessionCount:0,tutorialDone:false,promoCode:null,promoActivatedDate:null,masteryShown:[],masteryData:{concepts:{},errorPatterns:{},sessionHistory:[]},qualitySignals:{},flaggedScenarios:{},explanationLog:{},gapDetectionCache:null,lastWrongConceptTag:null};
 
 // Streak flame visual — grows with daily streak length
 function getFlame(ds){
@@ -3830,6 +3830,42 @@ function getRelevantAudits(position) {
 }
 
 // ============================================================================
+// IMPROVEMENT ENGINE — Scenario quality scoring, gap detection, explanation
+// effectiveness tracking, and micro-feedback loop.
+// Phase 2.7: qualitySignals → profiles.stats_json, flagged_scenarios → D1 table
+// ============================================================================
+const IMPROVEMENT_ENGINE = {
+  quality: {
+    minAttempts: 5,
+    idealAccuracy: [0.45, 0.75],
+    tooEasy: 0.85,
+    tooHard: 0.25,
+    flagThreshold: 3,
+    degradedInterval: 7,
+  },
+  gapRules: {
+    minScenariosForMastery: 3,
+    stuckThreshold: 0.35,
+    neglectedDays: 14,
+    cacheRefreshInterval: 10,
+  },
+  explanationTracking: {
+    minSampleSize: 3,
+    effectiveThreshold: 0.60,
+    ineffectiveThreshold: 0.35,
+    decayDays: 30,
+  },
+  remediationWeights: {
+    ruleError: 1.5,
+    dataError: 1.4,
+    roleConfusion: 1.3,
+    priorityError: 1.2,
+    situationalMiss: 1.0,
+    countBlindness: 1.1,
+  },
+};
+
+// ============================================================================
 // BASEBALL BRAIN — Centralized knowledge engine for all game features
 // Stats from FanGraphs RE24 (2015-2024 avg), Baseball Reference count data
 // ============================================================================
@@ -4432,6 +4468,99 @@ function detectErrorPatterns(masteryData, sessionHistory) {
     patterns.push({ key:'late-game-blindness', label:'Late-Game Blindness', conceptGap:'win-probability', aiInstruction:'Late-game scenario where RE24 and WP diverge. Correct answer uses WP logic, not RE24.' });
   return patterns;
 }
+function trackScenarioQuality(stats, scenarioId, correct, wasAIGenerated) {
+  if (!scenarioId) return stats;
+  const prev = stats.qualitySignals?.[scenarioId] || {
+    attempts: 0, correct: 0, aiGenerated: !!wasAIGenerated, flagged: false,
+    firstSeen: new Date().toISOString(), lastAttempt: null,
+  };
+  const updated = {
+    ...prev,
+    attempts: prev.attempts + 1,
+    correct: prev.correct + (correct ? 1 : 0),
+    lastAttempt: new Date().toISOString(),
+  };
+  return {
+    ...stats,
+    qualitySignals: { ...(stats.qualitySignals || {}), [scenarioId]: updated },
+  };
+}
+
+function detectKnowledgeGaps(stats) {
+  const cache = stats.gapDetectionCache;
+  const rules = IMPROVEMENT_ENGINE.gapRules;
+  if (cache && cache.computedAt) {
+    const playsSince = (stats.gp || 0) - (cache.gpAtCompute || 0);
+    if (playsSince < rules.cacheRefreshInterval) return cache.gaps;
+  }
+  const now = Date.now();
+  const mastery = stats.masteryData?.concepts || {};
+  const gaps = [];
+  Object.entries(BRAIN.concepts || {}).forEach(([tag, concept]) => {
+    const m = mastery[tag];
+    if (!m || m.state === 'unseen') return;
+    const accuracy = m.totalAttempts > 0 ? m.totalCorrect / m.totalAttempts : null;
+    const daysSinceSeen = m.lastAttemptDate
+      ? (now - new Date(m.lastAttemptDate).getTime()) / 86400000
+      : null;
+    if (m.totalAttempts >= 5 && accuracy !== null && accuracy < rules.stuckThreshold && m.state !== 'mastered') {
+      gaps.push({
+        tag, conceptName: concept.name || tag, severity: 'stuck',
+        accuracy: Math.round(accuracy * 100), attempts: m.totalAttempts,
+        aiInstruction: `TARGET CONCEPT: ${tag} — player has ${Math.round(accuracy*100)}% accuracy after ${m.totalAttempts} attempts. Create a scenario that isolates THIS concept with minimal confounds. Prereqs: ${(concept.prereqs||[]).join(', ') || 'none'}.`,
+      });
+    } else if (m.state === 'degraded') {
+      gaps.push({
+        tag, conceptName: concept.name || tag, severity: 'degraded',
+        accuracy: accuracy !== null ? Math.round(accuracy * 100) : null, attempts: m.totalAttempts,
+        aiInstruction: `REINFORCE CONCEPT: ${tag} — player previously mastered this but is slipping. Create a scenario with a clear, unambiguous answer to rebuild confidence.`,
+      });
+    } else if ((m.state === 'learning' || m.state === 'introduced') && daysSinceSeen !== null && daysSinceSeen > rules.neglectedDays) {
+      gaps.push({
+        tag, conceptName: concept.name || tag, severity: 'neglected',
+        daysSince: Math.round(daysSinceSeen), attempts: m.totalAttempts,
+        aiInstruction: `REVISIT CONCEPT: ${tag} — player has not seen this in ${Math.round(daysSinceSeen)} days and is still "${m.state}". Include this concept.`,
+      });
+    }
+  });
+  const severityOrder = { stuck: 0, degraded: 1, neglected: 2 };
+  gaps.sort((a, b) => {
+    const sd = severityOrder[a.severity] - severityOrder[b.severity];
+    if (sd !== 0) return sd;
+    return (a.accuracy ?? 100) - (b.accuracy ?? 100);
+  });
+  return gaps.slice(0, 10);
+}
+
+function trackExplanationEffectiveness(stats, currentConceptTag, isCorrect) {
+  const bridgeTag = stats.lastWrongConceptTag;
+  if (!bridgeTag || bridgeTag !== currentConceptTag) return stats;
+  const prev = stats.explanationLog?.[bridgeTag] || {
+    read: 0, nextCorrect: 0, effectiveness: null, lastUpdated: null,
+  };
+  const updated = {
+    ...prev,
+    read: prev.read + 1,
+    nextCorrect: prev.nextCorrect + (isCorrect ? 1 : 0),
+    lastUpdated: new Date().toISOString(),
+  };
+  if (updated.read >= IMPROVEMENT_ENGINE.explanationTracking.minSampleSize) {
+    updated.effectiveness = updated.nextCorrect / updated.read;
+  }
+  return {
+    ...stats,
+    explanationLog: { ...(stats.explanationLog || {}), [bridgeTag]: updated },
+    lastWrongConceptTag: null,
+  };
+}
+
+function getGapInjection(stats) {
+  const gaps = detectKnowledgeGaps(stats);
+  if (!gaps || gaps.length === 0) return '';
+  const top3 = gaps.slice(0, 3);
+  return `\nKNOWLEDGE GAP TARGETING (prioritize these concepts):\n${top3.map(g => `- ${g.aiInstruction}`).join('\n')}`;
+}
+
 function classifyAndFeedback(scenario, chosenIdx, playerAge, masteryData) {
   if (chosenIdx === scenario.best) return null;
   const errorKey = ERROR_TAXONOMY.classifyError(scenario, chosenIdx);
@@ -4731,7 +4860,7 @@ function getSmartCoachLine(cat, situation, position, streak, isPro) {
   // Fall through to original getCoachLine logic
   return getCoachLine(cat, position, streak, isPro);
 }
-function formatBrainStats(position, age) {
+function formatBrainStats(position, age, stats) {
   const lines = [];
   // Level context injection
   if (age) {
@@ -4800,6 +4929,7 @@ function formatBrainStats(position, age) {
   // Everyone gets fly ball priority
   lines.push("FLY BALL PRIORITY: OF in > IF back. Center > corners. Ball drifts TOWARD OF, AWAY from IF.");
   lines.push("FORCE PLAY: Removed when runner ahead is put out → remaining plays become TAG plays.");
+  if (stats) { const gapText = getGapInjection(stats); if (gapText) lines.push(gapText); }
   return lines.join("\n- ");
 }
 function getTeachingContext(position, mastered, ageGroup) {
@@ -4887,7 +5017,7 @@ POSITION PRINCIPLES (authoritative — follow these strictly): ${POS_PRINCIPLES[
 ${getRelevantMaps(position)}
 
 DATA REFERENCE (position-filtered, use in explanations when relevant):
-- ${formatBrainStats(position)}
+- ${formatBrainStats(position, stats.ageGroup, stats)}
 ${getTeachingContext(position, conceptsLearned, stats.ageGroup||"11-12")}
 
 SELF-AUDIT — Before outputting, verify ALL of these:
@@ -6078,6 +6208,7 @@ export default function App(){
 
   const handleChoice=useCallback((idx)=>{
     if(choice!==null||!sc)return;setChoice(idx);
+    const conceptTagForEffectiveness = findConceptTag(sc.concept);
     const isOpt=idx===sc.best;const rate=sc.rates[idx];const cat=isOpt?"success":rate>=55?"warning":"danger";
     let pts=isOpt?15:rate>=55?8:rate>=35?4:2;
     if(dailyMode)pts*=2; // 2x XP for Daily Diamond Play
@@ -6129,6 +6260,11 @@ export default function App(){
       // Update concept mastery state
       const updMastery = updateConceptMastery(p.masteryData||{concepts:{},errorPatterns:{},sessionHistory:[]}, conceptTag, isOpt, sc.id);
       updMastery.sessionHistory = sh;
+      // Improvement Engine: quality signal, explanation effectiveness, gap cache
+      const _qsResult = trackScenarioQuality(p, sc.id, isOpt, sc.isAI || false);
+      const _exResult = trackExplanationEffectiveness(p, conceptTagForEffectiveness, isOpt);
+      const _newLastWrong = !isOpt ? (conceptTagForEffectiveness || null) : null;
+      const _newGapCache = ((p.gp + 1) % IMPROVEMENT_ENGINE.gapRules.cacheRefreshInterval === 0) ? null : (p.gapDetectionCache || null);
       // Difficulty graduation for ages 6-8
       const posGrad={...(p.posGrad||{})};
       const updatedPs={...p.ps,[pos]:{p:(p.ps[pos]?.p||0)+1,c:(p.ps[pos]?.c||0)+(isOpt?1:0)}};
@@ -6151,7 +6287,10 @@ export default function App(){
         dailyDone:dailyMode?true:p.dailyDone,dailyDate:dailyMode?today:(p.dailyDate||today),
         firstPlayDate:p.firstPlayDate||now,lastPlayDate:now,
         seasonCorrect:seasonMode&&isOpt?(p.seasonCorrect||0)+1:(p.seasonCorrect||0),
-        wrongCounts:wc,posGrad,posPlayed:posP,masteryData:updMastery};
+        wrongCounts:wc,posGrad,posPlayed:posP,masteryData:updMastery,
+        qualitySignals:_qsResult.qualitySignals,explanationLog:_exResult.explanationLog,
+        lastWrongConceptTag:_newLastWrong,gapDetectionCache:_newGapCache,
+        flaggedScenarios:p.flaggedScenarios||{}};
       ns.achs=checkAch(ns);
       const newLvl=getLvl(ns.pts);
       if(newLvl.n!==prevLvl.n){setTimeout(()=>{setLvlUp(newLvl);snd.play('lvl')},600)}
@@ -7312,6 +7451,26 @@ export default function App(){
             </div>);
           })()}
 
+          {sc?.isAI&&stats.ageGroup!=="6-8"&&stats.ageGroup!=="9-10"&&(()=>{
+            const sid=sc.id||sc._aiId;
+            const flagged=stats.flaggedScenarios?.[sid];
+            const alreadyFlagged=flagged&&Date.now()-new Date(flagged.lastFlagged).getTime()<86400000;
+            return(<div style={{display:"flex",justifyContent:"center",marginTop:6,marginBottom:2}}>
+              <button onClick={()=>{
+                if(alreadyFlagged)return;
+                const prev=stats.flaggedScenarios?.[sid]||{count:0,lastFlagged:null,position:pos};
+                const newCount=(prev.count||0)+1;
+                setStats(p=>({...p,flaggedScenarios:{...(p.flaggedScenarios||{}),[sid]:{count:newCount,lastFlagged:new Date().toISOString(),position:pos}}}));
+                setToast({e:"\u{1F914}",n:"Thanks for the feedback!",d:"We'll review this scenario."});
+                setTimeout(()=>setToast(null),2500);
+                if(newCount>=IMPROVEMENT_ENGINE.quality.flagThreshold){
+                  fetch(WORKER_BASE+'/flag-scenario',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({scenario_id:sid,flag_count:newCount,position:pos,flagged_at:new Date().toISOString()})}).catch(()=>{});
+                }
+              }} disabled={alreadyFlagged} style={{background:alreadyFlagged?"rgba(107,114,128,.04)":"rgba(107,114,128,.06)",border:"1px solid rgba(107,114,128,.15)",borderRadius:8,padding:"4px 12px",color:alreadyFlagged?"#4b5563":"#6b7280",fontSize:10,fontWeight:600,cursor:alreadyFlagged?"default":"pointer"}}>
+                {alreadyFlagged?"\u2713 Feedback received":"\u{1F914} Was this confusing?"}
+              </button>
+            </div>);
+          })()}
           <button onClick={next} style={{...btn(dailyMode?"linear-gradient(135deg,#d97706,#f59e0b)":"linear-gradient(135deg,#2563eb,#3b82f6)"),...{marginTop:12,boxShadow:dailyMode?"0 4px 12px rgba(245,158,11,.25)":"0 4px 12px rgba(37,99,235,.25)"}}}>{dailyMode?"Back to Home →":"Next Challenge →"}</button>
           <div style={{display:"flex",justifyContent:"center",gap:8,marginTop:6}}>
             <button onClick={goHome} style={ghost}>← Pick Position</button>
