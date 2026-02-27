@@ -23,10 +23,10 @@
 These are injected directly into every AI-generated scenario prompt. They define the authoritative boundaries for what each position does and doesn't do.
 
 ### Pitcher
-> Pitch selection depends on count, situation, and batter tendencies. First-pitch strikes are critical (.340 BA on first-pitch strikes vs .167 on 0-2). Work ahead in the count. Pitch to contact with a lead; pitch for strikeouts in high leverage. From the stretch with runners on: be quick to the plate, vary hold times. Pickoffs: disrupt timing, don't just throw blindly. Pitch sequencing: set up pitches with eye level and speed changes. DEFENSIVE: Field bunts, cover 1B on grounders to right side, cover home on wild pitches/passed balls. Back up home plate on ALL throws from OF to home. Back up 3B on throws to third. NEVER be the cutoff or relay man — that is ALWAYS an infielder.
+> Pitch selection depends on count, situation, and batter tendencies. First-pitch strikes are critical (.340 BA on first-pitch strikes vs .167 on 0-2). Work ahead in the count. Pitch to contact with a lead; pitch for strikeouts in high leverage. From the stretch with runners on: be quick to the plate, vary hold times. Pickoffs: disrupt timing, don't just throw blindly. FROM STRETCH: step directly toward the base AND throw — no step = balk. NEVER fake to third and throw to first (balk since 2013). DAYLIGHT PLAY at 2nd: SS/2B breaks first, throw only when daylight shows. STEP OFF the rubber to remove all balk restrictions. Vary your looks — same look every pitch = zero deception. Pitch sequencing: set up pitches with eye level and speed changes. DEFENSIVE: Field bunts, cover 1B on grounders to right side. WILD PITCH/PASSED BALL: sprint to cover home the instant the ball passes the catcher — set up on the first-base side to give the catcher a throwing lane. Back up home on ALL OF throws home. Back up 3B on throws to third. NEVER be the cutoff or relay man — that is ALWAYS an infielder.
 
 ### Catcher
-> The catcher is the field general — calls pitches based on count, batter weakness, and game situation. Framing: subtle glove pull on borderline pitches; stillness in high-leverage counts. Blocking: smother balls in the dirt, keep them in front. Throwing out runners: quick transfer, strong accurate throw to the bag side. Pop-ups near home: catcher has priority, turn your back to the field (the ball curves back toward the field). Mound visits: calm the pitcher, refocus on the plan. NEVER leave home unattended with runners in scoring position. Direct the cutoff man: 'Cut!' (hold), 'Cut two/three!' (redirect), or let it go. Block the plate legally (give a lane, receive and tag).
+> The catcher is the field general — calls pitches based on count, batter weakness, and game situation. Framing: subtle glove pull on borderline pitches; stillness in high-leverage counts. Blocking: smother balls in the dirt, keep them in front. Throwing out runners: quick transfer, strong accurate throw to the bag side. Pop-ups near home: catcher has priority, turn your back to the field (the ball curves back toward the field). Mound visits: calm the pitcher, refocus on the plan. NEVER leave home unattended with runners in scoring position. Direct the cutoff man: 'Cut!' (hold), 'Cut two/three!' (redirect), or let it go. Block the plate legally (give a lane, receive and tag). WILD PITCH/PASSED BALL: go to the ball FIRST, then look at the runner — never the reverse. MOUND VISITS: use them to reset the pitcher, change signs, or relay a batter tendency — never to discuss the score or revisit a mistake. PITCH CLOCK: deliver signs under 9 seconds. You have 5 team mound visits per 9 innings — use them with purpose.
 
 ### First Base
 > Scoop low throws — stretch toward the throw, keep your foot on the bag. Hold runners: give pitcher a target, apply tag on pickoff throws. On bunts: charge aggressively, 2B covers first. CUTOFF on throws from CF and RF to home — line up between OF and home plate, listen for catcher's call. When you're cutoff, 2B covers 1B. 3-6-3 double play: catch, step on first, throw to shortstop covering second. Know when force is removed (runner out ahead of you = tag play, not force).
@@ -56,7 +56,7 @@ These are injected directly into every AI-generated scenario prompt. They define
 > Stolen bases break even at ~72% success rate (per RE24) — below that, you're hurting your team. Read the pitcher: watch first-move pickoff tells, time his delivery. Tag-ups: watch the fielder's feet, leave on the catch. Line drives: freeze and read, never get doubled off. Advancing on contact: aggressive but smart — never make the first or third out at third base. Respect coach's signs always. Secondary leads: key to advancing on passed balls and wild pitches.
 
 ### Manager
-> Manage by the situation, not by the book. RE24 run expectancy guides sacrifice bunt decisions (usually bad except: weak hitter, late game, need exactly 1 run). Stolen bases need ~72% success to break even. Pitching changes: matchup advantages (L/R platoon), fatigue, times through the order (batters hit ~30 points better third time through). Intentional walks: only with first base open and a clear skill gap to next hitter. Defensive positioning: guard lines late, play for DP early. Cutoff assignments: 3B cuts LF throws home, 1B cuts CF/RF throws home. SS cuts throws to 3B. On double cuts: SS relays left side, 2B relays right side. Pitcher ALWAYS backs up the target base, never the cutoff.
+> Manage by the situation, not by the book. RE24 run expectancy guides sacrifice bunt decisions (usually bad except: weak hitter, late game, need exactly 1 run). Stolen bases need ~72% success to break even. Pitching changes: matchup advantages (L/R platoon), fatigue, times through the order (batters hit ~30 points better third time through). Intentional walks: always increase run expectancy — you are trading a hard at-bat for a worse base-out state. Only justified when: (1) first base is open, (2) clear skill gap to next hitter, (3) large platoon advantage vs next hitter, or (4) setting up a force/DP with a heavy ground ball hitter. NEVER IBB with bases loaded. NEVER with 2 outs unless matchup gap is extreme. IBB is now signaled directly — no pitches thrown (2023+). TTO: batters hit +30 points the 3rd time through — pull the starter before the damage compounds. Defensive positioning: guard lines late, play for DP early. Cutoff assignments: 3B cuts LF throws home, 1B cuts CF/RF throws home. SS cuts throws to 3B. On double cuts: SS relays left side, 2B relays right side. Pitcher ALWAYS backs up the target base, never the cutoff.
 
 ### Famous
 > Historical accuracy is paramount. Cite the actual year, teams, and players. Teach the strategic lesson the play illustrates. All 4 options must be decisions the real player/manager could have made in that moment.
@@ -168,6 +168,94 @@ BATTER aims through the vacated hole. P should throw strikes to induce contact.
 
 **Injected for**: secondBase, shortstop, batter, baserunner, manager
 
+### 2.8 PICKOFF_MAP
+
+```
+PICKOFF MOVES & DECEPTION (non-negotiable):
+FROM STRETCH: Step directly toward the base AND throw = legal pickoff. No step = balk.
+FAKE 3B/THROW 1B: ILLEGAL since 2013 (Rule 6.02(a)(4)). Always a balk. Never do it.
+STEP OFF RUBBER: Pitcher becomes a fielder — throw anywhere, no balk restriction applies.
+DAYLIGHT PLAY (2B): SS/2B breaks toward 2nd first. If daylight shows between fielder and runner, pitcher throws. Pitcher does NOT initiate.
+PITCHOUT: Pitcher throws outside. Catcher steps and fires. Costs a ball in count — use on 1-0, 2-0, 3-1 only.
+PICKOFF TELLS: Throw when runner leans forward, weight is forward, or has consistent lead >12 feet.
+NEVER: Throw to an unoccupied base. Throw blindly without a tell. Fake third and throw first.
+```
+
+**Injected for**: pitcher, catcher, firstBase, secondBase, shortstop, thirdBase, baserunner, manager
+
+### 2.9 PITCH_CLOCK_MAP
+
+```
+PITCH CLOCK STRATEGY (non-negotiable per 2023 MLB Rules):
+PITCHER: 15 sec with bases empty, 20 sec with runners on. Violation = automatic BALL.
+BATTER: Must be alert in box with 8 sec remaining. Violation = automatic STRIKE. 1 timeout per PA.
+VARY TEMPO: Quick-pitch followed by long hold disrupts timing more than constant pace.
+HIGH LEVERAGE: Use full 20 seconds on 0-2 or full count with runners on. Make the hitter wait.
+STEAL READS: Clock makes delivery windows MORE consistent — helps runners time the pitcher.
+SIGN DELIVERY: Catcher must deliver signs fast. Under 9 seconds for pitcher to receive and set.
+NEVER: Rush a high-leverage pitch to beat the clock. Waste batter timeout on 0-0 or 1-0 count.
+```
+
+**Injected for**: pitcher, catcher, batter, baserunner, manager
+
+### 2.10 WP_PB_MAP
+
+```
+WILD PITCH / PASSED BALL COVERAGE (non-negotiable):
+CATCHER: Go to the BALL first, THEN look at the runner. Never look at runner first.
+PITCHER: Sprint to cover HOME the instant ball passes catcher. Set up on first-base side (give catcher a lane).
+3B: With R3, sprint to back up home immediately behind the pitcher.
+R3 READ: If catcher breaks to retrieve AND ball rolls 10+ feet past plate, GO. Watch catcher's first step.
+BASES LOADED: Ball in dirt = catcher fields and steps on home for force out. Pitcher still sprints as backup.
+NEVER: Catcher looks at runner before fielding. Pitcher stays on mound when wild pitch passes catcher.
+```
+
+**Injected for**: pitcher, catcher, firstBase, thirdBase, baserunner, manager
+
+### 2.11 SQUEEZE_MAP
+
+```
+SQUEEZE PLAY (non-negotiable):
+SAFETY SQUEEZE: Runner goes on CONTACT. Batter bunts only if pitch is buntable. Lower risk.
+SUICIDE SQUEEZE: Runner commits on PITCHER'S FIRST MOVE. Batter MUST bunt no matter what.
+NEVER RUN SUICIDE WITH 2 STRIKES — foul bunt = strikeout AND runner is dead at home.
+PITCHER DEFENSE: High and tight fastball is hardest pitch to bunt. Throw it immediately if squeeze detected.
+CATCHER: If runner breaks and batter pulls back, fire to 3B immediately.
+BATTER: Show bunt as late as possible. Square up only as pitcher commits to delivery.
+```
+
+**Injected for**: pitcher, catcher, firstBase, thirdBase, batter, baserunner, manager
+
+### 2.12 INFIELD_FLY_MAP
+
+```
+INFIELD FLY RULE (non-negotiable — MLB Rule 5.09(b)(6)):
+WHEN CALLED: <2 outs, runners on 1st+2nd OR bases loaded, fair fly ball catchable with ordinary effort.
+BATTER: Automatically OUT regardless of whether ball is caught or dropped.
+RUNNERS: NOT forced. May advance at own risk after IFF is called.
+BALL DROPS FAIR: Batter still out. Runners may advance at own risk.
+BALL DRIFTS FOUL: IFF cancelled — ordinary foul ball. Batter not out.
+LINE DRIVES: Never an IFF. Force play rules apply normally.
+NEVER: Assume runners are forced to advance on an IFF. Assume a dropped IFF ball puts runners in jeopardy of a force out.
+```
+
+**Injected for**: firstBase, secondBase, shortstop, thirdBase, batter, baserunner, manager
+
+### 2.13 OF_COMMUNICATION_MAP
+
+```
+OUTFIELD COMMUNICATION & POSITIONING (non-negotiable):
+CF HAS PRIORITY: Over ALL players — corner OF and all infielders — on any ball he can reach. His call is final.
+CORNER OF: Priority over nearest infielder (LF > 3B/SS; RF > 1B/2B) on tweeners.
+CALL SYSTEM: "I got it! I got it!" — twice, loud. Everyone else peels off and backs up the throw.
+GAP BALLS: CF calls if he can reach. If not, nearest corner OF calls and takes it. Middle IF goes to relay.
+SUN BALLS: Glove shield first, sunglasses supplementary. Eyes always on the ball.
+PRE-PITCH: Shade toward pull side based on batter tendencies. Communicate wind/sun to teammates before inning.
+NEVER: Allow a no-call fly ball. Call off CF after he has already called the ball.
+```
+
+**Injected for**: leftField, centerField, rightField
+
 ---
 
 ## 3. Map Relevance & Audit System
@@ -183,6 +271,12 @@ BATTER aims through the vacated hole. P should throw strikes to induce contact.
 | RUNDOWN_MAP | firstBase, secondBase, shortstop, thirdBase, baserunner, manager |
 | DP_POSITIONING_MAP | pitcher, firstBase, secondBase, shortstop, thirdBase, manager |
 | HIT_RUN_MAP | secondBase, shortstop, batter, baserunner, manager |
+| PICKOFF_MAP | pitcher, catcher, firstBase, secondBase, shortstop, thirdBase, baserunner, manager |
+| PITCH_CLOCK_MAP | pitcher, catcher, batter, baserunner, manager |
+| WP_PB_MAP | pitcher, catcher, firstBase, thirdBase, baserunner, manager |
+| SQUEEZE_MAP | pitcher, catcher, firstBase, thirdBase, batter, baserunner, manager |
+| INFIELD_FLY_MAP | firstBase, secondBase, shortstop, thirdBase, batter, baserunner, manager |
+| OF_COMMUNICATION_MAP | leftField, centerField, rightField |
 
 ### MAP_AUDIT Strings
 
@@ -196,6 +290,12 @@ These are appended to the AI self-audit checklist as numbered items (starting at
 | RUNDOWN_MAP | "If rundown scenario, chase runner BACK, one throw max, no pump fakes, backup rotation correct." |
 | DP_POSITIONING_MAP | "DP depth only with less than 2 outs and force at 2nd. Never DP depth with 2 outs." |
 | HIT_RUN_MAP | "Batter must swing, runner goes on pitch, coverage depends on batter handedness." |
+| PICKOFF_MAP | "If pickoff scenario: is the move legal? No fake-third/throw-first (balk since 2013). Step toward base required. Daylight play: fielder breaks FIRST, pitcher reacts." |
+| PITCH_CLOCK_MAP | "If pitch clock scenario: pitcher violation = ball, batter violation = strike. 15 sec empty, 20 sec with runners. Batter has exactly 1 timeout per PA." |
+| WP_PB_MAP | "Wild pitch/passed ball: catcher goes to ball first. Pitcher sprints home immediately. 3B backs up home with R3. R3 reads catcher's first step before breaking." |
+| SQUEEZE_MAP | "Squeeze scenario: is it safety (on contact) or suicide (on first move)? Suicide with 2 strikes = never. Pitcher's best response is high and tight. Runner commitment timing correct." |
+| INFIELD_FLY_MAP | "Infield fly scenario: IFF requires <2 outs and runners on 1st+2nd or loaded. Batter is automatically out. Runners NOT forced. Ball drifts foul = IFF cancelled." |
+| OF_COMMUNICATION_MAP | "Outfield scenario: CF priority is correct on any ball he can reach. Gap ball caller is the correct fielder. No no-call fly ball situation. Sun/wall technique is correct." |
 
 ### How Maps Are Injected
 
@@ -310,6 +410,27 @@ popTime: {elite: 1.85, average: 2.0, slow: 2.15}  // seconds
 timeToPlate: {quick: 1.2, average: 1.4, slow: 1.6}  // seconds
 ```
 
+#### Pickoff Success Rates
+
+```javascript
+pickoffSuccess: {blindThrow: 0.08, readThrow: 0.28, daylightPlay: 0.35}
+```
+
+- Blind throw (no read): ~8% success rate
+- Read-based throw (runner leaning, tell present): ~28% success rate
+- Practiced daylight play at 2nd: ~35% success rate
+- Source: coaching consensus / ABCA estimates
+
+#### Pitch Clock Violation Rates (2023 MLB)
+
+```javascript
+pitchClockViolations: {pitcherRate: 0.004, batterRate: 0.002}
+```
+
+- Pitcher violations: ~0.4% of pitches (automatic ball)
+- Batter violations: ~0.2% of pitches (automatic strike)
+- Source: Baseball Reference 2023 season data
+
 ### 4.2 BRAIN.concepts — Prerequisite Graph
 
 20 concept tags that control scenario progression. Each has:
@@ -341,22 +462,33 @@ timeToPlate: {quick: 1.2, average: 1.4, slow: 1.6}  // seconds
 | `pitch-sequencing` | Pitch Sequencing | pitching | count-leverage | 11 | 3 |
 | `bunt-re24` | Sacrifice Bunt RE24 | strategy | steal-breakeven | 11 | 3 |
 | `infield-fly` | Infield Fly Rule | rules | force-vs-tag | 9 | 2 |
+| `pickoff-mechanics` | Pickoff Move Mechanics | pitching | first-pitch-strike | 9 | 2 |
+| `pitch-clock-strategy` | Pitch Clock Strategy | pitching | count-leverage | 11 | 2 |
+| `wild-pitch-coverage` | Wild Pitch / Passed Ball Coverage | defense | backup-duties | 8 | 1 |
+| `squeeze-play` | Squeeze Play Variants | strategy | bunt-defense | 11 | 3 |
+| `tto-effect` | Times Through the Order | pitching | count-leverage | 11 | 3 |
+| `of-communication` | Outfield Communication & Positioning | defense | fly-ball-priority, backup-duties | 9 | 2 |
 
 **Prerequisite Chain Visualization:**
 
 ```
 (no prereqs, age 6+)
-├── force-vs-tag ──┬── cutoff-roles ──┬── bunt-defense
+├── force-vs-tag ──┬── cutoff-roles ──┬── bunt-defense ── squeeze-play
 │                  │                  ├── first-third
 │                  │                  └── relay-double-cut
 │                  ├── double-play-turn ── dp-positioning
 │                  └── infield-fly
-├── fly-ball-priority ── tag-up
-├── first-pitch-strike ── count-leverage ──┬── two-strike-approach
-│                                          ├── situational-hitting
-│                                          └── pitch-sequencing
+├── fly-ball-priority ──┬── tag-up
+│                       └── of-communication (also requires backup-duties)
+├── first-pitch-strike ──┬── pickoff-mechanics
+│                        └── count-leverage ──┬── two-strike-approach
+│                                             ├── situational-hitting
+│                                             ├── pitch-sequencing
+│                                             ├── pitch-clock-strategy
+│                                             └── tto-effect
 (no prereqs, age 8+)
-├── backup-duties
+├── backup-duties ──┬── wild-pitch-coverage
+│                   └── of-communication (also requires fly-ball-priority)
 ├── rundown-mechanics
 (no prereqs, age 11+)
 └── steal-breakeven ──┬── hit-and-run
@@ -365,7 +497,7 @@ timeToPlate: {quick: 1.2, average: 1.4, slow: 1.6}  // seconds
 
 ### 4.3 BRAIN.coaching.situational — Template Coach Lines
 
-20 situation-keyed lines with template variables (`{re24}`, `{count}`, `{ba}`, `{label}`, `{breakeven}`, `{delta}`, `{penalty}`, `{outs}`). Used by `getSmartCoachLine()` for Pro users — 40% chance of a data-driven line.
+25 situation-keyed lines with template variables (`{re24}`, `{count}`, `{ba}`, `{label}`, `{breakeven}`, `{delta}`, `{penalty}`, `{outs}`). Used by `getSmartCoachLine()` for Pro users — 40% chance of a data-driven line.
 
 | Key | Template | When Used |
 |-----|----------|-----------|
@@ -389,6 +521,11 @@ timeToPlate: {quick: 1.2, average: 1.4, slow: 1.6}  // seconds
 | `late-close` | "Late and close — every decision is amplified!" | Inning ≥ 7 & score diff ≤ 2 |
 | `dp-situation` | "Double play situation — ground ball is the pitcher's best friend." | (available) |
 | `nobody-out` | "Nobody out — don't give away outs! Make them earn it." | Outs = 0 & runners on |
+| `tto-warning` | "Third time through the order — batters hit {penalty} points better now. Time to think about the bullpen." | (available) |
+| `tto-platoon` | "Wrong-side matchup AND third time through — that's a massive BA jump. The pen needs to be ready." | (available) |
+| `pitch-clock-leverage` | "With the pitch clock, every second of your 20 counts. Make the hitter sweat on 0-2." | (available) |
+| `squeeze-alert` | "Runner on third, less than 2 outs — squeeze play is in the toolbox. Is the defense ready?" | (available) |
+| `wp-pb-alert` | "Ball in the dirt with a runner on third — catcher goes to the ball, pitcher sprints home. No hesitation." | (available) |
 
 **Selection Priority** (in `getSmartCoachLine`):
 1. Streak lines take priority (streak ≥ 3)
@@ -468,7 +605,8 @@ Generates position-filtered stats string for the AI prompt.
 - Everyone gets: RE24 key states, fly ball priority, force play rule
 - pitcher/batter/catcher/counts: + count leverage data
 - baserunner/manager/batter: + steal break-even
-- manager: + TTO effect
+- pitcher/manager: + TTO effect + pickoff success rates
+- pitcher/catcher/batter/baserunner/manager: + pitch clock rules
 - batter/manager/baserunner: + bunt RE24
 
 ### `getTeachingContext(position, mastered, ageGroup) → string`
@@ -577,12 +715,16 @@ const ROLE_VIOLATIONS = {
     /pitcher.*cutoff/i,
     /pitcher.*relay\s*man/i,
     /pitcher.*lines?\s*up.*between/i,
-    /pitcher.*covers?\s*(1st|first|second|2nd|third|3rd)\b/i
+    /pitcher.*covers?\s*(1st|first|second|2nd|third|3rd)\b/i,
+    /pitcher.*fake.*third.*throw.*first/i,
+    /pitcher.*relay.*second/i,
+    /pitcher.*stays.*on.*mound.*wild.*pitch/i
   ],
   catcher: [
     /catcher.*cutoff/i,
     /catcher.*goes?\s*out/i,
-    /catcher.*relay/i
+    /catcher.*relay/i,
+    /catcher.*looks.*runner.*before.*field/i
   ],
   shortstop: [
     /SS\s*covers?\s*(1st|first)\b.*bunt/i,
@@ -591,6 +733,19 @@ const ROLE_VIOLATIONS = {
   secondBase: [
     /2B\s*covers?\s*(3rd|third)\b.*bunt/i,
     /second\s*base.*covers?\s*(3rd|third)\b.*bunt/i
+  ],
+  thirdBase: [
+    /third.*base.*stays.*at.*third.*wild.*pitch.*runner.*third/i,
+    /third.*base.*cutoff.*right.*field/i,
+    /third.*base.*relay.*right/i
+  ],
+  leftField: [
+    /left.*field.*cutoff.*center/i,
+    /left.*field.*relay.*second/i
+  ],
+  rightField: [
+    /right.*field.*cutoff.*left/i,
+    /right.*field.*relay.*third/i
   ],
 };
 ```
@@ -601,7 +756,7 @@ const ROLE_VIOLATIONS = {
 3. If any pattern matches → scenario is rejected, falls back to handcrafted
 
 **Known gaps** (positions without violation checks):
-- firstBase, thirdBase, leftField, centerField, rightField, baserunner, manager, batter
+- firstBase, baserunner, manager, batter
 - These rely on the AI prompt's self-audit checklist and knowledge maps
 
 ---
