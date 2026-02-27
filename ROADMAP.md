@@ -155,6 +155,34 @@ Hardened Phase 2 implementation after audit revealed critical gaps.
 
 ---
 
+## Phase 2.9: "Polish & Fix" (Playtest Audit Response) — COMPLETE
+
+Addressed 16 items from a full playtesting audit of the live app.
+
+### 2.9.1 P0 Quick Fixes — DONE
+- Fixed p39 scenario title mismatch ("They Just Took You Deep")
+- Fixed hardcoded "6 positions" → dynamic `{Object.keys(SCENARIOS).length}`
+- Renamed "Best Run" → "Best Streak" in stats header
+- Scoreboard COUNT column always visible (shows "--" for fielding)
+- Renamed "Change Position" → "← Pick Position"
+- Renamed "Game X of 36" → "Challenge X of 36" in season mode
+
+### 2.9.2 P1 UX Improvements — DONE
+- Speed Round timer waits for options to reveal before starting, "GO!" flash
+- Challenge a Friend: mobile `navigator.share()` + clipboard `.catch()` fallback
+- AI fallback shows "📚 Practice" badge instead of silent mode switch
+- Parent Report: replaced `prompt()` with inline math gate card
+- PRO badge clickable → shows benefits panel (plan, expiry, feature list)
+- Famous/Rules/Counts cards show accuracy% and play count
+- Streak break toast when losing 3+ streak
+
+### 2.9.3 P2 New Features — DONE
+- Session recap overlay after 3+ normal plays (stats, accuracy, concepts)
+- Level badge clickable → progression panel (all 5 levels, progress bar, prestige)
+- "Explain More" AI-powered deep dive on outcome screen (Pro only, locked for free)
+
+---
+
 ## Phase 2.7: "Know Your Players" (User Accounts) — NOT STARTED
 
 Add user accounts and server-side progress sync using Cloudflare D1 (free serverless SQLite). Stays within current single-file architecture — no Next.js port needed.

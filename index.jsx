@@ -248,7 +248,7 @@ const SCENARIOS = {
       options:["Throw the fastball again — you're a fastball pitcher","Lead with a changeup — disrupt his timing","Start with a curveball — something completely different","Pitch inside — he's been hitting outside pitches"],
       best:1,explanations:["He's 2-for-2 on your fastball. Definition of insanity: doing the same thing and expecting different results.","The changeup is the perfect pitch here. He's timed your fastball twice. The changeup looks like a fastball coming out of your hand but arrives 8-10 mph slower. His timing will be completely off. Third time through, you MUST adjust.","A curveball is a speed change too, but the changeup better mimics the fastball arm action — harder for him to recognize.","Pitching inside helps, but if the speed is the same, he can still time it. Change the speed, not just the location."],
       rates:[15,85,55,35],concept:"Third time through, you MUST change something — if your fastball's been hit, lead with off-speed",anim:"strike"},
-    {id:"p39",title:"Teammate Hit a Homer — Keep Your Cool",diff:2,cat:"approach",
+    {id:"p39",title:"They Just Took You Deep — Keep Your Cool",diff:2,cat:"approach",
       description:"Top of the 5th, the batter before this one crushed a solo homer off your fastball. 3-2, still your lead. You're angry. Next batter steps in.",
       situation:{inning:"Top 5",outs:1,count:"0-0",runners:[],score:[3,2]},
       options:["Throw harder — show this next guy you're still in charge","Take a deep breath and reset — pitch your game","Pitch inside to send a message","Be extra careful — can't give up another homer"],
@@ -3940,7 +3940,7 @@ function PromoCodeInput({setStats,setToast,snd,setPanel}){
 function Board({sit}){
   if(!sit)return null;const{inning,outs,count,score}=sit;
   return(<div style={{background:"linear-gradient(135deg,#0d1117,#161b22)",borderRadius:10,padding:"6px 10px",display:"flex",justifyContent:"space-around",alignItems:"center",fontFamily:"'Courier New',monospace",border:"1px solid #21262d"}}>
-    {[{l:"INN",v:inning,c:"#f59e0b"},{l:"SCORE",v:<><span style={{color:"#58a6ff"}}>{score?.[0]||0}</span><span style={{color:"#484f58",margin:"0 2px"}}>-</span><span style={{color:"#f85149"}}>{score?.[1]||0}</span></>,c:"white"},...(count&&count!=="-"?[{l:"COUNT",v:count,c:"#3fb950"}]:[])].map((it,i)=>(<div key={i} style={{textAlign:"center",minWidth:40}}><div style={{fontSize:7,color:"#6e7681",textTransform:"uppercase",letterSpacing:1.5,marginBottom:1,fontWeight:700}}>{it.l}</div><div style={{fontSize:16,fontWeight:900,color:it.c,lineHeight:1}}>{it.v}</div></div>))}
+    {[{l:"INN",v:inning,c:"#f59e0b"},{l:"SCORE",v:<><span style={{color:"#58a6ff"}}>{score?.[0]||0}</span><span style={{color:"#484f58",margin:"0 2px"}}>-</span><span style={{color:"#f85149"}}>{score?.[1]||0}</span></>,c:"white"},{l:"COUNT",v:count&&count!=="-"?count:"--",c:"#3fb950"}].map((it,i)=>(<div key={i} style={{textAlign:"center",minWidth:40}}><div style={{fontSize:7,color:"#6e7681",textTransform:"uppercase",letterSpacing:1.5,marginBottom:1,fontWeight:700}}>{it.l}</div><div style={{fontSize:16,fontWeight:900,color:it.c,lineHeight:1}}>{it.v}</div></div>))}
     <div style={{textAlign:"center"}}><div style={{fontSize:7,color:"#6e7681",textTransform:"uppercase",letterSpacing:1.5,marginBottom:2,fontWeight:700}}>OUTS</div><div style={{display:"flex",gap:3}}>{[0,1,2].map(i=><div key={i} style={{width:10,height:10,borderRadius:"50%",background:i<(outs||0)?"#f85149":"rgba(255,255,255,.05)",border:`1.5px solid ${i<(outs||0)?"#da3633":"#21262d"}`}}/>)}</div></div>
   </div>);
 }
@@ -4168,7 +4168,13 @@ export default function App(){
   const[aiLoading,setAiLoading]=useState(false);
   const[coachMsg,setCoachMsg]=useState(null);
   const[parentGate,setParentGate]=useState(false);
+  const[parentGateInline,setParentGateInline]=useState(null); // {a,b,answer:""} when showing inline gate
+  const[showProBenefits,setShowProBenefits]=useState(false);
+  const[showProgression,setShowProgression]=useState(false);
+  const[explainMore,setExplainMore]=useState(null); // string result from AI
+  const[explainLoading,setExplainLoading]=useState(false);
   const[aiMode,setAiMode]=useState(false); // true when playing AI-generated scenario
+  const[aiFallback,setAiFallback]=useState(false); // true when AI failed and we're showing handcrafted
   const[dailyMode,setDailyMode]=useState(false); // true when playing daily diamond challenge
   const[seasonMode,setSeasonMode]=useState(false);
   const[tutStep,setTutStep]=useState(0);
@@ -4179,6 +4185,8 @@ export default function App(){
   const[speedMode,setSpeedMode]=useState(false);
   const[speedRound,setSpeedRound]=useState(null); // {round,total,results:[],startTime}
   const[timer,setTimer]=useState(15);
+  const[timerActive,setTimerActive]=useState(false);
+  const[timerGo,setTimerGo]=useState(false);
   const timerRef=useRef(null);
   // fielderTrack removed — positions are now split into 9 individual defensive positions
   // Survival Mode state
@@ -4186,6 +4194,8 @@ export default function App(){
   const[survivalRun,setSurvivalRun]=useState(null); // {count,pts,concepts[]}
   const snd=useSound();
 
+  const[sessionRecap,setSessionRecap]=useState(null); // {plays,correct,concepts:[]}
+  const sessionRef=useRef({plays:0,correct:0,concepts:[]});
   const abortRef=useRef(null);
   const lastScRef=useRef(null);
   lastScRef.current=sc?.id||null;
@@ -4373,10 +4383,19 @@ export default function App(){
     else setChallengeId(null);
   },[challengeId,screen]);
 
-  const shareChallenge=useCallback(()=>{
+  const shareChallenge=useCallback(async()=>{
     if(!sc)return;
     const url=`${window.location.origin}${window.location.pathname}#challenge=${sc.id}`;
-    if(navigator.clipboard)navigator.clipboard.writeText(url).then(()=>setToast({e:"📎",n:"Link Copied!",d:"Send to a friend to challenge them"}));
+    const shareData={title:"Baseball Strategy Master Challenge",text:`Can you beat this scenario? "${sc.title}"`,url};
+    try{
+      if(navigator.share){await navigator.share(shareData);return;}
+    }catch(e){if(e.name==='AbortError')return;}
+    try{
+      await navigator.clipboard.writeText(url);
+      setToast({e:"📎",n:"Link Copied!",d:"Send to a friend to challenge them"});
+    }catch{
+      setToast({e:"⚠️",n:"Couldn't Copy",d:"Try copying this URL manually"});
+    }
     setTimeout(()=>setToast(null),3000);
   },[sc]);
 
@@ -4473,7 +4492,7 @@ export default function App(){
         setSc(result.scenario);
         result.scenario.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80);});
       } else {
-        setAiMode(false);
+        setAiMode(false);setAiFallback(true);
         const s=getSmartRecycle(p,src,lastScId);
         setHist(h=>({...h,[p]:[...(h[p]||[]),s.id].slice(-src.length)}));
         setSc(s);
@@ -4532,6 +4551,13 @@ export default function App(){
     setFo(cat);setAk(k=>k+1);snd.play(isOpt?'correct':rate>=55?'near':'wrong');setCoachMsg(getSmartCoachLine(cat,sc.situation,pos,isOpt?stats.str+1:0,stats.isPro));
     // Crowd cheer on perfect answers, jackpot on every 5th streak
     if(isOpt){setTimeout(()=>snd.play('cheer'),300);const newStr=stats.str+1;if(newStr>0&&newStr%5===0)setTimeout(()=>snd.play('jackpot'),500);}
+    // Streak break toast when losing 3+ streak
+    if(!isOpt&&stats.str>=3){setTimeout(()=>{setToast({e:"💔",n:"Streak Broken!",d:`${stats.str} in a row — you'll get it back!`});setTimeout(()=>setToast(null),3000)},600);}
+    // Track session stats for recap
+    if(!speedMode&&!survivalMode&&!seasonMode&&!dailyMode){
+      sessionRef.current.plays++;if(isOpt)sessionRef.current.correct++;
+      if(sc.concept&&!sessionRef.current.concepts.includes(sc.concept))sessionRef.current.concepts.push(sc.concept);
+    }
     // Use simplified explanations for young players when available
     const useSimple=sc.explSimple&&(stats.ageGroup==="6-8"||stats.ageGroup==="9-10");
     const expArr=useSimple?sc.explSimple:sc.explanations;
@@ -4595,9 +4621,17 @@ export default function App(){
     }
   },[choice,sc,pos,snd,checkAch,stats.pts,dailyMode,speedMode,timer,survivalMode,survivalRun,seasonMode]);
 
-  const goHome=useCallback(()=>{setScreen("home");setPos(null);setSc(null);setChoice(null);setOd(null);setFo(null);setPanel(null);setLvlUp(null);setCoachMsg(null);setDailyMode(false);setSpeedMode(false);setSpeedRound(null);setSurvivalMode(false);setSurvivalRun(null);setChallengeMode(false);setSeasonMode(false);setSeasonStageIntro(null);setAiMode(false);if(timerRef.current)clearTimeout(timerRef.current)},[]);
+  const goHome=useCallback(()=>{
+    // Show session recap for normal play with 3+ plays
+    const sr=sessionRef.current;
+    if(sr.plays>=3&&!speedMode&&!survivalMode&&!seasonMode&&!dailyMode&&screen!=="home"){
+      setSessionRecap({plays:sr.plays,correct:sr.correct,concepts:[...sr.concepts]});
+      sessionRef.current={plays:0,correct:0,concepts:[]};
+    }
+    setScreen("home");setPos(null);setSc(null);setChoice(null);setOd(null);setFo(null);setPanel(null);setLvlUp(null);setCoachMsg(null);setDailyMode(false);setSpeedMode(false);setSpeedRound(null);setSurvivalMode(false);setSurvivalRun(null);setChallengeMode(false);setSeasonMode(false);setSeasonStageIntro(null);setAiMode(false);setAiFallback(false);setExplainMore(null);setExplainLoading(false);if(timerRef.current)clearTimeout(timerRef.current)
+  },[speedMode,survivalMode,seasonMode,dailyMode,screen]);
   goHomeRef.current=goHome;
-  const next=useCallback(()=>{setLvlUp(null);if(speedMode){speedNextRef.current?.()}else if(survivalMode){survivalNextRef.current?.()}else if(seasonMode){seasonNextRef.current?.()}else if(dailyMode){goHomeRef.current?.()}else if(atLimit){setScreen("home");setTimeout(()=>setPanel('limit'),100)}else{startGame(pos,aiMode)}},[pos,startGame,dailyMode,speedMode,survivalMode,seasonMode,atLimit,aiMode]);
+  const next=useCallback(()=>{setLvlUp(null);setExplainMore(null);setExplainLoading(false);if(speedMode){speedNextRef.current?.()}else if(survivalMode){survivalNextRef.current?.()}else if(seasonMode){seasonNextRef.current?.()}else if(dailyMode){goHomeRef.current?.()}else if(atLimit){setScreen("home");setTimeout(()=>setPanel('limit'),100)}else{startGame(pos,aiMode)}},[pos,startGame,dailyMode,speedMode,survivalMode,seasonMode,atLimit,aiMode]);
   const finishOnboard=useCallback(()=>{setStats(p=>({...p,onboarded:true,todayDate:new Date().toDateString()}));setScreen("home")},[]);
 
   // Auth: signup
@@ -4653,14 +4687,20 @@ export default function App(){
     if(e.key==="Escape")goHome();
   };window.addEventListener("keydown",h);return()=>window.removeEventListener("keydown",h)},[screen,choice,aiLoading,handleChoice,next,goHome]);
 
-  // Speed Round timer
+  // Speed Round timer — waits for options to reveal before starting
   useEffect(()=>{
-    if(speedMode&&screen==="play"&&choice===null&&!aiLoading&&timer>0){
+    if(speedMode&&screen==="play"&&choice===null&&!timerActive){
+      const delay=setTimeout(()=>{setTimerGo(true);setTimeout(()=>{setTimerGo(false);setTimerActive(true)},600)},640);
+      return()=>clearTimeout(delay);
+    }
+  },[speedMode,screen,choice,timerActive]);
+  useEffect(()=>{
+    if(speedMode&&screen==="play"&&choice===null&&!aiLoading&&timerActive&&timer>0){
       if(timer<=5)snd.play('tick');
       timerRef.current=setTimeout(()=>setTimer(t=>t-1),1000);
       return()=>clearTimeout(timerRef.current);
     }
-    if(speedMode&&screen==="play"&&choice===null&&timer<=0&&sc){
+    if(speedMode&&screen==="play"&&choice===null&&timer<=0&&timerActive&&sc){
       // Time's up — reveal correct answer instead of auto-selecting wrong
       snd.play('wrong');setCoachMsg("Time's up! Read the answer — you'll get it next time!");
       const cat="danger";const pts=2;
@@ -4671,7 +4711,7 @@ export default function App(){
       setStats(p=>{const today=new Date().toDateString();return{...p,pts:p.pts+pts,str:0,gp:p.gp+1,ps:{...p.ps,[pos]:{p:(p.ps[pos]?.p||0)+1,c:p.ps[pos]?.c||0}},todayPlayed:(p.todayDate===today?p.todayPlayed:0)+1,todayDate:today,sp:0,recentWrong:[...(p.recentWrong||[]),sc.concept].slice(-5)}});
       setTimeout(()=>{setScreen("outcome");setTimeout(()=>{setShowC(true);setTimeout(()=>speedNextRef.current?.(),2000)},200)},1800);
     }
-  },[speedMode,screen,choice,aiLoading,timer,sc,snd,pos]);
+  },[speedMode,screen,choice,aiLoading,timerActive,timer,sc,snd,pos]);
 
   // Speed Round flow
   const startSpeedRound=useCallback(()=>{
@@ -4684,7 +4724,7 @@ export default function App(){
     const p=positions[0];setPos(p);
     const s=getRand(p);setSc(s);
     setChoice(null);setOd(null);setRi(-1);setFo(null);setShowC(false);setLvlUp(null);setShowExp(true);
-    setTimer(15);setScreen("play");
+    setTimer(15);setTimerActive(false);setTimerGo(false);setScreen("play");
     s.options.forEach((_,i)=>{setTimeout(()=>setRi(i),80+i*60);});
   },[snd,atLimit,getRand]);
 
@@ -4700,7 +4740,7 @@ export default function App(){
     const s=getRand(p);setSc(s);
     setChoice(null);setOd(null);setRi(-1);setFo(null);setShowC(false);
     setSpeedRound(sr=>({...sr,round:nextRound}));
-    setTimer(15);setScreen("play");
+    setTimer(15);setTimerActive(false);setTimerGo(false);setScreen("play");
     s.options.forEach((_,i)=>{setTimeout(()=>setRi(i),80+i*60);});
   },[speedRound,getRand]);
   speedNextRef.current=speedNext;
@@ -4817,14 +4857,60 @@ export default function App(){
           {stats.ds>0&&(()=>{const fl=getFlame(stats.ds);return <span style={{background:`${fl.color}12`,border:`1px solid ${fl.color}22`,borderRadius:7,padding:"2px 7px",fontSize:10,fontWeight:700,color:fl.color,boxShadow:stats.ds>=7?`0 0 8px ${fl.glow}`:"none"}}>{fl.icon}{stats.ds}d</span>})()}
           {stats.str>0&&<span style={{background:"#f9731615",border:"1px solid #f9731625",borderRadius:7,padding:"2px 7px",fontSize:10,fontWeight:700,color:"#f97316"}}>🔥{stats.str}</span>}
           {!stats.isPro&&<span style={{background:remaining<=0?"rgba(239,68,68,.1)":remaining<=3?"rgba(245,158,11,.1)":"rgba(255,255,255,.03)",border:`1px solid ${remaining<=0?"rgba(239,68,68,.2)":remaining<=3?"rgba(245,158,11,.2)":"rgba(255,255,255,.06)"}`,borderRadius:7,padding:"2px 7px",fontSize:10,fontWeight:600,color:remaining<=0?"#ef4444":remaining<=3?"#f59e0b":"#6b7280"}}>{remaining>0?`${remaining} left`:"Back tomorrow"}</span>}
-          {stats.isPro&&<span style={{background:"linear-gradient(135deg,rgba(245,158,11,.15),rgba(234,179,8,.1))",border:"1px solid rgba(245,158,11,.3)",borderRadius:7,padding:"2px 7px",fontSize:10,fontWeight:800,color:"#f59e0b"}}>PRO</span>}
+          {stats.isPro&&<span onClick={()=>setShowProBenefits(v=>!v)} style={{background:"linear-gradient(135deg,rgba(245,158,11,.15),rgba(234,179,8,.1))",border:"1px solid rgba(245,158,11,.3)",borderRadius:7,padding:"2px 7px",fontSize:10,fontWeight:800,color:"#f59e0b",cursor:"pointer"}}>PRO</span>}
           {authUser&&<span onClick={()=>syncStatus==='error'?syncToServer(stats):null} style={{background:"rgba(59,130,246,.08)",border:"1px solid rgba(59,130,246,.15)",borderRadius:7,padding:"2px 7px",fontSize:10,fontWeight:600,color:syncStatus==='synced'?"#22c55e":syncStatus==='syncing'?"#3b82f6":syncStatus==='error'?"#ef4444":"#6b7280",cursor:syncStatus==='error'?"pointer":"default"}} title={syncStatus==='synced'?"Progress saved":syncStatus==='syncing'?"Syncing...":syncStatus==='error'?"Sync failed — tap to retry":"Signed in"}>{syncStatus==='syncing'?"↻":syncStatus==='synced'?"☁✓":syncStatus==='error'?"☁!":"☁"}</span>}
-          <span style={{background:`${lvl.c}12`,border:`1px solid ${lvl.c}25`,borderRadius:7,padding:"2px 7px",fontSize:10,fontWeight:700,color:lvl.c}}>{lvl.e}{lvl.n}</span>
+          <span onClick={()=>setShowProgression(v=>!v)} style={{background:`${lvl.c}12`,border:`1px solid ${lvl.c}25`,borderRadius:7,padding:"2px 7px",fontSize:10,fontWeight:700,color:lvl.c,cursor:"pointer"}}>{lvl.e}{lvl.n}</span>
+        </div>
+      </div>}
+
+      {showProBenefits&&stats.isPro&&<div style={{maxWidth:640,margin:"0 auto",padding:"6px 16px 0"}}>
+        <div style={{background:"linear-gradient(135deg,rgba(245,158,11,.06),rgba(234,179,8,.03))",border:"1px solid rgba(245,158,11,.15)",borderRadius:12,padding:"10px 14px"}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+            <span style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:12,color:"#f59e0b",letterSpacing:1}}>ALL-STAR PASS</span>
+            <button onClick={()=>setShowProBenefits(false)} style={{background:"none",border:"none",color:"#6b7280",cursor:"pointer",fontSize:14,padding:0}}>✕</button>
+          </div>
+          <div style={{display:"flex",flexDirection:"column",gap:3}}>
+            {["Unlimited daily plays","🤖 AI Coach scenarios","All 10 field themes","Full avatar customization","2x XP on every play","Weekly streak freeze"].map((b,i)=>
+              <div key={i} style={{fontSize:10,color:"#d1d5db",display:"flex",alignItems:"center",gap:5}}><span style={{color:"#22c55e",fontSize:11}}>✓</span>{b}</div>
+            )}
+          </div>
+          <div style={{fontSize:9,color:"#6b7280",marginTop:6}}>Plan: {stats.proPlan==="promo-lifetime"?"Promo (Lifetime)":stats.proPlan==="promo-30day"?"Promo (30-day)":stats.proPlan||"lifetime"}{stats.proExpiry?` · ${(stats.proPlan||"").startsWith("promo-")?"Expires":"Renews"}: ${new Date(stats.proExpiry).toLocaleDateString()}`:""}</div>
+        </div>
+      </div>}
+
+      {showProgression&&<div style={{maxWidth:640,margin:"0 auto",padding:"6px 16px 0"}}>
+        <div style={{background:"linear-gradient(135deg,rgba(168,85,247,.06),rgba(59,130,246,.04))",border:`1px solid ${lvl.c}25`,borderRadius:12,padding:"10px 14px"}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+            <span style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:12,color:lvl.c,letterSpacing:1}}>PROGRESSION</span>
+            <button onClick={()=>setShowProgression(false)} style={{background:"none",border:"none",color:"#6b7280",cursor:"pointer",fontSize:14,padding:0}}>✕</button>
+          </div>
+          <div style={{display:"flex",flexDirection:"column",gap:4,marginBottom:8}}>
+            {LEVELS.map((l,i)=>{const earned=stats.pts>=l.min;const current=lvl.n===l.n;const nextLvl=LEVELS[i+1];return(
+              <div key={l.n} style={{display:"flex",alignItems:"center",gap:8,padding:"4px 6px",background:current?`${l.c}10`:"transparent",borderRadius:8,border:current?`1px solid ${l.c}30`:"1px solid transparent"}}>
+                <span style={{fontSize:16,opacity:earned?1:.3}}>{l.e}</span>
+                <div style={{flex:1}}>
+                  <div style={{fontSize:11,fontWeight:current?800:600,color:earned?l.c:"#4b5563"}}>{l.n}{current?" (You)":""}</div>
+                  <div style={{fontSize:9,color:"#6b7280"}}>{l.min}+ pts{nextLvl?` → ${nextLvl.min} pts`:""}</div>
+                </div>
+                {earned&&<span style={{fontSize:10,color:"#22c55e"}}>✓</span>}
+              </div>
+            )})}
+          </div>
+          {nxt?<div>
+            <div style={{display:"flex",justifyContent:"space-between",fontSize:9,color:"#6b7280",marginBottom:2}}>
+              <span style={{color:lvl.c,fontWeight:700}}>{stats.pts} pts</span><span>{nxt.min-stats.pts} to {nxt.n}</span>
+            </div>
+            <div style={{height:5,background:"rgba(255,255,255,.04)",borderRadius:3,overflow:"hidden"}}>
+              <div style={{height:"100%",width:`${prog}%`,background:`linear-gradient(90deg,${lvl.c},${nxt.c})`,borderRadius:3,transition:"width .5s"}}/>
+            </div>
+          </div>:<div style={{fontSize:10,color:"#a855f7",textAlign:"center",fontWeight:700}}>
+            Max level reached! Season {stats.season||1}{(stats.season||1)>1?` · +${((stats.season||1)-1)*10}% XP bonus`:""}
+          </div>}
         </div>
       </div>}
 
       <div style={{maxWidth:640,margin:"0 auto",padding:"10px 16px"}}>
-        
+
         {/* LOGIN */}
         {screen==="login"&&<LoginScreen onLogin={handleLogin} onSignup={()=>{setAuthError(null);setScreen("signup")}} onSkip={()=>{setAuthError(null);setScreen(stats.onboarded?"home":"onboard")}} authError={authError} authLoading={authLoading} btn={btn} ghost={ghost}/>}
 
@@ -4868,6 +4954,25 @@ export default function App(){
 
         {/* HOME */}
         {screen==="home"&&<div>
+          {sessionRecap&&<div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,.85)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:20}} onClick={()=>setSessionRecap(null)}>
+            <div onClick={e=>e.stopPropagation()} style={{background:"linear-gradient(135deg,#1e293b,#0f172a)",borderRadius:20,padding:"28px 24px",maxWidth:340,width:"100%",textAlign:"center",border:"2px solid rgba(59,130,246,.3)"}}>
+              <div style={{fontSize:44,marginBottom:6}}>📊</div>
+              <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:22,color:"#3b82f6",letterSpacing:1.5,marginBottom:12}}>SESSION RECAP</div>
+              <div style={{display:"flex",justifyContent:"space-around",marginBottom:14}}>
+                {[{v:sessionRecap.plays,l:"Played",c:"#3b82f6"},{v:sessionRecap.correct,l:"Correct",c:"#22c55e"},{v:sessionRecap.plays>0?Math.round((sessionRecap.correct/sessionRecap.plays)*100)+"%":"—",l:"Accuracy",c:"#f59e0b"}].map((s,i)=>
+                  <div key={i}><div style={{fontSize:22,fontWeight:800,color:s.c}}>{s.v}</div><div style={{fontSize:9,color:"#6b7280",marginTop:2}}>{s.l}</div></div>
+                )}
+              </div>
+              {sessionRecap.concepts.length>0&&<div style={{marginBottom:14}}>
+                <div style={{fontSize:9,color:"#6b7280",textTransform:"uppercase",letterSpacing:1,fontWeight:700,marginBottom:5}}>Concepts Practiced</div>
+                <div style={{display:"flex",flexWrap:"wrap",gap:3,justifyContent:"center"}}>
+                  {sessionRecap.concepts.slice(0,6).map((c,i)=><span key={i} style={{background:"rgba(59,130,246,.08)",border:"1px solid rgba(59,130,246,.15)",borderRadius:6,padding:"2px 7px",fontSize:9,color:"#93c5fd"}}>{c}</span>)}
+                  {sessionRecap.concepts.length>6&&<span style={{fontSize:9,color:"#6b7280"}}>+{sessionRecap.concepts.length-6} more</span>}
+                </div>
+              </div>}
+              <button onClick={()=>setSessionRecap(null)} style={{...btn("linear-gradient(135deg,#2563eb,#3b82f6)"),...{fontSize:13,padding:"10px 28px"}}}>Continue</button>
+            </div>
+          </div>}
           {stats.gp===0&&!stats.tutorialDone&&<div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,.85)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
             <div style={{background:"#1e293b",borderRadius:20,padding:"32px 24px",maxWidth:340,width:"100%",textAlign:"center",border:"2px solid rgba(245,158,11,.3)"}}>
               {[
@@ -4913,13 +5018,13 @@ export default function App(){
           <div style={{textAlign:"center",padding:"20px 0 14px"}}>
             <div style={{fontSize:48,marginBottom:4}}>⚾</div>
             <h1 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:32,letterSpacing:2,color:"#f59e0b",lineHeight:1,marginBottom:4}}>STRATEGY MASTER</h1>
-            <p style={{color:"#6b7280",fontSize:12,maxWidth:340,margin:"0 auto"}}>{totalSc} scenarios · 6 positions · Real MLB strategy</p>
+            <p style={{color:"#6b7280",fontSize:12,maxWidth:340,margin:"0 auto"}}>{totalSc} scenarios · {Object.keys(SCENARIOS).length} positions · Real MLB strategy</p>
           </div>
 
           {/* Stats card */}
           {stats.gp>0&&<div style={{...card,marginBottom:12}}>
             <div style={{display:"flex",justifyContent:"space-around",textAlign:"center",marginBottom:8}}>
-              {[{v:stats.pts,l:"Points",c:"#f59e0b"},{v:`${acc}%`,l:"Accuracy",c:"#22c55e"},{v:stats.bs,l:"Best Run",c:"#f97316"},{v:stats.gp,l:"Played",c:"#3b82f6"}].map((s,i)=>(
+              {[{v:stats.pts,l:"Points",c:"#f59e0b"},{v:`${acc}%`,l:"Accuracy",c:"#22c55e"},{v:stats.bs,l:"Best Streak",c:"#f97316"},{v:stats.gp,l:"Played",c:"#3b82f6"}].map((s,i)=>(
                 <div key={i}><div style={{fontSize:18,fontWeight:800,color:s.c}}>{s.v}</div><div style={{fontSize:8,color:"#6b7280",marginTop:1}}>{s.l}</div></div>
               ))}
             </div>
@@ -5263,7 +5368,7 @@ export default function App(){
                   <span style={{fontSize:22}}>{stats.seasonComplete?"🏆":stage.emoji}</span>
                   <div>
                     <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:14,color:"#f59e0b",letterSpacing:1}}>{stats.seasonComplete?"SEASON COMPLETE!":stage.name.toUpperCase()}</div>
-                    <div style={{fontSize:10,color:"#9ca3af"}}>{stats.seasonComplete?`${stats.seasonCorrect}/${SEASON_TOTAL} optimal · New season?`:`Game ${stats.seasonGame+1} of ${SEASON_TOTAL}`}</div>
+                    <div style={{fontSize:10,color:"#9ca3af"}}>{stats.seasonComplete?`${stats.seasonCorrect}/${SEASON_TOTAL} optimal · New season?`:`Challenge ${stats.seasonGame+1} of ${SEASON_TOTAL}`}</div>
                   </div>
                 </div>
                 <span style={{fontSize:11,fontWeight:700,color:stage.color}}>{pct}%</span>
@@ -5296,21 +5401,16 @@ export default function App(){
 
           {/* Special Modes — Famous Plays, Rule IQ, Count IQ */}
           {stats.gp>=5&&<div style={{display:"flex",gap:8,marginBottom:12,flexWrap:"wrap"}}>
-            <div role="button" aria-label="Play Famous Moments" tabIndex={0} onClick={()=>startGame("famous")} onKeyDown={e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();startGame("famous")}}} style={{flex:"1 1 30%",minWidth:90,background:"linear-gradient(135deg,rgba(234,179,8,.06),rgba(202,138,4,.03))",border:"1px solid rgba(234,179,8,.2)",borderRadius:14,padding:"14px 10px",cursor:"pointer",textAlign:"center",minHeight:48}}>
-              <div style={{fontSize:22,marginBottom:3}}>🏟️</div>
-              <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:12,color:"#eab308",letterSpacing:1}}>FAMOUS</div>
-              <div style={{fontSize:9,color:"#9ca3af",marginTop:2}}>{SCENARIOS.famous?.length||0} plays</div>
-            </div>
-            <div role="button" aria-label="Play Rules IQ" tabIndex={0} onClick={()=>startGame("rules")} onKeyDown={e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();startGame("rules")}}} style={{flex:"1 1 30%",minWidth:90,background:"linear-gradient(135deg,rgba(244,114,182,.06),rgba(219,39,119,.03))",border:"1px solid rgba(244,114,182,.2)",borderRadius:14,padding:"14px 10px",cursor:"pointer",textAlign:"center",minHeight:48}}>
-              <div style={{fontSize:22,marginBottom:3}}>📖</div>
-              <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:12,color:"#f472b6",letterSpacing:1}}>RULES</div>
-              <div style={{fontSize:9,color:"#9ca3af",marginTop:2}}>{SCENARIOS.rules?.length||0} rules</div>
-            </div>
-            <div role="button" aria-label="Play Count Strategy" tabIndex={0} onClick={()=>startGame("counts")} onKeyDown={e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();startGame("counts")}}} style={{flex:"1 1 30%",minWidth:90,background:"linear-gradient(135deg,rgba(20,184,166,.06),rgba(13,148,136,.03))",border:"1px solid rgba(20,184,166,.2)",borderRadius:14,padding:"14px 10px",cursor:"pointer",textAlign:"center",minHeight:48}}>
-              <div style={{fontSize:22,marginBottom:3}}>🔢</div>
-              <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:12,color:"#14b8a6",letterSpacing:1}}>COUNTS</div>
-              <div style={{fontSize:9,color:"#9ca3af",marginTop:2}}>{SCENARIOS.counts?.length||0} counts</div>
-            </div>
+            {[{key:"famous",emoji:"🏟️",label:"FAMOUS",color:"#eab308",bg:"linear-gradient(135deg,rgba(234,179,8,.06),rgba(202,138,4,.03))",border:"rgba(234,179,8,.2)",unit:"plays"},
+              {key:"rules",emoji:"📖",label:"RULES",color:"#f472b6",bg:"linear-gradient(135deg,rgba(244,114,182,.06),rgba(219,39,119,.03))",border:"rgba(244,114,182,.2)",unit:"rules"},
+              {key:"counts",emoji:"🔢",label:"COUNTS",color:"#14b8a6",bg:"linear-gradient(135deg,rgba(20,184,166,.06),rgba(13,148,136,.03))",border:"rgba(20,184,166,.2)",unit:"counts"}
+            ].map(sm=>{const ps=stats.ps[sm.key];const a=ps&&ps.p>0?Math.round((ps.c/ps.p)*100):null;return(
+              <div key={sm.key} role="button" aria-label={`Play ${sm.label}`} tabIndex={0} onClick={()=>startGame(sm.key)} onKeyDown={e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();startGame(sm.key)}}} style={{flex:"1 1 30%",minWidth:90,background:sm.bg,border:`1px solid ${sm.border}`,borderRadius:14,padding:"14px 10px",cursor:"pointer",textAlign:"center",minHeight:48}}>
+                <div style={{fontSize:22,marginBottom:3}}>{sm.emoji}</div>
+                <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:12,color:sm.color,letterSpacing:1}}>{sm.label}</div>
+                <div style={{fontSize:9,color:"#9ca3af",marginTop:2}}>{SCENARIOS[sm.key]?.length||0} {sm.unit}</div>
+                {a!==null&&<div style={{fontSize:8,color:"rgba(255,255,255,.6)",marginTop:1}}>{a}% · {ps.p} played</div>}
+              </div>)})}
           </div>}
 
           {/* Position grid — grouped by role */}
@@ -5417,11 +5517,21 @@ export default function App(){
             <span style={{color:"#374151"}}>·</span>
             <button onClick={()=>{
               if(parentGate){setPanel(panel==='parent'?null:'parent');return;}
+              if(parentGateInline){setParentGateInline(null);return;}
               const a=Math.floor(Math.random()*10)+5;const b=Math.floor(Math.random()*10)+3;
-              const answer=prompt(`Parent Gate: What is ${a} × ${b}?`);
-              if(answer&&parseInt(answer)===a*b){setParentGate(true);setPanel('parent')}
+              setParentGateInline({a,b,answer:""});
             }} style={{...ghost,fontSize:10}}>👪 Parent Report</button>
           </div>
+
+          {parentGateInline&&!parentGate&&<div style={{...card,marginBottom:12,marginTop:8,textAlign:"center"}}>
+            <div style={{fontSize:11,color:"#8b5cf6",fontWeight:700,marginBottom:8}}>Parent Verification</div>
+            <div style={{fontSize:14,color:"#d1d5db",marginBottom:8}}>What is {parentGateInline.a} × {parentGateInline.b}?</div>
+            <input type="number" inputMode="numeric" autoFocus value={parentGateInline.answer} onChange={e=>{
+              const val=e.target.value;setParentGateInline(g=>({...g,answer:val}));
+              if(val&&parseInt(val)===parentGateInline.a*parentGateInline.b){setParentGate(true);setParentGateInline(null);setPanel('parent')}
+            }} style={{width:80,background:"rgba(255,255,255,.06)",border:"1.5px solid rgba(139,92,246,.3)",borderRadius:10,padding:"8px 12px",color:"white",fontSize:18,fontWeight:700,textAlign:"center",outline:"none"}}/>
+            <div style={{fontSize:9,color:"#6b7280",marginTop:6}}>This keeps the report for parents only</div>
+          </div>}
 
           {panel==='parent'&&parentGate&&<div style={{...card,marginBottom:12,marginTop:8}}>
             <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:14,color:"#8b5cf6",letterSpacing:1,marginBottom:8}}>PARENT PROGRESS REPORT</div>
@@ -5509,6 +5619,7 @@ export default function App(){
               {dailyMode&&<span style={{background:"rgba(245,158,11,.15)",border:"1px solid rgba(245,158,11,.25)",borderRadius:7,padding:"2px 7px",fontSize:9,fontWeight:700,color:"#f59e0b"}}>💎 Daily · 2x XP</span>}
               {seasonMode&&(()=>{const st=getSeasonStage(stats.seasonGame);return <span style={{background:`${st.color}15`,border:`1px solid ${st.color}25`,borderRadius:7,padding:"2px 7px",fontSize:9,fontWeight:700,color:st.color}}>{st.emoji} {st.name}</span>})()}
               {aiMode&&<span style={{background:"rgba(168,85,247,.15)",border:"1px solid rgba(168,85,247,.25)",borderRadius:7,padding:"2px 7px",fontSize:9,fontWeight:700,color:"#a855f7"}}>🤖 AI</span>}
+              {aiFallback&&!aiMode&&<span style={{background:"rgba(59,130,246,.12)",border:"1px solid rgba(59,130,246,.2)",borderRadius:7,padding:"2px 7px",fontSize:9,fontWeight:700,color:"#60a5fa"}}>📚 Practice</span>}
               <span style={{fontSize:9,color:DIFF_TAG[(sc.diff||1)-1].c}}>{"⭐".repeat(sc.diff||1)}</span>
               <span style={{background:`${POS_META[pos].color}15`,border:`1px solid ${POS_META[pos].color}25`,borderRadius:7,padding:"2px 7px",fontSize:10,fontWeight:700,color:POS_META[pos].color}}>{POS_META[pos].emoji} {POS_META[pos].label}</span>
             </div>
@@ -5516,13 +5627,15 @@ export default function App(){
 
           {/* Speed Round timer bar */}
           {speedMode&&choice===null&&<div style={{marginBottom:8}}>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:3}}>
+            {timerGo&&<div style={{textAlign:"center",marginBottom:4}}><span style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:28,color:"#22c55e",letterSpacing:2,animation:"pulse .5s ease",textShadow:"0 0 12px rgba(34,197,94,.5)"}}>GO!</span></div>}
+            {timerActive&&<><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:3}}>
               <span style={{fontSize:13,fontWeight:800,color:timer<=5?"#ef4444":timer<=10?"#f59e0b":"#22c55e"}}>⏱ {timer}s</span>
               <span style={{fontSize:10,color:"#6b7280",fontWeight:600}}>+{timer} speed bonus</span>
             </div>
             <div style={{height:6,background:"rgba(255,255,255,.05)",borderRadius:3,overflow:"hidden"}}>
               <div style={{height:"100%",width:`${(timer/15)*100}%`,background:timer<=5?"#ef4444":timer<=10?"#f59e0b":"#22c55e",borderRadius:3,transition:"width 1s linear",boxShadow:timer<=5?`0 0 8px ${timer<=5?"rgba(239,68,68,.4)":"none"}`:"none"}}/>
-            </div>
+            </div></>}
+            {!timerActive&&!timerGo&&<div style={{textAlign:"center",fontSize:10,color:"#6b7280",fontWeight:600}}>Get ready...</div>}
           </div>}
 
           <div style={{background:"rgba(0,0,0,.25)",borderRadius:12,padding:6,marginBottom:8,border:"1px solid rgba(255,255,255,.03)"}}>
@@ -5608,6 +5721,25 @@ export default function App(){
             <p style={{fontSize:14,fontWeight:600,color:"white",lineHeight:1.45}}>{od.concept}</p>
           </div>}
 
+          {/* Explain More — AI deep dive (Pro) */}
+          {showC&&od?.concept&&<div style={{textAlign:"center",marginTop:6}}>
+            {stats.isPro?<>{!explainMore&&!explainLoading&&<button onClick={async()=>{
+              setExplainLoading(true);
+              try{
+                const res=await fetch(AI_PROXY_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"grok-4-1-fast",messages:[{role:"system",content:"You are a baseball coach explaining concepts to young players (ages 8-18). Keep it clear, engaging, and under 100 words. Use specific examples."},{role:"user",content:`Explain this baseball concept in more depth: "${od.concept}". The player ${od.isOpt?"got this right":"got this wrong"} in a ${POS_META[pos]?.label||pos} scenario. Give a deeper explanation with a real-game example.`}],max_tokens:200,temperature:0.5})});
+                const d=await res.json();
+                setExplainMore(d.choices?.[0]?.message?.content||"Couldn't load explanation. Try again later!");
+              }catch{setExplainMore("Couldn't load explanation. Check your connection and try again.")}
+              setExplainLoading(false);
+            }} style={{background:"rgba(168,85,247,.06)",border:"1px solid rgba(168,85,247,.15)",borderRadius:8,padding:"6px 14px",color:"#a855f7",fontSize:11,fontWeight:600,cursor:"pointer"}}>🔍 Explain More</button>}
+            {explainLoading&&<div style={{fontSize:11,color:"#a855f7"}}>Loading deeper explanation...</div>}
+            {explainMore&&<div style={{background:"linear-gradient(135deg,rgba(168,85,247,.04),rgba(59,130,246,.04))",border:"1px solid rgba(168,85,247,.12)",borderRadius:12,padding:12,marginTop:4,textAlign:"left"}}>
+              <div style={{fontSize:9,color:"#a855f7",textTransform:"uppercase",letterSpacing:1,fontWeight:700,marginBottom:4}}>🔍 Deep Dive</div>
+              <p style={{fontSize:13,color:"#d1d5db",lineHeight:1.5,margin:0}}>{explainMore}</p>
+            </div>}</>
+            :<button onClick={()=>{setPanel('upgrade');trackFunnel('explain_more_gated',setStats);goHome()}} style={{background:"rgba(245,158,11,.04)",border:"1px solid rgba(245,158,11,.12)",borderRadius:8,padding:"6px 14px",color:"#6b7280",fontSize:11,fontWeight:600,cursor:"pointer"}}>🔒 Explain More (All-Star Pass)</button>}
+          </div>}
+
           {/* Brain Insights — statistical context for ages 11+ */}
           {showC&&stats.ageGroup!=="6-8"&&stats.ageGroup!=="9-10"&&(()=>{
             const insights=enrichFeedback(sc,choice,sc.situation);
@@ -5627,7 +5759,7 @@ export default function App(){
 
           <button onClick={next} style={{...btn(dailyMode?"linear-gradient(135deg,#d97706,#f59e0b)":"linear-gradient(135deg,#2563eb,#3b82f6)"),...{marginTop:12,boxShadow:dailyMode?"0 4px 12px rgba(245,158,11,.25)":"0 4px 12px rgba(37,99,235,.25)"}}}>{dailyMode?"Back to Home →":"Next Challenge →"}</button>
           <div style={{display:"flex",justifyContent:"center",gap:8,marginTop:6}}>
-            <button onClick={goHome} style={ghost}>Change Position</button>
+            <button onClick={goHome} style={ghost}>← Pick Position</button>
             <button onClick={shareChallenge} style={{...ghost,color:"#3b82f6"}}>📎 Challenge a Friend</button>
           </div>
 

@@ -4,7 +4,7 @@
 An educational web app that teaches baseball strategy to kids (ages 6-18) through interactive decision-making scenarios. Players pick a position (pitcher, catcher, infielder, outfielder, batter, baserunner, manager — 15 categories total), face a realistic game situation, choose from 4 options, and get immediate color-coded feedback explaining WHY their choice was good or bad. Includes season mode, survival mode, speed round, daily diamond, and AI-generated scenarios.
 
 ## Tech Stack
-- **Single-file React app** (`index.jsx`, ~4,970 lines)
+- **Single-file React app** (`index.jsx`, ~5,890 lines)
 - Renders via `preview.html` with CDN React + Babel, or as a Claude.ai artifact
 - No build tools, no bundler — just one file with everything
 - Uses React hooks (useState, useEffect, useCallback, useRef)
@@ -15,7 +15,7 @@ An educational web app that teaches baseball strategy to kids (ages 6-18) throug
 
 ## File Structure
 ```
-index.jsx          — The entire app (~5,760 lines)
+index.jsx          — The entire app (~5,890 lines)
 preview.html       — Loads index.jsx with CDN React + Babel
 worker/
   index.js         — Cloudflare Worker proxy for xAI API
@@ -38,7 +38,7 @@ Lines 3440-3610:    generateAIScenario() — AI scenario generation via xAI Grok
 Lines 3610-3700:    Sound system, helper utilities
 Lines 3700-3850:    Field() component (SVG baseball field + 15 animations, 10 themes)
 Lines 3850-3910:    Board() component (scoreboard display)
-Lines 3910-5760:    Main App() component (game state, UI, all screens)
+Lines 3910-5890:    Main App() component (game state, UI, all screens)
 ```
 
 ## Key Architecture Decisions
