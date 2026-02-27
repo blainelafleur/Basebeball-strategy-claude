@@ -3081,6 +3081,82 @@ DOUBLE CUTS (extra-base hits): Left side (LF line, LF-CF gap, deep CF) lead rela
 PITCHER: Backs up the TARGET BASE on every relay/cutoff play. NEVER the cutoff or relay man.
 CATCHER: Stays at home. Directs cutoff with voice: "Cut!" / "Cut two!" / "Cut three!" / silence=let it go.`;
 
+const BUNT_DEFENSE_MAP = `BUNT DEFENSE ASSIGNMENTS (non-negotiable):
+RUNNER ON 1ST ONLY: P fields bunt near mound. 1B charges. 3B charges. 2B covers 1st. SS covers 2nd. C directs.
+RUNNERS ON 1ST & 2ND (standard): P fields near mound. 1B charges. 3B charges. SS covers 3rd. 2B covers 1st. C directs.
+RUNNERS ON 1ST & 2ND (wheel play): 3B crashes HARD early. SS rotates to 3rd. 2B covers 1st. P covers mound area. Goal: get lead runner at 3rd.
+PRIORITY: Lead runner out > trail runner out. Force at 3rd with runners 1st & 2nd is the highest-value play.`;
+
+const FIRST_THIRD_MAP = `FIRST-AND-THIRD DEFENSE (non-negotiable):
+Runner on 1st steals with runner on 3rd — catcher's options:
+1. THROW THROUGH to 2B: SS covers 2B, takes throw, looks runner back at 3rd. Risk: R3 scores.
+2. CUT BY MIDDLE IF: C throws to 2nd. SS (or 2B) cuts throw short, looks at R3. If R3 breaks home, throw home.
+3. FAKE AND THROW: C pump-fakes to 2nd, fires to 3B to catch R3 leaning. 3B must be ready.
+4. HOLD THE BALL: Concede stolen base, keep R3 at third.
+1B stays at 1B. P ducks out of throwing lane. Key: NEVER throw to 2nd if R3 has a big lead.`;
+
+const BACKUP_MAP = `BACKUP RESPONSIBILITIES (non-negotiable):
+P: Backs up HOME on OF throws home. Backs up 3B on throws to third.
+LF: Backs up 3B on ALL infield grounders and throws to third.
+CF: Backs up 2B on ALL steal attempts and throws to second.
+RF: Backs up 1B on EVERY infield grounder (most important routine OF job).
+C: Backs up 1B on grounders with no runners on.
+RULE: Every throw needs a backup in line behind the target. Sprint to position.`;
+
+const RUNDOWN_MAP = `RUNDOWN PROCEDURE (non-negotiable):
+1. Run hard at runner — drive him BACK toward previous base.
+2. Hold ball high (visible). Run FULL SPEED.
+3. ONE throw — firm, chest-high. Receiver tags.
+4. Backup: next fielder replaces thrower's vacated base. 2 fielders per base.
+5. NEVER pump-fake. NEVER lob. NEVER throw across runner's body.
+RUNNER'S GOAL: Force many throws — every throw is an error chance.`;
+
+const DP_POSITIONING_MAP = `DOUBLE PLAY POSITIONING (non-negotiable):
+DP DEPTH WHEN: Runner on 1st (or 1st & 2nd, loaded), less than 2 outs.
+NORMAL DEPTH WHEN: 2 outs (can't turn two), or no force at 2nd.
+INFIELD IN WHEN: Runner on 3rd, less than 2 outs, run matters. Tradeoff: less range.
+DP DEPTH = 3-4 steps toward 2B + step in toward home. Reduces range ~15% but speeds pivot.
+NEVER DP depth with 2 outs. NEVER infield in with 2 outs and no R3.`;
+
+const HIT_RUN_MAP = `HIT-AND-RUN ASSIGNMENTS (non-negotiable):
+BATTER: MUST swing — protect the runner. Ground ball through vacated hole > power.
+RUNNER: Go on the pitch. Don't look back.
+WHO COVERS 2B on steal: LHH → SS covers (hole opens at 2B side). RHH → 2B covers (hole opens at SS side).
+BATTER aims through the vacated hole. P should throw strikes to induce contact.`;
+
+const KNOWLEDGE_MAPS = {
+  BUNT_DEFENSE_MAP, FIRST_THIRD_MAP, BACKUP_MAP,
+  RUNDOWN_MAP, DP_POSITIONING_MAP, HIT_RUN_MAP
+};
+const MAP_RELEVANCE = {
+  BUNT_DEFENSE_MAP: ['pitcher','catcher','firstBase','secondBase','shortstop','thirdBase','manager'],
+  FIRST_THIRD_MAP:  ['pitcher','catcher','firstBase','secondBase','shortstop','thirdBase','manager'],
+  BACKUP_MAP:       ['pitcher','catcher','firstBase','secondBase','shortstop','thirdBase','leftField','centerField','rightField','manager'],
+  RUNDOWN_MAP:      ['firstBase','secondBase','shortstop','thirdBase','baserunner','manager'],
+  DP_POSITIONING_MAP: ['pitcher','firstBase','secondBase','shortstop','thirdBase','manager'],
+  HIT_RUN_MAP:      ['secondBase','shortstop','batter','baserunner','manager'],
+};
+const MAP_AUDIT = {
+  BUNT_DEFENSE_MAP: "BUNT DEFENSE: If bunt scenario, do assignments match BUNT DEFENSE map? 2B covers 1st, SS covers 3rd with runners 1st & 2nd.",
+  FIRST_THIRD_MAP: "FIRST-AND-THIRD: If runners 1st & 3rd with steal, do options match? SS/2B cuts, pitcher ducks, 1B stays.",
+  BACKUP_MAP: "BACKUP: Are backup responsibilities correct? RF backs up 1B, LF backs up 3B, CF backs up 2B, P backs up home/3B.",
+  RUNDOWN_MAP: "RUNDOWN: If rundown scenario, chase runner BACK, one throw max, no pump fakes, backup rotation correct.",
+  DP_POSITIONING_MAP: "DP POSITIONING: DP depth only with less than 2 outs and force at 2nd. Never DP depth with 2 outs.",
+  HIT_RUN_MAP: "HIT-AND-RUN: Batter must swing, runner goes on pitch, coverage depends on batter handedness.",
+};
+function getRelevantMaps(position) {
+  return Object.entries(MAP_RELEVANCE)
+    .filter(([, positions]) => positions.includes(position))
+    .map(([key]) => KNOWLEDGE_MAPS[key])
+    .join('\n\n');
+}
+function getRelevantAudits(position) {
+  return Object.entries(MAP_RELEVANCE)
+    .filter(([, positions]) => positions.includes(position))
+    .map(([key], i) => `${10 + i}. ${MAP_AUDIT[key]}`)
+    .join('\n');
+}
+
 async function generateAIScenario(position, stats, conceptsLearned = [], recentWrong = [], signal = null, targetConcept = null) {
   const lvl = getLvl(stats.pts);
   const posStats = stats.ps[position] || { p: 0, c: 0 };
@@ -3108,6 +3184,8 @@ POSITION PRINCIPLES (authoritative — follow these strictly): ${POS_PRINCIPLES[
 
 ${CUTOFF_RELAY_MAP}
 
+${getRelevantMaps(position)}
+
 DATA REFERENCE (use these real statistics in explanations when relevant):
 - Run expectancy with runner on 1st, 0 out: ~0.94 runs. Runner on 2nd, 0 out: ~1.17 runs. Bases loaded, 0 out: ~2.29 runs.
 - Sacrifice bunts usually LOWER run expectancy (e.g., runner on 2nd with 0 out: 1.17 → runner on 3rd with 1 out: 0.99). Exception: weak hitter, late game, need exactly 1 run.
@@ -3128,6 +3206,7 @@ SELF-AUDIT — Before outputting, verify ALL of these:
 7. Is the anim type consistent with the scenario action? (e.g., don't use throwHome when the play is to third)
 8. ROLE CHECK: Does the scenario assign correct defensive roles per CUTOFF/RELAY ASSIGNMENTS above? Pitcher is NEVER cutoff. 3B is cutoff on LF→Home. 1B is cutoff on CF/RF→Home.
 9. POSITION BOUNDARY: Does each option describe an action THIS position would actually perform? A pitcher doesn't relay. A catcher doesn't go out as cutoff. If an option doesn't belong to the position, replace it.
+${getRelevantAudits(position)}
 
 REQUIREMENTS:
 - Create ONE unique scenario the player hasn't seen before
@@ -3221,8 +3300,10 @@ Rules for best: 0-indexed integer matching the optimal option in the options arr
     
     // Last-resort role-violation check
     const ROLE_VIOLATIONS = {
-      pitcher: [/pitcher.*cutoff/i, /pitcher.*relay\s*man/i, /pitcher.*lines?\s*up.*between/i],
+      pitcher: [/pitcher.*cutoff/i, /pitcher.*relay\s*man/i, /pitcher.*lines?\s*up.*between/i, /pitcher.*covers?\s*(1st|first|second|2nd|third|3rd)\b/i],
       catcher: [/catcher.*cutoff/i, /catcher.*goes?\s*out/i, /catcher.*relay/i],
+      shortstop: [/SS\s*covers?\s*(1st|first)\b.*bunt/i, /shortstop\s*covers?\s*(1st|first)\b.*bunt/i],
+      secondBase: [/2B\s*covers?\s*(3rd|third)\b.*bunt/i, /second\s*base.*covers?\s*(3rd|third)\b.*bunt/i],
     };
     const violations = ROLE_VIOLATIONS[position] || [];
     const allText = [scenario.description, ...scenario.options, ...scenario.explanations].join(" ");

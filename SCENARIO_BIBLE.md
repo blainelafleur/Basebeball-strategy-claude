@@ -149,6 +149,99 @@ When building or auditing scenarios, resolve conflicts using this precedence:
 | LF line / LF-CF gap | **SS** | **2B** | Backs up home |
 | RF-CF gap / RF line | **2B** | **SS** (or 1B on RF line) | Backs up home |
 
+### 3.6 Bunt Defense Assignments (Authoritative — Sources: ABCA, USA Baseball, coaching consensus)
+
+**Cardinal Rules:**
+1. Lead runner out > trail runner out. Force at 3rd with runners 1st & 2nd is the highest-value play.
+2. Pitcher fields bunts near the mound — NEVER makes base-coverage assignments.
+3. Catcher directs traffic and calls which base to throw to.
+
+**Runner on 1st Only:**
+
+| Position | Assignment |
+|----------|-----------|
+| P | Fields bunt near mound |
+| 1B | Charges bunt |
+| 3B | Charges bunt |
+| 2B | Covers 1st |
+| SS | Covers 2nd |
+| C | Directs play |
+
+**Runners on 1st & 2nd (Standard):**
+
+| Position | Assignment |
+|----------|-----------|
+| P | Fields bunt near mound |
+| 1B | Charges bunt |
+| 3B | Charges bunt |
+| SS | Covers 3rd |
+| 2B | Covers 1st |
+| C | Directs play |
+
+**Runners on 1st & 2nd (Wheel Play):**
+
+| Position | Assignment |
+|----------|-----------|
+| 3B | Crashes HARD early |
+| SS | Rotates to cover 3rd |
+| 2B | Covers 1st |
+| P | Covers mound area |
+| Goal | Get lead runner at 3rd |
+
+### 3.7 First-and-Third Defense (Authoritative — Sources: ABCA, coaching consensus)
+
+When runner on 1st steals with runner on 3rd, the catcher has 4 standard options:
+
+| Option | Description | Risk |
+|--------|------------|------|
+| **Throw Through** | C throws to 2B. SS covers, takes throw, looks R3 back. | R3 may score |
+| **Cut by Middle IF** | C throws to 2nd. SS (or 2B) cuts short, looks at R3. If R3 breaks → throw home. | Requires quick read |
+| **Fake and Throw** | C pump-fakes to 2nd, fires to 3B to catch R3 leaning. 3B must be ready. | If 3B not ready, ball goes to LF |
+| **Hold the Ball** | Concede stolen base, keep R3 at third. | Gives up base but safe |
+
+**Key assignments:** 1B stays at 1B. P ducks out of throwing lane. NEVER throw to 2nd if R3 has a big lead.
+
+### 3.8 Backup Responsibilities (Authoritative — Sources: ABCA, Pro Baseball Insider)
+
+| Position | Backs Up |
+|----------|----------|
+| P | HOME on OF throws home. 3B on throws to third. |
+| LF | 3B on ALL infield grounders and throws to third. |
+| CF | 2B on ALL steal attempts and throws to second. |
+| RF | 1B on EVERY infield grounder (most important routine OF job). |
+| C | 1B on grounders with no runners on. |
+
+**Rule:** Every throw needs a backup in line behind the target. Sprint — don't jog — to backup position.
+
+### 3.9 Rundown Mechanics (Authoritative — Sources: ABCA, coaching consensus)
+
+1. Chase runner BACK toward previous base (drive him back, not forward).
+2. Hold ball HIGH and visible. Run FULL SPEED.
+3. ONE throw maximum — firm, chest-high. Receiver tags.
+4. Backup rotation: next fielder replaces the thrower's vacated base. 2 fielders per base.
+5. NEVER pump-fake. NEVER lob. NEVER throw across the runner's body.
+
+**Runner's perspective:** Force many throws — every throw is an error chance.
+
+### 3.10 Double Play Positioning (Authoritative — Sources: coaching consensus)
+
+| Situation | Positioning | Notes |
+|-----------|------------|-------|
+| Runner on 1st (or 1st & 2nd, loaded), < 2 outs | **DP Depth** | 3-4 steps toward 2B + step in toward home. Reduces range ~15% but speeds pivot. |
+| 2 outs, or no force at 2nd | **Normal Depth** | Can't turn two with 2 outs — maximize range. |
+| Runner on 3rd, < 2 outs, run matters | **Infield In** | Less range but can throw home on grounders. |
+
+**Never-do rules:** NEVER DP depth with 2 outs. NEVER infield in with 2 outs and no R3.
+
+### 3.11 Hit-and-Run Assignments (Authoritative — Sources: coaching consensus)
+
+- **Batter:** MUST swing — protect the runner. Ground ball through vacated hole > power swing.
+- **Runner:** Go on the pitch. Don't look back.
+- **2B coverage on steal depends on batter handedness:**
+  - LHH → SS covers 2B (hole opens at 2B side, batter aims there)
+  - RHH → 2B covers 2B (hole opens at SS side, batter aims there)
+- Pitcher should throw strikes to induce contact.
+
 ### Left Field
 - Priority over ALL infielders on fly balls you can reach (coming in is easier).
 - Hit the cutoff man — don't throw all the way home unless the play is clearly there.
@@ -274,8 +367,9 @@ When building or auditing scenarios, resolve conflicts using this precedence:
 
 ## 6. AI Self-Audit Protocol
 
-Every AI-generated scenario must pass this 9-point verification before being accepted:
+Every AI-generated scenario must pass the base 9-point verification plus conditional checks based on position:
 
+**Base checks (always injected):**
 1. **Situation validity**: Is the game situation physically possible? (outs 0-2, count valid, runners/score consistent)
 2. **Option feasibility**: Can this player physically perform all 4 options from their position in this moment?
 3. **Authoritative correctness**: Does the best answer match what a coaching authority (Tier 1-3) would teach?
@@ -286,7 +380,15 @@ Every AI-generated scenario must pass this 9-point verification before being acc
 8. **Role check**: Does the scenario assign correct defensive roles per Section 3.5? Pitcher is NEVER cutoff. 3B is cutoff on LF→Home. 1B is cutoff on CF/RF→Home.
 9. **Position boundary**: Does each option describe an action THIS position would actually perform? A pitcher doesn't relay. A catcher doesn't go out as cutoff.
 
-These 9 checks are injected directly into the AI generation prompt in `index.jsx`.
+**Conditional checks (injected per-position via `getRelevantAudits()`):**
+10. **Bunt defense** (P, C, 1B, 2B, SS, 3B, MGR): Do assignments match Section 3.6? 2B covers 1st, SS covers 3rd with runners 1st & 2nd.
+11. **First-and-third** (P, C, 1B, 2B, SS, 3B, MGR): Do options match Section 3.7? SS/2B cuts, pitcher ducks, 1B stays.
+12. **Backup** (all 9 defensive + MGR): Are backup responsibilities correct per Section 3.8?
+13. **Rundown** (1B, 2B, SS, 3B, BR, MGR): Chase runner BACK, one throw max, no pump fakes per Section 3.9.
+14. **DP positioning** (P, 1B, 2B, SS, 3B, MGR): DP depth only with < 2 outs and force at 2nd per Section 3.10.
+15. **Hit-and-run** (2B, SS, BAT, BR, MGR): Coverage depends on batter handedness per Section 3.11.
+
+The base 9 checks plus relevant conditional checks are injected into the AI generation prompt in `index.jsx` via the conditional knowledge maps system.
 
 ---
 
@@ -305,6 +407,12 @@ Every scenario — handcrafted or AI-generated — must pass ALL of these:
 - [ ] Fly ball priority is correct: OF coming in > IF going back. Center > corners.
 - [ ] Relay default is toward HOME PLATE (preventing runs is priority)
 - [ ] Cutoff/relay roles match Section 3.5 — 3B cuts LF→Home, 1B cuts CF/RF→Home, pitcher NEVER cuts
+- [ ] Bunt defense assignments match Section 3.6 — 2B covers 1st, SS covers 3rd (runners 1st & 2nd)
+- [ ] First-and-third options match Section 3.7 — 4 standard catcher options, P ducks, 1B stays
+- [ ] Backup responsibilities match Section 3.8 — RF→1B, LF→3B, CF→2B, P→home/3B
+- [ ] Rundown mechanics match Section 3.9 — chase BACK, one throw, no pump fakes
+- [ ] DP positioning matches Section 3.10 — never DP depth with 2 outs
+- [ ] Hit-and-run assignments match Section 3.11 — coverage depends on batter handedness
 - [ ] Each option is an action the SPECIFIED position would perform in that moment
 
 ### Educational Quality
@@ -429,13 +537,27 @@ All 394 scenarios audited against the new Knowledge Framework (Section 3). Resul
 
 ## Appendix A: AI Prompt Enhancement Spec
 
-The AI generation prompt in `index.jsx` (`generateAIScenario()`) includes three injected blocks:
+The AI generation prompt in `index.jsx` (`generateAIScenario()`) includes these injected blocks:
 
 1. **Position Principles Block**: Full principles from `POS_PRINCIPLES` constant, injected per-position.
-2. **Data Reference Block**: Key RE24 data, count averages, stolen base break-even, fly ball priority hierarchy, relay default, force/tag rules.
-3. **Self-Audit Block**: The 7-point verification checklist the AI must pass before outputting.
+2. **Cutoff/Relay Map**: `CUTOFF_RELAY_MAP` constant — always injected for all positions.
+3. **Conditional Knowledge Maps**: 6 maps injected only when relevant to the current position via `getRelevantMaps(position)`:
+   - `BUNT_DEFENSE_MAP` — P, C, 1B, 2B, SS, 3B, MGR
+   - `FIRST_THIRD_MAP` — P, C, 1B, 2B, SS, 3B, MGR
+   - `BACKUP_MAP` — All 9 defensive + MGR
+   - `RUNDOWN_MAP` — 1B, 2B, SS, 3B, BR, MGR
+   - `DP_POSITIONING_MAP` — P, 1B, 2B, SS, 3B, MGR
+   - `HIT_RUN_MAP` — 2B, SS, BAT, BR, MGR
+4. **Data Reference Block**: Key RE24 data, count averages, stolen base break-even, fly ball priority hierarchy, relay default, force/tag rules.
+5. **Self-Audit Block**: 9 base checks + conditional per-position checks via `getRelevantAudits(position)`.
 
-These blocks are maintained in the `POS_PRINCIPLES` constant and the prompt template in `generateAIScenario()`. When updating principles in this document, also update the corresponding code.
+**Architecture**: `MAP_RELEVANCE` maps each knowledge map to its relevant positions. `getRelevantMaps()` filters and concatenates only the maps needed. `getRelevantAudits()` generates numbered audit items (starting at 10) for the injected maps. This keeps the prompt focused — a batter gets hit-and-run but not bunt defense; a manager gets everything.
+
+**Role Violations**: Client-side regex in `ROLE_VIOLATIONS` rejects AI scenarios with obviously wrong assignments (pitcher as cutoff, SS covering 1st on bunts, etc.) as a last-resort safety net.
+
+**Token Budget**: Worst case (manager, all 6 maps): ~2,141 tokens total prompt. Against the 2M context window, this is negligible.
+
+These blocks are maintained in constants and helper functions near `generateAIScenario()`. When updating principles in this document, also update the corresponding code.
 
 ---
 
