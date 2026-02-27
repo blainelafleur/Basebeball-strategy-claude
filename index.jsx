@@ -3692,6 +3692,109 @@ const MASTERY_SCHEMA = {
     },
   },
 };
+const ERROR_TAXONOMY = {
+  categories: {
+    ruleError: {
+      id:"rule-error", label:"Rule Error", labelYouth:"Let's check the rulebook!",
+      conceptGaps:["force-vs-tag","infield-fly","balk-rule","dropped-third-strike","obstruction-interference","appeal-play"],
+      feedbackTemplates: { youth:"Oops — that's a rules question! {correctPrinciple} Remember: {anchor}", varsity:"Rules check: {wrongChoice} isn't allowed here. {correctPrinciple} {anchor}", scout:"Rule violation: {wrongChoice} contradicts {ruleSource}. {correctPrinciple} {anchor}" },
+      anchors: {
+        "pitcher-cutoff":      "The pitcher sprints to BACK UP a base — the cutoff man is always an INFIELDER.",
+        "force-vs-tag":        "No lead = no choice = force play. Runner doesn't have to run = tag required.",
+        "infield-fly":         "The umpire calls it. Runners can advance — but at their own risk.",
+        "balk-rule":           "Any motion you start, you must finish. Step off the rubber and ALL balk rules disappear.",
+        "appeal-play":         "Umpires don't call missed bases — the DEFENSE must ask. Touch every base deliberately.",
+        "dropped-third-strike":"The catcher MUST catch it cleanly for the batter to be out on strike three.",
+      },
+      remediation: { priority:"high", scenarioDiff:1 },
+    },
+    dataError: {
+      id:"data-error", label:"Data Error", labelYouth:"The numbers say something different!",
+      conceptGaps:["bunt-re24","steal-breakeven","count-leverage","first-pitch-value","scoring-probability","times-through-order"],
+      feedbackTemplates: { youth:"Good thinking — but the math says {dataPoint}! {correctPrinciple} {anchor}", varsity:"The stats matter here: {dataPoint}. {wrongChoice} costs your team. {correctPrinciple} {anchor}", scout:"Data miss: {dataPoint} ({dataSource}). {wrongChoice} is {costDescription}. {correctPrinciple} {anchor}" },
+      anchors: {
+        "bunt-re24":        "Bunting trades an out for a base. The math says it costs runs — unless the fielders can't handle it.",
+        "steal-breakeven":  "Steal break-even: 72% MLB, 65% high school, 60% travel ball. Know your level.",
+        "count-leverage":   "The count tells you what to expect. On 2-0, sit fastball. On 0-2, protect the plate.",
+        "first-pitch-value":"First-pitch strikes save 0.048 runs per batter. The whole inning turns on pitch #1.",
+        "2-0-danger":       "2-0 fastball: .370 wOBA — most dangerous pitch-count combo in baseball. Mix in a breaking ball.",
+      },
+      remediation: { priority:"medium", scenarioDiff:2 },
+    },
+    roleConfusion: {
+      id:"role-confusion", label:"Role Confusion", labelYouth:"Wrong player — who's really in charge here?",
+      conceptGaps:["cutoff-roles","backup-duties","bunt-defense","of-communication","dp-positioning","wild-pitch-coverage"],
+      feedbackTemplates: { youth:"{wrongPosition} has a different job! {correctPosition} is the one who {correctAction}. {anchor}", varsity:"Role mix-up: {wrongPosition} can't do that — {correctPosition} owns this responsibility. {anchor}", scout:"Position assignment error: {wrongPosition} for {wrongAction} contradicts {mapSource}. {correctPosition} is responsible because {reason}. {anchor}" },
+      anchors: {
+        "cutoff-lf-home":   "LF throw home: 3B is the cutoff. Shortest infield path from LF.",
+        "cutoff-cf-home":   "CF throw home: 1B is the cutoff. 1B streaks out; 3B covers home.",
+        "cutoff-rf-home":   "RF throw home: 1B is the cutoff. RF and 1B are on the same side.",
+        "bunt-coverage":    "On a bunt: 2B covers 1st, SS covers 2nd. First baseman charges.",
+        "pitcher-backup":   "Pitcher backs up HOME (OF throws) and THIRD (right side throws). Never first or second.",
+        "cf-backup":        "CF backs up SECOND BASE — positioned beyond 2B on infield throws.",
+      },
+      remediation: { priority:"high", scenarioDiff:1 },
+    },
+    priorityError: {
+      id:"priority-error", label:"Priority Error", labelYouth:"Who gets the ball when two players go for it?",
+      conceptGaps:["fly-ball-priority","of-communication","popup-priority","cutoff-roles"],
+      feedbackTemplates: { youth:"{higherPriority} always has the right-of-way! {correctPrinciple} {anchor}", varsity:"Priority order: {higherPriority} outranks {lowerPriority} here. {correctPrinciple} {anchor}", scout:"Priority inversion: {lowerPriority} calling off {higherPriority} violates the priority hierarchy. {anchor}" },
+      anchors: {
+        "of-over-if":    "Outfielder coming IN beats infielder going BACK — always. Ball is in front of OF, behind IF.",
+        "cf-priority":   "CF has priority over EVERYONE — corner OFs and all infielders. His call is final. No exceptions.",
+        "early-call":    "Whoever calls the ball FIRST owns it. Late calls don't override early calls.",
+        "catcher-popup": "On a popup directly behind the plate, the CATCHER has priority — he knows the spin.",
+      },
+      remediation: { priority:"high", scenarioDiff:1 },
+    },
+    situationalMiss: {
+      id:"situational-miss", label:"Situational Miss", labelYouth:"Right idea, wrong moment!",
+      conceptGaps:["situational-hitting","win-probability","scoring-probability","bunt-re24","times-through-order","steal-breakeven"],
+      feedbackTemplates: { youth:"Good idea in the wrong moment! With {situationKey}, the right play is {correctAction}. {anchor}", varsity:"Situational read: {wrongChoice} makes sense in general — but {situationContext} changes everything. {anchor}", scout:"Context miss: {wrongChoice} is correct in a neutral state, but {situationContext} shifts the optimal decision. {re24OrWpContext} {anchor}" },
+      anchors: {
+        "two-outs-bunt":      "NEVER sacrifice bunt with 2 outs. You're giving away the last out of the inning for nothing.",
+        "3-0-steal":          "On 3-0, the catcher knows a steal is possible. The walk is almost free (48% BB rate).",
+        "late-game-switch":   "Early innings: play for runs (RE24). Late, close games: play for wins (WP). Framework switches around the 7th.",
+        "tto-compound":       "3rd TTO + wrong-side platoon = +48 BA points above baseline. 2 at-bats don't override the data.",
+        "2-out-run-contact":  "2 outs — always run on contact. The out ends the inning anyway.",
+      },
+      remediation: { priority:"medium", scenarioDiff:2 },
+    },
+    countBlindness: {
+      id:"count-blindness", label:"Count Blindness", labelYouth:"The scoreboard matters — even the little numbers!",
+      conceptGaps:["count-leverage","two-strike-approach","first-pitch-value","steal-breakeven"],
+      feedbackTemplates: { youth:"Look at the count! {count} means {countMeaning}. {anchor}", varsity:"Count matters: {count} is a {countLabel} count — hitters bat {ba} here. {wrongChoice} ignores that edge. {anchor}", scout:"Count context: {count} shows {ba} BA / {kRate}% K / {bbRate}% BB. {wrongChoice} applies neutral logic to {countEdge} territory. {anchor}" },
+      anchors: {
+        "0-2-protect":        "0-2: protect everything. Hitters bat .167. Expand your zone — the pitcher wants you to chase.",
+        "2-0-sit-fastball":   "2-0: sit on the fastball. Every pitcher in baseball throws one here. Be ready.",
+        "3-0-take":           "3-0: take the pitch unless you have the green light. 48% walk rate — the walk is almost free.",
+        "full-count":         "3-2: be ready for anything. Pitcher must throw a strike. Selective but protect the plate.",
+        "first-pitch":        "0-0: first-pitch strikes save 0.048 runs per batter. The whole at-bat hinges on pitch #1.",
+      },
+      remediation: { priority:"medium", scenarioDiff:1 },
+    },
+  },
+  classifyError: (scenario, chosenIdx) => {
+    const correctExp = (scenario.explanations?.[scenario.best] || '').toLowerCase();
+    const chosenExp  = (scenario.explanations?.[chosenIdx]    || '').toLowerCase();
+    const all = correctExp + ' ' + chosenExp;
+    if (/rule|illegal|violation|balk|appeal|infield fly|interference|obstruction|mlb rule/i.test(correctExp)) return 'ruleError';
+    if (/cutoff|relay|backup|who covers|who goes|2b covers|ss covers|pitcher backs/i.test(correctExp))         return 'roleConfusion';
+    if (/priority|calls it|calls off|has the right|outfielder.*infielder|cf.*corner|always wins/i.test(correctExp)) return 'priorityError';
+    if (/re24|run expectancy|break.?even|woba|0\.23|0\.19|statcast|fangraphs|\.370|\.280/i.test(correctExp))   return 'dataError';
+    if (/\b(count|0-2|2-0|3-0|3-1|full count|hitter.?s count|pitcher.?s count)\b/i.test(all))                 return 'countBlindness';
+    if (/2 outs|inning|score|late.?game|win probability|tto|time.*through|situation/i.test(correctExp))        return 'situationalMiss';
+    return null;
+  },
+  remediationRoutes: {
+    'rule-error':       { conceptGap: null,                 scenarioDiff: 1 },
+    'data-error':       { conceptGap: 'bunt-re24',          scenarioDiff: 2 },
+    'role-confusion':   { conceptGap: 'cutoff-roles',       scenarioDiff: 1 },
+    'priority-error':   { conceptGap: 'fly-ball-priority',  scenarioDiff: 1 },
+    'situational-miss': { conceptGap: 'situational-hitting',scenarioDiff: 2 },
+    'count-blindness':  { conceptGap: 'count-leverage',     scenarioDiff: 1 },
+  },
+};
 function getRelevantMaps(position) {
   return Object.entries(MAP_RELEVANCE)
     .filter(([, positions]) => positions.includes(position))
@@ -4308,6 +4411,30 @@ function detectErrorPatterns(masteryData, sessionHistory) {
     patterns.push({ key:'late-game-blindness', label:'Late-Game Blindness', conceptGap:'win-probability', aiInstruction:'Late-game scenario where RE24 and WP diverge. Correct answer uses WP logic, not RE24.' });
   return patterns;
 }
+function classifyAndFeedback(scenario, chosenIdx, playerAge, masteryData) {
+  if (chosenIdx === scenario.best) return null;
+  const errorKey = ERROR_TAXONOMY.classifyError(scenario, chosenIdx);
+  const category = errorKey ? ERROR_TAXONOMY.categories[errorKey] : null;
+  const tier = playerAge <= 10 ? 'youth' : playerAge <= 14 ? 'varsity' : 'scout';
+  const conceptTag = findConceptTag(scenario.concept);
+  const anchorMap = category?.anchors || {};
+  const anchorKey = (conceptTag && anchorMap[conceptTag]) ? conceptTag : Object.keys(anchorMap)[0] || null;
+  const anchor = anchorKey ? anchorMap[anchorKey] : null;
+  const prereqGap = (conceptTag && masteryData) ? getPrereqGap(conceptTag, masteryData) : null;
+  const icon = errorKey === 'ruleError' ? '📋' : errorKey === 'dataError' ? '📊' :
+               errorKey === 'roleConfusion' ? '🗺️' : errorKey === 'priorityError' ? '⚡' :
+               errorKey === 'situationalMiss' ? '🎯' : errorKey === 'countBlindness' ? '🔢' : '💡';
+  return {
+    errorType: errorKey || 'unclassified',
+    errorLabel: category ? (tier === 'youth' ? category.labelYouth : category.label) : 'Review this play',
+    conceptGap: prereqGap ? prereqGap.gap : (conceptTag || null),
+    anchor,
+    feedbackTier: tier,
+    remediationRoute: errorKey ? ERROR_TAXONOMY.remediationRoutes[errorKey] : null,
+    prereqGap,
+    enrichItem: { icon, text: anchor || 'Review the correct play and why it works.' },
+  };
+}
 function isConceptReady(tag, mastered, ageGroup) {
   const concept = BRAIN.concepts[tag];
   if (!concept) return {ready: true, missing: []};
@@ -4458,9 +4585,14 @@ function evaluateDefensiveAlignment(situation, proposedAlignment) {
   }
   return {justified,cost,explanation};
 }
-function enrichFeedback(scenario, choiceIdx, situation) {
+function enrichFeedback(scenario, choiceIdx, situation, playerAge, masteryData) {
   if (!situation) return [];
   const insights = [];
+  // Error taxonomy — first insight on wrong answers
+  if (typeof choiceIdx !== 'undefined' && choiceIdx !== scenario.best) {
+    const ef = classifyAndFeedback(scenario, choiceIdx, playerAge || 14, masteryData || {concepts:{}});
+    if (ef?.enrichItem) insights.push(ef.enrichItem);
+  }
   const {runners=[], outs=0, count, score=[0,0]} = situation;
   const re24 = getRunExpectancy(runners, outs);
   if (re24 > 0.5 && runners.length > 0)
@@ -5959,6 +6091,22 @@ export default function App(){
       const wc={...(p.wrongCounts||{})};
       if(!isOpt&&sc.id){wc[sc.id]=(wc[sc.id]||0)+1}
       else if(isOpt&&sc.id&&wc[sc.id]){delete wc[sc.id]} // Clear on correct answer
+      // SessionHistory tracking for error pattern detection
+      const conceptTag = findConceptTag(sc.concept);
+      const innNum = parseInt((sc.situation?.inning||'').replace(/\D/g,''))||1;
+      const scoreDiff = Math.abs((sc.situation?.score?.[0]||0)-(sc.situation?.score?.[1]||0));
+      const shEntry = {
+        scenarioId: sc.id||null, conceptTag: conceptTag||null, correct: isOpt,
+        choiceText: sc.options?.[idx]||'', chosenIdx: idx,
+        errorType: !isOpt ? (classifyAndFeedback(sc, idx, parseInt(p.ageGroup)||14, p.masteryData||{concepts:{}})?.errorType||null) : null,
+        countContext: sc.situation?.count ? (BRAIN.stats.countData?.[sc.situation.count]?.edge||null) : null,
+        lateClose: innNum >= 7 && scoreDiff <= 2,
+        ts: Date.now(),
+      };
+      const sh = [...(p.masteryData?.sessionHistory||[]), shEntry].slice(-50);
+      // Update concept mastery state
+      const updMastery = updateConceptMastery(p.masteryData||{concepts:{},errorPatterns:{},sessionHistory:[]}, conceptTag, isOpt, sc.id);
+      updMastery.sessionHistory = sh;
       // Difficulty graduation for ages 6-8
       const posGrad={...(p.posGrad||{})};
       const updatedPs={...p.ps,[pos]:{p:(p.ps[pos]?.p||0)+1,c:(p.ps[pos]?.c||0)+(isOpt?1:0)}};
@@ -5981,7 +6129,7 @@ export default function App(){
         dailyDone:dailyMode?true:p.dailyDone,dailyDate:dailyMode?today:(p.dailyDate||today),
         firstPlayDate:p.firstPlayDate||now,lastPlayDate:now,
         seasonCorrect:seasonMode&&isOpt?(p.seasonCorrect||0)+1:(p.seasonCorrect||0),
-        wrongCounts:wc,posGrad,posPlayed:posP};
+        wrongCounts:wc,posGrad,posPlayed:posP,masteryData:updMastery};
       ns.achs=checkAch(ns);
       const newLvl=getLvl(ns.pts);
       if(newLvl.n!==prevLvl.n){setTimeout(()=>{setLvlUp(newLvl);snd.play('lvl')},600)}
