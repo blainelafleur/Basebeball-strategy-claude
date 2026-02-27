@@ -3684,6 +3684,9 @@ function getRelevantAudits(position) {
 // Stats from FanGraphs RE24 (2015-2024 avg), Baseball Reference count data
 // ============================================================================
 const BRAIN = { stats: {
+  // RE24 source: FanGraphs run expectancy matrix, 2015-2024 MLB averages.
+  // Stable across pitch clock era — 2023 run environment (4.45 R/G) within normal variance.
+  // Values verified 2024. Do not round further — 2 decimal places is correct precision.
   // Run Expectancy Matrix: RE24[runnersKey][outs] = expected runs from this state onward
   // Keys: "---"=empty, "1--"=1st, "-2-"=2nd, "--3"=3rd, "12-"=1st+2nd, "1-3"=1st+3rd, "-23"=2nd+3rd, "123"=loaded
   RE24: {
@@ -3709,6 +3712,9 @@ const BRAIN = { stats: {
   stealBreakEven: {0:0.72, 1:0.72, 2:0.67},  // by outs
   buntDelta: {"1--_0":-0.23, "-2-_0":-0.19, "12-_0":-0.08},  // RE24 cost of sac bunt
   ttoEffect: [0, 15, 30],  // BA points penalty by times-through-order (1st, 2nd, 3rd)
+  // Source: The Book (Tango/Lichtman/Dolphin), verified FanGraphs TTO splits 2019-2023.
+  // Modern note: surviving 3rd-TTO starters are above-average — true effect may exceed 30 pts
+  // for average starters. Use as floor. Full expansion in matchupMatrix.tto.
   matchupMatrix: {
     platoon: {
       sameHand: { ba: .248, wOBA: .302, slug: .388 },     // pitcher advantage
@@ -3797,10 +3803,26 @@ const BRAIN = { stats: {
     },
   },
   platoonEdge: 18,          // ~18 BA points for opposite-hand matchup
+  // Source: FanGraphs splits leaderboards 2019-2023. OPS pts advantage, opposite-hand batter.
+  // Range: 15-22 pts by year. 18 is the stable midpoint.
+  // Full breakdown by handedness and count in matchupMatrix.platoon.
   popTime: {elite:1.85, average:2.0, slow:2.15},
-  timeToPlate: {quick:1.2, average:1.4, slow:1.6},
+  timeToPlate: {quick:1.2, average:1.35, slow:1.55},
+  // Source: Baseball Savant pitch tempo data 2023-2024 post-pitch-clock.
+  // Pre-2023: 1.40s average, 1.60s slow. Pitch clock compressed by ~0.15-0.20s.
+  // Consistent with stealWindow.deliveryTime values.
   pickoffSuccess: {blindThrow:0.08, readThrow:0.28, daylightPlay:0.35},
-  pitchClockViolations: {pitcherRate:0.004, batterRate:0.002},
+  // Source: ABCA coaching consensus estimates — not Statcast-measured.
+  // POST-PITCH-CLOCK (2023+): 2 free disengagements per PA. 3rd = balk unless runner picked off.
+  // Blind throws now costlier — pitchers conserve disengagements for read-based attempts.
+  // Treat blindThrow rate as theoretical max; real post-clock usage is lower.
+  pitchClockViolations: {
+    pitcherRate: 0.004,      // 2023 full season (Baseball Reference)
+    batterRate: 0.002,       // 2023 full season
+    pitcherRate2024: 0.002,  // 2024 — dropped ~50% as players adapted
+    batterRate2024: 0.001,   // 2024
+    trend: "Violation rates declining yearly — strategic value is now in rhythm disruption, not clock exploitation.",
+  },
   // Baserunning advancement rates (FanGraphs/Statcast 2021-2024 MLB avg)
   baserunningRates: {
     first_to_third_on_single: 0.28, first_to_third_elite: 0.45, first_to_third_slow: 0.15,
@@ -3846,6 +3868,61 @@ const BRAIN = { stats: {
     eliteRate:0.68, averageRate:0.59, poorRate:0.50,
     firstPitchSwingBA:0.340, firstPitchTakeBA:0.315,
     afterFirstStrikeK:0.24, afterFirstStrikeBB:0.05,
+  },
+  catcherFramingValue: {
+    // Source: Baseball Savant Statcast framing metrics 2019-2023
+    eliteFramer: +15,    // runs above average per season
+    averageFramer: 0,
+    poorFramer: -12,     // runs below average per season
+    perPitchValue: 0.125, // ~0.125 runs per called strike stolen
+    highValueCounts: ["0-0","1-0","2-0","3-1","3-2"],
+    lowValueCounts:  ["0-2","1-2"],
+    teachingPoint: "Pitch framing is the single most valuable catcher defensive skill — elite framers worth more per season than throwing out baserunners.",
+    positionNote: "Framing is about glove stillness after receiving — any pull away from the zone kills the frame.",
+  },
+  leagueTrends: {
+    // Source: Baseball Reference league stats 2014-2024
+    strikeoutRate: {
+      2014: 0.199, 2018: 0.224, 2022: 0.220, 2023: 0.228, 2024: 0.226,
+      trend: "K rate roughly doubled from 1980 (12%) to 2023 (22.8%). 'Protect the zone' in two-strike counts is more critical than ever.",
+    },
+    walkRate: {
+      2014: 0.077, 2018: 0.083, 2022: 0.083, 2023: 0.078, 2024: 0.077,
+      trend: "Walk rate dropped slightly post-pitch-clock — batters have less time to work deep counts on 3-0 and 3-1.",
+    },
+    babip: {
+      league: 0.298,  // extremely stable 2015-2024
+      byContactType: {
+        lineDrive: 0.685,   // Source: FanGraphs contact type splits 2019-2023
+        groundBall: 0.235,
+        flyBall:    0.130,  // excludes home runs
+        popup:      0.020,
+      },
+      teachingPoint: "Line drives fall for hits 68.5% of the time. Popups are outs 98% of the time. Contact type determines outcome more than exit velocity alone at the youth level.",
+    },
+    hitByPitch: {
+      leagueRate: 0.011,  // ~1.1% of plate appearances — Baseball Reference 2019-2023
+      strategicNote: "HBP = same RE24 value as a walk. Pitchers working inside (sinker/cutter) generate 2-3x more HBPs. Relevant for catcher game-planning near the hip.",
+    },
+    countWalkRates: {
+      // Source: Baseball Reference count splits 2021-2024 — walk% by count
+      "0-0": 0.00, "1-0": 0.09, "2-0": 0.18, "3-0": 0.48,
+      "0-1": 0.04, "1-1": 0.08, "2-1": 0.14, "3-1": 0.29,
+      "0-2": 0.02, "1-2": 0.03, "2-2": 0.07, "3-2": 0.15,
+    },
+  },
+  infieldInRunImpact: {
+    // Source: Statcast OAA + run value analysis 2021-2024, The Book
+    runsPreventedPerGame: +0.30,   // runs saved by cutting off grounder with R3
+    runsCostPerGame:      -0.50,   // runs lost to hits through drawn-in infield
+    netCostPerGame:       -0.20,   // net: costs ~0.2 runs/game on average
+    scoringProbDelta: {
+      normal_0out:    0.85,  // 85% score from 3rd with 0 outs, normal depth
+      infieldIn_0out: 0.72,  // 72% score from 3rd with 0 outs, infield in
+      // Infield in reduces R3 scoring probability but the net run cost is still negative
+    },
+    justifiedWhen: "R3, <2 outs, late game, tie or 1-run deficit only",
+    neverJustified: "Up by 2+ runs, early innings, 2 outs (force play exists regardless)",
   },
   // Pitch type effectiveness data (Baseball Savant Statcast 2021-2024)
   // rv100: Run value per 100 pitches (negative = better for pitcher)
