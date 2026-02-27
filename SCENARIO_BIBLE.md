@@ -71,8 +71,10 @@ When building or auditing scenarios, resolve conflicts using this precedence:
 - From the stretch: quick to the plate, vary hold times to disrupt steal timing.
 - Pitch to contact with a lead; pitch for strikeouts in high leverage.
 - Pickoffs: disrupt timing and shorten leads, don't just throw blindly.
-- Fielding bunts and covering first are pitcher responsibilities.
 - Pitch sequencing: set up pitches with eye level changes and speed differentials.
+- **Defensive duties**: Field bunts, cover 1B on grounders to the right side, cover home on wild pitches/passed balls.
+- **Backup duty**: Back up home plate on ALL throws from OF to home. Back up 3B on throws to third.
+- **NEVER the cutoff or relay man** — that is ALWAYS an infielder (see Section 3.5).
 
 ### Catcher
 - Field general: calls pitches based on count, batter weakness, and situation.
@@ -86,19 +88,22 @@ When building or auditing scenarios, resolve conflicts using this precedence:
 - Scoop low throws — stretch toward the throw, keep your foot on the bag.
 - Hold runners: give pitcher a target, apply tag on pickoff throws.
 - Bunt defense: charge aggressively. 2B covers first.
-- Cutoff on throws from RF to home.
+- **Cutoff on throws from CF and RF to home** — line up between OF and home plate, listen for catcher's call.
+- When you're cutoff, 2B covers 1B.
 - Know when force is removed: runner out ahead of you = tag play, not force.
 
 ### Second Base
 - Double play pivot: receive feed, touch second, get off the bag to avoid the runner.
-- Relay man on balls hit to RIGHT field — default toward home plate.
+- **Relay (double-cut) on extra-base hits to the RIGHT side** (RF line, RF-CF gap) — lead relay, line up between OF and home plate.
+- Cover 1B when first baseman is the cutoff. On singles from RF to home, 1B is the cutoff, NOT 2B.
 - Cover first on bunts when 1B charges.
 - Fly ball priority: outfielder coming in ALWAYS has priority over you going back.
 
 ### Shortstop
 - Captain of the infield for communication on fly balls and relays.
 - Double play feed: firm, chest-high throw to second.
-- Relay man on balls hit to LEFT field — default toward home plate.
+- **Relay (double-cut) on extra-base hits to the LEFT side** (LF line, LF-CF gap, deep CF) — lead relay, line up between OF and home plate.
+- **Cutoff on throws to 3B** (runner advancing 1B→3B). On singles from LF to home, 3B is the cutoff, NOT SS — SS covers 3B.
 - Deep-hole play: plant hard, strong throw across the diamond (signature play).
 - Steal coverage: straddle the bag, sweep tag down in front of the base.
 - Fly ball priority: outfielder coming in ALWAYS has priority over you going back. Never call off an outfielder on a shallow fly.
@@ -109,6 +114,40 @@ When building or auditing scenarios, resolve conflicts using this precedence:
 - Slow rollers: charge aggressively, bare-hand scoop-and-throw in one motion.
 - Guard the line late in close games (prevent extra-base hits down the line).
 - Fly ball priority: outfielder coming in has priority on tweeners behind you.
+- **Cutoff on singles from LF to home** — line up between LF and home plate, listen for catcher's call. SS covers 3B when you go out as cutoff.
+
+### 3.5 Cutoff/Relay Assignments (Authoritative — Sources: Pro Baseball Insider, ABCA, Baseball Made Fun)
+
+**Cardinal Rules:**
+1. Pitcher is **NEVER** the cutoff or relay man — always backs up the target base.
+2. Catcher stays at home, directs the cutoff: "Cut!" / "Cut two!" / "Cut three!" / silence = let it go.
+3. 3B = cutoff on LF singles to home. 1B = cutoff on CF/RF singles to home.
+4. SS = cutoff on ALL throws to 3B from outfield.
+5. Double cuts: SS leads on left-side balls, 2B leads on right-side balls.
+6. Trail man positions 20-30 feet behind lead relay, in line with target base.
+
+**Single Cuts to HOME (runner scoring on a base hit):**
+
+| From | Cutoff Man | SS Does | Pitcher |
+|------|-----------|---------|---------|
+| LF | **3B** | Covers 3B | Backs up home |
+| CF | **1B** | Covers 2B | Backs up home |
+| RF | **1B** | Covers 2B | Backs up home |
+
+**Single Cuts to 3B (runner advancing 1B→3B):**
+
+| From | Cutoff Man | Pitcher |
+|------|-----------|---------|
+| LF | **SS** | Backs up 3B |
+| CF | **SS** | Backs up 3B |
+| RF | **SS** | Backs up 3B |
+
+**Double Cuts / Relays (extra-base hits to gap or wall):**
+
+| Ball Location | Lead Relay | Trail Man | Pitcher |
+|--------------|-----------|-----------|---------|
+| LF line / LF-CF gap | **SS** | **2B** | Backs up home |
+| RF-CF gap / RF line | **2B** | **SS** (or 1B on RF line) | Backs up home |
 
 ### Left Field
 - Priority over ALL infielders on fly balls you can reach (coming in is easier).
@@ -116,6 +155,7 @@ When building or auditing scenarios, resolve conflicts using this precedence:
 - Wall play: round the ball so momentum carries toward the infield. Never field and spin.
 - Back up third base on all infield ground balls.
 - Sun balls: use glove as primary shield, sunglasses as supplementary.
+- **Your cutoff on throws home is the 3B. On doubles, your relay is the SS.**
 
 ### Center Field
 - Priority on ALL fly balls you can reach — over corner OF and all infielders.
@@ -123,6 +163,7 @@ When building or auditing scenarios, resolve conflicts using this precedence:
 - Gap coverage: take angle routes (banana routes), not straight-back.
 - Do-or-die throws: charge the ball, crow-hop, throw through the cutoff.
 - Back up second base on infield plays.
+- **Your cutoff on throws home is the 1B. On doubles, your relay is the SS.**
 
 ### Right Field
 - Strong arm is your biggest weapon — throw out runners at third and home.
@@ -130,6 +171,7 @@ When building or auditing scenarios, resolve conflicts using this precedence:
 - Priority over infielders (1B, 2B) on fly balls you can reach.
 - Cutoff throws: hit the cutoff unless you have a clear play at the base.
 - Wall play: learn caroms off the wall in your corner.
+- **Your cutoff on throws home is the 1B. On doubles, your relay is the 2B.**
 
 ### Batter
 - Count leverage is everything. Hitter's counts (2-0, 3-1): be aggressive on YOUR pitch.
@@ -232,7 +274,7 @@ When building or auditing scenarios, resolve conflicts using this precedence:
 
 ## 6. AI Self-Audit Protocol
 
-Every AI-generated scenario must pass this 7-point verification before being accepted:
+Every AI-generated scenario must pass this 9-point verification before being accepted:
 
 1. **Situation validity**: Is the game situation physically possible? (outs 0-2, count valid, runners/score consistent)
 2. **Option feasibility**: Can this player physically perform all 4 options from their position in this moment?
@@ -241,8 +283,10 @@ Every AI-generated scenario must pass this 7-point verification before being acc
 5. **Statistical accuracy**: Are any cited percentages approximately correct? (no invented numbers)
 6. **Principles consistency**: Does the scenario contradict any principle in the Principles Library (Section 3)?
 7. **Animation match**: Is the anim type consistent with the scenario action?
+8. **Role check**: Does the scenario assign correct defensive roles per Section 3.5? Pitcher is NEVER cutoff. 3B is cutoff on LF→Home. 1B is cutoff on CF/RF→Home.
+9. **Position boundary**: Does each option describe an action THIS position would actually perform? A pitcher doesn't relay. A catcher doesn't go out as cutoff.
 
-These 7 checks are injected directly into the AI generation prompt in `index.jsx`.
+These 9 checks are injected directly into the AI generation prompt in `index.jsx`.
 
 ---
 
@@ -260,6 +304,8 @@ Every scenario — handcrafted or AI-generated — must pass ALL of these:
 - [ ] Statistics cited are approximately correct (sourced from Section 5 data)
 - [ ] Fly ball priority is correct: OF coming in > IF going back. Center > corners.
 - [ ] Relay default is toward HOME PLATE (preventing runs is priority)
+- [ ] Cutoff/relay roles match Section 3.5 — 3B cuts LF→Home, 1B cuts CF/RF→Home, pitcher NEVER cuts
+- [ ] Each option is an action the SPECIFIED position would perform in that moment
 
 ### Educational Quality
 - [ ] The "why" is explained, not just the "what"
@@ -472,3 +518,8 @@ When a player answers a scenario wrong, spaced repetition should **not** replay 
 - [Coach and Athletic Director — Priority System](https://coachad.com/articles/the-priority-system-in-baseball/) — Tier 3
 - [ABCA (American Baseball Coaches Association)](https://abca.org/) — Tier 3
 - [USA Baseball](https://usabaseball.com/) — Tier 3
+- [Pro Baseball Insider — Relay Fundamentals](https://probaseballinsider.com/baseball-instruction/relay-and-cut-off-fundamentals/) — Tier 3
+- [Pro Baseball Insider — SS Positioning for Cutoffs](https://probaseballinsider.com/shortstop-positioning-part-1-cut-offs-and-relays/) — Tier 3
+- [Pro Baseball Insider — 3B Relay Positioning](https://probaseballinsider.com/baseball-instruction/third-base/third-base-positioning-for-relays/) — Tier 3
+- [Pro Baseball Insider — Double Cuts & Relays](https://probaseballinsider.com/baseball-instruction/positioning-for-double-cuts-and-relays/) — Tier 3
+- [Baseball Made Fun — Cutoff Cheat Sheet](https://baseballmadefun.com/baseball-cut-off-positions-cheat-sheet/) — Tier 3

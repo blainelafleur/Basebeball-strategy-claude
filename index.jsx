@@ -901,7 +901,7 @@ const SCENARIOS = {
       best:1,explanations:["On a slow roller from normal depth, you had to range to your left and take time to field it. The runner broke on contact — by now he's almost home. A long throw across your body to the plate will likely be late or wild. Know when you don't have the play.","This is the smart play. On a slow grounder from normal depth, the runner breaking on contact will beat your throw home. Take the sure out at first — don't let the batter reach base too. Give up the run you can't stop, get the out you can.","While reading the runner is good instinct, on a slow roller you took too long to field it. The runner is already committed and almost home. Holding the ball means no out anywhere — now you've given up the run AND the out.","The runner already committed to home — throwing to an empty third base is a wasted throw. You need to get an out somewhere."],
       rates:[30,85,15,5],concept:"On a slow roller from normal depth, the runner from third will beat your throw home — take the sure out at first",anim:"groundout"},
     {id:"f31",title:"Cutoff Man Position on a Relay",diff:3,cat:"outfield",
-      description:"Top of the 6th, runner on 1st, nobody out. Double to right-center gap. You're the shortstop going out as the relay man. Where do you position yourself?",
+      description:"Top of the 6th, runner on 1st, nobody out. Double to left-center gap. You're the shortstop going out as the relay man. Where do you position yourself?",
       situation:{inning:"Top 6",outs:0,count:"-",runners:[1],score:[2,2]},
       options:["In a straight line between the outfielder and home plate","In a straight line between the outfielder and third base","Halfway between the outfielder and the infield","As close to the outfielder as possible"],
       best:0,explanations:["Line yourself up directly between the outfielder and home plate. Raise your arms so the outfielder can see you and has a target. The throw from the outfielder should come to you chest-high, and you catch-and-fire to home in one motion.","Lining up toward third only works if you know the throw is going to third. Default to home — you can always redirect to third after catching it.","Halfway is too vague. You need to be in the optimal relay distance — close enough to receive a strong throw but far enough to get momentum on your throw home.","Being too close to the outfielder makes your relay throw longer. Position yourself about 100-130 feet from home."],
@@ -1162,7 +1162,7 @@ const SCENARIOS = {
       explSimple:["Hold your glove up to block the sun from your eyes. That way you can still see the ball!","Running without seeing where the ball is means you'll probably miss it.","If you stop and call for help, the ball will land before anyone gets there.","Dropping to your knee doesn't block the sun — you need your glove up high."],
       rates:[85,25,35,30],concept:"Use your glove to shade the sun — fundamental outfield technique",anim:"catch"},
     {id:"f23",title:"Hit the Cutoff Man",diff:1,cat:"outfield",
-      description:"Top of the 5th, runner on 2nd, 1 out. Single to left field — the runner is rounding third heading home. You're the left fielder. The shortstop is your cutoff man.",
+      description:"Top of the 5th, runner on 2nd, 1 out. Single to left field — the runner is rounding third heading home. You're the left fielder. The third baseman is your cutoff man.",
       situation:{inning:"Top 5",outs:1,count:"-",runners:[2],score:[2,3]},
       options:["Throw directly home — skip the cutoff","Hit the cutoff man with a strong, low throw","Hold the ball — the runner will score anyway","Throw to third to get the batter"],
       best:1,explanations:["Throwing over the cutoff man often results in a wild throw that bounces past the catcher. The runner scores AND the batter advances. Always hit the cutoff!","Hitting the cutoff man is fundamental outfield play. A strong throw to the cutoff gives your team options — the cutoff can relay home, cut it off if the runner stops, or redirect to another base. It's the smart play every time.","Giving up before making a play is never the right answer. Make a throw and let the cutoff man decide.","The batter is your secondary concern. Stop the run from scoring first, then worry about the batter."],
@@ -1192,7 +1192,7 @@ const SCENARIOS = {
       best:0,explanations:["When the wind is blowing out, play 10-15 feet deeper than normal. Fly balls will carry farther, and balls that would normally be warning track fly outs become home runs or extra-base hits if you're playing too shallow. Depth is your friend with the wind at your back.","Adjusting on each ball means you're constantly behind. Set your depth before the pitch.","Playing shallow is the OPPOSITE of what you should do. Wind blowing out means balls carry — give yourself room.","It absolutely matters. A ball you would normally catch at the warning track now sails over the fence if you're too shallow."],
       rates:[85,35,10,20],concept:"When the wind blows out, play deeper — fly balls carry farther and you need the extra room",anim:"catch"},
     {id:"lf1",title:"Hit the Cutoff",diff:1,cat:"fielder",
-      description:"You're the left fielder. Bottom of the 4th, runner on second, one out. The batter singles to your left. You field it cleanly about 20 feet from the foul line. The runner is rounding third and heading home. Your shortstop is lined up as the cutoff man.",
+      description:"You're the left fielder. Bottom of the 4th, runner on second, one out. The batter singles to your left. You field it cleanly about 20 feet from the foul line. The runner is rounding third and heading home. Your third baseman is lined up as the cutoff man.",
       situation:{inning:"Bot 4",outs:1,count:"0-2",runners:[2],score:[3,1]},
       options:["Throw a strong one-hopper to the cutoff man's chest","Throw it directly to home plate, skipping the cutoff","Throw it to third base to keep the batter from advancing","Hold the ball and jog it in"],
       best:0,explanations:["Hitting the cutoff man gives your team options — he can let it go through to the plate or redirect it. A one-hopper to his chest is a throw he can handle cleanly.","Trying to skip the cutoff from deep left field often leads to wild throws that miss everyone. Even strong arms should use the relay to keep throws accurate.","Throwing to third ignores the runner scoring. The priority is always the lead runner, and right now he's heading home.","Holding the ball lets the runner score easily and the batter take extra bases. You must get the ball in quickly."],
@@ -3058,19 +3058,28 @@ function getDailyScenario(){
 // ============================================================================
 const ANIMS = ["strike","strikeout","hit","groundout","flyout","steal","score","advance","catch","throwHome","doubleplay","bunt","walk","safe","freeze"];
 const POS_PRINCIPLES = {
-  pitcher:"Pitch selection depends on count, situation, and batter tendencies. First-pitch strikes are critical (.340 BA on first-pitch strikes vs .167 on 0-2). Work ahead in the count. Pitch to contact with a lead; pitch for strikeouts in high leverage. From the stretch with runners on: be quick to the plate, vary hold times. Pickoffs: disrupt timing, don't just throw blindly. Fielding bunts and covering first are pitcher responsibilities. Pitch sequencing: set up pitches with eye level and speed changes.",
-  catcher:"The catcher is the field general — calls pitches based on count, batter weakness, and game situation. Framing: subtle glove pull on borderline pitches; stillness in high-leverage counts. Blocking: smother balls in the dirt, keep them in front. Throwing out runners: quick transfer, strong accurate throw to the bag side. Pop-ups near home: catcher has priority, turn your back to the field (the ball curves back toward the field). Mound visits: calm the pitcher, refocus on the plan.",
-  firstBase:"Scoop low throws — stretch toward the throw, keep your foot on the bag. Hold runners: give the pitcher a target, apply tag on pickoff throws. On bunts: charge aggressively, the second baseman covers first. Cutoff on throws from right field to home. 3-6-3 double play: catch, step on first, throw to shortstop covering second. Know when force is removed (runner out ahead of you = tag play, not force).",
-  secondBase:"Double play pivot: receive the feed, touch second, get off the bag quickly to avoid the runner. Relay man on balls hit to RIGHT field — line up between outfielder and home plate (default toward home). Cover first on bunts when 1B charges. FLY BALL PRIORITY: outfielder coming in ALWAYS has priority over you going back. Going back on a fly is the hardest catch — let the outfielder take tweeners.",
-  shortstop:"Captain of the infield for communication. Double play feed: firm chest-high throw. Relay man on balls hit to LEFT field — default alignment toward home plate. Deep-hole play: plant hard, strong throw across the diamond. Steal coverage: straddle the bag, sweep tag down. FLY BALL PRIORITY: outfielder coming in ALWAYS has priority over you going back. Never call off an outfielder on a shallow fly — they have the easier catch.",
-  thirdBase:"Hot corner: quick reactions on hard-hit balls. Bunt defense: crash hard, bare-hand if needed, strong throw to first. Slow rollers: charge aggressively, bare-hand pickup and throw in one motion. Guard the line late in close games to prevent extra-base hits. Against pull hitters (right-handed): shade toward the line. FLY BALL PRIORITY: outfielder coming in has priority on tweeners behind you.",
-  leftField:"Outfielder priority: you have priority over ALL infielders on fly balls you can reach. Coming in on a ball is easier than going back — the ball is in front of you. Hit the cutoff man — don't try to throw all the way home unless the play is there. Wall play: round the ball so momentum carries toward the infield. Back up third base on all infield ground balls. Sun balls: use glove as a shield.",
-  centerField:"You are the priority fielder on ALL fly balls you can reach — center fielder has priority over corner outfielders AND all infielders. Call it loud and early. Gap coverage: take angle routes, not straight-back routes. Do-or-die throws: charge the ball, crow-hop, throw through the cutoff. Communication is your responsibility — you see the whole field. Back up second base on infield plays.",
-  rightField:"Strong arm is your biggest weapon — throw out runners at third and home. Back up first base on EVERY infield grounder (your most important routine job). Outfielder priority: you have priority over infielders (1B, 2B) on fly balls you can reach. Coming in is always easier than going back. Cutoff throws: hit the cutoff unless you have a clear play. Wall play: learn caroms off the wall in your corner.",
+  pitcher:"Pitch selection depends on count, situation, and batter tendencies. First-pitch strikes are critical (.340 BA on first-pitch strikes vs .167 on 0-2). Work ahead in the count. Pitch to contact with a lead; pitch for strikeouts in high leverage. From the stretch with runners on: be quick to the plate, vary hold times. Pickoffs: disrupt timing, don't just throw blindly. Pitch sequencing: set up pitches with eye level and speed changes. DEFENSIVE: Field bunts, cover 1B on grounders to right side, cover home on wild pitches/passed balls. Back up home plate on ALL throws from OF to home. Back up 3B on throws to third. NEVER be the cutoff or relay man — that is ALWAYS an infielder.",
+  catcher:"The catcher is the field general — calls pitches based on count, batter weakness, and game situation. Framing: subtle glove pull on borderline pitches; stillness in high-leverage counts. Blocking: smother balls in the dirt, keep them in front. Throwing out runners: quick transfer, strong accurate throw to the bag side. Pop-ups near home: catcher has priority, turn your back to the field (the ball curves back toward the field). Mound visits: calm the pitcher, refocus on the plan. NEVER leave home unattended with runners in scoring position. Direct the cutoff man: 'Cut!' (hold), 'Cut two/three!' (redirect), or let it go. Block the plate legally (give a lane, receive and tag).",
+  firstBase:"Scoop low throws — stretch toward the throw, keep your foot on the bag. Hold runners: give pitcher a target, apply tag on pickoff throws. On bunts: charge aggressively, 2B covers first. CUTOFF on throws from CF and RF to home — line up between OF and home plate, listen for catcher's call. When you're cutoff, 2B covers 1B. 3-6-3 double play: catch, step on first, throw to shortstop covering second. Know when force is removed (runner out ahead of you = tag play, not force).",
+  secondBase:"Double play pivot: receive the feed, touch second, get off the bag quickly to avoid the runner. RELAY (double-cut) on extra-base hits to the RIGHT side (RF line, RF-CF gap) — lead relay, line up between OF and home plate. Cover 1B when first baseman is the cutoff. On SINGLES from RF to home, 1B is the cutoff, NOT you. Cover first on bunts when 1B charges. FLY BALL PRIORITY: outfielder coming in ALWAYS has priority over you going back. Going back on a fly is the hardest catch — let the outfielder take tweeners.",
+  shortstop:"Captain of the infield for communication. Double play feed: firm chest-high throw. RELAY (double-cut) on extra-base hits to the LEFT side (LF line, LF-CF gap, deep CF) — lead relay, line up between OF and home plate. CUTOFF on throws to 3B (runner advancing 1B→3B). On SINGLES from LF to home, 3B is the cutoff, NOT you — you cover 3B. Deep-hole play: plant hard, strong throw across the diamond. Steal coverage: straddle the bag, sweep tag down. FLY BALL PRIORITY: outfielder coming in ALWAYS has priority over you going back. Never call off an outfielder on a shallow fly — they have the easier catch.",
+  thirdBase:"Hot corner: quick reactions on hard-hit balls. Bunt defense: crash hard, bare-hand if needed, strong throw to first. Slow rollers: charge aggressively, bare-hand pickup and throw in one motion. Guard the line late in close games to prevent extra-base hits. Against pull hitters (right-handed): shade toward the line. FLY BALL PRIORITY: outfielder coming in has priority on tweeners behind you. CUTOFF on singles from LF to home — line up between LF and home plate, listen for catcher's call. SS covers 3B when you go out as cutoff.",
+  leftField:"Outfielder priority: you have priority over ALL infielders on fly balls you can reach. Coming in on a ball is easier than going back — the ball is in front of you. Hit the cutoff man — don't try to throw all the way home unless the play is there. Wall play: round the ball so momentum carries toward the infield. Back up third base on all infield ground balls. Sun balls: use glove as a shield. Your cutoff on throws home is the 3B. On doubles, your relay is the SS.",
+  centerField:"You are the priority fielder on ALL fly balls you can reach — center fielder has priority over corner outfielders AND all infielders. Call it loud and early. Gap coverage: take angle routes, not straight-back routes. Do-or-die throws: charge the ball, crow-hop, throw through the cutoff. Communication is your responsibility — you see the whole field. Back up second base on infield plays. Your cutoff on throws home is the 1B. On doubles, your relay is the SS.",
+  rightField:"Strong arm is your biggest weapon — throw out runners at third and home. Back up first base on EVERY infield grounder (your most important routine job). Outfielder priority: you have priority over infielders (1B, 2B) on fly balls you can reach. Coming in is always easier than going back. Cutoff throws: hit the cutoff unless you have a clear play. Wall play: learn caroms off the wall in your corner. Your cutoff on throws home is the 1B. On doubles, your relay is the 2B.",
   batter:"Count leverage is everything. Hitter's counts (1-0, 2-0, 2-1, 3-1): be aggressive on your pitch. Pitcher's counts (0-1, 0-2, 1-2): protect the zone, shorten up. Two-strike approach: expand the zone slightly, fight off tough pitches. Situational hitting: runner on third with less than 2 outs = fly ball scores him. Hit behind the runner to advance from second to third. RE24 data: sacrifice bunts usually LOWER run expectancy except with weak hitters late in close games needing exactly 1 run.",
   baserunner:"Stolen bases break even at ~72% success rate (per RE24) — below that, you're hurting your team. Read the pitcher: watch first-move pickoff tells, time his delivery. Tag-ups: watch the fielder's feet, leave on the catch. Line drives: freeze and read, never get doubled off. Advancing on contact: aggressive but smart — never make the first or third out at third base. Respect coach's signs always. Secondary leads: key to advancing on passed balls and wild pitches.",
-  manager:"Manage by the situation, not by the book. RE24 run expectancy guides sacrifice bunt decisions (usually bad except: weak hitter, late game, need exactly 1 run). Stolen bases need ~72% success to break even. Pitching changes: matchup advantages (L/R platoon), fatigue, times through the order (batters hit ~30 points better third time through). Intentional walks: only with first base open and a clear skill gap to next hitter. Defensive positioning: guard lines late, play for DP early."
+  manager:"Manage by the situation, not by the book. RE24 run expectancy guides sacrifice bunt decisions (usually bad except: weak hitter, late game, need exactly 1 run). Stolen bases need ~72% success to break even. Pitching changes: matchup advantages (L/R platoon), fatigue, times through the order (batters hit ~30 points better third time through). Intentional walks: only with first base open and a clear skill gap to next hitter. Defensive positioning: guard lines late, play for DP early. Cutoff assignments: 3B cuts LF throws home, 1B cuts CF/RF throws home. SS cuts throws to 3B. On double cuts: SS relays left side, 2B relays right side. Pitcher ALWAYS backs up the target base, never the cutoff.",
+  famous:"Historical accuracy is paramount. Cite the actual year, teams, and players. Teach the strategic lesson the play illustrates. All 4 options must be decisions the real player/manager could have made in that moment.",
+  rules:"Teach MLB Official Rules accurately. Include recent changes (pitch clock 2023, shift ban, universal DH). Focus on force vs tag, infield fly, balk, obstruction, interference. All options must be plausible interpretations.",
+  counts:"Count-specific strategy driven by real batting averages. Hitter's counts (2-0, 3-1): aggressive. Pitcher's counts (0-2, 1-2): protect zone. Tie scenarios to real count leverage data."
 };
+const CUTOFF_RELAY_MAP = `CUTOFF/RELAY ASSIGNMENTS (non-negotiable):
+SINGLE CUTS to HOME: LF→Home cutoff=3B. CF→Home cutoff=1B. RF→Home cutoff=1B.
+SINGLE CUTS to 3B: All OF→3B cutoff=SS.
+DOUBLE CUTS (extra-base hits): Left side (LF line, LF-CF gap, deep CF) lead relay=SS, trail=2B. Right side (RF-CF gap, RF line) lead relay=2B, trail=SS or 1B.
+PITCHER: Backs up the TARGET BASE on every relay/cutoff play. NEVER the cutoff or relay man.
+CATCHER: Stays at home. Directs cutoff with voice: "Cut!" / "Cut two!" / "Cut three!" / silence=let it go.`;
 
 async function generateAIScenario(position, stats, conceptsLearned = [], recentWrong = [], signal = null, targetConcept = null) {
   const lvl = getLvl(stats.pts);
@@ -3095,7 +3104,9 @@ PLAYER CONTEXT:
 - Concepts already mastered: ${conceptsLearned.length > 0 ? conceptsLearned.slice(-10).join("; ") : "none yet"}
 ${weakAreas.length > 0 ? `- Personalization: ${weakAreas.join(". ")}` : ""}
 
-POSITION PRINCIPLES (authoritative — follow these strictly): ${POS_PRINCIPLES[position]}
+POSITION PRINCIPLES (authoritative — follow these strictly): ${POS_PRINCIPLES[position] || "No specific principles — use general baseball knowledge and ensure accuracy."}
+
+${CUTOFF_RELAY_MAP}
 
 DATA REFERENCE (use these real statistics in explanations when relevant):
 - Run expectancy with runner on 1st, 0 out: ~0.94 runs. Runner on 2nd, 0 out: ~1.17 runs. Bases loaded, 0 out: ~2.29 runs.
@@ -3115,6 +3126,8 @@ SELF-AUDIT — Before outputting, verify ALL of these:
 5. Are cited statistics approximately correct? (don't invent fake percentages)
 6. Does the scenario contradict any principle in POSITION PRINCIPLES above?
 7. Is the anim type consistent with the scenario action? (e.g., don't use throwHome when the play is to third)
+8. ROLE CHECK: Does the scenario assign correct defensive roles per CUTOFF/RELAY ASSIGNMENTS above? Pitcher is NEVER cutoff. 3B is cutoff on LF→Home. 1B is cutoff on CF/RF→Home.
+9. POSITION BOUNDARY: Does each option describe an action THIS position would actually perform? A pitcher doesn't relay. A catcher doesn't go out as cutoff. If an option doesn't belong to the position, replace it.
 
 REQUIREMENTS:
 - Create ONE unique scenario the player hasn't seen before
@@ -3153,6 +3166,7 @@ Rules for best: 0-indexed integer matching the optimal option in the options arr
       body: JSON.stringify({
         model: "grok-4-1-fast",
         max_tokens: 1000,
+        temperature: 0.4,
         messages: [{ role: "system", content: prompt }]
       })
     };
@@ -3205,6 +3219,18 @@ Rules for best: 0-indexed integer matching the optimal option in the options arr
     if (!scenario.situation.inning) scenario.situation.inning = "Mid";
     if (!scenario.situation.count) scenario.situation.count = "-";
     
+    // Last-resort role-violation check
+    const ROLE_VIOLATIONS = {
+      pitcher: [/pitcher.*cutoff/i, /pitcher.*relay\s*man/i, /pitcher.*lines?\s*up.*between/i],
+      catcher: [/catcher.*cutoff/i, /catcher.*goes?\s*out/i, /catcher.*relay/i],
+    };
+    const violations = ROLE_VIOLATIONS[position] || [];
+    const allText = [scenario.description, ...scenario.options, ...scenario.explanations].join(" ");
+    if (violations.some(rx => rx.test(allText))) {
+      console.warn("[BSM] AI scenario rejected: role violation for", position);
+      throw new Error("Position-role violation");
+    }
+
     scenario.id = `ai_${Date.now()}`;
     scenario.isAI = true;
     scenario.cat = "ai-generated";
