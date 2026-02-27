@@ -1355,6 +1355,87 @@ All 394 scenarios audited against the new Knowledge Framework (Section 3). Resul
 
 ---
 
+## 11. Living Document Protocol
+
+### 11A. Version Tracking
+
+The knowledge system uses semantic versioning: `BRAIN_VERSION` in `index.jsx`.
+
+- **Major** (X.0.0): Structural changes to BRAIN, knowledge maps, or scenario format
+- **Minor** (2.X.0): New scenarios, new checks, new maps, data refreshes
+- **Patch** (2.4.X): Typo fixes, rate adjustments, explanation improvements
+
+Current version: **2.4.0** (2026-02-27)
+
+### 11B. Annual Update Checklist (Run Every January)
+
+1. **MLB Rule Changes**: Compare new rulebook to Section 8. Update affected scenarios. Source: mlb.com/official-rules
+2. **RE24 Refresh**: Pull latest FanGraphs RE24 matrix. If any cell changes >0.03, update `BRAIN.stats.RE24`. Source: fangraphs.com/guts.aspx
+3. **Count Data**: Verify `BRAIN.stats.countData` BA/OBP/SLG against latest league splits.
+4. **Steal Break-Even**: Recalculate from new RE24 values. Update `BRAIN.stats.stealBreakEven`.
+5. **TTO Effect**: Check if pitcher TTO penalties have shifted with rule changes.
+6. **Famous Scenarios**: Check if any historical scenarios received new analysis or corrections.
+7. **Pitch Clock**: If timing changed, update pitch-clock-strategy scenarios and steal-window math.
+8. **Shift Rules**: Verify any positioning rule changes are reflected in infield-positioning scenarios.
+9. **Automated Audit**: Run `CONSISTENCY_RULES.auditAll(SCENARIOS)` — fix any contradictions.
+10. **Quality Firewall**: Run `QUALITY_FIREWALL` on all scenarios — address any tier-1 failures.
+11. **Version Bump**: Update `BRAIN_VERSION` and `KNOWLEDGE_CHANGELOG` with all changes.
+12. **Docs Update**: Update scenario counts in SCENARIO_BIBLE.md and CLAUDE.md.
+
+### 11C. New Season Scenario Template
+
+When a notable MLB play occurs that teaches strategy:
+
+```
+1. CAPTURE: Record the game, inning, situation, teams, players, and strategic decision
+2. VERIFY: Cross-reference with broadcast replay and box score
+3. FORMAT: Convert to scenario format with 4 options (1 correct, 3 plausible wrong)
+4. CHECK CONTRADICTIONS: Run CONSISTENCY_RULES.check() on the new scenario
+5. CHECK QUALITY: Run QUALITY_FIREWALL.validate() on the new scenario
+6. CROSS-REFERENCE: Search existing scenarios for the same play type — ensure no conflicts
+7. ADD: Insert into appropriate position array with unique ID
+8. LOG: Add entry to KNOWLEDGE_CHANGELOG
+```
+
+### 11D. Deprecation Process
+
+When a rule change makes a scenario incorrect:
+
+1. Tag the scenario with `deprecated: true` and `deprecatedReason: "Rule X.XX changed in 202X"`
+2. Create a replacement scenario with the new correct answer
+3. The deprecated scenario stops appearing but stays in code for version history
+4. Log both the deprecation and replacement in `KNOWLEDGE_CHANGELOG`
+
+### 11E. Community Feedback Pipeline
+
+1. **Intake**: Coach/player reports an error via feedback form or email
+2. **Triage**: Distinguish opinion ("I disagree with this strategy") from factual error ("this contradicts MLB Rule X.XX")
+3. **Verify**: Check the report against the 4-tier knowledge hierarchy:
+   - Tier 1 (MLB Rules): Immediate fix if rules are wrong
+   - Tier 2 (Data): Fix if FanGraphs/Statcast data contradicts
+   - Tier 3 (Coaching Consensus): Update if ABCA/USA Baseball has shifted
+   - Tier 4 (Situational Judgment): No change — opinions can differ at this tier
+4. **Resolve**: Update scenario, log in KNOWLEDGE_CHANGELOG, notify reporter
+
+### 11F. Cross-Position Verification Protocol
+
+Before adding any new scenario, run these 10 consistency checks (implemented as `CONSISTENCY_RULES` in index.jsx):
+
+| Rule | What It Checks |
+|------|---------------|
+| CR1 | LF throw home cutoff = 3B |
+| CR2 | CF/RF throw home cutoff = 1B |
+| CR3 | Left-side double relay = SS lead |
+| CR4 | Right-side double relay = 2B lead |
+| CR5 | Pitcher backs up, never cuts |
+| CR6 | Catcher stays home, never goes out as cutoff |
+| CR7 | Outfielder priority over infielder on fly balls |
+| CR8 | SS never covers 1B on bunt plays |
+| CR9 | Steal break-even rate ~72% |
+| CR10 | Force play consistency (runner on 1st = force at 2nd) |
+
+---
+
 ## Appendix A: AI Prompt Enhancement Spec
 
 The AI generation prompt in `index.jsx` (`generateAIScenario()`) includes these injected blocks:

@@ -2,9 +2,9 @@
 
 ## Context
 
-**Where We Are:** A polished educational baseball game — 460 handcrafted scenarios across 15 categories, SVG field with 10 themes, avatar customization, season mode, coach mascot, survival/speed/daily modes, AI scenarios via xAI Grok + Cloudflare Worker proxy — running as a single-file React app (`index.jsx`, ~4,970 lines) on Replit. Free tier gives 8 plays/day with a well-designed limit screen and Daily Diamond always free. Pro gating, upgrade panel, and Stripe Payment Links are implemented (Phase 2 complete).
+**Where We Are:** A polished educational baseball game — 539 handcrafted scenarios across 15 categories, SVG field with 10 themes, avatar customization, season mode, coach mascot, survival/speed/daily modes, AI scenarios via xAI Grok + Cloudflare Worker proxy — running as a single-file React app (`index.jsx`, ~8,270 lines) on Replit. Free tier gives 8 plays/day with a well-designed limit screen and Daily Diamond always free. Pro gating, upgrade panel, and Stripe Payment Links are implemented. BRAIN knowledge system (v2.4.0) includes QUALITY_FIREWALL, CONSISTENCY_RULES, 7 knowledge maps, POS_PRINCIPLES, and Living Document System.
 
-**The Strategy:** Three phases remain. First, monetize the client-side app (no backend needed). Then build production infrastructure. Then grow with social features and coach tools.
+**The Strategy:** Complete the Quality & Intelligence sprints (Phase 2.95) to fix the data model and make the AI actually smart. Then build production infrastructure. Then grow with social features and coach tools.
 
 **Key Decisions:**
 - **Pricing:** $4.99/mo or $29.99/year (competitive with Prodigy, validated by market research)
@@ -183,6 +183,93 @@ Addressed 16 items from a full playtesting audit of the live app.
 
 ---
 
+## Phase 2.92: "Make It Smart" (BRAIN Knowledge System) — COMPLETE
+
+Built the knowledge engine that powers scenario quality, AI validation, and adaptive learning infrastructure.
+
+### 2.92.1 BRAIN Constant + Knowledge Maps — DONE
+- RE24 run expectancy matrix (24 base-out states), count leverage data, steal break-even thresholds
+- 7 knowledge maps: cutoff/relay, bunt defense, first-third, backup coverage, rundown, DP positioning, hit-and-run
+- POS_PRINCIPLES for all 15 positions (authoritative coaching reference)
+- Brain API functions: getRelevantMaps(), formatBrainStats(), getTeachingContext()
+
+### 2.92.2 Scenario Expansion (460 → 539) — DONE
+- Situational mastery clusters: 16 scenarios across pitcher/batter/baserunner/manager
+- Outfield expansion: LF/CF/RF each expanded to 25+ scenarios (was ~21 each)
+- Rules edge cases: 6 new scenarios (batting out of order, interference, time play, pitch clock, fan interference)
+- Total: 539 handcrafted scenarios across 15 categories
+
+### 2.92.3 AI Quality Systems — DONE
+- QUALITY_FIREWALL: 10 automated checks (Tier 1 reject, Tier 2 warn, Tier 3 suggest) integrated into generateAIScenario()
+- CONSISTENCY_RULES: 10 cross-position contradiction rules (CR1-CR10), integrated into AI pipeline
+- ROLE_VIOLATIONS: Position-specific regex validation for AI-generated scenarios
+- Error classification: timeout, parse, structure, rate, role-violation, consistency-violation
+
+### 2.92.4 Living Document System — DONE
+- BRAIN_VERSION (2.4.0) + BRAIN_VERSION_DATE tracking
+- KNOWLEDGE_CHANGELOG with structured version history
+- ANNUAL_UPDATE_CHECKLIST: 12 checks with source references for annual data refresh
+- Deprecation process, community feedback pipeline documented in SCENARIO_BIBLE.md Section 11
+
+### Known Issues (fixed in Phase 2.95 Sprints 1-2)
+- ~~78% of scenarios (422/539) lack conceptTags~~ — FIXED: 539/539 tagged (Sprint 1.1)
+- ~~Only 50/539 scenarios have explSimple~~ — FIXED: 164/164 Diff 1 covered (Sprint 1.2)
+- ~~CONSISTENCY_RULES produce false positives (23/23 in audit)~~ — FIXED: 0 false positives (Sprint 1.4)
+- ~~AI scenarios not persisted~~ — FIXED: aiHistory in localStorage (Sprint 1.5/2.1)
+- ~~AI has zero memory between generations~~ — FIXED: history, scoring, caching, dedup (Sprint 2)
+
+---
+
+## Phase 2.95: "Quality & Intelligence" (Audit Sprints) — IN PROGRESS
+
+Comprehensive improvement plan based on full audit (see `AUDIT_REPORT.md`). Four sprints to fix the data model, make the AI intelligent, build adaptive learning, and prepare for scale.
+
+### Sprint 1: Stop the Bleeding (Weeks 1-2) — COMPLETE
+**Goal:** Fix the data model so the learning engine actually works.
+
+| # | Task | Status | Notes |
+|---|------|--------|-------|
+| 1 | Add conceptTags to all 539 scenarios | DONE | 539/539 tagged, 43 unique conceptTags |
+| 2 | Add explSimple to all Diff 1 scenarios (164) | DONE | 164/164 Diff 1 scenarios have explSimple |
+| 3 | Standardize explanation lengths (fix 127 imbalanced) | DONE | All explanations balanced |
+| 4 | Fix CONSISTENCY_RULES false positives (refine regex) | DONE | CR1/CR2/CR10 refined, 0 false positives |
+| 5 | Persist AI scenarios to localStorage | DONE | aiHistory in DEFAULT state, saved on generation + answer |
+
+### Sprint 2: Make the AI Smart (Weeks 3-4) — COMPLETE
+**Goal:** Transform AI from content generator to learning coach.
+
+| # | Task | Status | Notes |
+|---|------|--------|-------|
+| 1 | AI scenario persistence + history tracking | DONE | Done in Sprint 1.5, aiHistory capped at 100 |
+| 2 | AI quality scoring (player response, time, re-engagement) | DONE | scoreAIScenario() 0-100 composite, getAIQualityStats() |
+| 3 | Pre-generate + cache AI scenarios per session | DONE | aiCacheRef, background gen for top 3 positions on home screen |
+| 4 | Reduce AI prompt size (move validation client-side) | DONE | 36% reduction (~597 tokens saved), SELF-AUDIT condensed to 6 items |
+| 5 | AI generation deduplication (compare to history) | DONE | Title-matching vs handcrafted + recent AI history |
+
+### Sprint 3: Adaptive Learning Engine (Weeks 5-7) — COMPLETE
+**Goal:** Connect existing systems into a real learning path.
+
+| # | Task | Status | Notes |
+|---|------|--------|-------|
+| 1 | Concept-based scenario selection (not random within category) | DONE | scoreScenarioForLearning() + weightedPick() — 6 scoring factors |
+| 2 | Mastery heatmap visualization for players | DONE | Domain-grouped heatmap with 5 mastery states, accuracy, streaks |
+| 3 | Difficulty auto-calibration from aggregate data | DONE | scenarioCalibration tracking, zone-of-proximal-development scoring, upgrade nudge |
+| 4 | Session coherence system (scenarios build on each other) | DONE | Prereq chain progression, wrong-answer reinforcement, domain coherence |
+| 5 | "What should I practice?" recommendation engine | DONE | getPracticeRecommendations() — 6 rec types, priority-sorted, home screen UI |
+
+### Sprint 4: Scale Preparation (Weeks 8-10)
+**Goal:** Make the app production-ready for real users and revenue.
+
+| # | Task | Effort | Impact |
+|---|------|--------|--------|
+| 1 | Server-side Pro verification via Cloudflare Worker | 4-5 hrs | Critical — revenue protection |
+| 2 | Real-time analytics pipeline (anonymized) | 3-4 hrs | High — understand user behavior |
+| 3 | A/B testing framework for AI prompts | 3-4 hrs | Medium — optimize AI quality |
+| 4 | Error monitoring + alerting for AI failures | 2-3 hrs | Medium — operational reliability |
+| 5 | Performance audit (1.2MB file, bundle optimization) | 3-4 hrs | Medium — mobile load time |
+
+---
+
 ## Phase 2.7: "Know Your Players" (User Accounts) — NOT STARTED
 
 Add user accounts and server-side progress sync using Cloudflare D1 (free serverless SQLite). Stays within current single-file architecture — no Next.js port needed.
@@ -286,7 +373,7 @@ Major scope change: port to Next.js for SSR, move to PostgreSQL for scale, add a
 
 | Feature | Included |
 |---------|----------|
-| All 394 handcrafted scenarios | Yes |
+| All 539 handcrafted scenarios | Yes |
 | All 15 positions | Yes |
 | 8 plays per day | Yes |
 | Daily Diamond Play (exempt from limit) | Yes |
@@ -359,7 +446,7 @@ Major scope change: port to Next.js for SSR, move to PostgreSQL for scale, add a
 
 ## What NOT to Do
 
-1. **Don't gate educational content.** All 394 scenarios stay free. Always.
+1. **Don't gate educational content.** All 539 scenarios stay free. Always.
 2. **Don't show purchase prompts during active gameplay.** Only in natural pauses.
 3. **Don't use punishing language.** Celebrate progress, don't emphasize restrictions.
 4. **Don't require accounts for free play.** localStorage-only is fine.
@@ -382,5 +469,7 @@ Major scope change: port to Next.js for SSR, move to PostgreSQL for scale, add a
 
 ## Reference Documents
 
-- **`SCENARIO_BIBLE.md`** — Scenario quality framework, knowledge hierarchy, position principles, quality checklist, audit log. The authoritative reference for all scenario content.
+- **`SCENARIO_BIBLE.md`** — Scenario quality framework, knowledge hierarchy, position principles, quality checklist, Living Document Protocol (Section 11), audit log. The authoritative reference for all scenario content.
 - **`CLAUDE.md`** — Codebase architecture, file structure, editing instructions.
+- **`AUDIT_REPORT.md`** — Full critical audit with grades, 7 critical issues, AI deep dive, and sprint plan details.
+- **`BASEBALL_BRAIN_PHASE2_PLAN.md`** — Original 20-prompt plan for building the BRAIN knowledge system (Phase 2.92). All prompts executed.
