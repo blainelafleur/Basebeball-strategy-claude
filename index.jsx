@@ -3074,141 +3074,346 @@ const POS_PRINCIPLES = {
   rules:"Teach MLB Official Rules accurately. Include recent changes (pitch clock 2023, shift ban, universal DH). Focus on force vs tag, infield fly, balk, obstruction, interference. All options must be plausible interpretations.",
   counts:"Count-specific strategy driven by real batting averages. Hitter's counts (2-0, 3-1): aggressive. Pitcher's counts (0-2, 1-2): protect zone. Tie scenarios to real count leverage data."
 };
-const CUTOFF_RELAY_MAP = `CUTOFF/RELAY ASSIGNMENTS (non-negotiable):
-SINGLE CUTS to HOME: LF→Home cutoff=3B. CF→Home cutoff=1B. RF→Home cutoff=1B.
-SINGLE CUTS to 3B: All OF→3B cutoff=SS.
-DOUBLE CUTS (extra-base hits): Left side (LF line, LF-CF gap, deep CF) lead relay=SS, trail=2B. Right side (RF-CF gap, RF line) lead relay=2B, trail=SS or 1B.
-PITCHER: Backs up the TARGET BASE on every relay/cutoff play. NEVER the cutoff or relay man.
-CATCHER: Stays at home. Directs cutoff with voice: "Cut!" / "Cut two!" / "Cut three!" / silence=let it go.`;
-
-const BUNT_DEFENSE_MAP = `BUNT DEFENSE ASSIGNMENTS (non-negotiable):
-RUNNER ON 1ST ONLY: P fields bunt near mound. 1B charges. 3B charges. 2B covers 1st. SS covers 2nd. C directs.
-RUNNERS ON 1ST & 2ND (standard): P fields near mound. 1B charges. 3B charges. SS covers 3rd. 2B covers 1st. C directs.
-RUNNERS ON 1ST & 2ND (wheel play): 3B crashes HARD early. SS rotates to 3rd. 2B covers 1st. P covers mound area. Goal: get lead runner at 3rd.
-PRIORITY: Lead runner out > trail runner out. Force at 3rd with runners 1st & 2nd is the highest-value play.`;
-
-const FIRST_THIRD_MAP = `FIRST-AND-THIRD DEFENSE (non-negotiable):
-Runner on 1st steals with runner on 3rd — catcher's options:
-1. THROW THROUGH to 2B: SS covers 2B, takes throw, looks runner back at 3rd. Risk: R3 scores.
-2. CUT BY MIDDLE IF: C throws to 2nd. SS (or 2B) cuts throw short, looks at R3. If R3 breaks home, throw home.
-3. FAKE AND THROW: C pump-fakes to 2nd, fires to 3B to catch R3 leaning. 3B must be ready.
-4. HOLD THE BALL: Concede stolen base, keep R3 at third.
-1B stays at 1B. P ducks out of throwing lane. Key: NEVER throw to 2nd if R3 has a big lead.`;
-
-const BACKUP_MAP = `BACKUP RESPONSIBILITIES (non-negotiable):
-P: Backs up HOME on OF throws home. Backs up 3B on throws to third.
-LF: Backs up 3B on ALL infield grounders and throws to third.
-CF: Backs up 2B on ALL steal attempts and throws to second.
-RF: Backs up 1B on EVERY infield grounder (most important routine OF job).
-C: Backs up 1B on grounders with no runners on.
-RULE: Every throw needs a backup in line behind the target. Sprint to position.`;
-
-const RUNDOWN_MAP = `RUNDOWN PROCEDURE (non-negotiable):
-1. Run hard at runner — drive him BACK toward previous base.
-2. Hold ball high (visible). Run FULL SPEED.
-3. ONE throw — firm, chest-high. Receiver tags.
-4. Backup: next fielder replaces thrower's vacated base. 2 fielders per base.
-5. NEVER pump-fake. NEVER lob. NEVER throw across runner's body.
-RUNNER'S GOAL: Force many throws — every throw is an error chance.`;
-
-const DP_POSITIONING_MAP = `DOUBLE PLAY POSITIONING (non-negotiable):
-DP DEPTH WHEN: Runner on 1st (or 1st & 2nd, loaded), less than 2 outs.
-NORMAL DEPTH WHEN: 2 outs (can't turn two), or no force at 2nd.
-INFIELD IN WHEN: Runner on 3rd, less than 2 outs, run matters. Tradeoff: less range.
-DP DEPTH = 3-4 steps toward 2B + step in toward home. Reduces range ~15% but speeds pivot.
-NEVER DP depth with 2 outs. NEVER infield in with 2 outs and no R3.`;
-
-const HIT_RUN_MAP = `HIT-AND-RUN ASSIGNMENTS (non-negotiable):
-BATTER: MUST swing — protect the runner. Ground ball through vacated hole > power.
-RUNNER: Go on the pitch. Don't look back.
-WHO COVERS 2B on steal: LHH → SS covers (hole opens at 2B side). RHH → 2B covers (hole opens at SS side).
-BATTER aims through the vacated hole. P should throw strikes to induce contact.`;
-
-const PICKOFF_MAP = `PICKOFF MOVES & DECEPTION (non-negotiable):
-FROM STRETCH: Step directly toward the base AND throw = legal pickoff. No step = balk.
-FAKE 3B/THROW 1B: ILLEGAL since 2013 (Rule 6.02(a)(4)). Always a balk. Never do it.
-STEP OFF RUBBER: Pitcher becomes a fielder — throw anywhere, no balk restriction applies.
-DAYLIGHT PLAY (2B): SS/2B breaks toward 2nd first. If daylight shows between fielder and runner, pitcher throws. Pitcher does NOT initiate.
-PITCHOUT: Pitcher throws outside. Catcher steps and fires. Costs a ball in count — use on 1-0, 2-0, 3-1 only.
-PICKOFF TELLS: Throw when runner leans forward, weight is forward, or has consistent lead >12 feet.
-NEVER: Throw to an unoccupied base. Throw blindly without a tell. Fake third and throw first.`;
-
-const PITCH_CLOCK_MAP = `PITCH CLOCK STRATEGY (non-negotiable per 2023 MLB Rules):
-PITCHER: 15 sec with bases empty, 20 sec with runners on. Violation = automatic BALL.
-BATTER: Must be alert in box with 8 sec remaining. Violation = automatic STRIKE. 1 timeout per PA.
-VARY TEMPO: Quick-pitch followed by long hold disrupts timing more than constant pace.
-HIGH LEVERAGE: Use full 20 seconds on 0-2 or full count with runners on. Make the hitter wait.
-STEAL READS: Clock makes delivery windows MORE consistent — helps runners time the pitcher.
-SIGN DELIVERY: Catcher must deliver signs fast. Under 9 seconds for pitcher to receive and set.
-NEVER: Rush a high-leverage pitch to beat the clock. Waste batter timeout on 0-0 or 1-0 count.`;
-
-const WP_PB_MAP = `WILD PITCH / PASSED BALL COVERAGE (non-negotiable):
-CATCHER: Go to the BALL first, THEN look at the runner. Never look at runner first.
-PITCHER: Sprint to cover HOME the instant ball passes catcher. Set up on first-base side (give catcher a lane).
-3B: With R3, sprint to back up home immediately behind the pitcher.
-R3 READ: If catcher breaks to retrieve AND ball rolls 10+ feet past plate, GO. Watch catcher's first step.
-BASES LOADED: Ball in dirt = catcher fields and steps on home for force out. Pitcher still sprints as backup.
-NEVER: Catcher looks at runner before fielding. Pitcher stays on mound when wild pitch passes catcher.`;
-
-const SQUEEZE_MAP = `SQUEEZE PLAY (non-negotiable):
-SAFETY SQUEEZE: Runner goes on CONTACT. Batter bunts only if pitch is buntable. Lower risk.
-SUICIDE SQUEEZE: Runner commits on PITCHER'S FIRST MOVE. Batter MUST bunt no matter what.
-NEVER RUN SUICIDE WITH 2 STRIKES — foul bunt = strikeout AND runner is dead at home.
-PITCHER DEFENSE: High and tight fastball is hardest pitch to bunt. Throw it immediately if squeeze detected.
-CATCHER: If runner breaks and batter pulls back, fire to 3B immediately.
-BATTER: Show bunt as late as possible. Square up only as pitcher commits to delivery.`;
-
-const INFIELD_FLY_MAP = `INFIELD FLY RULE (non-negotiable — MLB Rule 5.09(b)(6)):
-WHEN CALLED: <2 outs, runners on 1st+2nd OR bases loaded, fair fly ball catchable with ordinary effort.
-BATTER: Automatically OUT regardless of whether ball is caught or dropped.
-RUNNERS: NOT forced. May advance at own risk after IFF is called.
-BALL DROPS FAIR: Batter still out. Runners may advance at own risk.
-BALL DRIFTS FOUL: IFF cancelled — ordinary foul ball. Batter not out.
-LINE DRIVES: Never an IFF. Force play rules apply normally.
-NEVER: Assume runners are forced to advance on an IFF. Assume a dropped IFF ball puts runners in jeopardy of a force out.`;
-
-const OF_COMMUNICATION_MAP = `OUTFIELD COMMUNICATION & POSITIONING (non-negotiable):
-CF HAS PRIORITY: Over ALL players — corner OF and all infielders — on any ball he can reach. His call is final.
-CORNER OF: Priority over nearest infielder (LF > 3B/SS; RF > 1B/2B) on tweeners.
-CALL SYSTEM: "I got it! I got it!" — twice, loud. Everyone else peels off and backs up the throw.
-GAP BALLS: CF calls if he can reach. If not, nearest corner OF calls and takes it. Middle IF goes to relay.
-SUN BALLS: Glove shield first, sunglasses supplementary. Eyes always on the ball.
-PRE-PITCH: Shade toward pull side based on batter tendencies. Communicate wind/sun to teammates before inning.
-NEVER: Allow a no-call fly ball. Call off CF after he has already called the ball.`;
-
 const KNOWLEDGE_MAPS = {
-  BUNT_DEFENSE_MAP, FIRST_THIRD_MAP, BACKUP_MAP,
-  RUNDOWN_MAP, DP_POSITIONING_MAP, HIT_RUN_MAP,
-  PICKOFF_MAP, PITCH_CLOCK_MAP, WP_PB_MAP,
-  SQUEEZE_MAP, INFIELD_FLY_MAP, OF_COMMUNICATION_MAP
+  CUTOFF_RELAY_MAP: `CUTOFF/RELAY ASSIGNMENTS (non-negotiable):
+SINGLE CUTS to HOME: LF→Home cutoff=3B. CF→Home cutoff=1B. RF→Home cutoff=1B.
+SINGLE CUTS to 3B (runner going 1st→3rd): All OF→3B cutoff=SS. SS lines up between OF and 3B.
+SINGLE CUTS to 2B (no play at home): Cutoff man holds ball or redirects. SS covers 2B.
+DOUBLE CUTS (extra-base hits to gap/wall): Left side (LF line, LF-CF gap, deep CF) lead relay=SS, trail=2B.
+  Right side (RF-CF gap, RF line) lead relay=2B, trail=SS or 1B.
+TRAIL MAN: Positions 20-30 feet behind lead relay, in line with home plate. Backs up the lead relay throw.
+TWO-RUNNER SITUATION: Always default relay toward HOME — stop the lead runner. Redirect only on catcher's call.
+FOUL TERRITORY THROWS (near 1B/3B line): Closest infielder (1B or 3B) becomes cutoff. Align toward home.
+POP-UP NEAR FOUL LINE: Fielder who catches it has no relay assignment — throw directly to base. Cutoff man stays ready.
+NO RUNNERS ON: Cutoff assignments still apply — trail runner may be trying to advance. Always align to home default.
+PITCHER: Backs up TARGET BASE on every relay/cutoff play. Sprint to backup position before throw is made. NEVER the cutoff or relay man.
+CATCHER: Stays at home. Directs cutoff with voice: "Cut!" (hold), "Cut two!" (redirect to 2B), "Cut three!" (redirect to 3B), silence=let it go through.
+NEVER: Pitcher cuts the throw. Catcher goes out as cutoff. Relay man throws across runner's body.`,
+  BUNT_DEFENSE_MAP: `BUNT DEFENSE ASSIGNMENTS (non-negotiable):
+NO RUNNERS (safety bunt for hit): P charges. 1B charges. 3B holds. 2B covers 1B. SS covers 2B. C directs.
+RUNNER ON 1ST ONLY: P fields bunt near mound. 1B charges. 3B charges. 2B covers 1st. SS covers 2nd. C directs. Throw to 2nd if bunt is fielded quickly.
+RUNNER ON 2ND ONLY: P fields. 1B charges. 3B charges HARD (lead runner). SS covers 3rd. 2B covers 1st. C directs. Priority: throw to 3rd to get lead runner.
+RUNNER ON 3RD ONLY (suicide squeeze): P throws high and tight immediately. C charges. 1B holds. 3B charges. Goal: get runner at home if bunt is popped up or fielded quickly.
+RUNNERS ON 1ST & 2ND (standard): P fields near mound. 1B charges. 3B charges. SS covers 3rd. 2B covers 1st. C directs. Priority: throw to 3rd for force on lead runner.
+RUNNERS ON 1ST & 2ND (wheel play): 3B crashes HARD early on pitch. SS rotates to cover 3rd before the pitch. 2B covers 1st. P covers mound area. Goal: force play on lead runner at 3rd.
+BASES LOADED: Same as runners 1st & 2nd — throw home for force if fielded cleanly. C must be at plate.
+2 OUTS: No bunt defense — fielders play normal depth. A bunt with 2 outs is almost always an error by the offense.
+FAKE BUNT / SLASH: 1B and 3B charging = massive hole on right side. Batter will slash through that hole. 2B must read and hold depth until ball is hit.
+PRIORITY RULE: Lead runner out > trail runner out. Force at 3rd with runners 1st & 2nd is the highest-value play.
+NEVER: SS covers 1st on a bunt. 2B covers 3rd with runners 1st & 2nd. Pitcher makes base-coverage calls — that is the catcher's job.`,
+  FIRST_THIRD_MAP: `FIRST-AND-THIRD DEFENSE (non-negotiable):
+SETUP: 1B holds runner at 1st. SS and 2B shade toward 2B. 3B holds at 3rd. P varies looks. C reads R3 lead.
+CATCHER'S 4 OPTIONS when R1 steals with R3 on base:
+1. THROW THROUGH to 2B: SS covers 2B, takes throw, looks R3 back at 3rd. Use when R3 lead is short.
+2. CUT BY MIDDLE IF: C throws to 2nd. SS (or 2B) cuts throw short, looks at R3. If R3 breaks home, fire home. Use when R3 lead is medium.
+3. FAKE AND THROW: C pump-fakes to 2nd, fires to 3B to catch R3 leaning. 3B must be READY and holding the bag. Use when R3 is aggressive.
+4. HOLD THE BALL: Concede the stolen base, keep R3 at third. Use when R3 has a huge lead and will score on any throw.
+PITCHOUT OPTION: P throws pitchout (outside). C receives standing up and fires immediately. Best option when steal is obvious. Costs a ball in count — use on 1-0, 2-0 only.
+2-OUT VARIANT: With 2 outs, R3 goes on contact regardless. A throw to 2B on a steal CANNOT score R3 unless there is an error. Catcher should throw through to 2B freely with 2 outs.
+DOUBLE STEAL (both runners go): C must read quickly. If R3 breaks immediately, throw home. If R3 holds, throw to 2B (middle IF cuts). P ducks out of throwing lane the instant R1 breaks.
+INFIELD POSITIONING: SS and 2B must straddle the lane between home and 2B to cut the throw quickly. They do NOT fully commit to 2B until ball is released.
+KEY ASSIGNMENTS: 1B stays at 1B (holds R1, do not break toward 2B). P ducks immediately out of throwing lane. Never throw to 2nd if R3 has a big lead.
+NEVER: 1B breaks to cover 2B (leaves first unoccupied). P stays upright in throwing lane. Catcher throws blindly without reading R3 lead.`,
+  BACKUP_MAP: `BACKUP RESPONSIBILITIES (non-negotiable):
+PITCHER: Backs up HOME on ALL OF throws home (sprint before the throw lands). Backs up 3B on OF throws to third. Backs up 1B on bunt plays when 1B charges.
+CATCHER: Backs up 1B on grounders with NO runners on. Stays at home on ALL other plays.
+FIRST BASE: When acting as cutoff (CF/RF throws home), has no backup assignment — 2B covers 1B.
+SECOND BASE: Backs up SS on steal throws to 2B when 2B is not covering. Backs up 1B when 1B is acting as cutoff.
+SHORTSTOP: Backs up 3B on throws from 1B to 3B (rare). Backs up 2B on steal throws when SS covers 2B.
+THIRD BASE: Backs up home on wild pitches/passed balls with R3. Backs up SS on throws to 3B from catcher (fake-and-throw play).
+LEFT FIELD: Backs up 3B on ALL infield grounders and throws to third. Backs up CF on balls hit to LF-CF gap.
+CENTER FIELD: Backs up 2B on ALL steal attempts and throws to second. Backs up 3B on deep throws to third from RF. Backs up LF on LF-CF gap balls. Backs up RF on RF-CF gap balls.
+RIGHT FIELD: Backs up 1B on EVERY infield grounder (most important routine OF backup job). Backs up CF on RF-CF gap balls.
+FOUL TERRITORY BACKUPS: On foul pop-ups near the line, the nearest OF moves to back up the infielder's throw to any base.
+POP-UPS BEHIND INFIELD: OF backs up the catch from 15-20 feet behind — infielder may drop it. Sprint immediately when ball goes up.
+RULE: Every throw needs a backup in direct line behind the target base. Sprint — don't jog. Be in position BEFORE the throw, not after.
+NEVER: Two fielders sprint to the same backup spot. Any fielder stands still when a throw is in the air. Pitcher backs up home by stopping halfway down the line.`,
+  RUNDOWN_MAP: `RUNDOWN PROCEDURE (non-negotiable):
+STANDARD: Run HARD at runner — drive him BACK toward previous base (NOT forward toward next base).
+Hold ball HIGH and visible at all times. Run FULL SPEED toward the runner.
+ONE THROW maximum — firm, chest-high to the receiver's glove-side. Receiver applies tag.
+BACKUP ROTATION: Thrower immediately sprints to fill the vacated base. 2 fielders per base at all times.
+RUNNER GOING FORWARD (toward next base): If runner turns and breaks forward, the fielder at the next base applies the tag. Receiving fielder runs AT the runner, not toward the next base.
+TWO-RUNNER RUNDOWN (rare): Focus on the lead runner first. The trailing runner cannot advance while lead runner is in jeopardy. Tag the lead runner out, THEN address the trail runner.
+OUTFIELD RUNDOWN: Same mechanics. OF runs hard at runner. Nearest infielder fills the closest base. OF never lobs — firm chest-high throw only.
+FORCE REMOVED DURING RUNDOWN: If runner ahead is tagged out, force is removed on all trailing runners. Fielders must TAG the runner, not just step on the base.
+RUNNER RETREATING TRICK: Runner may stop short to bait a lob. Never lob regardless. Run full speed, force the early throw.
+NEVER: Pump-fake during a rundown (gives runner a free step). Lob the ball. Throw across the runner's body. Allow more than one throw. Abandon a base during rotation.
+RUNNER'S COUNTER-STRATEGY: Draw as many throws as possible — every throw is an error chance. Stop-start-stop to bait the pump fake. Try to reach a base during the rotation gap.`,
+  DP_POSITIONING_MAP: `DOUBLE PLAY POSITIONING (non-negotiable):
+DP DEPTH WHEN: Runner on 1st (or 1st & 2nd, or loaded), less than 2 outs. 3-4 steps toward 2B + half step toward home. Reduces range ~15% but speeds pivot.
+NORMAL DEPTH WHEN: 2 outs (can't turn two — maximize range). No force at 2nd.
+INFIELD IN WHEN: Runner on 3rd, less than 2 outs, run matters. Sacrifice range to throw home on grounders.
+INFIELD IN vs DP DEPTH CONFLICT: With runners on 1st & 3rd, less than 2 outs — play DP depth. A DP ends the inning. Giving up the run while turning two is usually the right trade.
+LOADED BASES DP: Force at every base. Infielders play DP depth. On a grounder, throw home for force, then first for the DP. Catcher must be alert for the flip to 1B.
+LHB SHIFT (with shift ban): 2 infielders required on each side of 2B. SS shades toward 3B hole. 2B shades toward 1B-2B hole. Standard DP pivot still applies.
+RHB DP ANGLE: 6-4-3 (SS to 2B to 1B) — SS needs a clean, firm feed. 2B pivot gets off the bag quickly.
+LHB DP ANGLE: 5-4-3 (3B to 2B to 1B) or 4-6-3 (2B to SS to 1B). 3B must field cleanly and throw quickly. SS covers 2B on 4-6-3 pivot.
+CRITICAL: With 2 outs, never play DP depth — there is NO double play possible. Maximize range for the single out.
+NEVER: DP depth with 2 outs. Infield in with 2 outs and no R3. Play normal depth with runner on 1st and 0 outs — DP depth is the right call.`,
+  HIT_RUN_MAP: `HIT-AND-RUN ASSIGNMENTS (non-negotiable):
+BATTER: MUST swing at ANY pitch — protect the runner who is already running. Ground ball through vacated hole > power. Swing even at a ball in the dirt if necessary to protect the runner.
+RUNNER: Go on the pitcher's FIRST MOVE. Do NOT look back. Read the ball off the bat only after 2nd base is reached.
+WHO COVERS 2B: LHH → SS covers 2B (hole opens at SS side, batter aims there). RHH → 2B covers 2B (hole opens at 2B side, batter aims there).
+BATTER MISSES THE SIGN (doesn't swing): Runner is hung out — no protection. Runner should abort if lead is not committed, or slide hard if already halfway.
+BATTER SWINGS AND MISSES: Catcher fires to 2B immediately. Runner is caught in a vulnerable position. This is the biggest risk of the hit-and-run.
+POP-UP ON HIT-AND-RUN: Runner may be doubled off if they don't freeze and read. NEVER run full speed on a line drive or pop-up — risk of double play is high.
+PITCHOUT COUNTER: Defense throws a pitchout (outside pitch). C receives standing and fires to 2B. Pitcher should throw pitchout if hit-and-run is suspected on 1-0, 2-1, 3-1 counts.
+PITCHER STRATEGY: Throw a pitch away from the batter's power zone. Pitchout, breaking ball in the dirt, or high fastball — all make the batter's job harder.
+BEST HIT-AND-RUN COUNTS: 1-0, 2-0, 2-1, 3-1 — hitter's counts where batter is likely to see a strike and pitcher is less likely to pitchout.
+NEVER: Runner looks back at the plate while running. Batter takes the pitch on a hit-and-run (unless sign is missed — see above). Hit-and-run with a slow runner or unreliable bat-to-ball hitter.`,
+  PICKOFF_MAP: `PICKOFF MOVES & DECEPTION (non-negotiable):
+RHP FROM STRETCH (to 1B): Step directly toward 1B AND throw in one motion. No step = balk. Step must be toward the base, not toward home.
+LHP FROM STRETCH (to 1B): LHP faces 1B naturally from the stretch. Can throw to 1B at any time without restriction — this is the lefty's natural advantage. No step requirement toward 1B for LHP.
+RHP/LHP TO 3B: Step directly toward 3B AND throw. Must be a genuine throw — no fake.
+FAKE 3B/THROW 1B: ILLEGAL since 2013 (Rule 6.02(a)(4)). Always a balk. This play no longer exists in MLB.
+STEP OFF RUBBER: Pitcher lifts back foot off rubber — becomes a fielder. Can throw anywhere, fake anywhere, no balk restriction. Step off is a legal "reset."
+DAYLIGHT PLAY at 2B: SS or 2B breaks toward 2nd base FIRST. If daylight (gap) appears between the fielder and the runner, pitcher throws. Pitcher CANNOT initiate — he reacts to the fielder's break.
+1B PICKOFF TIMING: After 2+ looks, change timing — throw early, throw late, step off instead. Predictable pickoff timing = zero deception.
+PITCHOUT to STEAL: Pitcher throws outside by 2+ feet. Catcher steps to right side and fires. Costs a ball in count — use on 1-0, 2-0, 3-1 counts only.
+PICKOFF TELLS (runner): Weight forward, big lean, exaggerated secondary lead — these are times to throw. Never throw to an empty base for no reason.
+NEVER: Throw to an unoccupied base (balk). Fake to first and then throw to first (balk). Throw to 3rd, spin and throw to 1st (balk). Drop the ball during a pickoff motion (balk).`,
+  PITCH_CLOCK_MAP: `PITCH CLOCK STRATEGY (non-negotiable per 2023 MLB Rules):
+PITCHER CLOCK: 15 seconds with bases empty. 20 seconds with runners on. Violation = automatic BALL added to count.
+BATTER CLOCK: Must be alert in batter's box with 8 seconds remaining. 1 timeout per PA. Violation = automatic STRIKE added to count.
+DISENGAGEMENTS: Pitcher gets 2 disengagements (pickoffs or step-offs) per batter. 3rd disengagement = balk UNLESS runner is picked off. Successful pickoff resets the count.
+CATCHER VISIT: Catcher can visit the mound once per inning without it counting as a team mound visit. Clock resets after the visit ends.
+MOUND VISIT CLOCK RESET: Any mound visit (catcher or coach) resets the pitch clock. Infield meetings do NOT reset it.
+VARY TEMPO: Quick-pitch after a long hold disrupts the batter's timing more than a constant pace. Mix up 6-second deliveries with 18-second deliveries in the same at-bat.
+HIGH-LEVERAGE DELIVERY: Use the full 20 seconds on 0-2 or full count with runners on. Make the hitter uncomfortable. Never rush a high-leverage pitch.
+STEAL READS: The clock makes delivery windows MORE predictable — runners can time the pitcher more easily. Pitchers must vary tempo and add disengagements to compensate.
+SIGN DELIVERY: Catcher must deliver signs efficiently. Pitcher should receive signs and be set within 9 seconds of catcher's return to setup. Slow sign sequences cost clock time.
+NEVER: Rush a pitch to beat the clock on a 0-2 or full count. Use all 3 disengagements without a genuine read — the balk risk on the 3rd is too high. Ignore the clock until there are 3 seconds left.`,
+  WP_PB_MAP: `WILD PITCH / PASSED BALL COVERAGE (non-negotiable):
+CATCHER: Go to the BALL first — never look at the runner first. Field the ball, then look, then throw. Quick glance to read runner location is allowed only after the ball is secured.
+PITCHER: Sprint to cover HOME PLATE the instant the ball passes the catcher. Set up on the FIRST-BASE SIDE of the plate to give the catcher a throwing lane for any return throw.
+BASES EMPTY: No coverage needed at home — pitcher covers home as routine. Catcher retrieves and returns the ball.
+RUNNER ON 1ST ONLY: Runner may go to 2nd. Pitcher covers home. CF backs up 2B. SS covers 2B. Catcher retrieves and fires to 2B only if ball is in front.
+RUNNER ON 2ND ONLY: Runner may go to 3rd. 3B holds at bag. Pitcher covers home. LF backs up 3B. Catcher retrieves — do NOT throw to 3B unless ball is directly in front and throw is easy.
+RUNNER ON 3RD: Runner will break for home. Catcher fields ball and tags runner at plate OR returns to plate for pitcher's tag. Pitcher must reach plate before runner. 3B backs up home on extended wild pitches.
+MULTIPLE RUNNERS: Catcher reads LEAD runner. Sprint assignment is the same — pitcher to home, OF backups to their bases.
+2-OUT VARIANT: With 2 outs, runner goes on anything. Same coverage assignments — pitcher must still sprint home, not hesitate.
+BASES LOADED: Catcher fields and steps on home for force out. Pitcher sprints home anyway as backup.
+NEVER: Catcher looks at runner before fielding the ball. Pitcher remains on mound when ball passes catcher. Third baseman abandons 3B to chase a wild pitch with runner on 2nd.`,
+  SQUEEZE_MAP: `SQUEEZE PLAY (non-negotiable):
+SAFETY SQUEEZE: Runner goes on CONTACT. Batter bunts only if pitch is buntable. Lower risk — batter controls the trigger. Runner reads bunt, then breaks.
+SUICIDE SQUEEZE: Runner commits on PITCHER'S FIRST MOVE. Batter MUST bunt no matter what — even a ball in the dirt. The runner is already going. A missed bunt = runner dead at home.
+NEVER SUICIDE WITH 2 STRIKES: A foul bunt on 2 strikes = strikeout AND the runner is dead at home. This is a catastrophic out. Two-strike safety squeeze only.
+RUNNER AT 2ND & 3RD: Both runners read the bunt. R3 uses normal squeeze read. R2 advances to 3rd on contact — do not send R2 home.
+BATTER SHOWS BUNT LATE: Square up as late as possible to keep defense guessing. Pitcher cannot adjust a pitch already released.
+FAKE SQUEEZE / PULL BACK: Batter shows bunt, pulls back, takes the pitch. Used to read the pitcher's adjustment. Not a swing — batter takes the pitch intentionally.
+POP-UP ON SQUEEZE ATTEMPT: R3 on suicide squeeze is dead if it's caught — a popped-up bunt with runner committed = double play. Batter must keep the bunt on the ground.
+FOUL BUNT: Safety squeeze foul = just a strike (unless 2 strikes). Suicide squeeze foul with 0-1 strikes = count goes to 1 or 2 strikes. Still alive.
+PITCHER DEFENSE AGAINST SQUEEZE: High and tight fastball is hardest to bunt — forces an ugly bunt or a pull-back. Detect squeeze early (R3 starting early) and go high-tight immediately.
+CATCHER READS SQUEEZE: If runner breaks and batter pulls back, fire to 3B immediately. If bunt is popped up, come out of crouch and catch it.
+NEVER: Suicide squeeze with 2 strikes. Suicide squeeze with a slow runner. Send R2 home on a squeeze — only R3 scores.`,
+  INFIELD_FLY_MAP: `INFIELD FLY RULE (non-negotiable — MLB Rule 5.09(b)(6)):
+WHEN CALLED: Less than 2 outs, runners on 1st & 2nd OR bases loaded, fair fly ball that an infielder can catch with ordinary effort.
+BATTER: Automatically OUT regardless of whether ball is caught or dropped. The out is recorded the instant the umpire calls it.
+RUNNERS: NOT forced. May advance at their own risk after the IFF is called — they are not required to tag up.
+BALL CAUGHT: Runners tag up and advance normally. They cannot be forced anywhere.
+BALL DROPS FAIR: Batter still out. Runners may advance at own risk — they are treated as if it was a fair ball in play. No force play.
+BALL DRIFTS FOUL: IFF is cancelled — ordinary foul ball. Batter is NOT out. Count continues.
+UMPIRE TIMING: Umpire calls IFF while ball is in the air — "Infield fly! Batter is out!" Fielder must be in the infield area. Umpire judgment on "ordinary effort."
+LINE DRIVES: NEVER an infield fly. Force play rules apply normally. Runners must read it and react.
+BUNT POP-UPS: NEVER an infield fly — rule does not apply to bunts.
+RUNNER STRATEGY: On an IFF, runners can advance — but only at their own risk. Advancing when the ball drops fair can score runs if the fielders are not alert.
+NEVER: Assume runners are forced to advance on an IFF. Assume a dropped IFF ball starts a force play. Call an IFF on a line drive or bunt pop-up.`,
+  OF_COMMUNICATION_MAP: `OUTFIELD COMMUNICATION & POSITIONING (non-negotiable):
+CF HAS PRIORITY: Over ALL players on any ball CF can reach — corner OF and all infielders. His call is final and absolute. No exceptions.
+CORNER OF PRIORITY: LF and RF have priority over nearest infielders (LF > 3B and SS; RF > 1B and 2B) on any ball they can reach coming in.
+CALL SYSTEM: "I got it! I got it!" — loud, early, twice minimum. First call claims the ball. Everyone else peels off immediately and backs up the throw angle.
+GAP BALLS (LF-CF or RF-CF): CF calls if he can reach. If not, the nearest corner OF calls and takes it. Middle infielder (SS or 2B) goes to relay position immediately.
+COLLISION ZONE: When two OFs converge, the one who calls FIRST owns the ball. Late caller must peel off. NEVER a late call after another fielder has already called it.
+FOUL TERRITORY POP-UPS: Nearest fielder calls it. OF has priority over infielder in foul territory — the ball is moving away from the infielder and toward the outfielder. C and 1B/3B defer to OF if OF can reach.
+TWO-OF CONVERGENCE: If both corner OFs converge on a ball in LF-CF or RF-CF gap, CF has priority. Corner OF calls "YOU! YOU!" to wave CF off only if CF clearly cannot reach and corner OF can.
+SUN BALLS: Glove shield PRIMARY, sunglasses SUPPLEMENTARY. Keep eyes on the ball at all times — never look directly into sun. Call for sun ball help from teammates.
+WALL PLAY: Find the warning track (texture change) with feet — never take eyes off the ball to find the wall. Use the wall with the glove hand, not the throwing hand.
+PRE-PITCH ADJUSTMENTS: Shade toward pull side for known pull hitters. Communicate wind direction and sun angle to teammates before each inning begins.
+NEVER: Allow a no-call fly ball between two fielders. Call off CF after he has already called the ball. Take eyes off a fly ball to find the wall with your eyes.`,
+  POPUP_PRIORITY_MAP: `POP-UP PRIORITY & MECHANICS (non-negotiable):
+INFIELD POP-UPS (fair territory):
+  SS and 2B have priority over 1B and 3B on pop-ups between them.
+  Any infielder can call off another infielder — the one who calls loudest and first owns it.
+  CF has priority over ALL infielders on pop-ups he can reach coming in.
+  OF coming in ALWAYS has priority over IF going back. This is the universal rule.
+CATCHER POP-UPS (near home plate):
+  Catcher has PRIORITY on all pop-ups within 30 feet of home plate.
+  Catcher turns BACK to the field immediately — the ball curves back toward fair territory.
+  Remove mask: toss it away from the direction you will move, NOT directly behind you.
+  Pitcher calls "Ball! Ball!" to help locate it — then gets out of the catcher's path.
+FOUL TERRITORY POP-UPS (along foul lines):
+  OF has priority over nearest infielder on foul pop-ups they can reach.
+  Ball in foul territory moves AWAY from the fielder — drift toward the stands.
+  Fielder should set up slightly inside the ball's path to compensate for drift.
+  1B on RF foul line: RF has priority. 3B on LF foul line: LF has priority.
+COMMUNICATION:
+  First call wins. "I got it! I got it!" twice minimum.
+  Late call = defer immediately. Never fight for a ball after another fielder has called it.
+  On an uncalled pop-up: nearest fielder must take it — do not watch it drop.
+DROP PROTOCOL:
+  If pop-up is dropped, treat as a live ball. Runners may advance.
+  Infield fly rule may be in effect — check runners/outs before assuming.
+NEVER: Catcher looks at home plate while tracking a pop-up. Fielder moves in front of another who has already called it. Two fielders watch a pop-up drop uncalled.`,
+  OBSTRUCTION_INTERFERENCE_MAP: `OBSTRUCTION & INTERFERENCE (non-negotiable — MLB Rules 6.01 & 6.03):
+DEFINITIONS (critical — never confuse these):
+  OBSTRUCTION: A FIELDER impedes a RUNNER. Fielder is at fault.
+  INTERFERENCE: A RUNNER or BATTER impedes a FIELDER. Runner/batter is at fault.
+  Memory: "O = fielder Obstructs runner. I = runner Interferes with fielder."
+OBSTRUCTION (Rule 6.01(h)):
+  TYPE A (fielder without the ball blocks base path): Play is DEAD immediately. Runner awarded base(s) they would have reached without obstruction. Common at home plate.
+  TYPE B (fielder without ball impedes runner not in immediate play): Play continues. Umpire awards bases after play ends if runner was disadvantaged.
+  LEGAL BLOCK: Fielder may block the base path ONLY if actively fielding a batted ball OR has the ball. Fielding a throw counts — receiving a throw and then blocking the plate is legal.
+  PLATE BLOCK: Catcher must give the runner a lane to the plate if the ball has not arrived yet. Blocking the plate without the ball = Type A obstruction.
+INTERFERENCE (Rule 6.01(a)):
+  BATTER INTERFERENCE: Batter hits the catcher's glove on the backswing INTENTIONALLY = interference. Unintentional backswing contact = no interference.
+  RUNNER INTERFERENCE: Runner deliberately interferes with a fielder making a play (e.g., runner on 2nd tips a throw) = runner is out, batter returns.
+  BATTED BALL INTERFERENCE: Fair batted ball hits a runner in fair territory before passing an infielder = runner is out.
+  DOUBLE-PLAY INTERFERENCE: Runner slides to break up a DP by going outside the base path or making contact with fielder beyond the base = runner AND batter are out.
+UMPIRE SIGNALS: Obstruction = point at fielder and call "That's obstruction!" Interference = point at runner and call "That's interference!"
+NEVER: A fielder without the ball blocks the base path (obstruction). A runner intentionally contacts a fielder to break up a play (interference). Confuse which player is at fault.`,
+  TAGUP_SACRIFICE_FLY_MAP: `TAG-UP & SACRIFICE FLY (non-negotiable):
+TAG-UP RULE (MLB Rule 5.09(b)(5)):
+  Runner must RE-TOUCH their base after a caught fly ball before advancing.
+  Runner may leave WHEN THE FIELDER TOUCHES THE BALL — not before, not after.
+  "Leave on the catch" = the exact moment the fielder's glove contacts the ball.
+  Early departure = runner is out on appeal if defense throws to the original base.
+TIMING THE LEAVE:
+  Watch the fielder's FEET and GLOVE, not the ball in the air.
+  Start moving weight forward when the fielder is 3-4 steps from the catch.
+  Full sprint the instant the ball is caught. Every tenth of a second matters.
+FAIR vs FOUL TAG-UPS:
+  Fair fly ball: standard tag-up rules apply.
+  Foul fly ball: same rules — runner can tag and advance on a caught foul fly.
+  FOUL POP-UP near wall: if caught, runner may tag up and try to advance (rare but legal).
+MULTIPLE RUNNERS TAGGING:
+  LEAD runner has priority — will likely score. Tag up from 3rd first.
+  Trail runners must read: did the lead runner go? Is there a throw developing?
+  Two runners can both attempt to advance — defense must make a choice.
+SACRIFICE FLY RE24 VALUE:
+  Sac fly scores a run but records an out. It does NOT lower run expectancy the way a sac bunt does.
+  Sac fly with R3, <2 outs = net positive — you scored a run.
+  Sac fly with R2 (runner on 2nd, trying to score) = almost never correct. The run from 2nd on a fly is very rare.
+  The goal is a FLY BALL to the OUTFIELD, not a popup to the infield. Depth of fly ball matters.
+OF THROW MECHANICS ON TAG-UP:
+  Throw to the BASE before the runner arrives, not at the runner.
+  Hit the cutoff man unless throw is clearly going to beat the runner.
+  CF tag-up throw home: 1B is the cutoff. LF tag-up throw home: 3B is the cutoff.
+NEVER: Leave before the catch (early departure = appealable out). Look at the ball in flight instead of watching the fielder's glove. Throw at the runner instead of the base.`,
+  PITCHING_CHANGE_MAP: `PITCHING CHANGE MECHANICS (non-negotiable):
+WHEN MANAGER VISITS MOUND:
+  If manager crosses the foul line = automatic pitching change UNLESS:
+    (a) The original pitcher completes the visit, or
+    (b) An injury or defensive conference is declared.
+  Second visit to the same pitcher in the same inning = mandatory removal. No exceptions.
+WARM-UP PITCHES:
+  New pitcher gets 8 warm-up pitches (MLB Rule 5.07(b)). This time is limited — pitcher must be ready.
+  Catcher warms up new pitcher. First baseman or infielder can warm up if catcher is injured.
+  If no warm-up time (e.g., pitcher was warming in the bullpen), pitcher still gets 8 pitches.
+3-BATTER MINIMUM RULE (2020+):
+  Relief pitcher must face at least 3 batters OR pitch to the end of the inning, UNLESS pitcher sustains an injury or illness.
+  Exception: If the pitcher entered mid-inning, they must complete that half-inning.
+  Strategic impact: Can no longer bring in a LOOGY (left-one-out guy) for one batter.
+INHERITED RUNNER RULES:
+  If a pitcher leaves with runners on base and those runners score, the ORIGINAL pitcher is charged with the earned runs.
+  Relievers are NOT charged for inherited runners who score.
+  This is a scorekeeping rule — doesn't affect in-game strategy but explains pitching change timing.
+COVERAGE DURING CHANGE:
+  Infield maintains normal positioning. No one breaks until the new pitcher is ready.
+  Catcher jogs to mound when manager exits. SS or 2B often joins the meeting.
+  The NEW pitcher jogs from the bullpen — fielders give him space on the mound.
+POSITION CHANGES DURING CHANGE:
+  Manager may shift a fielder to a different position without removing them from the game.
+  Common: position player moves to another spot, then the new pitcher goes to that vacated spot.
+  A pitcher removed from the game can return as a position player ONLY if no pitching change has been made yet (extremely rare).
+NEVER: A second mound visit to the same pitcher in the same inning without removing him. Bringing in a reliever who faces fewer than 3 batters (unless injury). Catcher warming up the new pitcher with the wrong hand.`,
+  INTENTIONAL_WALK_MAP: `INTENTIONAL WALK (non-negotiable):
+2023+ RULE: Manager signals the IBB from the dugout. No pitches are thrown. Batter goes directly to 1B. This replaced the 4-pitch walk system.
+RE24 COST: An IBB ALWAYS increases run expectancy — you are trading a hard at-bat for a worse base-out state.
+  Example: R2, 1 out (0.71 RE) -> R1+R2, 1 out (0.96 RE) = +0.25 runs gifted to the offense.
+  Example: R2+R3, 1 out (1.44 RE) -> Loaded, 1 out (1.59 RE) = +0.15 runs gifted.
+WHEN IBB IS JUSTIFIED:
+  (1) First base is open AND next hitter is clearly weaker.
+  (2) Setting up a force play — loading the bases to get a force at home on a grounder.
+  (3) Large platoon advantage vs the next hitter (vs the current hitter who has platoon edge).
+  (4) Avoiding a hot hitter to face a cold hitter in a critical game situation.
+WHEN IBB IS ALMOST NEVER RIGHT:
+  Bases loaded — walking in a run is always wrong.
+  Two outs — RE cost is smaller but still negative. Next hitter must be dramatically weaker.
+  Intentional walk to the #8 hitter to face the pitcher — pitcher's batting era is over (universal DH).
+  Early in the game (1st-5th inning) — too many plate appearances remain for the extra baserunner to cause damage.
+POSITIONING DURING IBB:
+  All fielders maintain their defensive positions while the manager signals.
+  No fielder moves until the umpire declares "Ball Four" and the batter takes first.
+  Catcher does not receive pitches — he signals confirmation back to the manager.
+RUNNERS ADVANCE:
+  On an IBB, any runner forced by the batter's advancement automatically advances one base.
+  Example: R1 and R2 — IBB fills the bases. R1 goes to 2B, R2 goes to 3B.
+  No runner advances beyond one base on an IBB (they are not forced to advance two bases).
+NEVER: IBB with bases loaded. IBB early in the game to a non-dominant hitter. Assume IBB is "safe" — it always costs run expectancy.`,
+  LEGAL_SHIFT_MAP: `DEFENSIVE POSITIONING — SHIFT ERA & SHIFT BAN (non-negotiable):
+SHIFT BAN RULE (2023+): At the time of pitch, all 4 infielders must be in the infield dirt, with 2 infielders on each side of second base. Violation = automatic ball.
+STILL LEGAL:
+  Deep positioning (playing back toward the outfield grass).
+  Infield in (all 4 infielders on the outfield grass side of the baselines — when run at 3rd matters).
+  Outfield shifts (4 outfielders on one side — no rule restricts outfield positioning).
+  Standard pull-side alignment (SS shades toward the 3B hole for a pull LHH — both still on left side of 2B).
+ILLEGAL:
+  3 infielders on one side of 2B (the old Ted Williams shift).
+  Any infielder positioned in the outfield grass in their normal defensive alignment.
+  SS playing on the right side of 2B for LHH (requires stepping across 2B).
+STRATEGIC ALTERNATIVES TO THE SHIFT:
+  Play LHH pull hitters with 3B at the 3B line, SS in normal position, 2B shaded toward 1B-2B hole, 1B toward 1B line.
+  Position corners deeper to take away the double down the line.
+  Deploy a 4-outfielder alignment (one IF moves to OF) — still legal but rare.
+  Use pitch location to force the ball where your defense is positioned.
+APPEAL CHECK: Umpires verify positioning at the time of the pitch — a fielder may be moving but must be in legal position when the pitch is released.
+LHH vs RHH POSITIONING:
+  LHH (pull hitter): SS on left of 2B toward 3B hole. 2B shaded right of 2B toward 1B hole. Still legal.
+  RHH (pull hitter): 2B on right of 2B toward 1B line. SS shaded slightly left. Standard alignment.
+NEVER: 3 infielders on one side of 2B at time of pitch (illegal shift). Outfielder playing in infield depth in normal defensive alignment. Positioning any player so that a legal shift violation occurs.`,
 };
 const MAP_RELEVANCE = {
-  BUNT_DEFENSE_MAP: ['pitcher','catcher','firstBase','secondBase','shortstop','thirdBase','manager'],
-  FIRST_THIRD_MAP:  ['pitcher','catcher','firstBase','secondBase','shortstop','thirdBase','manager'],
-  BACKUP_MAP:       ['pitcher','catcher','firstBase','secondBase','shortstop','thirdBase','leftField','centerField','rightField','manager'],
-  RUNDOWN_MAP:      ['firstBase','secondBase','shortstop','thirdBase','baserunner','manager'],
-  DP_POSITIONING_MAP: ['pitcher','firstBase','secondBase','shortstop','thirdBase','manager'],
-  HIT_RUN_MAP:      ['secondBase','shortstop','batter','baserunner','manager'],
-  PICKOFF_MAP:      ['pitcher','catcher','firstBase','secondBase','shortstop','thirdBase','baserunner','manager'],
-  PITCH_CLOCK_MAP:  ['pitcher','catcher','batter','baserunner','manager'],
-  WP_PB_MAP:        ['pitcher','catcher','firstBase','thirdBase','baserunner','manager'],
-  SQUEEZE_MAP:      ['pitcher','catcher','firstBase','thirdBase','batter','baserunner','manager'],
-  INFIELD_FLY_MAP:  ['firstBase','secondBase','shortstop','thirdBase','batter','baserunner','manager'],
+  CUTOFF_RELAY_MAP:     ['pitcher','catcher','firstBase','secondBase','shortstop','thirdBase','leftField','centerField','rightField','batter','baserunner','manager'],
+  BUNT_DEFENSE_MAP:     ['pitcher','catcher','firstBase','secondBase','shortstop','thirdBase','manager'],
+  FIRST_THIRD_MAP:      ['pitcher','catcher','firstBase','secondBase','shortstop','thirdBase','manager'],
+  BACKUP_MAP:           ['pitcher','catcher','firstBase','secondBase','shortstop','thirdBase','leftField','centerField','rightField','manager'],
+  RUNDOWN_MAP:          ['firstBase','secondBase','shortstop','thirdBase','baserunner','manager'],
+  DP_POSITIONING_MAP:   ['pitcher','firstBase','secondBase','shortstop','thirdBase','manager'],
+  HIT_RUN_MAP:          ['secondBase','shortstop','batter','baserunner','manager'],
+  PICKOFF_MAP:          ['pitcher','catcher','firstBase','secondBase','shortstop','thirdBase','baserunner','manager'],
+  PITCH_CLOCK_MAP:      ['pitcher','catcher','batter','baserunner','manager'],
+  WP_PB_MAP:            ['pitcher','catcher','firstBase','thirdBase','baserunner','manager'],
+  SQUEEZE_MAP:          ['pitcher','catcher','firstBase','thirdBase','batter','baserunner','manager'],
+  INFIELD_FLY_MAP:      ['firstBase','secondBase','shortstop','thirdBase','batter','baserunner','manager'],
   OF_COMMUNICATION_MAP: ['leftField','centerField','rightField'],
+  POPUP_PRIORITY_MAP:             ['pitcher','catcher','firstBase','secondBase','shortstop','thirdBase','leftField','centerField','rightField','manager'],
+  OBSTRUCTION_INTERFERENCE_MAP:   ['pitcher','catcher','firstBase','secondBase','shortstop','thirdBase','leftField','centerField','rightField','batter','baserunner','manager'],
+  TAGUP_SACRIFICE_FLY_MAP:        ['leftField','centerField','rightField','batter','baserunner','manager'],
+  PITCHING_CHANGE_MAP:            ['pitcher','catcher','manager'],
+  INTENTIONAL_WALK_MAP:           ['pitcher','catcher','batter','baserunner','manager'],
+  LEGAL_SHIFT_MAP:                ['firstBase','secondBase','shortstop','thirdBase','batter','baserunner','manager'],
 };
 const MAP_AUDIT = {
-  BUNT_DEFENSE_MAP: "BUNT DEFENSE: If bunt scenario, do assignments match BUNT DEFENSE map? 2B covers 1st, SS covers 3rd with runners 1st & 2nd.",
-  FIRST_THIRD_MAP: "FIRST-AND-THIRD: If runners 1st & 3rd with steal, do options match? SS/2B cuts, pitcher ducks, 1B stays.",
-  BACKUP_MAP: "BACKUP: Are backup responsibilities correct? RF backs up 1B, LF backs up 3B, CF backs up 2B, P backs up home/3B.",
-  RUNDOWN_MAP: "RUNDOWN: If rundown scenario, chase runner BACK, one throw max, no pump fakes, backup rotation correct.",
-  DP_POSITIONING_MAP: "DP POSITIONING: DP depth only with less than 2 outs and force at 2nd. Never DP depth with 2 outs.",
-  HIT_RUN_MAP: "HIT-AND-RUN: Batter must swing, runner goes on pitch, coverage depends on batter handedness.",
-  PICKOFF_MAP: "If pickoff scenario: is the move legal? No fake-third/throw-first (balk since 2013). Step toward base required. Daylight play: fielder breaks FIRST, pitcher reacts.",
-  PITCH_CLOCK_MAP: "If pitch clock scenario: pitcher violation = ball, batter violation = strike. 15 sec empty, 20 sec with runners. Batter has exactly 1 timeout per PA.",
-  WP_PB_MAP: "Wild pitch/passed ball: catcher goes to ball first. Pitcher sprints home immediately. 3B backs up home with R3. R3 reads catcher's first step before breaking.",
-  SQUEEZE_MAP: "Squeeze scenario: is it safety (on contact) or suicide (on first move)? Suicide with 2 strikes = never. Pitcher's best response is high and tight. Runner commitment timing correct.",
-  INFIELD_FLY_MAP: "Infield fly scenario: IFF requires <2 outs and runners on 1st+2nd or loaded. Batter is automatically out. Runners NOT forced. Ball drifts foul = IFF cancelled.",
-  OF_COMMUNICATION_MAP: "Outfield scenario: CF priority is correct on any ball he can reach. Gap ball caller is the correct fielder. No no-call fly ball situation. Sun/wall technique is correct.",
+  CUTOFF_RELAY_MAP:     "CUTOFF/RELAY: Assignments correct per map? 3B cuts LF→Home, 1B cuts CF/RF→Home. SS relays left side, 2B relays right side. Pitcher backs up target base, never cuts. Trail man in position.",
+  BUNT_DEFENSE_MAP:     "BUNT DEFENSE: Assignments match map? 2B covers 1st, SS covers 3rd (runners 1st & 2nd). No bunt defense with 2 outs. Fake bunt/slash leaves right side open — 2B holds.",
+  FIRST_THIRD_MAP:      "FIRST-AND-THIRD: Options match map? SS/2B cuts, pitcher ducks, 1B stays. 2-out = throw freely to 2B. Double steal = read R3 first.",
+  BACKUP_MAP:           "BACKUP: Responsibilities correct? RF→1B, LF→3B, CF→2B on steals, P→home and 3B, C→1B with no runners. Foul territory and pop-up backups covered.",
+  RUNDOWN_MAP:          "RUNDOWN: Chase runner BACK, one throw max, no pump fakes, thrower fills vacated base. Two-runner: lead runner first. Force removed = tag play.",
+  DP_POSITIONING_MAP:   "DP POSITIONING: DP depth only with <2 outs and force at 2nd. Never DP depth with 2 outs. Infield in only with R3 and <2 outs. Loaded = force at every base including home.",
+  HIT_RUN_MAP:          "HIT-AND-RUN: Batter MUST swing. Coverage depends on batter handedness (LHH=SS, RHH=2B). Batter missing sign = runner hung out. Pitchout counters the hit-and-run.",
+  PICKOFF_MAP:          "PICKOFF: Legal step requirement for RHP (step toward base + throw). LHP can throw to 1B freely. Fake-3B/throw-1B is a balk since 2013. Daylight play: fielder breaks first.",
+  PITCH_CLOCK_MAP:      "PITCH CLOCK: 15 sec empty, 20 sec runners. Pitcher violation = ball, batter violation = strike. 2 disengagements per batter — 3rd = balk unless pickoff succeeds.",
+  WP_PB_MAP:            "WILD PITCH/PASSED BALL: Catcher goes to ball first (never look at runner first). Pitcher sprints home immediately. 3B backs up home with R3. 2-out variant same assignments.",
+  SQUEEZE_MAP:          "SQUEEZE: Safety=on contact, suicide=on first move. Never suicide with 2 strikes (foul=K + runner dead). Pitcher defends with high-tight pitch. Pop-up on squeeze = double play.",
+  INFIELD_FLY_MAP:      "IFF: <2 outs, runners 1st+2nd or loaded, fair fly with ordinary effort. Batter automatically out. Runners NOT forced. Ball drifts foul = cancelled. No IFF on line drives or bunts.",
+  OF_COMMUNICATION_MAP: "OF COMMUNICATION: CF priority correct. Gap ball caller is correct fielder. Foul territory: OF has priority over infielder. No no-call fly ball. Two-OF convergence: first caller owns it.",
+  POPUP_PRIORITY_MAP:            "POP-UP PRIORITY: CF priority over all on balls he can reach. Catcher priority within 30 feet — turns back to field. OF priority over IF in foul territory. First caller owns it.",
+  OBSTRUCTION_INTERFERENCE_MAP:  "OBSTRUCTION/INTERFERENCE: OBSTRUCTION = fielder impedes runner (fielder's fault). INTERFERENCE = runner/batter impedes fielder (runner's fault). Type A obstruction = dead ball immediately.",
+  TAGUP_SACRIFICE_FLY_MAP:       "TAG-UP: Runner leaves on THE CATCH (not before, not after). Early departure = appealable out. Sac fly with R3 is RE-positive. CF/LF throw home — correct cutoff used.",
+  PITCHING_CHANGE_MAP:           "PITCHING CHANGE: 2nd mound visit same inning = mandatory removal. 3-batter minimum rule applies. Inherited runners charged to original pitcher. 8 warm-up pitches.",
+  INTENTIONAL_WALK_MAP:          "IBB: 2023+ = signal only, no pitches. IBB always costs RE. Justified only with 1B open + weaker next hitter. Never with bases loaded. Forced runners advance one base only.",
+  LEGAL_SHIFT_MAP:               "SHIFT: 2023+ requires 2 infielders each side of 2B at pitch. 3 infielders one side = illegal. Outfield shifts still legal. Infield in still legal. Deep positioning legal.",
 };
 function getRelevantMaps(position) {
   return Object.entries(MAP_RELEVANCE)
@@ -3258,6 +3463,147 @@ const BRAIN = { stats: {
   timeToPlate: {quick:1.2, average:1.4, slow:1.6},
   pickoffSuccess: {blindThrow:0.08, readThrow:0.28, daylightPlay:0.35},
   pitchClockViolations: {pitcherRate:0.004, batterRate:0.002},
+  // Baserunning advancement rates (FanGraphs/Statcast 2021-2024 MLB avg)
+  baserunningRates: {
+    first_to_third_on_single: 0.28, first_to_third_elite: 0.45, first_to_third_slow: 0.15,
+    second_to_home_on_single: 0.62, second_to_home_shallow: 0.30, second_to_home_deep: 0.85,
+    first_to_home_on_double: 0.52,
+    tag_score_from_third: 0.88, tag_score_shallow: 0.45,
+    tag_advance_second_to_third: 0.55,
+    run_on_contact_two_outs: 1.00,
+  },
+  // Count K%/BB%/foul% per-pitch from each count (Baseball Reference 2021-2024)
+  countRates: {
+    "0-0":{k:0.04,bb:0.00,fouls:0.14},"1-0":{k:0.05,bb:0.00,fouls:0.15},
+    "2-0":{k:0.06,bb:0.00,fouls:0.14},"3-0":{k:0.02,bb:0.48,fouls:0.06},
+    "3-1":{k:0.05,bb:0.29,fouls:0.12},"0-1":{k:0.11,bb:0.00,fouls:0.18},
+    "0-2":{k:0.27,bb:0.00,fouls:0.22},"1-1":{k:0.10,bb:0.00,fouls:0.18},
+    "1-2":{k:0.26,bb:0.00,fouls:0.22},"2-1":{k:0.09,bb:0.00,fouls:0.16},
+    "2-2":{k:0.20,bb:0.00,fouls:0.22},"3-2":{k:0.16,bb:0.15,fouls:0.23},
+  },
+  // Steal window math (Statcast 2023-2024 post-pitch-clock)
+  stealWindow: {
+    deliveryTime: {quick:1.20, average:1.35, slow:1.55, lefty_quick:1.25, lefty_slow:1.50},
+    popTime: {elite:1.85, average:2.00, slow:2.15},
+    runnerTime: {elite:3.30, average:3.55, slow:3.80},
+    stealViability: {easy:3.40, marginal:3.25, tough:3.10},
+    pitchClockEffect: -0.20,
+  },
+  // Pitch count fatigue thresholds (FanGraphs, ABCA, pro coaching consensus)
+  pitchCountThresholds: {
+    velocityDrop: {"0-50":0,"51-75":0.5,"76-90":1.2,"91-100":2.1,"100+":3.0},
+    eraIncrease: {"0-75":0,"76-90":0.50,"91-100":1.20,"100+":2.10},
+    softLimit:90, hardLimit:110, youthLimit:75,
+    youthByAge: {"7-8":50,"9-10":75,"11-12":85,"13-14":95,"15-16":95,"17-18":105},
+  },
+  // Scoring probability: P(this specific runner scores) by base/outs (Tango "The Book")
+  scoringProb: {
+    first:  {0:0.40, 1:0.27, 2:0.13},
+    second: {0:0.62, 1:0.42, 2:0.23},
+    third:  {0:0.85, 1:0.67, 2:0.28},
+  },
+  // First-pitch strike run value (FanGraphs RE24 pitch value research)
+  firstPitchValue: {
+    strikeValue:-0.048, ballCost:0.051,
+    eliteRate:0.68, averageRate:0.59, poorRate:0.50,
+    firstPitchSwingBA:0.340, firstPitchTakeBA:0.315,
+    afterFirstStrikeK:0.24, afterFirstStrikeBB:0.05,
+  },
+  // Pitch type effectiveness data (Baseball Savant Statcast 2021-2024)
+  // rv100: Run value per 100 pitches (negative = better for pitcher)
+  // woba: wOBA against (lower = harder to hit)
+  pitchTypeData: {
+    types: {
+      fourSeam: {name:"Four-Seam Fastball",rv100:0.2,woba:0.335,usage:0.34,velo:94.0,
+        bestCounts:["0-2","1-2","0-1"],worstCounts:["2-0","3-1","2-1"],
+        description:"The foundational pitch. Sets up everything else. High velocity, low break."},
+      sinker: {name:"Sinker / Two-Seam Fastball",rv100:0.0,woba:0.320,usage:0.19,velo:93.0,
+        bestCounts:["0-0","1-0","2-0"],worstCounts:["0-2","1-2"],
+        description:"Ground ball pitch. Use when you need a double play. Tunnels with changeup."},
+      cutter: {name:"Cutter",rv100:-0.9,woba:0.305,usage:0.10,velo:90.0,
+        bestCounts:["0-2","1-2","0-1"],worstCounts:["3-2","3-1"],
+        description:"Late-breaking fastball. Jams same-side hitters. Best 'put-away' fastball."},
+      changeup: {name:"Changeup",rv100:-1.2,woba:0.295,usage:0.11,velo:85.0,
+        bestCounts:["0-2","1-2","2-2"],worstCounts:["2-0","3-1"],
+        description:"Best put-away pitch. Same arm action as fastball, 8-10 mph slower. Freezes hitters.",
+        tunnelsWith:"fourSeam"},
+      slider: {name:"Slider",rv100:-1.4,woba:0.285,usage:0.17,velo:87.0,
+        bestCounts:["0-2","1-2","0-1"],worstCounts:["3-2","3-0"],
+        description:"The best strikeout pitch in baseball. Breaks late and sharply. Chased out of zone."},
+      curveball: {name:"Curveball",rv100:-0.6,woba:0.305,usage:0.12,velo:79.0,
+        bestCounts:["0-2","1-2","2-2"],worstCounts:["3-1","3-2"],
+        description:"Big 12-to-6 break. Best after fastballs — maximum speed change. Freezes hitters low.",
+        tunnelsWith:"fourSeam"},
+      sweeper: {name:"Sweeper (Wide Slider)",rv100:-1.6,woba:0.280,usage:0.09,velo:83.0,
+        bestCounts:["0-2","1-2"],worstCounts:["3-2","3-0"],
+        description:"Wide horizontal break — sweeps out of zone. Highest K rate in pitch clock era."},
+      splitter: {name:"Splitter / Split-Finger",rv100:-1.1,woba:0.275,usage:0.03,velo:85.0,
+        bestCounts:["0-2","1-2","2-2"],worstCounts:["3-2"],
+        description:"Drops out of the zone at the last second. Chased by hitters expecting a fastball."},
+    },
+    sequencing: {
+      afterFastball: {best:"changeup",second:"slider",avoid:"curveball"},
+      afterOffspeed: {best:"fourSeam",second:"cutter",avoid:"changeup"},
+      twoStrikePutaway: ["sweeper","slider","changeup","splitter","cutter"],
+      firstPitch: ["fourSeam","sinker","cutter"],
+      hittersCount: ["cutter","sinker","fourSeam"],
+    },
+    velocityBands: {
+      elite_fb:{min:97,label:"Elite — hitters have almost no time to react"},
+      above_avg:{min:93,label:"Above average — still very hard to catch up to"},
+      average:{min:90,label:"Average — movement and location must compensate"},
+      below_avg:{min:86,label:"Below average — deception and sequence are critical"},
+      soft:{min:0,label:"Soft — must tunnel perfectly to survive"},
+    },
+    eyeLevelPrinciple: {
+      rule:"Change the eye level. After a pitch up in the zone, go down. After low, go up.",
+      data:"Batters hit .085 worse on the pitch AFTER a pitch that was 6+ inches different in vertical location.",
+      examples:["High four-seam → low changeup or curveball","Low sinker → high four-seam or cutter","Middle slider → high fastball to set up next slider"],
+    },
+  },
+  // Win Probability framework (FanGraphs WPA / "The Book" Tango-Lichtman-Dolphin)
+  winProbability: {
+    concept: {
+      definition:"Win Probability (WP) = chance the batting team wins from this exact game state.",
+      vsRE24:"RE24 measures expected runs this inning. WP measures expected wins this game. They diverge most in the 7th-9th innings of close games.",
+      keyInsight:"Playing for 1 run (bunt, sac fly, IBB) COSTS run expectancy but can INCREASE win probability when you need exactly 1 run late in a close game.",
+    },
+    byInningScore: {
+      1:{"-3":0.33,"-2":0.39,"-1":0.44,"0":0.50,"+1":0.56,"+2":0.61,"+3":0.67},
+      3:{"-3":0.27,"-2":0.33,"-1":0.41,"0":0.50,"+1":0.59,"+2":0.67,"+3":0.73},
+      6:{"-3":0.16,"-2":0.24,"-1":0.37,"0":0.50,"+1":0.63,"+2":0.76,"+3":0.84},
+      7:{"-3":0.11,"-2":0.18,"-1":0.32,"0":0.50,"+1":0.68,"+2":0.82,"+3":0.89},
+      8:{"-3":0.07,"-2":0.13,"-1":0.27,"0":0.50,"+1":0.73,"+2":0.87,"+3":0.93},
+      9:{"-3":0.04,"-2":0.08,"-1":0.21,"0":0.50,"+1":0.79,"+2":0.92,"+3":0.96},
+    },
+    leverageIndex: {
+      byInning:{1:0.8,3:0.9,5:1.0,6:1.1,7:1.3,8:1.5,9:1.7,"10+":2.0},
+      closedMultiplier:1.5,leadMultiplier:1.2,bigDeficit:0.4,
+    },
+    reDivergence: {
+      buntJustified:{description:"Bunt MAY increase WP when trailing by 1, inning 7+, runner on 2nd, weak hitter.",conditions:["trailing by 1 run","inning 7 or later","runner on 2nd or 1st+2nd","weak hitter batting"],wpGain:"+0.02 to +0.04 WP",note:"Even here, only when batter has <.220 BA and reliever is excellent."},
+      ibbJustified:{description:"IBB may increase WP when setting up force play with dominant skill gap to next hitter.",conditions:["first base open","next hitter weaker by 80+ OPS points","late inning close game"],wpGain:"+0.01 to +0.03 WP in best case"},
+      playForOneRun:{description:"Playing for 1 run is WP-positive when tied or down 1 in innings 7-9.",earlyGame:"Innings 1-5: play for big innings (RE24 maximization). Down 1 run = 44% WP.",lateGame:"Innings 7-9: play for 1 run. Down 1 run = 32% WP in 7th."},
+    },
+    clutch: {doesItExist:false,explanation:"Year-to-year clutch correlation is near zero (r ≈ 0.08). Players regress to normal stats over large samples.",teachingPoint:"The situation creates pressure, not special ability. Best clutch approach = same approach as always.",highLeverageHits:0.003},
+  },
+  // Defensive positioning tradeoffs (Statcast OAA 2021-2024, FanGraphs, ABCA)
+  defensivePositioning: {
+    infieldDepth: {
+      normalDepth:{description:"Standard positioning — balanced range and arm strength.",groundBallConversionRate:0.74,doublePlayRate:0.41},
+      dpDepth:{description:"3-4 steps toward 2B and toward home. Reduces range ~15% but speeds pivot.",groundBallConversionRate:0.70,doublePlayRate:0.49,rangeReduction:0.15,bestWith:"Runner on 1st, less than 2 outs, not a big power hitter up"},
+      infieldIn:{description:"All infielders on the outfield-grass side of the baselines.",groundBallConversionRate:0.58,runsSavedPerGame:0.3,runsCostPerGame:0.8,netCostPerGame:-0.5,situationalCost:-0.12,bestWith:"Runner on 3rd, less than 2 outs, game-tying/winning run, <3 innings left",neverWith:"2 outs (can't throw home anyway), big inning situation (inning 1-5)"},
+    },
+    lineGuarding:{description:"3B and 1B play within 5 feet of their respective lines.",extraBasesPreventedPerGame:0.4,holeCreated:{description:"Creates a larger 5-6 hole and 4-5 hole",singleRateIncrease:0.08,netRunEffect:-0.05},bestWith:"Leading by 1-2 runs, innings 7-9, protecting against XBH",neverWith:"Early in game, large lead, or behind — range matters more"},
+    outfieldDepth: {
+      normal:{description:"Standard depth — balanced gap coverage and arm strength.",gapcoverageRate:0.76},
+      shallowIn:{description:"Playing 10-15 feet shallower than normal.",gapcoverageRate:0.68,shortFlyConversion:0.85,armStrengthImpact:-0.3,bestWith:"Runner on 3rd, <2 outs — cut off the run. Inning 7-9, 1-run game."},
+      deep:{description:"Playing 10-15 feet deeper than normal.",gapcoverageRate:0.84,shortFlyConversion:0.62,bestWith:"No runners, extra-base threat up (power hitter), large lead"},
+      fourOutfielders:{description:"One infielder moves to OF for a four-outfielder alignment.",gapcoverageRate:0.92,infieldHoleRate:0.35,bestWith:"Extreme pull/gap hitter, protecting multi-run lead in final innings"},
+    },
+    historicalShift:{note:"Traditional shift (3 IF right of 2B for pull LHH) was banned in 2023.",shiftRunValuePer100PA:-1.3,postBanEffect:"Pull hitters gained ~+.015 BA and ~+.008 wOBA after shift ban (2023 data)",teachingValue:"Shows WHY positioning matters — shift cost pull hitters 10+ points of BA"},
+    outfieldArm:{eliteArm:{extraBasesPrevented:12,runnersAdvancedPrevented:8},averageArm:{extraBasesPrevented:0,runnersAdvancedPrevented:0},weakArm:{extraBasesPrevented:-10,runnersAdvancedPrevented:-6},rfArmPremium:"RF arm prevents ~3x as many extra bases as LF arm (more throws to 3B/home)"},
+  },
 },
 concepts: {
   "force-vs-tag":       {name:"Force vs Tag Plays",       domain:"rules",       prereqs:[],                       ageMin:6,  diff:1},
@@ -3286,6 +3632,16 @@ concepts: {
   "squeeze-play":       {name:"Squeeze Play Variants",     domain:"strategy",    prereqs:["bunt-defense"],          ageMin:11, diff:3},
   "tto-effect":         {name:"Times Through the Order",   domain:"pitching",    prereqs:["count-leverage"],        ageMin:11, diff:3},
   "of-communication":   {name:"Outfield Communication & Positioning",domain:"defense",prereqs:["fly-ball-priority","backup-duties"],ageMin:9,diff:2},
+  "scoring-probability": {name:"Scoring Probability by Base/Out",domain:"baserunning",prereqs:["tag-up"],ageMin:11,diff:2},
+  "pitch-count-mgmt":    {name:"Pitch Count & Pitcher Fatigue",domain:"pitching",prereqs:["count-leverage"],ageMin:11,diff:2},
+  "steal-window":        {name:"The Steal Window",domain:"baserunning",prereqs:["steal-breakeven"],ageMin:11,diff:3},
+  "first-pitch-value":   {name:"First-Pitch Strike Value",domain:"pitching",prereqs:["first-pitch-strike","count-leverage"],ageMin:11,diff:2},
+  "baserunning-rates":   {name:"Baserunning Advancement Rates",domain:"baserunning",prereqs:["tag-up","steal-breakeven"],ageMin:11,diff:2},
+  "pitch-type-value":    {name:"Pitch Type Run Values",domain:"pitching",prereqs:["pitch-sequencing"],ageMin:13,diff:3},
+  "eye-level-change":    {name:"Eye Level & Pitch Tunneling",domain:"pitching",prereqs:["pitch-sequencing"],ageMin:13,diff:3},
+  "win-probability":     {name:"Win Probability vs RE24",domain:"strategy",prereqs:["bunt-re24","steal-breakeven"],ageMin:13,diff:3},
+  "infield-positioning": {name:"Infield Depth Tradeoffs",domain:"defense",prereqs:["dp-positioning"],ageMin:11,diff:2},
+  "of-depth-arm-value":  {name:"Outfield Depth & Arm Value",domain:"defense",prereqs:["backup-duties"],ageMin:11,diff:2},
 },
 coaching: {
   situational: {
@@ -3314,6 +3670,14 @@ coaching: {
     "pitch-clock-leverage":"With the pitch clock, every second of your 20 counts. Make the hitter sweat on 0-2.",
     "squeeze-alert":"Runner on third, less than 2 outs — squeeze play is in the toolbox. Is the defense ready?",
     "wp-pb-alert":"Ball in the dirt with a runner on third — catcher goes to the ball, pitcher sprints home. No hesitation.",
+    "scoring-chance":"Runner on {base}, {outs} out — {prob}% chance of scoring. Make contact count!",
+    "pitch-count":"Approaching {count} pitches — velocity and command both start to fade here.",
+    "two-strike-danger":"{count} count: pitcher has a {kRate}% strikeout chance. Fight for your life at the plate!",
+    "steal-window":"Delivery + pop time = {window}s. The steal window is {verdict}.",
+    "tag-up-math":"Tag from 3rd — {prob}% of MLB runners score on a catchable fly ball. Leave on the catch!",
+    "advance-rate":"MLB runners score from 2nd on a single {rate}% of the time. Go on a base hit!",
+    "first-pitch-value":"First-pitch strikes save ~0.05 runs per batter. At 68%, elite pitchers own this.",
+    "three-oh-take":"3-0: 48% chance of a walk on the next pitch. Take the pitch unless you get the green light.",
   }
 }};
 
@@ -3403,6 +3767,16 @@ function findConceptTag(conceptText) {
     "squeeze":{tags:["squeeze-play"],weight:3},"suicide squeeze":{tags:["squeeze-play"],weight:3},"safety squeeze":{tags:["squeeze-play"],weight:3},
     "times through":{tags:["tto-effect"],weight:3},"third time through":{tags:["tto-effect"],weight:3},"tto":{tags:["tto-effect"],weight:2},
     "outfield communic":{tags:["of-communication"],weight:3},"gap ball":{tags:["of-communication"],weight:2},"sun ball":{tags:["of-communication"],weight:2},
+    "scoring prob":{tags:["scoring-probability"],weight:3},"chance of scoring":{tags:["scoring-probability"],weight:3},"runner scores":{tags:["scoring-probability"],weight:2},
+    "pitch count":{tags:["pitch-count-mgmt"],weight:3},"fatigue":{tags:["pitch-count-mgmt"],weight:2},"arm tired":{tags:["pitch-count-mgmt"],weight:2},
+    "steal window":{tags:["steal-window"],weight:3},"pop time":{tags:["steal-window"],weight:2},"delivery time":{tags:["steal-window"],weight:2},
+    "first.pitch value":{tags:["first-pitch-value"],weight:3},"get ahead 0-1":{tags:["first-pitch-value"],weight:2},
+    "advancement rate":{tags:["baserunning-rates"],weight:3},"first to third":{tags:["baserunning-rates"],weight:3},"second to home":{tags:["baserunning-rates"],weight:3},"extra base":{tags:["baserunning-rates"],weight:2},
+    "pitch type":{tags:["pitch-type-value"],weight:3},"run value":{tags:["pitch-type-value"],weight:2},"rv.100":{tags:["pitch-type-value"],weight:3},"pitch effectiveness":{tags:["pitch-type-value"],weight:3},
+    "eye level":{tags:["eye-level-change"],weight:3},"tunnel":{tags:["eye-level-change"],weight:3},"vertical location":{tags:["eye-level-change"],weight:2},"pitch height":{tags:["eye-level-change"],weight:2},
+    "win probability":{tags:["win-probability"],weight:3},"leverage index":{tags:["win-probability"],weight:3},"play for one run":{tags:["win-probability"],weight:3},"late and close":{tags:["win-probability"],weight:2},"wp vs re24":{tags:["win-probability"],weight:3},
+    "infield in":{tags:["infield-positioning"],weight:3},"infield depth":{tags:["infield-positioning"],weight:3},"guard the line":{tags:["infield-positioning"],weight:3},"dp depth":{tags:["infield-positioning","dp-positioning"],weight:2},
+    "outfield depth":{tags:["of-depth-arm-value"],weight:3},"arm strength":{tags:["of-depth-arm-value"],weight:2},"shallow":{tags:["of-depth-arm-value"],weight:1},"rf arm":{tags:["of-depth-arm-value"],weight:3},
   };
   let best = null, bestWeight = 0;
   for (const [kw, info] of Object.entries(keywords)) {
@@ -3410,6 +3784,85 @@ function findConceptTag(conceptText) {
     if (rx.test(lower) && info.weight > bestWeight) { best = info.tags[0]; bestWeight = info.weight; }
   }
   return best;
+}
+function getPitchRecommendation(count, lastPitch, outs, runners) {
+  const pitches = BRAIN.stats.pitchTypeData;
+  const seq = pitches.sequencing;
+  const isHittersCount = ['2-0','3-1','2-1','1-0'].includes(count);
+  const isTwoStrike = count?.endsWith('-2') || ['0-2','1-2','2-2'].includes(count);
+  const isFirstPitch = count === '0-0';
+  let recommendation, reasoning;
+  if (isFirstPitch) {
+    recommendation = seq.firstPitch[0];
+    reasoning = "First pitch: establish a strike. Fastball gets ahead and sets up everything.";
+  } else if (isTwoStrike && !isHittersCount) {
+    recommendation = seq.twoStrikePutaway[0];
+    reasoning = "Two-strike count — go to the put-away pitch. Sweeper/slider chased out of zone most often.";
+  } else if (isHittersCount) {
+    recommendation = seq.hittersCount[0];
+    reasoning = "Hitter's count — must throw a strike. Cutter has late movement and stays in zone.";
+  } else if (lastPitch) {
+    const isLastFastball = ['fourSeam','sinker','cutter'].includes(lastPitch);
+    recommendation = isLastFastball ? seq.afterFastball.best : seq.afterOffspeed.best;
+    reasoning = isLastFastball
+      ? `After a fastball, ${seq.afterFastball.best} is most effective — same arm action, 8-10 mph drop.`
+      : "After offspeed, fastball resets the hitter's timing and eye level.";
+  } else {
+    recommendation = 'fourSeam';
+    reasoning = "Default: establish fastball to set up everything else.";
+  }
+  const pitchData = pitches.types[recommendation];
+  return {pitch:recommendation,name:pitchData?.name??recommendation,rv100:pitchData?.rv100,woba:pitchData?.woba,reasoning,eyeLevel:pitches.eyeLevelPrinciple.rule};
+}
+function getWinContext(inning, scoreDiff, runners, outs) {
+  const wp = BRAIN.stats.winProbability;
+  const inningNum = typeof inning === 'string' ? parseInt(inning.replace(/\D/g,'')) || 5 : (inning || 5);
+  const clampedInning = Math.min(inningNum, 9);
+  const diffKey = scoreDiff >= 3 ? '+3' : scoreDiff <= -3 ? '-3' : (scoreDiff > 0 ? '+'+scoreDiff : String(scoreDiff));
+  const wpValue = wp.byInningScore[clampedInning]?.[diffKey] ?? 0.50;
+  const baseLI = wp.leverageIndex.byInning[clampedInning] ?? 1.0;
+  const scoreMult = Math.abs(scoreDiff) <= 1 ? wp.leverageIndex.closedMultiplier : 1.0;
+  const li = +(baseLI * scoreMult).toFixed(2);
+  const isLateClose = clampedInning >= 7 && Math.abs(scoreDiff) <= 1;
+  const isBlowout = Math.abs(scoreDiff) >= 3 && clampedInning >= 7;
+  const strategyMode = isBlowout ? 'standard' : isLateClose ? 'win-probability' : clampedInning <= 5 ? 'run-expectancy' : 'transitional';
+  return {wp:wpValue,wpPct:Math.round(wpValue*100),li,strategyMode,isLateClose,isHighLeverage:li>=1.4,
+    recommendation:strategyMode==='win-probability'?"Late and close: play for 1 run. WP matters more than RE24 here."
+      :strategyMode==='run-expectancy'?"Early game: maximize run expectancy. Avoid outs, play for big innings."
+      :"Transitional: standard baseball — both run value and win probability matter."};
+}
+function evaluateDefensiveAlignment(situation, proposedAlignment) {
+  const dp = BRAIN.stats.defensivePositioning;
+  const {runners=[],outs=0,inning,score} = situation;
+  const inningNum = typeof inning === 'string' ? parseInt(inning) || 5 : inning;
+  const isLate = inningNum >= 7;
+  const hasR3 = runners.includes(3);
+  const scoreDiff = score ? score[0]-score[1] : 0;
+  const isClose = Math.abs(scoreDiff) <= 1;
+  let justified = false, cost, explanation;
+  if (proposedAlignment === 'infieldIn') {
+    const data = dp.infieldDepth.infieldIn;
+    justified = hasR3 && outs < 2 && isLate && isClose;
+    cost = data.situationalCost;
+    explanation = justified
+      ? `Infield in is justified: R3, ${outs} outs, late/close game. Saves ~${data.runsSavedPerGame} runs/game but costs ~${data.runsCostPerGame} in range. Net per PA: ${data.situationalCost}.`
+      : "Infield in is NOT justified here: ground ball conversion drops from 74% to 58%. Only use with R3, <2 outs, late/close game.";
+  } else if (proposedAlignment === 'guardLines') {
+    const data = dp.lineGuarding;
+    justified = isLate && isClose && scoreDiff >= 0;
+    cost = data.netRunEffect;
+    explanation = justified
+      ? `Guard the lines: prevents ${data.extraBasesPreventedPerGame} extra-base hits per game. Net: ${data.netRunEffect} per game. Correct in late/close.`
+      : "Don't guard lines here — too early or not close enough. Range is more valuable before the 7th.";
+  } else if (proposedAlignment === 'dpDepth') {
+    justified = runners.includes(1) && outs < 2;
+    const data = dp.infieldDepth.dpDepth;
+    cost = null;
+    explanation = justified
+      ? "DP depth increases double-play conversion from 41% to 49% — significant edge. Correct with R1, <2 outs."
+      : "DP depth requires a force at 2nd. Not correct here — play normal depth.";
+  }
+  return {justified,cost,explanation};
 }
 function enrichFeedback(scenario, choiceIdx, situation) {
   if (!situation) return [];
@@ -3433,6 +3886,43 @@ function enrichFeedback(scenario, choiceIdx, situation) {
   if (scenario?.concept && /steal/i.test(scenario.concept)) {
     const steal = evaluateSteal(outs, 0.72);
     insights.push({icon:"🏃", text:`Need ${steal.breakeven}% success rate to break even on a steal here.`});
+  }
+  // Scoring probability by base/out
+  if (runners.length > 0 && outs !== undefined) {
+    const base = runners[runners.length - 1];
+    const baseKey = base === 1 ? 'first' : base === 2 ? 'second' : 'third';
+    const prob = BRAIN.stats.scoringProb[baseKey]?.[outs];
+    if (prob !== undefined)
+      insights.push({icon:"🏃", text:`Runner on ${baseKey} with ${outs} out${outs !== 1 ? 's' : ''}: ${Math.round(prob * 100)}% chance of scoring this inning.`});
+  }
+  // Two-strike K rate
+  if (['0-2','1-2'].includes(count)) {
+    const kRate = BRAIN.stats.countRates[count]?.k;
+    if (kRate) insights.push({icon:"⚠️", text:`${count} count: pitcher has a ${Math.round(kRate * 100)}% strikeout rate on this pitch. Protect the zone!`});
+  }
+  // Pitch count fatigue context
+  if (scenario?.concept && /pitch.*chang|fatigue|pitch count/i.test(scenario.concept))
+    insights.push({icon:"💪", text:"After 90+ pitches, a starter's ERA equivalent rises by ~1.2. The third time through the order adds another 30 BA points."});
+  // Baserunning advance decision
+  if (scenario?.anim === 'advance' || scenario?.anim === 'score')
+    insights.push({icon:"🏃", text:`MLB runners score from 2nd on a single ${Math.round(BRAIN.stats.baserunningRates.second_to_home_on_single * 100)}% of the time. Reading the ball off the bat is the key.`});
+  // Pitch type recommendation for pitcher scenarios with count data
+  if (scenario?.concept && /pitch.*(seq|type|select|choice|tunnel)/i.test(scenario.concept))
+    insights.push({icon:"📊", text:"Best put-away pitches by run value: Sweeper (-1.6) → Slider (-1.4) → Changeup (-1.2). Fastball alone (+0.2) needs offspeed to be dangerous."});
+  // Win probability insight for late/close games
+  if (situation.inning && situation.score) {
+    const wpDiff = (situation.score[0]||0) - (situation.score[1]||0);
+    const wpCtx = getWinContext(situation.inning, wpDiff, runners, outs);
+    if (wpCtx.isLateClose)
+      insights.push({icon:"📈", text:`Win probability: ${wpCtx.wpPct}% with Leverage Index ${wpCtx.li}x. ${wpCtx.recommendation}`});
+    if (wpCtx.isHighLeverage && wpCtx.li >= 2.0)
+      insights.push({icon:"🔥", text:`Maximum leverage (LI ${wpCtx.li}x) — this PA matters ${wpCtx.li}x more than an average plate appearance.`});
+  }
+  // Defensive positioning insight
+  if (scenario?.concept && /infield.*(in|depth|position)/i.test(scenario.concept)) {
+    const alignment = /infield.*in/i.test(scenario.concept) ? 'infieldIn' : 'dpDepth';
+    const dpEval = evaluateDefensiveAlignment(situation, alignment);
+    insights.push({icon:"🧤", text:dpEval.explanation});
   }
   return insights.slice(0, 3);
 }
@@ -3459,9 +3949,19 @@ function getSmartCoachLine(cat, situation, position, streak, isPro) {
       else if (count === "3-2") { key = "full-count"; }
       else if (re24 > 1.5) { key = "high-re24"; vars = {re24: re24.toFixed(2)}; }
       else if (runners.some(r => r >= 2) && outs < 2) { key = "risp"; vars = {outs}; }
+      else if (runners.includes(3) && outs < 2) {
+        const prob = BRAIN.stats.scoringProb.third[outs];
+        key = "scoring-chance"; vars = {base:"3rd", outs, prob:Math.round(prob*100)};
+      }
+      else if (['0-2','1-2'].includes(count)) {
+        const kRate = BRAIN.stats.countRates[count]?.k;
+        key = "two-strike-danger"; vars = {count, kRate:Math.round(kRate*100)};
+      }
+      else if (count === '3-0') { key = "three-oh-take"; }
       else if (innNum >= 7 && diff <= 2) { key = "late-close"; }
       else if (outs === 2) { key = "two-outs"; }
       else if (outs === 0 && runners.length > 0) { key = "nobody-out"; }
+      else if (innNum <= 1 && ["pitcher","manager"].includes(position)) { key = "first-pitch-value"; }
       else if (innNum <= 1) { key = "first-inning"; }
       if (key && BRAIN.coaching.situational[key]) {
         let line = BRAIN.coaching.situational[key];
@@ -3477,18 +3977,24 @@ function formatBrainStats(position) {
   const lines = [];
   // Everyone gets key RE24 states
   lines.push("RUN EXPECTANCY (RE24): ---/0out=0.54, 1--/0out=0.94, -2-/0out=1.17, 123/0out=2.29, ---/2out=0.11");
+  // Everyone gets scoring probability
+  lines.push("SCORING PROBABILITY (runner scores from each base): 3rd base: 0 outs=85%, 1 out=67%, 2 outs=28%. 2nd base: 0 outs=62%, 1 out=42%, 2 outs=23%. 1st base: 0 outs=40%, 1 out=27%, 2 outs=13%. KEY: Runner on 3rd with <2 outs is HIGH probability — justifies squeeze, sac fly, infield in. Runner on 2nd with 2 outs is only 23% — need a base HIT, not just contact.");
   // Pitchers/batters/catchers/counts get count data
   if (["pitcher","batter","catcher","counts"].includes(position)) {
     lines.push("COUNT LEVERAGE: 0-0=.340BA, 0-2=.167BA, 2-0=.400BA, 3-1=.370BA, 3-2=.230BA, 1-2=.180BA");
+    lines.push("COUNT K/BB RATES: 0-2 count: 27% K rate on next pitch — protect the zone! 3-2 count: 15% walk, 16% K, 23% foul — anything can happen. 3-0 count: 48% walk rate — almost always take. 0-2 and 1-2 have identical K rates (~26-27%) — two-strike approach is same for both.");
   }
-  // Baserunners/managers get steal break-even
+  // Baserunners/managers get steal break-even + advancement rates
   if (["baserunner","manager","batter"].includes(position)) {
     lines.push("STEAL BREAK-EVEN: 72% success needed (0-1 out), 67% needed (2 out). Below = hurting the team.");
+    lines.push("BASERUNNING ADVANCEMENT RATES (MLB averages): 1st→3rd on OF single: 28% (elite runner: 45%). 2nd→home on OF single: 62% (deep single: 85%). Tag-up and score from 3rd: 88% on standard OF fly ball. STEAL WINDOW (2023+ pitch clock era): Average delivery time: 1.35s (was 1.55s pre-clock — pitch clock SHORTENED the steal window by 0.2s). Steal is comfortable if delivery+pop time >3.40s. Marginal at 3.25s. Very tough below 3.10s.");
   }
-  // Pitchers/managers get TTO effect and pickoff data
+  // Pitchers/managers get TTO effect, pickoff, pitch count, and first-pitch value
   if (["pitcher","manager"].includes(position)) {
     lines.push("TIMES THROUGH ORDER: Batters hit +15 BA pts 2nd time, +30 pts 3rd time vs same pitcher. Pull starter before 3rd TTO damage compounds.");
     lines.push("PICKOFF: Read-based throws succeed ~28%. Blind throws succeed ~8%. Daylight plays ~35%. Never throw without a tell.");
+    lines.push("PITCH COUNT FATIGUE: 0-75 pitches = near-peak. 76-90 = modest decline. 91-100 = significant decline (+1.2 ERA equivalent). 100+ pitches = high fatigue/injury risk. Velocity drops ~2-3 mph over 100 pitches.");
+    lines.push("FIRST-PITCH STRIKE VALUE: Each first-pitch strike saves ~0.048 runs per PA. Elite pitchers throw first-pitch strikes 68% of the time. Average is 59%. After getting ahead 0-1: K rate jumps to 24%, walk rate drops to 5%.");
   }
   // Pitch clock for relevant positions
   if (["pitcher","catcher","batter","baserunner","manager"].includes(position)) {
@@ -3497,6 +4003,25 @@ function formatBrainStats(position) {
   // Bunt RE24 for relevant positions
   if (["batter","manager","baserunner"].includes(position)) {
     lines.push("BUNT RE24: Runner 1st/0out costs -0.23 runs. Runner 2nd/0out costs -0.19. Usually bad except: weak hitter, late, need 1 run.");
+  }
+  // Pitch type data for pitchers/counts/managers
+  if (['pitcher','counts','manager'].includes(position)) {
+    lines.push("PITCH TYPE RUN VALUES (rv/100, negative = better for pitcher): Sweeper:-1.6 (BEST), Slider:-1.4, Changeup:-1.2, Splitter:-1.1, Cutter:-0.9, Curveball:-0.6, Four-Seam:+0.2, Sinker:0.0");
+    lines.push("PITCH SEQUENCING: After fastball→changeup (same arm, 10mph drop) or slider. After offspeed→four-seam (eye-level reset) or cutter. Two-strike put-away: sweeper→slider→changeup→splitter→cutter. First pitch: four-seam or cutter. Hitter's count: stay with fastball variants.");
+    lines.push("EYE LEVEL RULE: Batters hit .085 worse when next pitch changes vertical location 6+ inches. High fastball→go low with changeup/curve. Low sinker→bust them up with four-seam.");
+  }
+  // Win probability for managers/pitchers
+  if (['manager','pitcher'].includes(position)) {
+    lines.push("WIN PROBABILITY vs RE24: RE24 = expected runs this inning. WP = expected wins this game. They DIVERGE in late/close games. Innings 1-5: play for big innings (RE24). Innings 7-9 tie/1-run: play for 1 run (WP). Tied 9th=50% WP. Down 1 in 8th=27% WP. Down 3+ in 7th+=low leverage.");
+    lines.push("LEVERAGE INDEX: Avg PA=1.0 LI. Tie game 9th=~2.5 LI. Down 3 in 7th=~0.4 LI. Inn 7=1.3, Inn 8=1.5, Inn 9=1.7, Extra=2.0+. BUNT WP-JUSTIFIED: trailing by 1, inn 7+, R2, weak hitter (gain ~+0.02-0.04 WP). CLUTCH: year-to-year r≈0.08 — not a real skill. Best approach=same process always.");
+  }
+  // Defensive positioning for infielders/managers
+  if (['firstBase','secondBase','shortstop','thirdBase','manager'].includes(position)) {
+    lines.push("DEFENSIVE POSITIONING: Normal=74% GB conversion, 41% DP rate. DP depth=70% GB, 49% DP (+8%). Use with R1, <2 outs. Infield in=58% GB (-16%), costs ~0.5 runs/game. Only justified R3, <2 outs, late/close. Guard lines: prevents 0.4 XBH/game, creates 8% more singles. Net: -0.05 runs. Correct inn 7-9, leading 1-2.");
+  }
+  // Outfield depth for OF positions/managers
+  if (['leftField','centerField','rightField','manager'].includes(position)) {
+    lines.push("OUTFIELD DEPTH: Normal=76% gap coverage. Shallow=68% gap but 85% short flies. Deep=84% gap but 62% short flies. RF arm elite=prevents ~12 extra bases/season vs average. RF arm prevents ~3x as many extra bases as LF arm.");
   }
   // Everyone gets fly ball priority
   lines.push("FLY BALL PRIORITY: OF in > IF back. Center > corners. Ball drifts TOWARD OF, AWAY from IF.");
@@ -3564,8 +4089,6 @@ PLAYER CONTEXT:
 ${weakAreas.length > 0 ? `- Personalization: ${weakAreas.join(". ")}` : ""}
 
 POSITION PRINCIPLES (authoritative — follow these strictly): ${POS_PRINCIPLES[position] || "No specific principles — use general baseball knowledge and ensure accuracy."}
-
-${CUTOFF_RELAY_MAP}
 
 ${getRelevantMaps(position)}
 
@@ -4154,7 +4677,17 @@ const COACH_LINES={
     "Fun fact: Center fielders have priority over ALL other fielders on fly balls!",
     "Did you know? On a full count, the walk rate jumps but BA drops to .230!",
     "Fun fact: The double play is called the pitcher's best friend!",
-    "Brain stat: With no one on and 2 outs, teams only average 0.11 runs. Every base counts!"
+    "Brain stat: With no one on and 2 outs, teams only average 0.11 runs. Every base counts!",
+    "Brain stat: Runners on 3rd with less than 2 outs score 67-85% of the time!",
+    "Brain stat: A runner on 2nd scores only 23% of the time with 2 outs — need a base HIT!",
+    "Brain stat: MLB runners score from 2nd on a single 62% of the time. Run on contact!",
+    "Brain stat: First-pitch strikes save pitchers about 0.05 runs per batter faced!",
+    "Brain stat: Elite pitchers throw first-pitch strikes 68% of the time. Average is 59%!",
+    "Brain stat: On 0-2, the pitcher has a 27% strikeout rate on the very next pitch!",
+    "Brain stat: 3-0 count — 48% of the time the pitcher throws ball 4. Take the pitch!",
+    "Brain stat: The 2023 pitch clock shortened the steal window by 0.2 seconds — steals are harder!",
+    "Brain stat: After 90 pitches, a starter's ERA equivalent rises by over 1 run per game!",
+    "Fun fact: A runner needs about 3.3 seconds to steal 2nd. Elite catchers give them only 3.2!"
   ]
 };
 function Coach({mood="neutral",msg=null}){

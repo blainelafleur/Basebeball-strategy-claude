@@ -605,6 +605,154 @@ IBB is now signaled by the manager directly — no pitches thrown. The old risk 
 
 ---
 
+### 3.22 Pop-Up Priority & Mechanics (Authoritative — Sources: ABCA, Pro Baseball Insider, MLB Rules)
+
+**Cardinal Rules:**
+1. OF coming in > IF going back. Always. This applies to pop-ups in fair AND foul territory.
+2. CF has priority over corner OF on any pop-up he can reach.
+3. Catcher has priority on all pop-ups within ~30 feet of home plate — turns back to field (ball curves back).
+4. First caller owns it. Everyone else peels off.
+
+**Priority Hierarchy (pop-ups in fair territory):**
+CF > Corner OF > SS/2B > 1B/3B > Pitcher > Catcher (except near home)
+
+**Catcher Pop-Up Mechanics:**
+- Remove the mask: toss it away from where you're moving
+- Turn your back to the field — the ball always curves back toward fair territory
+- Pitcher locates it verbally: "Ball! Ball!" then gets out of the way
+
+**Foul Territory:**
+- OF has priority over nearest infielder on foul pop-ups they can reach
+- Ball drifts AWAY from the fielder — set up slightly inside the ball's path
+
+**Never-Do Rules:**
+- NEVER two fielders converge on a pop-up without calling
+- NEVER watch a pop-up drop uncalled — nearest fielder must take it
+- NEVER catcher watches home plate while tracking a pop-up
+
+---
+
+### 3.23 Obstruction & Interference (Authoritative — Sources: MLB Official Rules 6.01 & 6.03)
+
+**The Critical Distinction:**
+- **OBSTRUCTION**: FIELDER impedes a RUNNER → Fielder is at fault
+- **INTERFERENCE**: RUNNER or BATTER impedes a FIELDER → Runner/batter is at fault
+
+Memory device: "O = fielder Obstructs runner. I = runner Interferes with fielder."
+
+**Obstruction — Two Types:**
+
+| Type | Situation | Result |
+|------|-----------|--------|
+| Type A | Fielder without ball blocks base path when runner is in immediate play | DEAD BALL immediately. Runner awarded base they would have reached. |
+| Type B | Fielder without ball impedes runner not in immediate play | Play continues. Umpire awards bases after the play if runner was disadvantaged. |
+
+**Legal Block:** Fielder may block the base path ONLY when actively fielding a batted ball OR already has possession. Receiving a throw and then blocking = legal.
+
+**Plate Block Rule:** Catcher must give the runner a lane to the plate if the ball has not arrived. Blocking without the ball = Type A obstruction.
+
+**Interference — Common Types:**
+
+| Type | Situation | Result |
+|------|-----------|--------|
+| Batter interference | Batter intentionally hits catcher's glove on backswing | Out |
+| Runner interference | Runner deliberately contacts fielder making a play | Runner out, batter returns |
+| Batted ball | Fair ball hits runner before passing an infielder | Runner out |
+| DP interference | Runner goes outside base path or contacts fielder to break up DP | Runner AND batter out |
+
+---
+
+### 3.24 Tag-Up & Sacrifice Fly (Authoritative — Sources: MLB Rule 5.09(b)(5), FanGraphs RE24)
+
+**Tag-Up Rule:**
+- Runner must re-touch their base after a caught fly ball before advancing
+- May leave the INSTANT the fielder's glove contacts the ball
+- Early departure = appealable out (defense throws to the base the runner left early)
+
+**Timing the Leave:**
+- Watch the fielder's feet and glove — not the ball in the air
+- Begin shifting weight when fielder is 3-4 steps from the catch
+- Full sprint the instant the ball is caught
+
+**Sacrifice Fly RE24:**
+- Sac fly with R3, <2 outs = RE-positive (scores a run, worth the out)
+- Unlike the sac bunt, a sac fly does NOT lower run expectancy
+- Sac fly attempt with runner on 2nd = almost never correct (fly ball from 2nd to home is very rare)
+
+**OF Throw After Tag-Up:**
+- Hit the cutoff unless throw clearly beats the runner
+- CF → home: cutoff is 1B. LF → home: cutoff is 3B. RF → home: cutoff is 1B.
+
+---
+
+### 3.25 Pitching Change Mechanics (Authoritative — Sources: MLB Rules 5.07, 5.10, ABCA)
+
+**Manager Visit Rules:**
+- Crossing the foul line = automatic pitching change unless injury/defensive conference
+- 2nd visit to same pitcher in same inning = mandatory removal (no exceptions)
+- 5 team mound visits allowed per 9 innings (clock resets on extra innings)
+
+**3-Batter Minimum (2020+):**
+- Relief pitcher must face at least 3 batters OR end the half-inning
+- Exception: pitcher injury or illness declared by manager
+- No more LOOGY (left-one-out guy) matchup moves
+
+**Warm-Up:**
+- New pitcher receives 8 warm-up pitches (Rule 5.07(b))
+- Catcher warms up reliever; infielder may substitute if catcher is injured
+
+**Inherited Runner Rule:**
+- Runs scored by inherited runners are charged to the ORIGINAL pitcher
+- Reliever is not responsible for inherited runners who score
+
+---
+
+### 3.26 Intentional Walk (Authoritative — Sources: MLB Rules, FanGraphs RE24, 2023 rule change)
+
+**2023+ Rule:** Manager signals IBB from dugout. No pitches thrown. Batter goes directly to 1B.
+
+**RE24 Reality:** An IBB always increases run expectancy. It is never "safe" — it is always a trade of a difficult at-bat for a worse base-out state.
+
+**IBB Justification Framework:**
+
+| Condition | IBB Justified? |
+|-----------|---------------|
+| First base open + next hitter clearly weaker | Yes |
+| Setting up force play at home | Sometimes |
+| Large platoon advantage vs next hitter | Yes, if gap is >20 BA points |
+| Avoiding a dominant hot hitter | Sometimes |
+| Bases loaded | Never |
+| Two outs, next hitter not dramatically weaker | No |
+| Early in game (inning 1-5) | Rarely |
+
+**Runner Advancement on IBB:**
+- Runners forced by the batter's advancement move one base automatically
+- No runner advances more than one base
+
+---
+
+### 3.27 Defensive Positioning — Shift Era & Shift Ban (Authoritative — Sources: MLB Rule 2023+, coaching consensus)
+
+**Shift Ban Rule (2023+):** At pitch, all 4 infielders must be in the infield dirt with 2 on each side of 2B. Violation = automatic ball.
+
+**Legal Positioning:**
+- Deep positioning (near outfield grass)
+- Infield in
+- Outfield shifts (no restriction on OF)
+- Standard pull-side alignment within 2-per-side rule
+
+**Illegal:**
+- 3 infielders on one side of 2B
+- Any infielder in outfield grass in normal defensive alignment
+- SS crossing to the right side of 2B for a LHH
+
+**Strategic Alternatives:**
+- Play corners deep to take away doubles down the line
+- Use pitch location to direct the ball toward your strongest defensive alignment
+- 4-outfielder alignment (rare but legal)
+
+---
+
 ### Left Field
 - Priority over ALL infielders on fly balls you can reach (coming in is easier).
 - Hit the cutoff man — don't throw all the way home unless the play is clearly there.
@@ -750,6 +898,12 @@ Every AI-generated scenario must pass the base 9-point verification plus conditi
 13. **Rundown** (1B, 2B, SS, 3B, BR, MGR): Chase runner BACK, one throw max, no pump fakes per Section 3.9.
 14. **DP positioning** (P, 1B, 2B, SS, 3B, MGR): DP depth only with < 2 outs and force at 2nd per Section 3.10.
 15. **Hit-and-run** (2B, SS, BAT, BR, MGR): Coverage depends on batter handedness per Section 3.11.
+16. **Pop-up priority** (all 9 defensive + MGR): CF priority over all on balls he can reach. Catcher within 30 feet turns back to field. OF > IF in foul territory per Section 3.22.
+17. **Obstruction/interference** (all positions): Obstruction = fielder impedes runner (fielder's fault). Interference = runner/batter impedes fielder (runner's fault). Type A = dead ball per Section 3.23.
+18. **Tag-up/sac fly** (LF, CF, RF, BAT, BR, MGR): Runner leaves on the catch. Early departure = appealable out. Sac fly with R3 is RE-positive. Correct cutoff per Section 3.24.
+19. **Pitching change** (P, C, MGR): 2nd mound visit same inning = mandatory removal. 3-batter minimum applies. Inherited runners charged to original pitcher per Section 3.25.
+20. **Intentional walk** (P, C, BAT, BR, MGR): 2023+ = signal only, no pitches. IBB always costs RE. Never with bases loaded. Forced runners advance one base per Section 3.26.
+21. **Shift positioning** (1B, 2B, SS, 3B, BAT, BR, MGR): 2023+ requires 2 infielders each side of 2B at pitch. 3 on one side = illegal. Outfield and infield-in shifts still legal per Section 3.27.
 
 The base 9 checks plus relevant conditional checks are injected into the AI generation prompt in `index.jsx` via the conditional knowledge maps system.
 
@@ -915,10 +1069,16 @@ The AI generation prompt in `index.jsx` (`generateAIScenario()`) includes these 
    - `RUNDOWN_MAP` — 1B, 2B, SS, 3B, BR, MGR
    - `DP_POSITIONING_MAP` — P, 1B, 2B, SS, 3B, MGR
    - `HIT_RUN_MAP` — 2B, SS, BAT, BR, MGR
+   - `POPUP_PRIORITY_MAP` — all 9 defensive + MGR
+   - `OBSTRUCTION_INTERFERENCE_MAP` — ALL positions
+   - `TAGUP_SACRIFICE_FLY_MAP` — LF, CF, RF, BAT, BR, MGR
+   - `PITCHING_CHANGE_MAP` — P, C, MGR
+   - `INTENTIONAL_WALK_MAP` — P, C, BAT, BR, MGR
+   - `LEGAL_SHIFT_MAP` — 1B, 2B, SS, 3B, BAT, BR, MGR
 4. **Data Reference Block**: Key RE24 data, count averages, stolen base break-even, fly ball priority hierarchy, relay default, force/tag rules.
 5. **Self-Audit Block**: 9 base checks + conditional per-position checks via `getRelevantAudits(position)`.
 
-**Architecture**: `MAP_RELEVANCE` maps each knowledge map to its relevant positions. `getRelevantMaps()` filters and concatenates only the maps needed. `getRelevantAudits()` generates numbered audit items (starting at 10) for the injected maps. This keeps the prompt focused — a batter gets hit-and-run but not bunt defense; a manager gets everything.
+**Architecture**: `MAP_RELEVANCE` maps each of the 19 knowledge maps to its relevant positions. `getRelevantMaps()` filters and concatenates only the maps needed. `getRelevantAudits()` generates numbered audit items (starting at 10) for the injected maps. This keeps the prompt focused — a batter gets hit-and-run but not bunt defense; a manager gets everything.
 
 **Role Violations**: Client-side regex in `ROLE_VIOLATIONS` rejects AI scenarios with obviously wrong assignments (pitcher as cutoff, SS covering 1st on bunts, etc.) as a last-resort safety net.
 
