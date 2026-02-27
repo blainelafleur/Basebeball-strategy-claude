@@ -843,7 +843,7 @@ defensivePositioning: {
 
 ### 4.2 BRAIN.concepts — Prerequisite Graph
 
-36 concept tags that control scenario progression. Each has:
+44 concept tags that control scenario progression. Each has:
 - `name`: Display name
 - `domain`: Category (rules, defense, baserunning, pitching, hitting, strategy)
 - `prereqs[]`: Tags that must be mastered first
@@ -854,62 +854,77 @@ defensivePositioning: {
 |-----|------|--------|---------------|---------|------|
 | `force-vs-tag` | Force vs Tag Plays | rules | — | 6 | 1 |
 | `fly-ball-priority` | Fly Ball Priority | defense | — | 6 | 1 |
+| `first-pitch-strike` | First-Pitch Strikes | pitching | — | 6 | 1 |
 | `backup-duties` | Backup Responsibilities | defense | — | 8 | 1 |
 | `rundown-mechanics` | Rundown Procedure | defense | — | 8 | 1 |
 | `tag-up` | Tagging Up on Fly Balls | baserunning | fly-ball-priority | 8 | 1 |
-| `first-pitch-strike` | First-Pitch Strikes | pitching | — | 6 | 1 |
+| `wild-pitch-coverage` | Wild Pitch / Passed Ball Coverage | defense | backup-duties | 8 | 1 |
 | `cutoff-roles` | Who Is the Cutoff Man | defense | force-vs-tag | 9 | 2 |
 | `count-leverage` | Count Leverage | pitching | first-pitch-strike | 9 | 2 |
 | `double-play-turn` | Turning the Double Play | defense | force-vs-tag | 9 | 2 |
+| `secondary-lead` | Secondary Lead & Jump Timing | baserunning | tag-up | 9 | 2 |
+| `infield-fly` | Infield Fly Rule | rules | force-vs-tag | 9 | 2 |
+| `dropped-third-strike` | Dropped Third Strike Rule | rules | force-vs-tag | 9 | 2 |
 | `two-strike-approach` | Two-Strike Approach | hitting | count-leverage | 9 | 2 |
+| `of-communication` | Outfield Communication & Positioning | defense | fly-ball-priority, backup-duties | 9 | 2 |
+| `catcher-framing` | Pitch Framing & Presentation | defense | count-leverage | 10 | 2 |
 | `bunt-defense` | Bunt Defense Assignments | defense | cutoff-roles | 10 | 2 |
+| `pickoff-mechanics` | Pickoff Moves & Holding Runners | pitching | secondary-lead | 10 | 2 |
+| `obstruction-interference` | Obstruction vs. Interference | rules | force-vs-tag | 10 | 2 |
 | `steal-breakeven` | Steal Break-Even Rate | baserunning | — | 11 | 2 |
 | `dp-positioning` | DP Depth vs Normal | defense | double-play-turn | 11 | 2 |
 | `situational-hitting` | Situational Hitting | hitting | count-leverage | 11 | 2 |
 | `hit-and-run` | Hit-and-Run Play | strategy | steal-breakeven | 11 | 2 |
+| `infield-positioning` | Infield Depth Tradeoffs | defense | dp-positioning | 11 | 2 |
+| `of-depth-arm-value` | Outfield Depth & Arm Value | defense | backup-duties | 11 | 2 |
+| `squeeze-play` | Squeeze Bunt Strategy | strategy | situational-hitting, bunt-defense | 11 | 2 |
+| `platoon-advantage` | Platoon Matchups (L/R) | strategy | count-leverage | 11 | 2 |
+| `line-guarding` | Guarding the Line (Late-Game) | defense | dp-positioning, fly-ball-priority | 11 | 2 |
+| `pitch-clock-strategy` | Pitch Clock Strategy | pitching | count-leverage | 11 | 2 |
+| `pitch-count-mgmt` | Pitch Count & Pitcher Fatigue | pitching | count-leverage | 11 | 2 |
+| `first-pitch-value` | First-Pitch Strike Value | pitching | first-pitch-strike, count-leverage | 11 | 2 |
+| `scoring-probability` | Scoring Probability by Base/Out | baserunning | tag-up | 11 | 2 |
+| `baserunning-rates` | Baserunning Advancement Rates | baserunning | tag-up, steal-breakeven | 11 | 2 |
 | `first-third` | First-and-Third Defense | defense | cutoff-roles | 11 | 3 |
 | `relay-double-cut` | Double Cut Relays | defense | cutoff-roles | 11 | 3 |
 | `pitch-sequencing` | Pitch Sequencing | pitching | count-leverage | 11 | 3 |
 | `bunt-re24` | Sacrifice Bunt RE24 | strategy | steal-breakeven | 11 | 3 |
-| `infield-fly` | Infield Fly Rule | rules | force-vs-tag | 9 | 2 |
-| `pickoff-mechanics` | Pickoff Move Mechanics | pitching | first-pitch-strike | 9 | 2 |
-| `pitch-clock-strategy` | Pitch Clock Strategy | pitching | count-leverage | 11 | 2 |
-| `wild-pitch-coverage` | Wild Pitch / Passed Ball Coverage | defense | backup-duties | 8 | 1 |
-| `squeeze-play` | Squeeze Play Variants | strategy | bunt-defense | 11 | 3 |
-| `tto-effect` | Times Through the Order | pitching | count-leverage | 11 | 3 |
-| `of-communication` | Outfield Communication & Positioning | defense | fly-ball-priority, backup-duties | 9 | 2 |
-| `scoring-probability` | Scoring Probability by Base/Out | baserunning | tag-up | 11 | 2 |
-| `pitch-count-mgmt` | Pitch Count & Pitcher Fatigue | pitching | count-leverage | 11 | 2 |
+| `squeeze-recognition` | Reading the Squeeze | hitting | squeeze-play | 11 | 3 |
+| `times-through-order` | Times Through the Order Effect | pitching | platoon-advantage | 11 | 3 |
+| `balk-rule` | Balk Rule & Illegal Motions | rules | pickoff-mechanics | 11 | 3 |
 | `steal-window` | The Steal Window | baserunning | steal-breakeven | 11 | 3 |
-| `first-pitch-value` | First-Pitch Strike Value | pitching | first-pitch-strike, count-leverage | 11 | 2 |
-| `baserunning-rates` | Baserunning Advancement Rates | baserunning | tag-up, steal-breakeven | 11 | 2 |
 | `pitch-type-value` | Pitch Type Run Values | pitching | pitch-sequencing | 13 | 3 |
 | `eye-level-change` | Eye Level & Pitch Tunneling | pitching | pitch-sequencing | 13 | 3 |
 | `win-probability` | Win Probability vs RE24 | strategy | bunt-re24, steal-breakeven | 13 | 3 |
-| `infield-positioning` | Infield Depth Tradeoffs | defense | dp-positioning | 11 | 2 |
-| `of-depth-arm-value` | Outfield Depth & Arm Value | defense | backup-duties | 11 | 2 |
 
 **Prerequisite Chain Visualization:**
 
 ```
 (no prereqs, age 6+)
-├── force-vs-tag ──┬── cutoff-roles ──┬── bunt-defense ── squeeze-play
-│                  │                  ├── first-third
-│                  │                  └── relay-double-cut
-│                  ├── double-play-turn ── dp-positioning ── infield-positioning
-│                  └── infield-fly
-├── fly-ball-priority ──┬── tag-up ──────────── scoring-probability
-│                       │            └── baserunning-rates (also requires steal-breakeven)
-│                       └── of-communication (also requires backup-duties)
-├── first-pitch-strike ──┬── pickoff-mechanics
-│                        └── count-leverage ──┬── two-strike-approach
-│                                             ├── situational-hitting
-│                                             ├── pitch-sequencing ──┬── pitch-type-value
-│                                             │                     └── eye-level-change
-│                                             ├── pitch-clock-strategy
-│                                             ├── tto-effect
-│                                             ├── pitch-count-mgmt
-│                                             └── first-pitch-value (also requires first-pitch-strike)
+├── force-vs-tag ──┬── cutoff-roles ──┬── bunt-defense ──┐
+│                  │                  ├── first-third     ├── squeeze-play ── squeeze-recognition
+│                  │                  └── relay-double-cut│
+│                  ├── double-play-turn ── dp-positioning ──┬── infield-positioning
+│                  │                                        └── line-guarding (also requires fly-ball-priority)
+│                  ├── infield-fly
+│                  ├── dropped-third-strike
+│                  └── obstruction-interference
+├── fly-ball-priority ──┬── tag-up ──┬── scoring-probability
+│                       │           ├── secondary-lead ── pickoff-mechanics ── balk-rule
+│                       │           └── baserunning-rates (also requires steal-breakeven)
+│                       ├── of-communication (also requires backup-duties)
+│                       └── line-guarding (also requires dp-positioning)
+├── first-pitch-strike ──┬── count-leverage ──┬── two-strike-approach
+│                        │                    ├── situational-hitting ──┐
+│                        │                    │                        └── squeeze-play ── squeeze-recognition
+│                        │                    ├── catcher-framing
+│                        │                    ├── platoon-advantage ── times-through-order
+│                        │                    ├── pitch-sequencing ──┬── pitch-type-value
+│                        │                    │                     └── eye-level-change
+│                        │                    ├── pitch-clock-strategy
+│                        │                    ├── pitch-count-mgmt
+│                        │                    └── first-pitch-value (also requires first-pitch-strike)
+│                        └── first-pitch-value
 (no prereqs, age 8+)
 ├── backup-duties ──┬── wild-pitch-coverage
 │                   ├── of-communication (also requires fly-ball-priority)
