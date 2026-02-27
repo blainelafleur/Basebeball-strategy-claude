@@ -142,6 +142,14 @@ When building or auditing scenarios, resolve conflicts using this precedence:
 | CF | **SS** | Backs up 3B |
 | RF | **SS** | Backs up 3B |
 
+**Single Cuts to 2B (no play at home — runner stopping at 2nd):**
+
+| From | Cutoff Assignment | SS Does |
+|------|------------------|---------|
+| Any OF | Cutoff man holds ball or redirects to 2B | SS covers 2B |
+
+---
+
 **Double Cuts / Relays (extra-base hits to gap or wall):**
 
 | Ball Location | Lead Relay | Trail Man | Pitcher |
@@ -205,7 +213,7 @@ When runner on 1st steals with runner on 3rd, the catcher has 4 standard options
 
 | Position | Backs Up |
 |----------|----------|
-| P | HOME on OF throws home. 3B on throws to third. |
+| P | HOME on ALL OF throws home. 3B on throws to third. 1B on bunt plays when 1B charges (RF is too far away on short bunt plays). |
 | LF | 3B on ALL infield grounders and throws to third. |
 | CF | 2B on ALL steal attempts and throws to second. |
 | RF | 1B on EVERY infield grounder (most important routine OF job). |
@@ -816,6 +824,34 @@ Memory device: "O = fielder Obstructs runner. I = runner Interferes with fielder
 
 ---
 
+### 3.28 Catcher Framing (Source: Baseball Savant Statcast, ABCA)
+
+**The Principle:**
+Framing is the art of receiving and presenting borderline pitches to maximize called strikes without obvious glove movement that draws umpire attention.
+
+**Context-Dependent Technique:**
+
+| Situation | Technique |
+|-----------|-----------|
+| Borderline pitch, any count | Subtle glove pull — move 1-2 inches toward the strike zone at the catch |
+| High-leverage count (0-2, 1-2, 2-strike) | Stillness and presentation — minimize movement, let the location speak |
+| Clear ball, any count | Accept the call cleanly — fighting a clear ball damages framing credibility on future borderline pitches |
+
+**Why It Matters:**
+Elite framers earn 20-30 extra called strikes per season above average. Each additional called strike in a plate appearance reduces the batter's wOBA by approximately 0.015 (Baseball Savant Statcast data). Framing is a measurable, trainable skill — not luck.
+
+**Common Mistakes:**
+- Yanking the glove toward the zone on a pitch that clearly missed — umpires recognize this immediately
+- Using the same technique on every pitch — kills credibility on the pitches where framing actually matters
+- Showing frustration at a called ball — costs future borderline calls for the rest of the game
+
+**Never-Do Rules:**
+- Never yank the glove on a ball that clearly missed the zone
+- Never present identical framing technique regardless of count or pitch location
+- Never show frustration visibly at a called ball
+
+---
+
 ## 4. Scenario Construction Methodology (8 Steps)
 
 1. **Choose the teaching concept** — one clear, reusable principle per scenario.
@@ -870,7 +906,7 @@ Memory device: "O = fielder Obstructs runner. I = runner Interferes with fielder
 
 ### Key Fielding/Pitching Metrics
 - Times through the order: batters hit ~30 points better the 3rd time vs 1st time.
-- Platoon advantage: LHB vs RHP ~15-20 points higher BA than LHB vs LHP (and vice versa).
+- Platoon advantage: ~18 BA points for opposite-hand matchup (range: 15-20 depending on pitcher type). Source: FanGraphs. Used as `platoonEdge: 18` in BRAIN.stats.
 - Catcher pop time: elite = 1.8-1.9 sec. Average = 2.0 sec. Steal window matters.
 - Pitcher time to plate: under 1.3 sec makes stealing very difficult.
 
@@ -904,6 +940,10 @@ Every AI-generated scenario must pass the base 9-point verification plus conditi
 19. **Pitching change** (P, C, MGR): 2nd mound visit same inning = mandatory removal. 3-batter minimum applies. Inherited runners charged to original pitcher per Section 3.25.
 20. **Intentional walk** (P, C, BAT, BR, MGR): 2023+ = signal only, no pitches. IBB always costs RE. Never with bases loaded. Forced runners advance one base per Section 3.26.
 21. **Shift positioning** (1B, 2B, SS, 3B, BAT, BR, MGR): 2023+ requires 2 infielders each side of 2B at pitch. 3 on one side = illegal. Outfield and infield-in shifts still legal per Section 3.27.
+22. **Mound visits** (P, C, MGR): 2nd visit to same pitcher in same inning = mandatory removal. 5 total visits per 9 innings. Catcher visits count. Per Section 3.20.
+23. **Taking/Swinging** (BAT, BR): Never frame any count situation as "always take" or "always swing." Must be situational and count-dependent.
+24. **Sun defense** (LF, CF, RF): Glove technique is primary. Sunglasses are supplementary. Never present sunglasses as the first or only option.
+25. **Catcher framing** (C): Subtle glove pull on borderline pitches. Stillness and presentation in high-leverage counts. Never present as identical technique in all situations.
 
 The base 9 checks plus relevant conditional checks are injected into the AI generation prompt in `index.jsx` via the conditional knowledge maps system.
 
@@ -953,11 +993,12 @@ Every scenario — handcrafted or AI-generated — must pass ALL of these:
 ### Consistency Checks
 - [ ] Relay positioning: default alignment is toward HOME (not the lead runner's base)
 - [ ] Coach's signs: always teach respect for the coach's call (never "ignore the sign")
-- [ ] Taking vs swinging: frame as situational, not absolute. Never "always take" or "always swing"
-- [ ] Sun defense: glove technique is primary, sunglasses are supplementary
-- [ ] Framing: context-dependent (borderline = subtle pull, high-leverage = stillness)
+- [ ] Taking vs swinging: never frame as absolute. Never "always take" or "always swing" — frame as count-dependent and situational
+- [ ] Sun defense: glove technique is primary, sunglasses are supplementary. Never present sunglasses as first option
+- [ ] Catcher framing: subtle pull on borderline pitches; stillness in high-leverage counts. Never present as one-size-fits-all technique
 - [ ] Sacrifice bunts: acknowledge RE24 trade-off (bunts lower RE except in narrow late-game situations)
 - [ ] Stolen bases: acknowledge ~72% break-even rate in explanations when relevant
+- [ ] Mound visits: if scenario involves a second visit to the same pitcher in the same inning, it must result in mandatory removal
 
 ---
 
@@ -1062,15 +1103,21 @@ The AI generation prompt in `index.jsx` (`generateAIScenario()`) includes these 
 
 1. **Position Principles Block**: Full principles from `POS_PRINCIPLES` constant, injected per-position.
 2. **Cutoff/Relay Map**: `CUTOFF_RELAY_MAP` constant — always injected for all positions.
-3. **Conditional Knowledge Maps**: 6 maps injected only when relevant to the current position via `getRelevantMaps(position)`:
+3. **Conditional Knowledge Maps**: 17 maps injected only when relevant to the current position via `getRelevantMaps(position)` (plus 2 always-injected maps = 19 total):
    - `BUNT_DEFENSE_MAP` — P, C, 1B, 2B, SS, 3B, MGR
    - `FIRST_THIRD_MAP` — P, C, 1B, 2B, SS, 3B, MGR
    - `BACKUP_MAP` — All 9 defensive + MGR
    - `RUNDOWN_MAP` — 1B, 2B, SS, 3B, BR, MGR
    - `DP_POSITIONING_MAP` — P, 1B, 2B, SS, 3B, MGR
    - `HIT_RUN_MAP` — 2B, SS, BAT, BR, MGR
-   - `POPUP_PRIORITY_MAP` — all 9 defensive + MGR
-   - `OBSTRUCTION_INTERFERENCE_MAP` — ALL positions
+   - `PICKOFF_MAP` — P, C, 1B, 2B, SS, 3B, BR, MGR
+   - `PITCH_CLOCK_MAP` — P, C, BAT, BR, MGR
+   - `WP_PB_MAP` — P, C, 1B, 3B, BR, MGR
+   - `SQUEEZE_MAP` — P, C, 1B, 3B, BAT, BR, MGR
+   - `INFIELD_FLY_MAP` — 1B, 2B, SS, 3B, BAT, BR, MGR
+   - `OF_COMMUNICATION_MAP` — LF, CF, RF
+   - `POPUP_PRIORITY_MAP` — All 9 defensive + MGR
+   - `OBSTRUCTION_INTERFERENCE_MAP` — ALL positions (always injected)
    - `TAGUP_SACRIFICE_FLY_MAP` — LF, CF, RF, BAT, BR, MGR
    - `PITCHING_CHANGE_MAP` — P, C, MGR
    - `INTENTIONAL_WALK_MAP` — P, C, BAT, BR, MGR
