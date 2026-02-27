@@ -3206,10 +3206,11 @@ Rules for best: 0-indexed integer matching the optimal option in the options arr
     scenario.isAI = true;
     scenario.cat = "ai-generated";
     
-    return scenario;
+    return { scenario };
   } catch (err) {
     console.error("AI generation failed:", err);
-    return null;
+    const errType = err.name==="AbortError" ? "aborted" : err.message==="Timeout" ? "timeout" : err.message?.startsWith("API") ? "api" : "parse";
+    return { scenario: null, error: errType };
   }
 }
 
@@ -3770,6 +3771,8 @@ export default function App(){
   const snd=useSound();
 
   const abortRef=useRef(null);
+  const lastScRef=useRef(null);
+  lastScRef.current=sc?.id||null;
   const speedNextRef=useRef(null);
   const survivalNextRef=useRef(null);
   const seasonNextRef=useRef(null);
@@ -4017,45 +4020,17 @@ export default function App(){
     if(atLimit){setPanel('limit');return;}
     snd.play('tap');setPos(p);setChoice(null);setOd(null);setRi(-1);setFo(null);setShowC(false);setLvlUp(null);setShowExp(true);setDailyMode(false);
 
-    // Determine if we should use AI (respect maxDiff so young players get AI after exhausting their pool)
     const raw=SCENARIOS[p]||[];const pool=raw.filter(s=>s.diff<=maxDiff);const seen=hist[p]||[];
     const src=pool.length>0?pool:raw;
     const unseen=src.filter(s=>!seen.includes(s.id));
-    const useAI = forceAI || unseen.length === 0;
-    const lastScId=sc?.id||null;
+    const lastScId=lastScRef.current;
 
-    if(useAI&&!stats.isPro){
-      // AI is pro-only — fall back to handcrafted
-      setAiMode(false);
-      if(forceAI){
-        // User clicked AI Coach button — tell them it's Pro-only, use smart recycle
-        const s=getSmartRecycle(p,src,lastScId);
-        setHist(h=>({...h,[p]:[...(h[p]||[]),s.id].slice(-src.length)}));
-        setSc(s);setScreen("play");
-        s.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80);});
-        trackFunnel('ai_gated',setStats);setTimeout(()=>{setToast({e:"🤖",n:"AI is Pro",d:"Upgrade to All-Star Pass for AI coaching!"});setTimeout(()=>setToast(null),3500)},300);
-      } else if(unseen.length===0){
-        // Pool exhausted — show mastery screen once per position, then review mode
-        const shown=stats.masteryShown||[];
-        if(!shown.includes(p)){
-          setStats(prev=>({...prev,masteryShown:[...(prev.masteryShown||[]),p]}));
-          setMasteryPos(p);setScreen("home");return;
-        }
-        // Already shown mastery — enter review mode with smart recycle
-        const s=getSmartRecycle(p,src,lastScId);
-        setHist(h=>({...h,[p]:[...(h[p]||[]),s.id].slice(-src.length)}));
-        setSc(s);setScreen("play");
-        s.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80);});
-        setTimeout(()=>{setToast({e:"🔄",n:"Review Mode",d:"Revisiting scenarios to sharpen your skills!"});setTimeout(()=>setToast(null),3000)},300);
-      }
-      return;
-    }
+    console.log('[BSM] startGame',{pos:p,forceAI,unseen:unseen.length,isPro:stats.isPro});
 
-    if(useAI){
-      // Show loading screen
+    // Local helper: AI generation with loading, abort, concept targeting, fallback
+    const doAI=async()=>{
       setAiLoading(true);setAiMode(true);setScreen("play");
       const ctrl=new AbortController();abortRef.current=ctrl;
-      // 50% chance to target a previously-wrong concept for re-teaching
       let concept=null;
       const wc=stats.wrongCounts||{};
       const wrongIds=Object.keys(wc).filter(id=>wc[id]>0);
@@ -4064,28 +4039,51 @@ export default function App(){
         const wrongSc=allSc.find(s=>wrongIds.includes(s.id)&&s.concept);
         if(wrongSc)concept=wrongSc.concept;
       }
-      const aiSc = await generateAIScenario(p, stats, stats.cl||[], stats.recentWrong||[], ctrl.signal, concept);
+      const result=await generateAIScenario(p,stats,stats.cl||[],stats.recentWrong||[],ctrl.signal,concept);
       abortRef.current=null;
       setAiLoading(false);
-      if(aiSc){
-        setSc(aiSc);
-        aiSc.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80);});
+      if(result?.scenario){
+        setSc(result.scenario);
+        result.scenario.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80);});
       } else {
-        // AI failed — show toast and fall back to smart recycled handcrafted
         setAiMode(false);
         const s=getSmartRecycle(p,src,lastScId);
         setHist(h=>({...h,[p]:[...(h[p]||[]),s.id].slice(-src.length)}));
         setSc(s);
         s.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80);});
-        setTimeout(()=>{setToast({e:"⚠️",n:"AI Unavailable",d:"Using a handcrafted scenario instead."});setTimeout(()=>setToast(null),3500)},300);
+        const errMsg=result?.error==="timeout"?"AI took too long. Using handcrafted."
+          :result?.error==="api"?"AI service error. Using handcrafted."
+          :"AI unavailable. Using a handcrafted scenario.";
+        setTimeout(()=>{setToast({e:"⚠️",n:"AI Unavailable",d:errMsg});setTimeout(()=>setToast(null),3500)},300);
       }
+    };
+
+    if(forceAI){
+      // GUARANTEED AI path — button already verified isPro
+      await doAI();
+    } else if(unseen.length===0&&!stats.isPro){
+      // Free user pool exhaustion
+      setAiMode(false);
+      const shown=stats.masteryShown||[];
+      if(!shown.includes(p)){
+        setStats(prev=>({...prev,masteryShown:[...(prev.masteryShown||[]),p]}));
+        setMasteryPos(p);setScreen("home");return;
+      }
+      const s=getSmartRecycle(p,src,lastScId);
+      setHist(h=>({...h,[p]:[...(h[p]||[]),s.id].slice(-src.length)}));
+      setSc(s);setScreen("play");
+      s.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80);});
+      setTimeout(()=>{setToast({e:"🔄",n:"Review Mode",d:"Revisiting scenarios to sharpen your skills!"});setTimeout(()=>setToast(null),3000)},300);
+    } else if(unseen.length===0){
+      // Pro user natural pool exhaustion — try AI
+      await doAI();
     } else {
-      // Use handcrafted
+      // Unseen scenarios available — use handcrafted
       setAiMode(false);
       const s=getRand(p,lastScId);setSc(s);setScreen("play");
       s.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80);});
     }
-  },[getRand,getSmartRecycle,snd,atLimit,hist,stats,maxDiff,sc]);
+  },[getRand,getSmartRecycle,snd,atLimit,hist,stats,maxDiff]);
 
   const checkAch=useCallback((ns)=>{
     const earned=ns.achs||[];
