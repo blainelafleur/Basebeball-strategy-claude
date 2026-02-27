@@ -3140,7 +3140,7 @@ const STADIUM_MILESTONES=[
   {games:200,label:"Fireworks",desc:"Fireworks on perfect answers!",icon:"🎆"},
   {games:330,label:"Legend Stadium",desc:"Golden border + Legend title!",icon:"👑"},
 ];
-const DEFAULT = {pts:0,str:0,bs:0,gp:0,co:0,ps:{},achs:[],cl:[],ds:0,lastDay:null,todayPlayed:0,todayDate:null,sp:0,isPro:false,onboarded:false,soundOn:true,recentWrong:[],dailyDone:false,dailyDate:null,streakFreezes:0,survivalBest:0,ageGroup:"11-12",displayName:"",teamCode:"",seasonGame:0,seasonCorrect:0,seasonComplete:false,fieldTheme:"default",avatarJersey:0,avatarCap:0,avatarBat:0,season:1,proPlan:null,proPurchaseDate:null,proExpiry:null,lastStreakFreezeDate:null,wrongCounts:{},posGrad:{},funnel:[],hist:{},posPlayed:{},firstPlayDate:null,lastPlayDate:null,sessionCount:0,tutorialDone:false,promoCode:null,promoActivatedDate:null,masteryShown:[]};
+const DEFAULT = {pts:0,str:0,bs:0,gp:0,co:0,ps:{},achs:[],cl:[],ds:0,lastDay:null,todayPlayed:0,todayDate:null,sp:0,isPro:false,onboarded:false,soundOn:true,recentWrong:[],dailyDone:false,dailyDate:null,streakFreezes:0,survivalBest:0,ageGroup:"11-12",displayName:"",teamCode:"",seasonGame:0,seasonCorrect:0,seasonComplete:false,fieldTheme:"default",avatarJersey:0,avatarCap:0,avatarBat:0,season:1,proPlan:null,proPurchaseDate:null,proExpiry:null,lastStreakFreezeDate:null,wrongCounts:{},posGrad:{},funnel:[],hist:{},posPlayed:{},firstPlayDate:null,lastPlayDate:null,sessionCount:0,tutorialDone:false,promoCode:null,promoActivatedDate:null,masteryShown:[],masteryData:{concepts:{},errorPatterns:{},sessionHistory:[]}};
 
 // Streak flame visual — grows with daily streak length
 function getFlame(ds){
@@ -3665,6 +3665,32 @@ const MAP_AUDIT = {
   BASERUNNER_READS_MAP:          "BASERUNNER READS: Pickoff tells correct (RHP=front heel, LHP=front knee)? Double steal read = catcher commitment, not R1 break. First-to-third reads correct? 3rd out rule applied? Never make 3rd out at home with <2 outs.",
   PARK_ENVIRONMENT_MAP:          "ENVIRONMENT: Does this scenario take place in a notable park or condition (wind, turf, cold, altitude)? If yes — are positioning and strategy adjustments applied? These are Tier 4 modifiers ONLY — never let them override a Tier 1 rule answer.",
   LEVEL_ADJUSTMENTS_MAP:         "LEVEL/AGE: Is the scenario appropriate for the player's level? Steal break-even, bunt value, and vocabulary must match the age/level context. Youth leagues may have no-lead rules. Never use advanced stats with young players without explanation.",
+};
+const MASTERY_SCHEMA = {
+  states: {
+    UNSEEN: "unseen", INTRODUCED: "introduced", LEARNING: "learning",
+    MASTERED: "mastered", DEGRADED: "degraded",
+  },
+  transitions: {
+    unseen_correct: "introduced", introduced_correct: "learning",
+    learning_correct: "learning", learning_streak3: "mastered",
+    mastered_correct: "mastered", degraded_correct: "learning",
+    unseen_wrong: "unseen", introduced_wrong: "learning",
+    learning_wrong: "learning", mastered_wrong: "degraded", degraded_wrong: "degraded",
+  },
+  masteryRequirements: { consecutiveCorrect: 3, uniqueScenarioIds: 3, minDifficultyMix: 2 },
+  spacedRepetition: {
+    intervals: {
+      afterIntroduced: 1, afterLearning: 3, afterFirstMastery: 7,
+      afterSecondMastery: 14, afterThirdMastery: 30, afterDegraded: 1,
+    },
+    intervalMultiplier: 2.0,
+    maxInterval: 30,
+    preSeasonMode: {
+      description: "Compress all review intervals. Mastered concepts first for confidence, degraded/learning for repair.",
+      masteredInterval: 0, learningInterval: 1, degradedInterval: 0,
+    },
+  },
 };
 function getRelevantMaps(position) {
   return Object.entries(MAP_RELEVANCE)
@@ -4199,6 +4225,89 @@ function getLevelContext(age) {
     youthQualifier: !level.leadsAllowed ? "Note: In many youth leagues, runners cannot lead off until the pitch crosses home plate." : null,
   };
 }
+function updateConceptMastery(masteryData, conceptTag, correct, scenarioId) {
+  if (!conceptTag) return masteryData;
+  const existing = masteryData.concepts?.[conceptTag] || {
+    state: "unseen", correctStreak: 0, totalCorrect: 0, totalAttempts: 0,
+    lastSeenScenarioIds: [], lastAttemptDate: null, nextReviewDate: null, spacedRepInterval: 1,
+  };
+  const reqs = MASTERY_SCHEMA.masteryRequirements;
+  let next = { ...existing };
+  next.totalAttempts++;
+  next.lastAttemptDate = new Date().toISOString();
+  if (!next.lastSeenScenarioIds.includes(scenarioId))
+    next.lastSeenScenarioIds = [...next.lastSeenScenarioIds, scenarioId].slice(-10);
+  if (correct) {
+    next.totalCorrect++;
+    next.correctStreak++;
+    const uniqueIds = new Set(next.lastSeenScenarioIds.slice(-reqs.consecutiveCorrect));
+    const earnsMastery = next.correctStreak >= reqs.consecutiveCorrect && uniqueIds.size >= reqs.uniqueScenarioIds;
+    if (earnsMastery && (existing.state === 'learning' || existing.state === 'introduced'))
+      next.state = "mastered";
+    else if (existing.state === 'unseen') next.state = "introduced";
+    else if (existing.state === 'introduced') next.state = "learning";
+    else if (existing.state === 'degraded') { next.state = "learning"; next.correctStreak = 1; }
+    if (next.state === "mastered")
+      next.spacedRepInterval = Math.min((existing.spacedRepInterval || 1) * MASTERY_SCHEMA.spacedRepetition.intervalMultiplier, MASTERY_SCHEMA.spacedRepetition.maxInterval);
+  } else {
+    next.correctStreak = 0;
+    if (existing.state === 'mastered') { next.state = "degraded"; next.spacedRepInterval = 1; }
+    else if (existing.state === 'unseen') next.state = "introduced";
+    else if (existing.state === 'introduced') next.state = "learning";
+  }
+  const nr = new Date(); nr.setDate(nr.getDate() + (next.spacedRepInterval || 1));
+  next.nextReviewDate = nr.toISOString();
+  return { ...masteryData, concepts: { ...(masteryData.concepts || {}), [conceptTag]: next } };
+}
+function getDueForReview(masteryData) {
+  const now = new Date();
+  return Object.entries(masteryData.concepts || {})
+    .filter(([, d]) => d.state !== 'unseen' && (!d.nextReviewDate || new Date(d.nextReviewDate) <= now))
+    .sort((a, b) => ({ degraded:0, learning:1, introduced:2, mastered:3 }[a[1].state] ?? 9) - ({ degraded:0, learning:1, introduced:2, mastered:3 }[b[1].state] ?? 9))
+    .map(([tag, data]) => ({ tag, state: data.state, interval: data.spacedRepInterval }));
+}
+function getPrereqGap(failedTag, masteryData) {
+  const concept = BRAIN.concepts[failedTag];
+  if (!concept?.prereqs?.length) return null;
+  const unmastered = concept.prereqs.filter(p => {
+    const s = masteryData.concepts?.[p]?.state;
+    return !s || s === 'unseen' || s === 'introduced' || s === 'degraded';
+  });
+  if (!unmastered.length) return null;
+  return { failedTag, gap: unmastered[0], message: `Player failed "${failedTag}" — prerequisite "${unmastered[0]}" not mastered. Route there first.` };
+}
+function detectErrorPatterns(masteryData, sessionHistory) {
+  const recent = (sessionHistory || masteryData.sessionHistory || []).slice(-20);
+  if (recent.length < 5) return [];
+  const patterns = [];
+  const buntPicks = recent.filter(h => h.choiceText?.toLowerCase().includes('bunt')).length;
+  if (buntPicks >= 5 && buntPicks / recent.length > 0.35)
+    patterns.push({ key:'always-bunts', label:'Always Bunts', conceptGap:'bunt-re24', aiInstruction:'Include a scenario where bunting is CLEARLY wrong (costs 0.23 RE). Correct answer is swing away.' });
+  const stealOpp = recent.filter(h => h.conceptTag === 'steal-breakeven').length;
+  const stealPicks = recent.filter(h => h.choiceText?.toLowerCase().includes('steal')).length;
+  if (stealOpp >= 3 && stealPicks === 0)
+    patterns.push({ key:'never-steals', label:'Never Steals', conceptGap:'steal-breakeven', aiInstruction:'Create obvious steal: fast runner, slow catcher, 3-1 count. Make steal the unambiguously correct answer.' });
+  const countScens = recent.filter(h => h.countContext);
+  const pcWrong = countScens.filter(h => h.countContext === 'pitcher' && !h.correct).length;
+  if (countScens.length >= 4 && pcWrong / countScens.length > 0.5)
+    patterns.push({ key:'count-blindness', label:'Count Blindness', conceptGap:'count-leverage', aiInstruction:'Create scenario where 0-2 count is the central factor. Wrong answer explicitly ignores count.' });
+  const posErr = recent.filter(h => !h.correct && (h.errorType === 'role-confusion' || h.conceptTag?.includes('cutoff'))).length;
+  if (posErr >= 3)
+    patterns.push({ key:'position-confusion', label:'Position Confusion', conceptGap:'cutoff-roles', aiInstruction:'Simple cutoff scenario, one clear correct fielder. All wrong answers use wrong fielder.' });
+  const ftErr = recent.filter(h => !h.correct && h.conceptTag === 'force-vs-tag').length;
+  if (ftErr >= 2)
+    patterns.push({ key:'force-tag-confusion', label:'Force/Tag Confusion', conceptGap:'force-vs-tag', aiInstruction:'Scenario where runner is NOT forced. Tag vs. touch decision. Force-play option is plausible wrong answer.' });
+  const prErr = recent.filter(h => !h.correct && h.conceptTag === 'fly-ball-priority').length;
+  if (prErr >= 2)
+    patterns.push({ key:'priority-inversion', label:'Priority Inversion', conceptGap:'fly-ball-priority', aiInstruction:'Infielder trying to call off outfielder. Correct answer: outfielder takes the ball. Unambiguous.' });
+  const re24Scens = recent.filter(h => ['bunt-re24','steal-breakeven'].includes(h.conceptTag));
+  if (re24Scens.length >= 4 && re24Scens.filter(h => !h.correct).length / re24Scens.length > 0.6)
+    patterns.push({ key:'re24-resistance', label:'RE24 Resistance', conceptGap:'bunt-re24', aiInstruction:'Stark RE24 contrast — bunt costs 0.23 runs. Show the numbers explicitly. Make data impossible to ignore.' });
+  const lgScens = recent.filter(h => h.lateClose);
+  if (lgScens.length >= 3 && lgScens.filter(h => !h.correct).length / lgScens.length > 0.6)
+    patterns.push({ key:'late-game-blindness', label:'Late-Game Blindness', conceptGap:'win-probability', aiInstruction:'Late-game scenario where RE24 and WP diverge. Correct answer uses WP logic, not RE24.' });
+  return patterns;
+}
 function isConceptReady(tag, mastered, ageGroup) {
   const concept = BRAIN.concepts[tag];
   if (!concept) return {ready: true, missing: []};
@@ -4590,6 +4699,26 @@ async function generateAIScenario(position, stats, conceptsLearned = [], recentW
 
   const diffTarget = posAcc > 75 ? 3 : posAcc > 50 ? 2 : 1;
 
+  // MASTERY CONTEXT INJECTION
+  const playerMasteryData = stats.masteryData || { concepts: {} };
+  const sessionHistory = playerMasteryData.sessionHistory || [];
+  const lastWrongTag = recentWrong.length > 0 ? recentWrong[recentWrong.length - 1] : null;
+  const _dueReview = getDueForReview(playerMasteryData);
+  const _errorPatterns = detectErrorPatterns(playerMasteryData, sessionHistory);
+  const _prereqGap = lastWrongTag ? getPrereqGap(lastWrongTag, playerMasteryData) : null;
+  const _masteredTags = Object.entries(playerMasteryData.concepts || {}).filter(([,d]) => d.state === 'mastered').map(([t]) => t);
+  const _degraded = _dueReview.filter(c => c.state === 'degraded');
+  const _learning = _dueReview.filter(c => c.state === 'learning');
+  let masteryPrompt = '';
+  if (_prereqGap) masteryPrompt += `\nPREREQ GAP: Player failed "${_prereqGap.failedTag}" — prereq "${_prereqGap.gap}" not mastered. PRIORITY: teach "${_prereqGap.gap}" first.`;
+  if (_degraded.length > 0) masteryPrompt += `\nDEGRADED CONCEPTS (highest priority — player lost mastery): ${_degraded.map(c=>c.tag).join(', ')}. Test one of these.`;
+  if (_learning.length > 0) masteryPrompt += `\nLEARNING CONCEPTS (due for review): ${_learning.slice(0,3).map(c=>c.tag).join(', ')}.`;
+  if (_masteredTags.length > 0) masteryPrompt += `\nMASTERED (avoid over-testing): ${_masteredTags.join(', ')}.`;
+  if (_errorPatterns.length > 0) {
+    const p = _errorPatterns[0];
+    masteryPrompt += `\nACTIVE ERROR PATTERN: "${p.label}" — ${p.aiInstruction}`;
+  }
+
   const prompt = `You are creating a baseball strategy scenario for an educational game aimed at young players (ages 8-18).
 
 PLAYER CONTEXT:
@@ -4597,7 +4726,7 @@ PLAYER CONTEXT:
 - Position: ${position} (${posStats.p} played, ${posAcc}% accuracy)
 - Target difficulty: ${diffTarget}/3 (1=Rookie, 2=Intermediate, 3=Advanced)
 - Concepts already mastered: ${conceptsLearned.length > 0 ? conceptsLearned.slice(-10).join("; ") : "none yet"}
-${weakAreas.length > 0 ? `- Personalization: ${weakAreas.join(". ")}` : ""}
+${weakAreas.length > 0 ? `- Personalization: ${weakAreas.join(". ")}` : ""}${masteryPrompt}
 
 POSITION PRINCIPLES (authoritative — follow these strictly): ${POS_PRINCIPLES[position] || "No specific principles — use general baseball knowledge and ensure accuracy."}
 
