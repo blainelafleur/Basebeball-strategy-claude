@@ -4170,7 +4170,7 @@ SELF-AUDIT — Before outputting, verify ALL of these:
 5b. RE24 vs WP BUNT CHECK: If best answer is "do NOT bunt," verify: is this late/close, trailing by 1, weak hitter? If yes, WP may justify the bunt. Only teach "always avoid bunt" in innings 1-6 or with strong hitters.
 6. Does the scenario contradict any principle in POSITION PRINCIPLES above?
 7. Is the anim type consistent with the scenario action? (e.g., don't use throwHome when the play is to third)
-8. ROLE CHECK: Pitcher backup = ONLY home and 3B. NEVER backs up 1B (that's RF), 2B, or any other base. 3B is cutoff on LF→Home. 1B is cutoff on CF/RF→Home. SS relays left side, 2B relays right side.
+8. ROLE CHECK: Pitcher backup = home, 3B, and 1B on bunt plays when 1B charges. NEVER backs up 2B. RF backs up 1B on infield grounders (not bunts). 3B is cutoff on LF→Home. 1B is cutoff on CF/RF→Home. SS relays left side, 2B relays right side.
 8b. MANAGER ROLE CHECK: Manager options must be dugout decisions (pitching change, positioning, signals, mound visit) — NEVER specific pitch types or mechanical adjustments.
 8c. FLY BALL PRIORITY: OF coming in ALWAYS has priority over IF going back — the ball drifts toward the OF. Calling the ball does NOT create priority; it communicates it. NEVER mark an infielder catching over a charging outfielder as correct.
 9. POSITION BOUNDARY: Does each option describe an action THIS position would actually perform?
@@ -4217,7 +4217,7 @@ EXPLANATION ORDER: explanations[0] explains ONLY options[0], explanations[1] exp
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         model: "grok-4-1-fast",
-        max_tokens: 1000,
+        max_tokens: 1500,
         temperature: 0.4,
         messages: [
           { role: "system", content: "You are an expert baseball coach creating personalized training scenarios for the Baseball Strategy Master app. You always respond with ONLY a valid JSON object — no markdown, no code fences, no explanation text. Just the raw JSON." },
@@ -4239,24 +4239,38 @@ EXPLANATION ORDER: explanations[0] explains ONLY options[0], explanations[1] exp
     }
     const data = await response.json();
     const text = data.choices?.[0]?.message?.content || "";
-    console.log("[BSM] AI response received, content length:", text.length);
+    const finishReason = data.choices?.[0]?.finish_reason || "unknown";
+    console.log("[BSM] AI response received, length:", text.length, "finish:", finishReason);
+    if (text.length > 0) console.log("[BSM] AI raw (first 300):", text.slice(0, 300));
     if (!text) throw new Error("API returned empty content");
-    
+    if (finishReason === "length") console.warn("[BSM] AI response truncated (hit max_tokens)");
+
     // Sanitize AI response before parsing
-    const scenario = JSON.parse(sanitizeAIResponse(text));
-    
-    // Validate
-    if (!scenario.title || !scenario.options || scenario.options.length !== 4 ||
-        !scenario.explanations || scenario.explanations.length !== 4 ||
-        typeof scenario.best !== "number" || scenario.best < 0 || scenario.best > 3 ||
-        !scenario.concept || !scenario.rates || scenario.rates.length !== 4) {
-      throw new Error("Invalid scenario structure");
+    const sanitized = sanitizeAIResponse(text);
+    let scenario;
+    try { scenario = JSON.parse(sanitized); }
+    catch (parseErr) {
+      console.error("[BSM] JSON parse failed:", parseErr.message, "sanitized (first 300):", sanitized.slice(0, 300));
+      throw new Error("Parse: " + (finishReason === "length" ? "truncated response" : "invalid JSON"));
     }
-    
+
+    // Validate structure
+    const missing = [];
+    if (!scenario.title) missing.push("title");
+    if (!scenario.options || scenario.options.length !== 4) missing.push("options");
+    if (!scenario.explanations || scenario.explanations.length !== 4) missing.push("explanations");
+    if (typeof scenario.best !== "number" || scenario.best < 0 || scenario.best > 3) missing.push("best");
+    if (!scenario.concept) missing.push("concept");
+    if (!scenario.rates || scenario.rates.length !== 4) missing.push("rates");
+    if (missing.length > 0) {
+      console.error("[BSM] Invalid structure, missing:", missing.join(", "));
+      throw new Error("Parse: missing " + missing.join(", "));
+    }
+
     // Validate rates[best] is highest rate
     const maxRate = Math.max(...scenario.rates);
     if (scenario.rates[scenario.best] !== maxRate) {
-      console.warn("[BSM] AI scenario: best index", scenario.best, "rate", scenario.rates[scenario.best], "!= max rate", maxRate, "— rejecting");
+      console.warn("[BSM] AI scenario: best=", scenario.best, "rate=", scenario.rates[scenario.best], "max=", maxRate, "— rejecting");
       throw new Error("Rate-best misalignment");
     }
     // Ensure anim is valid
@@ -4279,10 +4293,25 @@ EXPLANATION ORDER: explanations[0] explains ONLY options[0], explanations[1] exp
     if (!scenario.situation.inning) scenario.situation.inning = "Mid";
     if (!scenario.situation.count) scenario.situation.count = "-";
     
-    // Last-resort role-violation check
+    // Role violation regexes — reject only ACTUALLY wrong baseball.
+    // Pitcher covering/sprinting to 1B is CORRECT (grounders right side, D3S, bunt backup).
     const ROLE_VIOLATIONS = {
-      pitcher: [/pitcher.*cutoff/i, /pitcher.*relay\s*man/i, /pitcher.*lines?\s*up.*between/i, /pitcher.*covers?\s*(1st|first|second|2nd|third|3rd)\b/i, /pitcher.*fake.*third.*throw.*first/i, /pitcher.*relay.*second/i, /pitcher.*stays.*on.*mound.*wild.*pitch/i, /pitcher.*backs?\s*up\s*(1st|first)\b/i, /pitcher.*positions?\s*(himself|at|behind)\s*(1st|first|second|2nd)\b/i, /pitcher.*goes?\s*(to|toward)\s*(1st|first|second|2nd)\b/i, /pitcher.*runs?\s*(to|toward)\s*(1st|first|second|2nd)\b/i, /pitcher.*sprints?\s*(to|toward)\s*(1st|first|second|2nd)\b/i],
-      catcher: [/catcher.*cutoff/i, /catcher.*goes?\s*out/i, /catcher.*relay/i, /catcher.*looks.*runner.*before.*field/i],
+      pitcher: [
+        /pitcher.*cutoff/i,                              // Never the cutoff man
+        /pitcher.*relay\s*man/i,                          // Never the relay man
+        /pitcher.*lines?\s*up.*between/i,                 // Never in cutoff alignment
+        /pitcher.*covers?\s*(second|2nd|third|3rd)\b/i,   // Covers 1B only, never 2B/3B
+        /pitcher.*fake.*third.*throw.*first/i,            // Balk since 2013
+        /pitcher.*relay.*second/i,                        // SS/2B relay, not pitcher
+        /pitcher.*stays.*on.*mound.*wild.*pitch/i,        // Must sprint to cover home
+        /pitcher.*backs?\s*up\s*(second|2nd)\b/i,         // Never backs up 2B
+      ],
+      catcher: [
+        /catcher.*cutoff/i,                               // Never the cutoff man
+        /catcher.*goes?\s*out.*cutoff/i,                  // Never goes out as cutoff
+        /catcher.*relay/i,                                // Never the relay man
+        /catcher.*looks.*runner.*before.*field/i,         // Must field ball first on WP/PB
+      ],
       shortstop: [/SS\s*covers?\s*(1st|first)\b.*bunt/i, /shortstop\s*covers?\s*(1st|first)\b.*bunt/i],
       secondBase: [/2B\s*covers?\s*(3rd|third)\b.*bunt/i, /second\s*base.*covers?\s*(3rd|third)\b.*bunt/i],
       thirdBase: [/third.*base.*stays.*at.*third.*wild.*pitch.*runner.*third/i, /third.*base.*cutoff.*right.*field/i, /third.*base.*relay.*right/i, /third\s*base(man)?\s*(is|as)\s*(the)?\s*cutoff.*cf/i, /third\s*base(man)?\s*(is|as)\s*(the)?\s*cutoff.*rf/i],
@@ -4293,9 +4322,10 @@ EXPLANATION ORDER: explanations[0] explains ONLY options[0], explanations[1] exp
     };
     const violations = ROLE_VIOLATIONS[position] || [];
     const allText = [scenario.description, ...scenario.options, ...scenario.explanations].join(" ");
-    if (violations.some(rx => rx.test(allText))) {
-      console.warn("[BSM] AI scenario rejected: role violation for", position);
-      throw new Error("Position-role violation");
+    const matched = violations.find(rx => rx.test(allText));
+    if (matched) {
+      console.warn("[BSM] AI scenario rejected: role violation for", position, "pattern:", matched.toString());
+      throw new Error("Role violation: " + matched.toString().slice(0, 80));
     }
 
     scenario.id = `ai_${Date.now()}`;
@@ -4304,10 +4334,16 @@ EXPLANATION ORDER: explanations[0] explains ONLY options[0], explanations[1] exp
     
     return { scenario };
   } catch (err) {
-    console.error("[BSM] AI generation failed:", err.message, err);
-    const errType = err.name==="AbortError" ? "aborted" : err.message==="Timeout" ? "timeout" : err.message?.startsWith("API") ? "api" : "parse";
-    console.error("[BSM] Error type:", errType);
-    return { scenario: null, error: errType };
+    const msg = err.message || "";
+    const errType = err.name === "AbortError" ? "aborted"
+      : msg === "Timeout" ? "timeout"
+      : msg.startsWith("API") ? "api"
+      : msg.startsWith("Role violation") ? "role-violation"
+      : msg.startsWith("Rate-best") ? "rate-mismatch"
+      : "parse";
+    const detail = msg.startsWith("Parse:") ? msg.slice(7) : msg;
+    console.error("[BSM] AI generation failed:", errType, detail);
+    return { scenario: null, error: errType, detail };
   }
 }
 
@@ -4942,6 +4978,7 @@ export default function App(){
   const[sessionRecap,setSessionRecap]=useState(null); // {plays,correct,concepts:[]}
   const sessionRef=useRef({plays:0,correct:0,concepts:[]});
   const abortRef=useRef(null);
+  const aiFailRef=useRef({consecutive:0,cooldownUntil:0});
   const lastScRef=useRef(null);
   lastScRef.current=sc?.id||null;
   const speedNextRef=useRef(null);
@@ -5218,8 +5255,19 @@ export default function App(){
 
     console.log('[BSM] startGame',{pos:p,forceAI,unseen:unseen.length,allExhausted,isPro:stats.isPro});
 
-    // Local helper: AI generation with loading, abort, concept targeting, fallback
+    // Local helper: AI generation with loading, abort, retry, cooldown, fallback
     const doAI=async()=>{
+      // Cooldown check — skip AI if recent repeated failures
+      if(Date.now()<aiFailRef.current.cooldownUntil){
+        const mins=Math.ceil((aiFailRef.current.cooldownUntil-Date.now())/60000);
+        setAiMode(false);setAiFallback(true);
+        const s=getSmartRecycle(p,src,lastScId);
+        setHist(h=>({...h,[p]:[...(h[p]||[]),s.id].slice(-src.length)}));
+        setSc(s);setScreen("play");
+        s.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80);});
+        setTimeout(()=>{setToast({e:"⚠️",n:"AI Resting",d:`AI Coach is resting. Try again in ${mins} min.`});setTimeout(()=>setToast(null),3500)},300);
+        return;
+      }
       setAiLoading(true);setAiMode(true);setScreen("play");
       const ctrl=new AbortController();abortRef.current=ctrl;
       let concept=null;
@@ -5230,13 +5278,25 @@ export default function App(){
         const wrongSc=allSc.find(s=>wrongIds.includes(s.id)&&s.concept);
         if(wrongSc)concept=wrongSc.concept;
       }
-      const result=await generateAIScenario(p,stats,stats.cl||[],stats.recentWrong||[],ctrl.signal,concept);
+      let result=await generateAIScenario(p,stats,stats.cl||[],stats.recentWrong||[],ctrl.signal,concept);
+      // Retry once on parse/role/rate errors (not timeout or abort — those won't change on retry)
+      if(!result?.scenario&&(result?.error==="parse"||result?.error==="role-violation"||result?.error==="rate-mismatch")){
+        console.log("[BSM] AI retry attempt (no targetConcept)...");
+        result=await generateAIScenario(p,stats,stats.cl||[],stats.recentWrong||[],ctrl.signal,null);
+      }
       abortRef.current=null;
       setAiLoading(false);
       if(result?.scenario){
+        aiFailRef.current.consecutive=0;
+        console.log("[BSM] AI scenario accepted:", result.scenario.title);
         setSc(result.scenario);
         result.scenario.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80);});
       } else {
+        aiFailRef.current.consecutive++;
+        if(aiFailRef.current.consecutive>=3){
+          aiFailRef.current.cooldownUntil=Date.now()+5*60*1000;
+          console.warn("[BSM] AI cooldown activated after",aiFailRef.current.consecutive,"consecutive failures");
+        }
         setAiMode(false);setAiFallback(true);
         const s=getSmartRecycle(p,src,lastScId);
         setHist(h=>({...h,[p]:[...(h[p]||[]),s.id].slice(-src.length)}));
@@ -5244,6 +5304,8 @@ export default function App(){
         s.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80);});
         const errMsg=result?.error==="timeout"?"AI took too long. Using handcrafted."
           :result?.error==="api"?"AI service error. Using handcrafted."
+          :result?.error==="role-violation"?"AI generated invalid play. Using handcrafted."
+          :result?.error==="rate-mismatch"?"AI scoring error. Using handcrafted."
           :"AI unavailable. Using a handcrafted scenario.";
         setTimeout(()=>{setToast({e:"⚠️",n:"AI Unavailable",d:errMsg});setTimeout(()=>setToast(null),3500)},300);
       }

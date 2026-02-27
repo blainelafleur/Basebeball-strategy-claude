@@ -443,6 +443,9 @@ async function handleAIProxy(request, env, cors) {
     body,
   });
   const responseBody = await xaiResponse.text();
+  if (!xaiResponse.ok) {
+    console.error(`[BSM Worker] xAI error ${xaiResponse.status}:`, responseBody.slice(0, 500));
+  }
   return new Response(responseBody, {
     status: xaiResponse.status,
     headers: { ...cors, "Content-Type": "application/json" },
