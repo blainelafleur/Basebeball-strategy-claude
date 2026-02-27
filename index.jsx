@@ -3026,7 +3026,7 @@ const STADIUM_MILESTONES=[
   {games:200,label:"Fireworks",desc:"Fireworks on perfect answers!",icon:"🎆"},
   {games:330,label:"Legend Stadium",desc:"Golden border + Legend title!",icon:"👑"},
 ];
-const DEFAULT = {pts:0,str:0,bs:0,gp:0,co:0,ps:{},achs:[],cl:[],ds:0,lastDay:null,todayPlayed:0,todayDate:null,sp:0,isPro:false,onboarded:false,soundOn:true,recentWrong:[],dailyDone:false,dailyDate:null,streakFreezes:0,survivalBest:0,ageGroup:"11-12",displayName:"",teamCode:"",seasonGame:0,seasonCorrect:0,seasonComplete:false,fieldTheme:"default",avatarJersey:0,avatarCap:0,avatarBat:0,season:1,proPlan:null,proPurchaseDate:null,proExpiry:null,lastStreakFreezeDate:null,wrongCounts:{},posGrad:{},funnel:[],hist:{},firstPlayDate:null,lastPlayDate:null,sessionCount:0,tutorialDone:false,promoCode:null,promoActivatedDate:null};
+const DEFAULT = {pts:0,str:0,bs:0,gp:0,co:0,ps:{},achs:[],cl:[],ds:0,lastDay:null,todayPlayed:0,todayDate:null,sp:0,isPro:false,onboarded:false,soundOn:true,recentWrong:[],dailyDone:false,dailyDate:null,streakFreezes:0,survivalBest:0,ageGroup:"11-12",displayName:"",teamCode:"",seasonGame:0,seasonCorrect:0,seasonComplete:false,fieldTheme:"default",avatarJersey:0,avatarCap:0,avatarBat:0,season:1,proPlan:null,proPurchaseDate:null,proExpiry:null,lastStreakFreezeDate:null,wrongCounts:{},posGrad:{},funnel:[],hist:{},firstPlayDate:null,lastPlayDate:null,sessionCount:0,tutorialDone:false,promoCode:null,promoActivatedDate:null,masteryShown:[]};
 
 // Streak flame visual — grows with daily streak length
 function getFlame(ds){
@@ -3072,7 +3072,7 @@ const POS_PRINCIPLES = {
   manager:"Manage by the situation, not by the book. RE24 run expectancy guides sacrifice bunt decisions (usually bad except: weak hitter, late game, need exactly 1 run). Stolen bases need ~72% success to break even. Pitching changes: matchup advantages (L/R platoon), fatigue, times through the order (batters hit ~30 points better third time through). Intentional walks: only with first base open and a clear skill gap to next hitter. Defensive positioning: guard lines late, play for DP early."
 };
 
-async function generateAIScenario(position, stats, conceptsLearned = [], recentWrong = [], signal = null) {
+async function generateAIScenario(position, stats, conceptsLearned = [], recentWrong = [], signal = null, targetConcept = null) {
   const lvl = getLvl(stats.pts);
   const posStats = stats.ps[position] || { p: 0, c: 0 };
   const posAcc = posStats.p > 0 ? Math.round((posStats.c / posStats.p) * 100) : 50;
@@ -3082,6 +3082,7 @@ async function generateAIScenario(position, stats, conceptsLearned = [], recentW
   if (posAcc < 50) weakAreas.push("player struggles at this position — make it slightly easier to build confidence");
   if (posAcc > 80 && posStats.p > 5) weakAreas.push("player is strong here — increase difficulty and complexity");
   if (recentWrong.length > 0) weakAreas.push(`player recently got these concepts wrong: ${recentWrong.slice(-3).join("; ")}. Create a scenario that revisits one of these concepts from a different angle.`);
+  if (targetConcept) weakAreas.push(`PRIORITY: The player previously missed a scenario about "${targetConcept}". Create a COMPLETELY DIFFERENT game situation that teaches this same concept from a new angle — different inning, different score, different runners, different context. Do NOT reuse the same setup.`);
 
   const diffTarget = posAcc > 75 ? 3 : posAcc > 50 ? 2 : 1;
 
@@ -3960,7 +3961,23 @@ export default function App(){
   
   // INFIELD_CATS/OUTFIELD_CATS removed — individual position arrays replace fielder filtering
   const maxDiff=(AGE_GROUPS.find(a=>a.id===stats.ageGroup)||AGE_GROUPS[2]).maxDiff;
-  const getRand=useCallback((p)=>{
+
+  // Smart recycling: when all scenarios seen, prioritize wrong > least-recent > random
+  const getSmartRecycle=useCallback((p,src,lastScId)=>{
+    const wc=stats.wrongCounts||{};const seen=hist[p]||[];
+    // Priority 1: scenarios the user got wrong (excluding the one just played)
+    const wrong=src.filter(s=>wc[s.id]>0&&s.id!==lastScId);
+    if(wrong.length>0)return wrong[Math.floor(Math.random()*wrong.length)];
+    // Priority 2: least-recently-seen — avoid the last half of history
+    const recentHalf=seen.slice(-Math.floor(src.length/2));
+    const stale=src.filter(s=>!recentHalf.includes(s.id)&&s.id!==lastScId);
+    if(stale.length>0)return stale[Math.floor(Math.random()*stale.length)];
+    // Priority 3: random from full pool (excluding last played)
+    const rest=src.filter(s=>s.id!==lastScId);
+    return rest.length>0?rest[Math.floor(Math.random()*rest.length)]:src[Math.floor(Math.random()*src.length)];
+  },[hist,stats.wrongCounts]);
+
+  const getRand=useCallback((p,lastScId)=>{
     let raw=SCENARIOS[p]||[];
     // Difficulty graduation for ages 6-8: unlock diff:2 per-position when ready
     let effMaxDiff=maxDiff;
@@ -3968,9 +3985,9 @@ export default function App(){
     const pool=raw.filter(s=>s.diff<=effMaxDiff);const fallback=raw;
     const src=pool.length>0?pool:fallback;const seen=hist[p]||[];
     const unseen=src.filter(s=>!seen.includes(s.id));
-    // Spaced repetition: revisit wrong scenarios more often
+    // Spaced repetition: pick a DIFFERENT scenario, not the exact same one
     const wc=stats.wrongCounts||{};
-    const wrongInPool=src.filter(s=>wc[s.id]>0);
+    const wrongInPool=src.filter(s=>wc[s.id]>0&&s.id!==lastScId);
     if(wrongInPool.length>0){
       const chance=unseen.length>0?0.4:0.6;
       if(Math.random()<chance){
@@ -3978,10 +3995,14 @@ export default function App(){
         setHist(h=>({...h,[p]:[...(h[p]||[]),pick.id].slice(-src.length)}));return pick;
       }
     }
-    const avail=unseen.length>0?unseen:src;
-    const s=avail[Math.floor(Math.random()*avail.length)];
+    if(unseen.length>0){
+      const s=unseen[Math.floor(Math.random()*unseen.length)];
+      setHist(h=>({...h,[p]:[...(h[p]||[]),s.id].slice(-src.length)}));return s;
+    }
+    // All seen — use smart recycling
+    const s=getSmartRecycle(p,src,lastScId);
     setHist(h=>({...h,[p]:[...(h[p]||[]),s.id].slice(-src.length)}));return s;
-  },[hist,maxDiff,stats.ageGroup,stats.posGrad,stats.wrongCounts]);
+  },[hist,maxDiff,stats.ageGroup,stats.posGrad,stats.wrongCounts,getSmartRecycle]);
 
   const startDaily=useCallback(()=>{
     if(stats.dailyDone&&stats.dailyDate===new Date().toDateString())return;
@@ -3998,20 +4019,34 @@ export default function App(){
 
     // Determine if we should use AI (respect maxDiff so young players get AI after exhausting their pool)
     const raw=SCENARIOS[p]||[];const pool=raw.filter(s=>s.diff<=maxDiff);const seen=hist[p]||[];
-    const unseen=(pool.length>0?pool:raw).filter(s=>!seen.includes(s.id));
+    const src=pool.length>0?pool:raw;
+    const unseen=src.filter(s=>!seen.includes(s.id));
     const useAI = forceAI || unseen.length === 0;
+    const lastScId=sc?.id||null;
 
     if(useAI&&!stats.isPro){
-      // AI is pro-only — fall back to handcrafted, show toast
+      // AI is pro-only — fall back to handcrafted
       setAiMode(false);
-      const avail=pool.length>0?pool:raw;const s=avail[Math.floor(Math.random()*avail.length)];
-      setHist(h=>({...h,[p]:[...(h[p]||[]),s.id].slice(-avail.length)}));
-      setSc(s);setScreen("play");
-      s.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80);});
-      if(forceAI){trackFunnel('ai_gated',setStats);setTimeout(()=>{setToast({e:"🤖",n:"AI is Pro",d:"Upgrade to All-Star Pass for AI coaching!"});setTimeout(()=>setToast(null),3500)},300)}
-      else if(!forceAI&&unseen.length===0){
-        // Show mastery screen if first time exhausting this position
-        setMasteryPos(p);setScreen("home");return;
+      if(forceAI){
+        // User clicked AI Coach button — tell them it's Pro-only, use smart recycle
+        const s=getSmartRecycle(p,src,lastScId);
+        setHist(h=>({...h,[p]:[...(h[p]||[]),s.id].slice(-src.length)}));
+        setSc(s);setScreen("play");
+        s.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80);});
+        trackFunnel('ai_gated',setStats);setTimeout(()=>{setToast({e:"🤖",n:"AI is Pro",d:"Upgrade to All-Star Pass for AI coaching!"});setTimeout(()=>setToast(null),3500)},300);
+      } else if(unseen.length===0){
+        // Pool exhausted — show mastery screen once per position, then review mode
+        const shown=stats.masteryShown||[];
+        if(!shown.includes(p)){
+          setStats(prev=>({...prev,masteryShown:[...(prev.masteryShown||[]),p]}));
+          setMasteryPos(p);setScreen("home");return;
+        }
+        // Already shown mastery — enter review mode with smart recycle
+        const s=getSmartRecycle(p,src,lastScId);
+        setHist(h=>({...h,[p]:[...(h[p]||[]),s.id].slice(-src.length)}));
+        setSc(s);setScreen("play");
+        s.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80);});
+        setTimeout(()=>{setToast({e:"🔄",n:"Review Mode",d:"Revisiting scenarios to sharpen your skills!"});setTimeout(()=>setToast(null),3000)},300);
       }
       return;
     }
@@ -4020,26 +4055,37 @@ export default function App(){
       // Show loading screen
       setAiLoading(true);setAiMode(true);setScreen("play");
       const ctrl=new AbortController();abortRef.current=ctrl;
-      const aiSc = await generateAIScenario(p, stats, stats.cl||[], stats.recentWrong||[], ctrl.signal);
+      // 50% chance to target a previously-wrong concept for re-teaching
+      let concept=null;
+      const wc=stats.wrongCounts||{};
+      const wrongIds=Object.keys(wc).filter(id=>wc[id]>0);
+      if(wrongIds.length>0&&Math.random()<0.5){
+        const allSc=Object.entries(SCENARIOS).flatMap(([,arr])=>arr);
+        const wrongSc=allSc.find(s=>wrongIds.includes(s.id)&&s.concept);
+        if(wrongSc)concept=wrongSc.concept;
+      }
+      const aiSc = await generateAIScenario(p, stats, stats.cl||[], stats.recentWrong||[], ctrl.signal, concept);
       abortRef.current=null;
       setAiLoading(false);
       if(aiSc){
         setSc(aiSc);
         aiSc.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80);});
       } else {
-        // AI failed — fall back to random handcrafted (respect maxDiff)
-        const avail=pool.length>0?pool:raw;const s=avail[Math.floor(Math.random()*avail.length)];
-        setHist(h=>({...h,[p]:[...(h[p]||[]),s.id].slice(-avail.length)}));
-        setSc(s);setAiMode(false);
+        // AI failed — show toast and fall back to smart recycled handcrafted
+        setAiMode(false);
+        const s=getSmartRecycle(p,src,lastScId);
+        setHist(h=>({...h,[p]:[...(h[p]||[]),s.id].slice(-src.length)}));
+        setSc(s);
         s.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80);});
+        setTimeout(()=>{setToast({e:"⚠️",n:"AI Unavailable",d:"Using a handcrafted scenario instead."});setTimeout(()=>setToast(null),3500)},300);
       }
     } else {
       // Use handcrafted
       setAiMode(false);
-      const s=getRand(p);setSc(s);setScreen("play");
+      const s=getRand(p,lastScId);setSc(s);setScreen("play");
       s.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80);});
     }
-  },[getRand,snd,atLimit,hist,stats,maxDiff]);
+  },[getRand,getSmartRecycle,snd,atLimit,hist,stats,maxDiff,sc]);
 
   const checkAch=useCallback((ns)=>{
     const earned=ns.achs||[];
@@ -4121,9 +4167,9 @@ export default function App(){
     }
   },[choice,sc,pos,snd,checkAch,stats.pts,dailyMode,speedMode,timer,survivalMode,survivalRun,seasonMode]);
 
-  const goHome=useCallback(()=>{setScreen("home");setPos(null);setSc(null);setChoice(null);setOd(null);setFo(null);setPanel(null);setLvlUp(null);setCoachMsg(null);setDailyMode(false);setSpeedMode(false);setSpeedRound(null);setSurvivalMode(false);setSurvivalRun(null);setChallengeMode(false);setSeasonMode(false);setSeasonStageIntro(null);if(timerRef.current)clearTimeout(timerRef.current)},[]);
+  const goHome=useCallback(()=>{setScreen("home");setPos(null);setSc(null);setChoice(null);setOd(null);setFo(null);setPanel(null);setLvlUp(null);setCoachMsg(null);setDailyMode(false);setSpeedMode(false);setSpeedRound(null);setSurvivalMode(false);setSurvivalRun(null);setChallengeMode(false);setSeasonMode(false);setSeasonStageIntro(null);setAiMode(false);if(timerRef.current)clearTimeout(timerRef.current)},[]);
   goHomeRef.current=goHome;
-  const next=useCallback(()=>{setLvlUp(null);if(speedMode){speedNextRef.current?.()}else if(survivalMode){survivalNextRef.current?.()}else if(seasonMode){seasonNextRef.current?.()}else if(dailyMode){goHomeRef.current?.()}else if(atLimit){setScreen("home");setTimeout(()=>setPanel('limit'),100)}else{startGame(pos,aiMode)}},[pos,startGame,aiMode,dailyMode,speedMode,survivalMode,seasonMode,atLimit]);
+  const next=useCallback(()=>{setLvlUp(null);if(speedMode){speedNextRef.current?.()}else if(survivalMode){survivalNextRef.current?.()}else if(seasonMode){seasonNextRef.current?.()}else if(dailyMode){goHomeRef.current?.()}else if(atLimit){setScreen("home");setTimeout(()=>setPanel('limit'),100)}else{startGame(pos,false)}},[pos,startGame,dailyMode,speedMode,survivalMode,seasonMode,atLimit]);
   const finishOnboard=useCallback(()=>{setStats(p=>({...p,onboarded:true,todayDate:new Date().toDateString()}));setScreen("home")},[]);
 
   // Auth: signup

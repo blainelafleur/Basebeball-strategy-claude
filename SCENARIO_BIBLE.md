@@ -444,6 +444,23 @@ Run the Quality Checklist before finalizing.
 
 ---
 
+## Concept Re-teaching Policy
+
+When a player answers a scenario wrong, spaced repetition should **not** replay the exact same scenario. Instead:
+
+1. **Handcrafted pool**: Pick a DIFFERENT scenario from the same position pool, avoiding the exact scenario ID the player got wrong. Any different scenario is better than an exact repeat — the variety keeps engagement high while still reinforcing position knowledge.
+
+2. **AI-generated re-teaching**: When Pro users trigger AI generation and they have previously-wrong concepts, there is a 50% chance the AI will receive a `targetConcept` parameter. The AI prompt instructs it to create a completely different game situation (different inning, score, runners, context) that teaches the same strategic concept from a new angle.
+
+3. **Smart recycling priority** (when all scenarios in a position are seen):
+   - **Priority 1**: Scenarios the user previously got wrong — these need revisiting
+   - **Priority 2**: Least-recently-seen — avoid the last half of the play history
+   - **Priority 3**: Random from the full pool
+
+4. **Mastery screen**: Shows only once per position when a free user exhausts all scenarios. On subsequent plays, a "Review Mode" toast appears and smart recycling provides the next scenario.
+
+---
+
 ## Key Sources
 
 - [MLB Official Rules](https://www.mlb.com/official-rules) — Tier 1
