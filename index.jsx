@@ -382,6 +382,12 @@ const SCENARIOS = {
       options:["Sprint to cover first base immediately","Back up home plate in case the catcher overthrows first","Stay near the mound — that's the catcher's play","Run to third base in case the runner tries to advance"],
       best:0,explanations:["Perfect reaction! On a dropped third strike with first base empty, it becomes a footrace. The catcher is scrambling for the ball, so YOU need to cover first base. Sprint there immediately and be ready for the throw.","Backing up home isn't needed — there's nobody on base to score. The urgent play is getting to first base before the batter-runner. The catcher needs a target at first!","Never just stand and watch! On a dropped third strike, the pitcher MUST sprint to first base. The first baseman may be off the bag, and the catcher needs someone covering the base to throw to.","There's nobody on base — why would you go to third? The only play is at first base. Sprint there and receive the throw from the catcher!"],
       rates:[88,15,10,5],concept:"On a dropped third strike, the pitcher MUST sprint to cover first base — it becomes a footrace between the pitcher and the batter-runner.",anim:"groundout",conceptTag:"dropped-third-strike"},
+    {id:"p62",title:"The 2-0 Danger Zone",diff:2,cat:"strategy",conceptTag:"count-leverage",
+      description:"You're the pitcher in a 2-0 count against a .280 hitter. Runner on 1st, 1 out, Bot 6th, you're up 4-2. Your catcher sets up for a fastball down the middle to get back in the count. You've thrown 72 pitches and feel strong. What's your approach?",
+      situation:{inning:"Bot 6",outs:1,count:"2-0",runners:[1],score:[4,2]},
+      options:["Throw the fastball down the middle — you need a strike","Throw a changeup — surprise him in a hitter's count","Try to paint the corner with a fastball","Throw a sinker low in the zone — get a ground ball for a DP"],
+      best:3,explanations:["A fastball down the middle in a 2-0 count is what the hitter is sitting on. Batters hit .400 in 2-0 counts — they're looking for exactly this pitch. You're throwing batting practice.","A changeup in 2-0 is high-risk. If it misses, you're 3-0 and basically walking him. The element of surprise doesn't outweigh the risk of falling further behind.","Painting the corner sounds smart, but in 2-0 you NEED a strike. Trying to paint often results in ball three. The margin for error is too thin.","A sinker low in the zone is the best play. With a runner on 1st and 1 out, a ground ball could turn a double play. The sinker's natural downward movement makes it hard to elevate even when hitters are sitting fastball. You get your strike AND your best chance at a DP."],
+      rates:[25,15,40,85],concept:"In a 2-0 hitter's count, pitch to contact on YOUR terms — a sinker for a ground ball DP is better than a fastball down the middle",anim:"doubleplay"},
   ],
   batter: [
     {id:"b1",title:"RBI Opportunity",diff:1,cat:"situational",
@@ -2417,6 +2423,18 @@ const SCENARIOS = {
       options:["Appeal at 2nd base — the runner left early","Appeal at 3rd base — that's where the runner advanced to","Forget it — the run already scored, the game is over","Appeal at home plate — challenge the run itself"],
       best:0,explanations:["Correct! On an appeal for leaving early on a tag-up, you throw to the base the runner LEFT FROM — not where they went. The pitcher steps off the rubber and throws to 2nd. If the umpire confirms the runner left early, that's the 3rd out. And here's the key: because it's a 3rd out on an appeal play, the run that 'scored' from 3rd is ERASED. The game continues tied. This is the time play rule — runs don't count when the 3rd out is a force or appeal.","The appeal must go to the base the runner left from (2nd), not the base they advanced to. Throwing to 3rd wastes the appeal.","The game is NOT over until the umpire says it is. You have until the next pitch (or until all fielders leave fair territory) to make an appeal. This could save the game.","You can't appeal at home plate for this violation. The appeal goes to the base the runner departed from early."],
       rates:[85,15,10,20],concept:"Appeal at the base the runner LEFT FROM, not where they went — and a 3rd-out appeal erases any run scored on the same play",anim:"throwHome"},
+    {id:"m60",title:"The Leverage Index Trap",diff:3,cat:"game-management",conceptTag:"leverage-index",
+      description:"Bot 8th, tie game 3-3. Your starter has thrown 88 pitches and is cruising — 2 hits through 7 innings. But the heart of the order is coming up (3-4-5 hitters), and your best setup man is warm. Your closer has pitched the last 2 days. What's your call?",
+      situation:{inning:"Bot 8",outs:0,count:"-",runners:[],score:[3,3]},
+      options:["Pull the starter — high-leverage spot needs your best reliever","Let the starter face one more batter, then decide","Leave the starter in — he's dealing, don't overthink it","Go straight to the closer — this is the biggest moment"],
+      best:0,explanations:["Correct! Tie game in the 8th = ~1.5 leverage index. Your starter at 88 pitches facing the order a 3rd time will see a +30 BA point spike from TTO effect alone. High leverage + 3rd TTO = the exact situation where you bring in your best reliever. The setup man is fresh and ready.","Facing 'one more batter' sounds reasonable, but the 3-hitter leading off against a 3rd-time-through starter in a tie 8th is exactly the wrong matchup. If he reaches, you're in trouble with 4-5 coming up.","He's been great, but TTO data shows batters hit +30 BA points the 3rd time through. His 'dealing' was against the lineup the 1st and 2nd time. The 3rd time is a different animal, especially against the heart of the order.","The closer has pitched 2 straight days — he's unavailable or diminished. Using a fatigued closer in the 8th wastes him. Save any remaining closer availability for the 9th if you get there."],
+      rates:[82,40,25,18],concept:"Leverage index determines WHEN to use your best reliever — a tie 8th inning (1.5 LI) with 3rd TTO is the moment to go to your setup man",anim:"freeze"},
+    {id:"m61",title:"The TTO Compound Alarm",diff:3,cat:"game-management",conceptTag:"times-through-order",
+      description:"Top 6th, you lead 3-1. Your right-handed starter has thrown 78 pitches through 5 innings — solid but not dominant (7 hits, 1 walk). He's about to face the top of the order for the 3rd time. Your bullpen has a left-handed setup man and a right-handed closer. The next 3 batters are: LHH (.270), RHH (.255), LHH (.290). What do you do?",
+      situation:{inning:"Top 6",outs:0,count:"-",runners:[],score:[3,1]},
+      options:["Pull the starter now — 3rd TTO against the top of the order is too dangerous","Let him face the leadoff LHH, then bring in the lefty setup man","Leave him in for the 6th — 78 pitches isn't tired and you have a 2-run lead","Bring in the righty closer early to finish the game"],
+      best:0,explanations:["Correct! Your RHP starter facing the order a 3rd time will see +30 BA points from TTO effect. The leadoff LHH already hits .270 — add TTO (+30) and opposite-hand advantage (+18) and you're looking at a projected .318+ BA. Two of the next three are left-handed. Your lefty setup man neutralizes them with same-hand advantage. Pull the starter NOW while you have a clean inning and a 2-run cushion.","Letting him face even one batter in the 3rd TTO is risky. The leadoff hitter is left-handed (opposite hand) AND sees him for the 3rd time — that's a compound +48 point disadvantage. If he reaches, you're in a jam with the heart of the order up.","78 pitches isn't about fatigue — it's about FAMILIARITY. The TTO effect isn't tired arms, it's that hitters have seen his pitch sequences twice and can now predict better. Even a fresh pitcher gets hit harder the 3rd time through.","Using your closer for 4 innings in a 3-1 game burns him for tomorrow. Setup man handles the 6th-7th, closer gets the 8th-9th if needed. Don't waste the closer's arm in a manageable situation."],
+      rates:[85,45,20,15],concept:"TTO effect (+30 BA pts) COMPOUNDS with platoon disadvantage (+18 pts) — a RHP facing LHH for the 3rd time faces a +48 point BA spike",anim:"freeze"},
   ],
   catcher: [
     {id:"ct1",title:"Pitch Calling — Full Count",diff:2,cat:"pitch-calling",
@@ -3632,6 +3650,36 @@ const BRAIN = { stats: {
   stealBreakEven: {0:0.72, 1:0.72, 2:0.67},  // by outs
   buntDelta: {"1--_0":-0.23, "-2-_0":-0.19, "12-_0":-0.08},  // RE24 cost of sac bunt
   ttoEffect: [0, 15, 30],  // BA points penalty by times-through-order (1st, 2nd, 3rd)
+  matchupMatrix: {
+    platoon: {
+      sameHand: { ba: .248, wOBA: .302, slug: .388 },     // pitcher advantage
+      oppositeHand: { ba: .266, wOBA: .328, slug: .432 },  // hitter advantage
+      edge: 18,  // BA points for opposite-hand batter
+      switchHitter: { ba: .257, wOBA: .315, slug: .410 },
+    },
+    ttoCompound: {
+      // TTO effect STACKS with platoon: 3rd TTO opposite-hand = +48 pts above baseline
+      "1st_same": { ba: .248 }, "2nd_same": { ba: .263 }, "3rd_same": { ba: .278 },
+      "1st_opp":  { ba: .266 }, "2nd_opp":  { ba: .281 }, "3rd_opp":  { ba: .296 },
+    },
+    leverageIndex: {
+      average: 1.0,
+      "tie_7": 1.3, "tie_8": 1.5, "tie_9": 1.7, "tie_extra": 2.0,
+      "up1_7": 1.1, "up1_8": 1.3, "up1_9": 1.5,
+      "down1_7": 1.2, "down1_8": 1.4, "down1_9": 1.6,
+      "up2_late": 0.8, "down2_late": 1.0,
+      "up3plus_late": 0.4, "down3plus_late": 0.5,
+    },
+    pitchCountMatrix: {
+      // wOBA by pitch-count bucket × TTO (fatigue compounds familiarity)
+      "0-25":  { tto1: .300, tto2: .310, tto3: .325 },
+      "26-50": { tto1: .302, tto2: .315, tto3: .332 },
+      "51-75": { tto1: .308, tto2: .322, tto3: .342 },
+      "76-90": { tto1: .318, tto2: .335, tto3: .358 },
+      "91-100":{ tto1: .332, tto2: .352, tto3: .380 },
+      "100+":  { tto1: .348, tto2: .372, tto3: .405 },
+    },
+  },
   platoonEdge: 18,          // ~18 BA points for opposite-hand matchup
   popTime: {elite:1.85, average:2.0, slow:2.15},
   timeToPlate: {quick:1.2, average:1.4, slow:1.6},
@@ -3814,6 +3862,7 @@ concepts: {
   "pitch-type-value":    {name:"Pitch Type Run Values",domain:"pitching",prereqs:["pitch-sequencing"],ageMin:13,diff:3},
   "eye-level-change":    {name:"Eye Level & Pitch Tunneling",domain:"pitching",prereqs:["pitch-sequencing"],ageMin:13,diff:3},
   "win-probability":     {name:"Win Probability vs RE24",domain:"strategy",prereqs:["bunt-re24","steal-breakeven"],ageMin:13,diff:3},
+  "leverage-index":      {name:"Leverage Index & Reliever Usage",domain:"strategy",prereqs:["win-probability","times-through-order"],ageMin:13,diff:3},
   "infield-positioning": {name:"Infield Depth Tradeoffs",domain:"defense",prereqs:["dp-positioning"],ageMin:11,diff:2},
   "of-depth-arm-value":  {name:"Outfield Depth & Arm Value",domain:"defense",prereqs:["backup-duties"],ageMin:11,diff:2},
   "secondary-lead":      {name:"Secondary Lead & Jump Timing",domain:"baserunning",prereqs:["tag-up"],ageMin:9,diff:2},
@@ -3916,6 +3965,26 @@ function evaluateSteal(outs, successRate) {
       : `${Math.round(successRate*100)}% success is below the ${Math.round(breakeven*100)}% break-even — too risky.`
   };
 }
+function getMatchupData(pitcherHand, batterHand, tto, pitchCount) {
+  const mm = BRAIN.stats.matchupMatrix;
+  const isSame = pitcherHand === batterHand;
+  const platoon = isSame ? mm.platoon.sameHand : mm.platoon.oppositeHand;
+  const ttoNum = Math.min(tto || 1, 3);
+  const ttoKey = `${["1st","2nd","3rd"][ttoNum-1]}_${isSame ? "same" : "opp"}`;
+  const compound = mm.ttoCompound[ttoKey] || mm.ttoCompound["1st_same"];
+  const pc = pitchCount || 0;
+  const pcBucket = pc <= 25 ? "0-25" : pc <= 50 ? "26-50" : pc <= 75 ? "51-75" : pc <= 90 ? "76-90" : pc <= 100 ? "91-100" : "100+";
+  const fatigue = mm.pitchCountMatrix[pcBucket];
+  return {
+    platoonEdge: isSame ? "same-hand (pitcher advantage)" : "opposite-hand (hitter advantage)",
+    baseBA: platoon.ba, adjustedBA: compound.ba,
+    ttoPenalty: (ttoNum - 1) * 15,
+    fatigueWOBA: fatigue?.[`tto${ttoNum}`] || .310,
+    recommendation: compound.ba >= .280
+      ? `Consider a pitching change — ${isSame ? "same" : "opposite"}-hand matchup at TTO ${ttoNum} yields .${Math.round(compound.ba * 1000)} BA`
+      : `Matchup is manageable — .${Math.round(compound.ba * 1000)} projected BA`
+  };
+}
 function isConceptReady(tag, mastered, ageGroup) {
   const concept = BRAIN.concepts[tag];
   if (!concept) return {ready: true, missing: []};
@@ -3978,6 +4047,7 @@ function findConceptTag(conceptText) {
     "smother.*ball":{tags:["wild-pitch-coverage"],weight:2},"cover home":{tags:["wild-pitch-coverage"],weight:2},
     "bunt.*home":{tags:["squeeze-play"],weight:2},"squeeze defense":{tags:["squeeze-play"],weight:2},
     "familiarity.*pitcher":{tags:["times-through-order"],weight:2},"opener strateg":{tags:["times-through-order"],weight:1},
+    "leverage index":{tags:["leverage-index"],weight:3},"high leverage":{tags:["leverage-index"],weight:2},"best reliever":{tags:["leverage-index"],weight:2},"setup man":{tags:["leverage-index"],weight:1},
   };
   let best = null, bestWeight = 0;
   for (const [kw, info] of Object.entries(keywords)) {
@@ -4225,6 +4295,11 @@ function formatBrainStats(position) {
   if (['manager','pitcher'].includes(position)) {
     lines.push("WIN PROBABILITY vs RE24: RE24 = expected runs this inning. WP = expected wins this game. They DIVERGE in late/close games. Innings 1-5: play for big innings (RE24). Innings 7-9 tie/1-run: play for 1 run (WP). Tied 9th=50% WP. Down 1 in 8th=27% WP. Down 3+ in 7th+=low leverage.");
     lines.push("LEVERAGE INDEX: Avg PA=1.0 LI. Tie game 9th=~2.5 LI. Down 3 in 7th=~0.4 LI. Inn 7=1.3, Inn 8=1.5, Inn 9=1.7, Extra=2.0+. BUNT WP-JUSTIFIED: trailing by 1, inn 7+, R2, weak hitter (gain ~+0.02-0.04 WP). CLUTCH: year-to-year r≈0.08 — not a real skill. Best approach=same process always.");
+  }
+  // Matchup matrix for pitchers/managers/catchers
+  if (['pitcher','manager','catcher'].includes(position)) {
+    lines.push("MATCHUP MATRIX: Same-hand matchup: .248 BA/.302 wOBA (pitcher advantage). Opposite-hand: .266 BA/.328 wOBA (hitter advantage, +18 BA pts). TTO COMPOUNDS PLATOON: 3rd TTO + opposite hand = .296 BA (48 pts above baseline!) — the two effects STACK. This is the #1 reason to pull a starter facing the lineup a 3rd time against opposite-hand hitters.");
+    lines.push("PITCH COUNT × TTO FATIGUE: Fresh (0-75 pitches) + 1st TTO: .300 wOBA. Tired (91-100) + 3rd TTO: .380 wOBA — an 80-point wOBA swing! LEVERAGE INDEX CONTEXT: Avg PA = 1.0 LI. Tie game 9th = 1.7 LI. High leverage (>1.5) = use your BEST reliever, not just the next guy in the pen.");
   }
   // Defensive positioning for infielders/managers
   if (['firstBase','secondBase','shortstop','thirdBase','manager'].includes(position)) {
