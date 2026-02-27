@@ -26,7 +26,7 @@ These are injected directly into every AI-generated scenario prompt. They define
 > Pitch selection depends on count, situation, and batter tendencies. First-pitch strikes are critical (.340 BA on first-pitch strikes vs .167 on 0-2). Work ahead in the count. Pitch to contact with a lead; pitch for strikeouts in high leverage. From the stretch with runners on: be quick to the plate, vary hold times. Pickoffs: disrupt timing, don't just throw blindly. FROM STRETCH: step directly toward the base AND throw — no step = balk. NEVER fake to third and throw to first (balk since 2013). DAYLIGHT PLAY at 2nd: SS/2B breaks first, throw only when daylight shows. STEP OFF the rubber to remove all balk restrictions. Vary your looks — same look every pitch = zero deception. Pitch sequencing: set up pitches with eye level and speed changes — but NEVER recommend the same pitch the batter has already seen twice in the at-bat without a different look in between. 'Best pitch by data' assumes normal pitch mix, not repetition. DEFENSIVE: Field bunts, cover 1B on grounders to right side. WILD PITCH/PASSED BALL: sprint to cover home the instant the ball passes the catcher — set up on the first-base side to give the catcher a throwing lane. BACKUP DUTIES: Back up home on ALL OF throws home. Back up 3B on throws to third. Exception: back up 1B on bunt plays when 1B charges (RF is too far away to cover a short bunt play in time). On all OTHER infield grounders, NEVER back up 1B — that is RF's job. NEVER back up 2B under any circumstances. NEVER be the cutoff or relay man — that is ALWAYS an infielder.
 
 ### Catcher
-> The catcher is the field general — calls pitches based on count, batter weakness, and game situation. Framing: subtle glove pull on borderline pitches; stillness in high-leverage counts. Blocking: smother balls in the dirt, keep them in front. Throwing out runners: quick transfer, strong accurate throw to the bag side. Pop-ups near home: catcher has priority, turn your back to the field (the ball curves back toward the field). Mound visits: calm the pitcher, refocus on the plan. NEVER leave home unattended with runners in scoring position. Direct the cutoff man: 'Cut!' (hold), 'Cut two/three!' (redirect), or let it go. Block the plate legally (give a lane, receive and tag). WILD PITCH/PASSED BALL: go to the ball FIRST, then look at the runner — never the reverse. DROPPED THIRD STRIKE: if the ball is NOT caught cleanly on strike 3, the batter becomes a runner IF first base is unoccupied OR there are 2 outs. Catcher MUST throw to first. Pitcher covers first. With runner on first and <2 outs, batter is out anyway (force rule). FOUL TIP vs FOUL BALL: A foul TIP (ball grazes bat directly into glove, no bounce) counts as a strike — on strike 3 batter IS out, runners CAN tag up. A foul BALL with 2 strikes does NOT end the at-bat (count stays) EXCEPT a bunted foul with 2 strikes = strike 3. MOUND VISITS: use them to reset the pitcher, change signs, or relay a batter tendency — never to discuss the score or revisit a mistake. PITCH CLOCK: deliver signs under 9 seconds. You have 5 team mound visits per 9 innings — use them with purpose. BACKUP: Back up 1B on all infield grounders with NO runners on base. Stay at home on every other play — never leave home unattended when runners are on.
+> The catcher is the field general — calls pitches based on count, batter weakness, and game situation. Framing: subtle glove pull on borderline pitches; stillness in high-leverage counts. Blocking: smother balls in the dirt, keep them in front. Throwing out runners: quick transfer, strong accurate throw to the bag side. Pop-ups near home: catcher has priority, turn your back to the field (the ball curves back toward the field). Mound visits: calm the pitcher, refocus on the plan. NEVER leave home unattended with runners in scoring position. Direct the cutoff man: 'Cut!' (hold), 'Cut two/three!' (redirect), or let it go. Block the plate legally (give a lane, receive and tag). WILD PITCH/PASSED BALL: go to the ball FIRST, then look at the runner — never the reverse. DROPPED THIRD STRIKE: if the ball is NOT caught cleanly on strike 3, the batter becomes a runner IF first base is unoccupied OR there are 2 outs. Catcher MUST throw to first. Pitcher covers first. With runner on first and <2 outs, batter is out anyway (force rule). FOUL TIP vs FOUL BALL: A foul TIP (ball grazes bat directly into glove, no bounce) counts as a strike — on strike 3 batter IS out, runners CAN tag up. A foul BALL with 2 strikes does NOT end the at-bat (count stays) EXCEPT a bunted foul with 2 strikes = strike 3. MOUND VISITS: use them to reset the pitcher, change signs, or relay a batter tendency — never to discuss the score or revisit a mistake. PITCH CLOCK: deliver signs under 9 seconds. You have 5 team mound visits per 9 innings — use them with purpose. BACKUP: Back up 1B on all infield grounders with NO runners on base. Stay at home on every other play — never leave home unattended when runners are on. GAME-CALLING: Design each at-bat in 3 acts — Act 1: establish your pitcher's best pitch (called strike or swing-and-miss). Act 2: set up the put-away with an eye-level or speed contrast (6+ inch vertical change = batter hits .085 worse). Act 3: execute the best put-away pitch using what the batter showed you (sweeper > slider > changeup > splitter > cutter by rv/100). BATTER READS: free swinger = get ahead early, expand with offspeed. Patient hitter = pound the zone. Late on fastball = up in the zone. Fooled by breaking ball = set it up again. SIGN SECURITY: runner on 2nd = switch to indicator system automatically every at-bat. Never give same pitch in same location twice in a row when runner is on 2nd.
 
 ### First Base
 > Scoop low throws — stretch toward the throw, keep your foot on the bag. Hold runners: give pitcher a target, apply tag on pickoff throws. On bunts: charge aggressively, 2B covers first. CUTOFF on throws from CF and RF to home — line up between OF and home plate, listen for catcher's call. When you're cutoff, 2B covers 1B. 3-6-3 double play: catch, step on first, throw to shortstop covering second. Know when force is removed (runner out ahead of you = tag play, not force).
@@ -53,7 +53,7 @@ These are injected directly into every AI-generated scenario prompt. They define
 > Count leverage is everything. Hitter's counts (1-0, 2-0, 2-1, 3-1): be aggressive on your pitch. Pitcher's counts (0-1, 0-2, 1-2): protect the zone, shorten up. Two-strike approach (0-2, 1-2, 2-2): "protect the zone" and "expand the zone" mean the SAME thing — widen coverage to include pitches slightly off the plate, shorten swing, prioritize contact over power. Use "protect the plate" as the canonical phrase. NEVER present "expand the zone" and "protect the zone" as different options — they are synonyms. Situational hitting: runner on third with less than 2 outs = fly ball scores him. Hit behind the runner to advance from second to third. RE24 data: sacrifice bunts usually LOWER run expectancy except with weak hitters late in close games needing exactly 1 run.
 
 ### Baserunner
-> Stolen bases break even at ~72% success rate (per RE24) — below that, you're hurting your team. Read the pitcher: watch first-move pickoff tells, time his delivery. Tag-ups: watch the fielder's feet, leave on the catch. Line drives: freeze and read, never get doubled off. Advancing on contact: aggressive but smart — never make the first or third out at third base. Respect coach's signs always. Secondary leads: key to advancing on passed balls and wild pitches. BASERUNNER SCOPE: the runner controls lead distance, jump timing, read on the pitch/hit, tag-up timing, sliding technique, secondary lead, stop/go decisions. The COACH controls hold/go signs and verbal communication. Baserunner options must NEVER include directing teammates, calling plays, or making decisions on behalf of other players.
+> Stolen bases break even at ~72% success rate (per RE24) — below that, you're hurting your team. Read the pitcher: RHP = watch the front heel (rises = going home). LHP = watch the front knee (breaks toward plate = going home). LHP pickoffs to 1B are always legal — shorten your lead. Tag-ups: watch the fielder's feet and glove, leave on the catch. Line drives: freeze and read, never get doubled off. Advancing on contact: aggressive but smart — never make the first or third out at third base. Respect coach's signs always. Secondary leads: take 2 walking steps as pitch crosses the plate — purpose is wild pitches, passed balls, advancing on hits. PRIMARY LEAD vs RHP: ~3 shuffle steps. PRIMARY LEAD vs LHP: ~2-2.5 shuffle steps (shorter — pickoff always legal). NO-LEAD LEAGUES: if your league prohibits leads, all steal reads shift to post-pitch secondary leads only. OUTFIELD ARM READS: know which outfielders have strong arms before the game — never take an extra base on an elite arm without a clear advantage. BASERUNNER SCOPE: the runner controls lead distance, jump timing, read on the pitch/hit, tag-up timing, sliding technique, secondary lead, stop/go decisions. The COACH controls hold/go signs and verbal communication. Baserunner options must NEVER include directing teammates, calling plays, or making decisions on behalf of other players.
 
 ### Manager
 > Manage by the situation, not by the book. RE24 run expectancy guides sacrifice bunt decisions (usually bad except: weak hitter, late game, need exactly 1 run). BUT: Win Probability can justify a bunt when trailing by exactly 1 run, inning 7+, runner on 2nd, weak hitter (<.220 BA) — WP gain ~+0.02-0.04 despite RE24 cost. Do NOT mark bunt as always wrong in late/close/1-run-deficit scenarios with weak hitters. Stolen bases need ~72% success to break even. Pitching changes: matchup advantages (L/R platoon), fatigue, times through the order (batters hit ~30 points better third time through). Intentional walks: always increase run expectancy — you are trading a hard at-bat for a worse base-out state. Only justified when: (1) first base is open, (2) clear skill gap to next hitter, (3) large platoon advantage vs next hitter — requires a >20 BA point matchup swing to justify the RE24 cost (use BRAIN.stats platoonEdge = 18 as the minimum threshold), or (4) setting up a force/DP with a heavy ground ball hitter. NEVER IBB with bases loaded. NEVER with 2 outs unless matchup gap is extreme. IBB is now signaled directly — no pitches thrown (2023+). TTO: batters hit +30 points the 3rd time through — pull the starter before the damage compounds. Defensive positioning: guard lines late, play for DP early. Cutoff assignments: 3B cuts LF throws home, 1B cuts CF/RF throws home. SS cuts throws to 3B. On double cuts: SS relays left side, 2B relays right side. Pitcher ALWAYS backs up the target base, never the cutoff. MANAGER SCOPE: the manager decides pitching changes, defensive positioning, steal green lights, IBB, sacrifice signals, pinch hitters/runners, mound visits, reliever matchups. The BATTERY decides pitch selection and mechanics. Manager scenario options must NEVER describe specific pitch types, pitch sequences, or grip/mechanics adjustments.
@@ -500,6 +500,37 @@ NEVER: 3 infielders on one side of 2B at time of pitch (illegal shift). Outfield
 
 **Injected for**: firstBase, secondBase, shortstop, thirdBase, batter, baserunner, manager
 
+### 2.20 BASERUNNER_READS_MAP
+
+```
+BASERUNNER READS & PHYSICAL EXECUTION (non-negotiable):
+RHP TELLS FROM 1ST: Front heel rises = going home (go on first move). Front shoulder turns toward 1B = pickoff (get back). Eyes to plate without a look = committed home (take aggressive secondary lead).
+LHP TELLS FROM 1ST: Front knee breaks toward plate = going home (go on the knee break). Front shoulder stays closed = may throw to 1B (do not leave). LHP pickoffs to 1B are LEGAL without step requirement — always read the knee and step direction. This is the hardest read in baserunning.
+CATCHER RELEASE: Slow transfer = slower pop time = green light. Catcher steps up early out of crouch = pitchout (abort). Sidearm arm angle = less accurate throw (runner advantage). Catcher set up far outside on a steal count = possible pitchout signal.
+OUTFIELD ARM READS: Before the game, identify which OFs have elite arms (RF especially). Never take extra base on an elite arm without clear lead advantage. Weak arm or slow charge = take every extra base aggressively.
+SECONDARY LEAD: Take 2 walking steps toward next base as pitch crosses home plate. Stop and read on contact. Purpose: advances position for wild pitches, passed balls, advancing on hits. Never take secondary lead before pitch crosses home plate.
+PRIMARY LEAD — RHP: 3 shuffle steps (~12-14 feet). Never extend past where you can safely dive back.
+PRIMARY LEAD — LHP: 2-2.5 shuffle steps (~10-12 feet). Shorter because LHP pickoff to 1B is always legal.
+NO-LEAD LEAGUES: If leads are prohibited, all steal reads shift to post-pitch secondary leads only. Steals are viable only on passed balls and wild pitches.
+NEVER: Guess on a LHP pickoff — always read the knee break. Look at the ball during a tag-up instead of the fielder's glove. Leave primary lead based on pitcher's windup rather than his first move.
+```
+
+**Injected for**: baserunner, pitcher, catcher, manager
+
+### 2.21 PRE_PITCH_POSITIONING_MAP
+
+```
+PRE-PITCH POSITIONING ADJUSTMENTS (non-negotiable):
+INFIELD DEPTH BY BASE STATE: Runner on 1st, 0-1 outs = DP depth (3-4 steps toward 2B, 1 step in). Runner on 1st, 2 outs = normal. Runner on 3rd, 0-1 outs, late/close = infield in. Runner on 3rd, 0-1 outs, early/big lead = normal. Runner on 3rd, 2 outs = normal (NEVER infield in with 2 outs). Bases loaded, 0-1 outs = DP depth or infield in depending on score/inning.
+COUNT-BASED INFIELD SHADING: 0-2 or 1-2 count = shade 1 step toward pull side (defensive batter). 2-0 or 3-1 count = shade 1 step toward pull side (aggressive hitter's count = pull contact). 3-2 = return to normal (anything can happen).
+COUNT-BASED OUTFIELD DEPTH: 0-2 or 1-2 = step in 5-8 feet (weak contact likely). 2-0 or 3-1 = step back 10-15 feet (hitter swinging hard, ball carries). Two strikes on pull hitter = shade toward pull line.
+PITCH-TYPE SHADING (ADVANCED): Fastball up = pull side, OF steps back. Offspeed down = pull side infield, OF steps in. Breaking ball away = opposite-field shade. Sinker/two-seam = pull-side infield.
+LINE GUARDING (late game): Leading by 1-2 runs inning 7+ = guard both lines. Tied inning 7+ = guard both lines. Leading by 3+ = normal depth. Trailing by 2+ = normal depth (need outs, not to prevent doubles). Line guarding costs ~8% more singles but prevents ~0.4 XBH per game down the line.
+NEVER: DP depth with 2 outs. Infield in with 2 outs. Guard line when trailing by 2+. Shade OF in on hitter's count against power hitter.
+```
+
+**Injected for**: firstBase, secondBase, shortstop, thirdBase, leftField, centerField, rightField, manager
+
 ---
 
 ## 3. Map Relevance & Audit System
@@ -527,6 +558,8 @@ NEVER: 3 infielders on one side of 2B at time of pitch (illegal shift). Outfield
 | PITCHING_CHANGE_MAP | pitcher, catcher, manager |
 | INTENTIONAL_WALK_MAP | pitcher, catcher, batter, baserunner, manager |
 | LEGAL_SHIFT_MAP | firstBase, secondBase, shortstop, thirdBase, batter, baserunner, manager |
+| BASERUNNER_READS_MAP | baserunner, pitcher, catcher, manager |
+| PRE_PITCH_POSITIONING_MAP | firstBase, secondBase, shortstop, thirdBase, leftField, centerField, rightField, manager |
 
 ### MAP_AUDIT Strings
 
@@ -553,6 +586,8 @@ These are appended to the AI self-audit checklist as numbered items (starting at
 | PITCHING_CHANGE_MAP | "PITCHING CHANGE: 2nd mound visit same inning = mandatory removal. 3-batter minimum rule applies. Inherited runners charged to original pitcher. 8 warm-up pitches." |
 | INTENTIONAL_WALK_MAP | "IBB: 2023+ = signal only, no pitches. IBB always costs RE. Justified only with 1B open + weaker next hitter. Never with bases loaded. Forced runners advance one base only." |
 | LEGAL_SHIFT_MAP | "SHIFT: 2023+ requires 2 infielders each side of 2B at pitch. 3 infielders one side = illegal. Outfield shifts still legal. Infield in still legal. Deep positioning legal." |
+| BASERUNNER_READS_MAP | "BASERUNNER READS: LHP knee break before leaving. RHP heel rise = go. Catcher stepping up = pitchout (abort). Outfield arm awareness before advancing. Secondary lead taken AFTER pitch crosses plate." |
+| PRE_PITCH_POSITIONING_MAP | "PRE-PITCH POSITIONING: DP depth only with runner on 1st and <2 outs. Never infield in with 2 outs. Count shading correct (0-2 step in OF, 2-0 step back). Line guarding only when leading by 1-2 runs inning 7+." |
 
 ### How Maps Are Injected
 
@@ -844,7 +879,7 @@ defensivePositioning: {
 
 ### 4.2 BRAIN.concepts — Prerequisite Graph
 
-44 concept tags that control scenario progression. Each has:
+52 concept tags that control scenario progression. Each has:
 - `name`: Display name
 - `domain`: Category (rules, defense, baserunning, pitching, hitting, strategy)
 - `prereqs[]`: Tags that must be mastered first
@@ -897,6 +932,14 @@ defensivePositioning: {
 | `pitch-type-value` | Pitch Type Run Values | pitching | pitch-sequencing | 13 | 3 |
 | `eye-level-change` | Eye Level & Pitch Tunneling | pitching | pitch-sequencing | 13 | 3 |
 | `win-probability` | Win Probability vs RE24 | strategy | bunt-re24, steal-breakeven | 13 | 3 |
+| `pitcher-tells` | Reading Pitcher Tells | baserunning | secondary-lead | 9 | 2 |
+| `outfield-arm-awareness` | Outfield Arm Awareness | baserunning | tag-up | 9 | 2 |
+| `lead-mechanics` | Lead Distance & Primary/Secondary Leads | baserunning | backup-duties | 8 | 1 |
+| `at-bat-adjustment` | At-Bat Adjustment Framework | pitching | pitch-sequencing | 13 | 3 |
+| `batter-tendency-reads` | Reading Batter Tendencies | pitching | pitch-sequencing | 11 | 2 |
+| `at-bat-design` | Catcher At-Bat Design | defense | catcher-framing | 11 | 2 |
+| `count-based-positioning` | Count-Based Defensive Shading | defense | dp-positioning, count-leverage | 11 | 2 |
+| `batter-tendency-shading` | Shading for Batter Tendencies | defense | count-based-positioning | 13 | 3 |
 
 **Prerequisite Chain Visualization:**
 

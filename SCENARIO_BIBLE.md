@@ -824,7 +824,265 @@ Memory device: "O = fielder Obstructs runner. I = runner Interferes with fielder
 
 ---
 
-### 3.28 Catcher Framing (Source: Baseball Savant Statcast, ABCA)
+### 3.29 Baserunner Reads — Pitcher Tells, Catcher Release, Outfield Arms
+(Source: ABCA, USA Baseball, coaching consensus — Tier 3)
+
+**Pitcher Tells (Reading a RHP from 1st base):**
+
+| Tell | What It Means | Runner Action |
+|------|--------------|---------------|
+| Pitcher's front heel rises | Going home — beginning delivery | Go on first move |
+| Pitcher's front shoulder turns toward 1B | Pickoff throw coming | Get back immediately |
+| Pitcher's eyes go to plate without a look | Committed home | Take aggressive secondary lead |
+| Pitcher lifts front leg high and slowly | Slow delivery — ideal steal opportunity | Time his delivery, go if window is open |
+| Pitcher quick-pitches (no pause) | Fast delivery — window may be closed | Read pop time before committing |
+
+**Pitcher Tells (Reading a LHP from 1st base):**
+
+| Tell | What It Means | Runner Action |
+|------|--------------|---------------|
+| LHP's front knee breaks toward the plate | Going home | Go on the knee break |
+| LHP's front shoulder stays closed (facing 3B) | May be throwing to 1B | Do not leave until knee breaks |
+| LHP's step goes toward home (45°+ toward plate) | Legal delivery to plate | Go on the step |
+| LHP's step goes toward 1B (toward foul line) | Pickoff throw — legal for LHP | Get back immediately |
+
+Note: LHP pickoffs to 1B are LEGAL without a step requirement (unlike RHP). Runners must read the knee and step direction — this is the hardest read in baserunning.
+
+**Catcher Release Reads (Stealing 2nd):**
+
+| Catcher Tell | What It Means | Runner Action |
+|-------------|--------------|---------------|
+| Catcher set up far outside | May signal pitchout on steal count | Abort or proceed cautiously |
+| Catcher's transfer is slow | Pop time will be average or slower | Go aggressively |
+| Catcher steps up out of crouch early | Pitchout coming | Abort — do not go |
+| Catcher's arm angle is high (over the top) | Strong accurate throw — tough steal | Need elite jump |
+| Catcher's arm angle is sidearm | Less accurate, bounce risk | Advantage to runner |
+
+**Outfield Arm Awareness (Advancing on Base Hits):**
+
+| Arm Rating | How to Identify | Runner Decision |
+|------------|----------------|-----------------|
+| Elite arm (RF/CF) | Threw out a runner, hits cutoff consistently | Do NOT take extra base without clear advantage |
+| Average arm | Hits cutoff most of the time | Standard aggressive reads |
+| Weak arm | Ball dies to warning track or misses cutoff | Take every extra base aggressively |
+| Charging slowly | OF not hustling to the ball | Take the extra base — clock advantage |
+
+**Never-Do Rules:**
+- Never try to steal on a LHP without reading his knee first
+- Never advance on a ball hit to RF with runner on 1st without knowing the RF's arm
+- Never leave early on a tag-up because you read the fielder wrong — watch the glove, not the ball's arc
+
+---
+
+### 3.30 Lead Mechanics — Primary Lead, Secondary Lead, Walking Lead
+(Source: ABCA, USA Baseball, coaching consensus — Tier 3)
+
+**Primary Lead (MLB and leagues where leads are legal):**
+
+| Base | Distance | Key Rule |
+|------|----------|----------|
+| 1st vs RHP | ~3 shuffle steps (~12-14 feet) | Never extend past where you can safely dive back |
+| 1st vs LHP | ~2-2.5 shuffle steps (~10-12 feet) | Shorter — LHP pickoff to 1B is always legal |
+| 2nd | ~4 shuffle steps (~14-16 feet) | Read the SS and 2B — if either breaks, get back |
+| 3rd | 3-4 steps in foul territory | Stay in foul territory — fair ball hits you = out |
+
+**Secondary Lead:**
+- Take 2 walking steps toward the next base as the pitch crosses home plate
+- Purpose: advances position for wild pitches, passed balls, and advancing on base hits
+- Stop and read on contact — do not auto-run
+- Never take secondary lead before the pitch crosses home plate (in leagues where leads are legal)
+
+**No-Lead Leagues (Little League, some youth divisions):**
+- No primary lead is permitted until the pitch crosses home plate
+- All baserunning reads shift to secondary lead reads
+- Steal attempts are only viable on passed balls and wild pitches
+- First-and-third defense is simplified — no runner can break pre-pitch
+
+**Walking Lead (Advanced):**
+- Used by experienced runners at 1st to build momentum without drawing a pickoff
+- Begin slow walking movement as pitcher commits to the plate
+- Converts to a sprint the instant ball crosses the plate
+- Risk: if pitcher steps off rubber, runner is caught in motion — must dive back
+
+**Never-Do Rules:**
+- Never stand flat-footed in your primary lead — always balanced on the balls of your feet, ready to go either direction
+- Never take a secondary lead before the pitch reaches home plate
+- Never take your primary lead on 3rd in fair territory — a batted ball hits you = out
+
+---
+
+### 3.31 At-Bat Adjustment Framework — Reading What the Batter Shows
+(Source: Coaching consensus, ABCA, pitching coaching manuals — Tier 3)
+
+**The Core Principle:**
+Every batter tells you something in the first 1-2 pitches of an at-bat. A pitcher who ignores that information is working blind. A pitcher who reads it gains a decisive advantage.
+
+**What to Read:**
+
+| Batter Behavior | What It Tells You | Adjustment |
+|----------------|------------------|-----------|
+| Swings at first pitch | Aggressive, free swinger | Get ahead early, expand zone with offspeed |
+| Takes borderline first pitch for ball | Patient, waiting for his pitch | Pound the strike zone early |
+| Foul tip on fastball | Can handle velocity | Mix offspeed, use eye level change |
+| Big swing and miss on breaking ball | Breaking-ball weakness | Set it up again later in at-bat |
+| Check swing on offspeed | Fooled but adjusted — won't be fooled twice | Change sequence; go back with heater |
+| Late on fastball | Slow bat speed | Go up in the zone with heat |
+| Pulls off outside pitch | Opening hips early | Work away, stay off inner half |
+| Jams himself on inside pitch | Has trouble turning on it | Come inside again — don't abandon it |
+
+**The Two-Strike Adjustment:**
+Once you have two strikes, use your BEST put-away pitch (per rv/100: sweeper > slider > changeup > splitter > cutter) — not the pitch they've been failing at all at-bat. By two strikes the batter has seen your game plan. Unpredictability beats repetition.
+
+**The 3-Pitch At-Bat Sequence Principle:**
+- Pitch 1: Establish with your best pitch (usually four-seam/cutter)
+- Pitch 2: Set up the put-away (eye level change or speed differential)
+- Pitch 3: Execute the put-away using what the batter just showed you
+
+**Never-Do Rules:**
+- Never throw the same pitch in the same location three consecutive times
+- Never ignore what a batter just showed you on the previous pitch
+- Never abandon a good pitch just because the batter fouled it off — it fooled him; throw it again with a different location
+
+---
+
+### 3.32 Youth League Rule Variations
+(Source: Little League Official Rules, USA Baseball Youth Development, NFHS — Tier 1 for their respective leagues)
+
+**Why This Section Exists:**
+Most players aged 6-14 play under rules significantly different from MLB. Teaching MLB rules as universal truth creates confusion. All scenarios involving leads, stolen bases, and dropped third strikes must account for which ruleset applies.
+
+**Key Variations by League Type:**
+
+| Rule | MLB | Little League (Majors, 10-12) | Cal Ripken / Babe Ruth | High School (NFHS) |
+|------|-----|-------------------------------|------------------------|---------------------|
+| Leads off base | Legal | ILLEGAL — runner returns after pitch | ILLEGAL until ball crosses home plate | Legal |
+| Dropped 3rd strike | Legal — runner must run | Does not apply in most divisions | Varies by local rule | Legal (same as MLB) |
+| Infield fly rule | Applies | Applies at Majors level (10-12) | Applies | Applies |
+| Pitch count limits | None (innings-based) | 85 pitches max/day (ages 11-12) | Varies by association | NFHS: no limit but rest rules apply |
+| Courtesy runner | Not used | Used for catcher (optional) | Varies | Used for catcher (NFHS Rule 3-1-4) |
+| Run rule (mercy) | None | 10 runs after 4 innings | Varies | 10 runs after 5 innings (NFHS) |
+
+**No-Lead Rule Strategic Impact:**
+In leagues where leads are prohibited:
+- Steals are attempted on passed balls and wild pitches only
+- Pitchouts have reduced value (no steal to prevent)
+- First-and-third defense changes — no runner can break early
+- Secondary leads are still taken AFTER the pitch crosses home plate
+
+**Pitch Count Teaching Principle:**
+Youth pitch count limits (e.g., 85/day for ages 11-12 in Little League) should be taught as protective, not strategic. Scenarios about pitcher fatigue should clarify: "In your league, your coach tracks your pitch count — this protects your arm. At the MLB level, the limit is performance-based."
+
+**Scenario Qualifier Convention:**
+Scenarios that involve stolen bases, leads, or dropped third strikes should note when rules differ in youth leagues. For ages 6-12, include the qualifier: "Note: In many youth leagues, runners cannot lead off until the pitch crosses home plate."
+
+---
+
+### 3.33 Catcher Game-Calling — Designing the At-Bat
+(Source: ABCA, USA Baseball, professional catching instruction — Tier 3)
+
+**The At-Bat as a 3-Act Structure:**
+A catcher doesn't just call pitches — they script an at-bat in real-time. Every pitch either sets up the next pitch or executes the put-away.
+
+**Act 1 — Establish (Pitches 1-2):**
+- Establish your pitcher's best pitch. If it's a four-seam fastball, start there.
+- Get a called strike or a swing-and-miss. This puts you in control.
+- Read the batter: Is he aggressive? Patient? Does he chase? Does he cheat on velocity?
+
+**Act 2 — Set Up (Pitch 2-3):**
+- Create the contrast. If Act 1 was up-in-the-zone fastball, Act 2 is breaking ball down.
+- You're not trying to get him out yet — you're making the next pitch more valuable.
+- The eye-level change (6+ inches vertical) makes the put-away pitch 8.5% harder to hit (per Statcast).
+
+**Act 3 — Execute (Final Pitch):**
+- Call your best put-away pitch (per rv/100: sweeper > slider > changeup > splitter > cutter).
+- Use what the batter showed you. If he's been late on fastballs, go heater up. If he's been fooled by breaking balls, go there.
+- With 2 strikes: expand the zone slightly — pitch to the edge, not the heart.
+
+**Sequence Principles:**
+
+| Batter Type | Act 1 | Act 2 | Act 3 |
+|------------|-------|-------|-------|
+| Free swinger | Fastball edge of zone | Offspeed chase | Best put-away |
+| Patient hitter | Strike early (any) | Eye-level change | Zone-edge put-away |
+| Pull hitter | Inside fastball | Change eye level | Away — expand zone |
+| Opposite-field hitter | Away fastball | Up/in | Down/away breaking ball |
+| Dead-pull power hitter | Inside heat (test) | Slow breaking ball | Offspeed chase |
+
+**Sign Security:**
+- Runner on 2nd? Switch to indicator system immediately — every at-bat automatically, not just when you notice he's reading.
+- Standard indicator: "Third sign is live" or "After my thumb, count one more."
+- Never give two straight pitches of the same type in the same location when a runner is on 2nd.
+
+**Never-Do Rules:**
+- Never call the same pitch in the same spot twice in a row to a patient hitter
+- Never forget to switch sign systems with a runner on 2nd — this is automatic
+- Never call for a ball in the dirt on 3-2 with first base occupied and less than 2 outs
+
+---
+
+### 3.34 Pre-Pitch Positioning System — Full Field Adjustments
+(Source: ABCA, Statcast OAA data, coaching consensus — Tier 2/3)
+
+**Why This Section Exists:**
+Elite defenses adjust every fielder before every pitch based on the batter, count, pitch being called, and game situation. These micro-adjustments account for a significant share of Outs Above Average (OAA) differential between good and poor defenses.
+
+**Infield Depth Decision Tree:**
+
+| Base State | Outs | Adjustment |
+|-----------|------|-----------|
+| Runner on 1st | 0-1 | DP depth (3-4 steps toward 2B, 1 step in) |
+| Runner on 1st | 2 | Normal depth — can't turn two |
+| Runner on 3rd | 0-1, late/close game | Infield in — can throw home on grounder |
+| Runner on 3rd | 0-1, early/big lead | Normal depth — don't sacrifice range |
+| Runner on 3rd | 2 | Normal depth — infield in with 2 outs is wrong |
+| Bases loaded | 0-1 | DP depth OR infield in depending on score/inning |
+| No runners | Any | Normal depth — maximize range |
+
+**Count-Based Shading (Infield):**
+
+| Count | Infield Adjustment | Why |
+|-------|-------------------|-----|
+| 0-2, 1-2 | Shade 1 step toward pull side | Batter is defensive — likely to pull |
+| 3-1, 2-0 | Shade 1 step toward pull side | Hitter's counts produce pull-side contact |
+| 3-2 | Return to normal | Full count = varied outcomes |
+
+**Count-Based Shading (Outfield):**
+
+| Count | Outfield Adjustment | Why |
+|-------|-------------------|-----|
+| 0-2, 1-2 | Step in 5-8 feet | Pitcher going for K or weak contact |
+| 2-0, 3-1 | Step back 10-15 feet | Hitter sitting on his pitch — ball travels |
+| Two strikes on pull hitter | Shade toward pull line | Defensive swing = pull side contact |
+
+**Pitch-Type Shading (Advanced — Diff 3):**
+
+| Pitch Called | Infield Shading | Outfield Shading |
+|-------------|----------------|-----------------|
+| Fastball up in zone | Pull side | Pull side, step back slightly |
+| Offspeed down in zone | Shade toward pull (weak contact) | Step in — fly ball will be softer |
+| Breaking ball away | Opposite-field | Opposite-field OF moves slightly |
+| Sinker/two-seam | Shift toward pull-side ground ball | Stay normal |
+
+**Late-Game Line Guarding:**
+
+| Situation | 3B Adjustment | 1B Adjustment |
+|-----------|--------------|---------------|
+| Leading by 1-2 runs, inning 7+ | Guard the line | Guard the line |
+| Tied, inning 7+ | Guard the line | Guard the line |
+| Leading by 3+, inning 7+ | Normal depth | Normal depth |
+| Down by 2+, inning 7+ | Normal depth | Normal depth |
+
+Line guarding costs approximately 8% more singles through the open hole but prevents 0.4 extra-base hits per game down the line. Justified only when a double ends the game.
+
+**Never-Do Rules:**
+- Never DP depth with 2 outs
+- Never infield in with 2 outs
+- Never guard the line when trailing by 2+ runs late
+- Never shade the outfield in on a hitter's count (2-0, 3-1) against a power hitter
+
+---
+
+### 3.35 Catcher Framing (Source: Baseball Savant Statcast, ABCA)
 
 **The Principle:**
 Framing is the art of receiving and presenting borderline pitches to maximize called strikes without obvious glove movement that draws umpire attention.
@@ -1103,7 +1361,7 @@ The AI generation prompt in `index.jsx` (`generateAIScenario()`) includes these 
 
 1. **Position Principles Block**: Full principles from `POS_PRINCIPLES` constant, injected per-position.
 2. **Cutoff/Relay Map**: `CUTOFF_RELAY_MAP` constant — always injected for all positions.
-3. **Conditional Knowledge Maps**: 17 maps injected only when relevant to the current position via `getRelevantMaps(position)` (plus 2 always-injected maps = 19 total):
+3. **Conditional Knowledge Maps**: 19 maps injected only when relevant to the current position via `getRelevantMaps(position)` (plus 2 always-injected maps = 21 total):
    - `BUNT_DEFENSE_MAP` — P, C, 1B, 2B, SS, 3B, MGR
    - `FIRST_THIRD_MAP` — P, C, 1B, 2B, SS, 3B, MGR
    - `BACKUP_MAP` — All 9 defensive + MGR
@@ -1122,10 +1380,12 @@ The AI generation prompt in `index.jsx` (`generateAIScenario()`) includes these 
    - `PITCHING_CHANGE_MAP` — P, C, MGR
    - `INTENTIONAL_WALK_MAP` — P, C, BAT, BR, MGR
    - `LEGAL_SHIFT_MAP` — 1B, 2B, SS, 3B, BAT, BR, MGR
+   - `BASERUNNER_READS_MAP` — BR, P, C, MGR
+   - `PRE_PITCH_POSITIONING_MAP` — 1B, 2B, SS, 3B, LF, CF, RF, MGR
 4. **Data Reference Block**: Key RE24 data, count averages, stolen base break-even, fly ball priority hierarchy, relay default, force/tag rules.
 5. **Self-Audit Block**: 9 base checks + conditional per-position checks via `getRelevantAudits(position)`.
 
-**Architecture**: `MAP_RELEVANCE` maps each of the 19 knowledge maps to its relevant positions. `getRelevantMaps()` filters and concatenates only the maps needed. `getRelevantAudits()` generates numbered audit items (starting at 10) for the injected maps. This keeps the prompt focused — a batter gets hit-and-run but not bunt defense; a manager gets everything.
+**Architecture**: `MAP_RELEVANCE` maps each of the 21 knowledge maps to its relevant positions. `getRelevantMaps()` filters and concatenates only the maps needed. `getRelevantAudits()` generates numbered audit items (starting at 10) for the injected maps. This keeps the prompt focused — a batter gets hit-and-run but not bunt defense; a manager gets everything.
 
 **Role Violations**: Client-side regex in `ROLE_VIOLATIONS` rejects AI scenarios with obviously wrong assignments (pitcher as cutoff, SS covering 1st on bunts, etc.) as a last-resort safety net.
 
