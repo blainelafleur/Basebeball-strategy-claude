@@ -2064,6 +2064,18 @@ const SCENARIOS = {
       options:["Yes — respect the stop sign. Scoring from third on a close play with 1 out risks making the 3rd out at home","No — ignore it and go. You score more often than you're thrown out","Go only if you get a good jump off the pitch","Depends on how fast you are — elite runners should always go"],
       best:0,explanations:["Correct. This is the 3rd out rule: with less than 2 outs, never make the 3rd out at home on a close play. Your coach sees the LF fielded cleanly with momentum toward home — that's a strong, accurate throw coming. If you're thrown out, the inning ends with the tying run stranded. Instead, you're now on third with 1 out and the tying run still alive. That's a much better position than making the 3rd out.","The problem isn't your odds of scoring — it's what happens if you're out. Being thrown out at home with 1 out ENDS the inning. You kill the rally for every batter behind you. The RE24 cost of making the 3rd out at home with 1 out is catastrophic compared to standing on third and letting the next batter drive you in.","Your jump is irrelevant when the coach has a stop sign up. The coach sees the whole play — the fielder's angle, the arm, the throw trajectory. You can't see what he sees from third base. Trust the stop sign.","Speed is a factor in close plays, but the 3rd out rule applies to all runners. Even elite runners get thrown out on strong throws from a cleanly-fielded ball. The expected value of stopping is higher than the expected value of risking the inning-ending out."],
       rates:[68,14,10,8],concept:"With less than 2 outs, never make the 3rd out at home on a close play — being out at home kills the inning and all runners behind you",anim:"freeze"},
+    {id:"r63",title:"Should I Try to Steal?",diff:1,cat:"baserunning",conceptTag:"steal-breakeven",ageMin:8,ageMax:11,
+      description:"You're on first base. The pitcher is in the stretch. The catcher hasn't thrown anyone out all game — his throws keep bouncing in the dirt. Your coach gives you the steal sign. The pitcher starts his motion. What do you do?",
+      situation:{inning:"Bot 3",outs:1,count:"1-1",runners:[1],score:[2,2]},
+      options:["Go! The catcher can't throw — this is a great time to steal","Wait for a passed ball or wild pitch instead","Stay on first — stealing is too risky","Take a big lead but don't go"],
+      best:0,explanations:["Go! At your level, catchers rarely throw out runners. If the catcher has been bouncing throws all game, your chance of being safe is very high — way above the 50% you need for a steal to be worth it. When your coach gives the steal sign and the catcher is struggling, this is the easiest steal you'll get all season. Note: In many youth leagues, you cannot leave the base until the pitch crosses home plate.","Waiting for a passed ball is safe, but you're wasting an opportunity. Your coach gave you the sign because he sees the catcher struggling. Trust your coach and go on the pitch.","Stealing is NOT too risky here — the catcher can't throw! At your level, you only need to be safe about half the time for a steal to help your team. With a catcher who's bouncing throws, you'll be safe way more than that.","A big lead without going wastes the opportunity. Your coach gave you the green light. If you don't go, you're ignoring the sign and missing a chance to get into scoring position."],
+      rates:[85,35,15,25],concept:"At the youth level, steal when the catcher is struggling to throw — you only need about a 50% success rate for stealing to help your team",anim:"steal"},
+    {id:"r64",title:"Is This Steal Worth It? High School Math",diff:3,cat:"baserunning",conceptTag:"steal-breakeven",ageMin:14,ageMax:18,
+      description:"You're on first base, 1 out, down 3-2 in the top of the 7th (last inning). The catcher has a 2.0 pop time and has thrown out 2 of 5 runners today (60% caught stealing rate). The pitcher's average delivery time is 1.4 seconds. Your personal stolen base rate this season is 70% (14 for 20). Should you attempt the steal?",
+      situation:{inning:"Top 7",outs:1,count:"1-0",runners:[1],score:[2,3]},
+      options:["Don't steal — your 70% rate is above break-even but this catcher is too good","Steal — your 70% rate is above the 65% high school break-even","Steal only on the next pitch if it's a breaking ball","Wait for a 2-strike count when the catcher has to focus on framing"],
+      best:0,explanations:["Your season rate is 70%, but that's against ALL catchers. This catcher has a 2.0 pop time (elite) and has thrown out 60% of runners today. Against THIS catcher, your expected success rate drops well below 65%. The combined delivery+pop time is 1.4+2.0=3.4 seconds — that's right at the margin where steals become very difficult. The break-even at the high school level is 65%, and your adjusted rate against this arm is likely below that. Don't run into an out in the 7th when you're down by 1.","Your 70% season rate is above the 65% high school break-even — but break-even is the MINIMUM, not the target. Against a catcher throwing out 60% of runners with a 2.0 pop time, your actual success probability drops significantly. The math says hold.","Breaking balls give you slightly more time, but the 0.1-0.2 second advantage doesn't overcome a 2.0 pop time catcher. You'd need the delivery+pop total above 3.4 seconds to be comfortable, and even with a curve you're at about 3.5 — barely marginal.","A 2-strike count doesn't help your steal. The catcher still receives and throws the same way. Framing matters for borderline pitches, but it doesn't slow down his pop time or transfer."],
+      rates:[82,30,25,20],concept:"Break-even is the MINIMUM, not the target — adjust your steal decision for the specific catcher's arm, not just your season average",anim:"steal"},
   ],
   manager: [
     {id:"m1",title:"Intentional Walk",diff:2,cat:"late-game",conceptTag:"force-vs-tag",
@@ -2453,6 +2465,12 @@ const SCENARIOS = {
       options:["Play 1-2 steps deeper — ground balls travel faster on turf","Play normal depth — your fielders know how to play","Play shallower — you want to cut off the runner at 2nd","Shift the infield to the pull side instead of adjusting depth"],
       best:0,explanations:["On artificial turf, ground balls travel 15-20% faster than on grass. Your infielders need 1-2 extra steps of depth to compensate — this gives them the same reaction time they'd have on grass at normal depth. With a ground ball hitter up, this adjustment is critical. The faster surface also means you might still get the DP even from the deeper position.","Normal depth on turf means your fielders are effectively too shallow. A sharp grounder that's routine on grass can handcuff an infielder on turf because the ball gets there faster. The surface changes the game — you must adjust.","Playing shallower on turf is dangerous. The ball is already coming at your fielders faster. Shallower means even less reaction time. You'll get eaten up by hard grounders through the infield.","A pull-side shift might be appropriate for some hitters, but it doesn't address the core issue — turf speed. You need depth adjustment FIRST, then consider lateral positioning. Address the surface before the scouting report."],
       rates:[85,25,15,40],concept:"On artificial turf, ground balls travel 15-20% faster — infielders must play 1-2 steps deeper to compensate for the reduced reaction time",anim:"groundout"},
+    {id:"m63",title:"Bunt or Swing? Middle School Level",diff:2,cat:"game-management",conceptTag:"bunt-re24",ageMin:11,ageMax:14,
+      description:"You're the manager of a middle school travel team. Bot 5th, runner on 2nd, no outs, tie game. Your #8 hitter is up — he's batting .180 this season and strikes out a lot, but he's made contact on bunts in practice. The opposing third baseman is playing deep. The on-deck batter (#9) is your weakest hitter (.150). What's your call?",
+      situation:{inning:"Bot 5",outs:0,count:"0-0",runners:[2],score:[3,3]},
+      options:["Bunt — move the runner to 3rd with less than 2 outs","Swing away — bunting always costs runs","Hit and run — make the defense react","Squeeze play — score the run now"],
+      best:0,explanations:["At the middle school level, sacrifice bunts are much more valuable than in MLB. Your hitter is batting .180 and strikes out often — a failed at-bat is likely. But he can bunt in practice, and the 3B is playing deep (slow charge). A successful bunt moves the runner to 3rd with 1 out. At this level, fielders make more errors on bunt plays, so there's even a chance of reaching base. The key difference from MLB: middle school fielders are less reliable, so bunts succeed more often and cost less in run expectancy.","'Bunting always costs runs' is an MLB rule, not a youth rule. At the middle school level, batters strike out more and make less consistent contact. A .180 hitter who strikes out a lot has a lower expected run value swinging than bunting. The break-even math changes when the skill level changes.","Hit and run with a .180 hitter is high-risk. If he misses the sign or strikes out, the runner is hung out at 2nd with nowhere to go. Hit and run requires a hitter who can reliably make contact.","A squeeze with runner on 2nd is extremely risky. The runner has 90 feet to cover, and even a mediocre bunt may not get down fast enough. Squeeze play is for runner on 3rd only."],
+      rates:[82,25,15,10],concept:"At the middle school level, sacrifice bunts are more valuable than in MLB — weaker fielding makes bunts succeed more often and the RE cost is lower",anim:"bunt"},
   ],
   catcher: [
     {id:"ct1",title:"Pitch Calling — Full Count",diff:2,cat:"pitch-calling",
@@ -3399,6 +3417,16 @@ SURFACE — TURF: Grounders travel 15-20% faster than grass. Infield plays 1-2 s
 TEMPERATURE — COLD (<50F): Ball carries ~6% less. OF can shade slightly shallower. Breaking ball grip is harder — pitcher may go more fastball-heavy. TEMPERATURE — HEAT (>85F): Ball carries slightly farther. Pitcher fatigue accelerates — pitch count thresholds matter earlier. ALTITUDE (Coors/Denver): Ball carries ~10% farther. Breaking balls lose ~15% movement (thinner air = less spin drag). OF plays 10-15 feet deeper. Pitcher relies on fastball command over breaking ball movement. HUMIDITY: NO meaningful effect on ball flight — common myth, do not adjust.
 SUN DIRECTLY IN FLIGHT PATH: Glove shield PRIMARY, sunglasses supplementary. Eyes always on the ball. NEVER look directly at the sun. SUN BEHIND FIELDER: Step to the side before the pitch so sun is not in the tracking path. PRE-GAME: Identify sun field position before the game. Communicate to teammates.
 QUICK CHECKLIST (pre-game): (1) Wind speed/direction, (2) Surface type, (3) Temperature, (4) Sun field position, (5) Park factor category. Communicate to team before first pitch.`,
+  LEVEL_ADJUSTMENTS_MAP: `LEVEL & AGE ADJUSTMENTS (non-negotiable for scenario generation):
+CRITICAL RULE: Every scenario must be appropriate for the player's level. MLB-optimal strategy is NOT always youth-optimal. Strategy thresholds shift with the skill level of the players involved.
+LEVEL 1 — T-BALL / COACH PITCH (ages 5-8): No stealing. No leads. Focus: contact, running, basic fielding. Scenarios: simple cause-effect only. Never use stats or advanced terms.
+LEVEL 2 — KID PITCH (ages 8-11): Steal break-even ~50% — catchers rarely throw out runners, stealing is almost always correct. No-lead rule applies in most leagues — steals happen on passed balls and wild pitches only. Bunt effectiveness: very high — fielders can't reliably handle bunts. Any steal scenario must include: "Note: In many youth leagues, you cannot leave the base until the pitch crosses home plate."
+LEVEL 3 — TRAVEL / MIDDLE SCHOOL (ages 11-14): Steal break-even ~60% — lower than MLB because catchers still developing. Bunt can be RE-positive at this level — fielders less reliable at charging and throwing. Leads typically legal in travel ball. Introduce RE24 conceptually.
+LEVEL 4 — HIGH SCHOOL NFHS (ages 14-18): Steal break-even ~65% — between youth and MLB. Bunt closer to MLB RE24 cost but margin is smaller. Full strategy vocabulary appropriate.
+LEVEL 5 — MLB / ADVANCED: Steal break-even 72% (post-pitch-clock standard). Bunt almost always costs RE. Full analytical vocabulary. All BRAIN.stats thresholds apply directly.
+VOCABULARY BY AGE: Ages 6-8: plain English only, no stats. Ages 9-11: batting average and stolen base % OK. Ages 12-14: introduce RE24 by name with explanation. Ages 15-18: full statistical vocabulary. Never use RE24/wOBA/LI/FIP with younger players without explanation.
+STEAL BREAK-EVEN QUICK REFERENCE: T-ball: N/A. Youth (8-11): 50%. Travel/Middle (11-14): 60%. High school (14-18): 65%. MLB: 72%.
+BUNT QUICK REFERENCE: T-ball/Youth: very high value. Middle school: high value. High school: moderate. MLB: usually costs RE.`,
   POPUP_PRIORITY_MAP: `POP-UP PRIORITY & MECHANICS (non-negotiable):
 INFIELD POP-UPS (fair territory):
   SS and 2B have priority over 1B and 3B on pop-ups between them.
@@ -3610,6 +3638,7 @@ const MAP_RELEVANCE = {
   LEGAL_SHIFT_MAP:                ['firstBase','secondBase','shortstop','thirdBase','batter','baserunner','manager'],
   BASERUNNER_READS_MAP:           ['baserunner','pitcher','catcher','manager'],
   PARK_ENVIRONMENT_MAP:           ['pitcher','catcher','leftField','centerField','rightField','firstBase','secondBase','shortstop','thirdBase','batter','manager'],
+  LEVEL_ADJUSTMENTS_MAP:          ['pitcher','catcher','firstBase','secondBase','shortstop','thirdBase','leftField','centerField','rightField','batter','baserunner','manager'],
 };
 const MAP_AUDIT = {
   CUTOFF_RELAY_MAP:     "CUTOFF/RELAY: Assignments correct per map? 3B cuts LF→Home, 1B cuts CF/RF→Home. SS relays left side, 2B relays right side. Pitcher backs up target base, never cuts. Trail man in position.",
@@ -3635,6 +3664,7 @@ const MAP_AUDIT = {
   LEGAL_SHIFT_MAP:               "SHIFT: 2023+ requires 2 infielders each side of 2B at pitch. 3 infielders one side = illegal. Outfield shifts still legal. Infield in still legal. Deep positioning legal.",
   BASERUNNER_READS_MAP:          "BASERUNNER READS: Pickoff tells correct (RHP=front heel, LHP=front knee)? Double steal read = catcher commitment, not R1 break. First-to-third reads correct? 3rd out rule applied? Never make 3rd out at home with <2 outs.",
   PARK_ENVIRONMENT_MAP:          "ENVIRONMENT: Does this scenario take place in a notable park or condition (wind, turf, cold, altitude)? If yes — are positioning and strategy adjustments applied? These are Tier 4 modifiers ONLY — never let them override a Tier 1 rule answer.",
+  LEVEL_ADJUSTMENTS_MAP:         "LEVEL/AGE: Is the scenario appropriate for the player's level? Steal break-even, bunt value, and vocabulary must match the age/level context. Youth leagues may have no-lead rules. Never use advanced stats with young players without explanation.",
 };
 function getRelevantMaps(position) {
   return Object.entries(MAP_RELEVANCE)
@@ -3737,6 +3767,33 @@ const BRAIN = { stats: {
         standard: { carryBonus: 0, breakingBallPenalty: 0 },
       },
       humidityEffect: false,
+    },
+  },
+  levelAdjustments: {
+    levels: {
+      tball:       { label:"T-Ball / Coach Pitch",      ageRange:[5,8],   stealBreakEven:null, leadsAllowed:false, maxDifficulty:1, vocabularyTier:1 },
+      youthPitch:  { label:"Kid Pitch / Machine Pitch", ageRange:[8,11],  stealBreakEven:0.50, leadsAllowed:false, maxDifficulty:2, vocabularyTier:2,
+                     stealNote:"In most youth leagues, runners cannot lead off. Steals occur on passed balls and wild pitches only.",
+                     conceptsAllowed:["force-vs-tag","fly-ball-priority","backup-duties","tag-up","wild-pitch-coverage","cutoff-roles","secondary-lead","infield-fly","dropped-third-strike","of-communication"] },
+      travelMiddle:{ label:"Travel Ball / Middle School",ageRange:[11,14], stealBreakEven:0.60, leadsAllowed:true,  maxDifficulty:3, vocabularyTier:3,
+                     buntNote:"At this level, sacrifice bunts can be RE-positive because fielders are less reliable at charging and throwing — unlike MLB where bunts almost always cost RE." },
+      highSchool:  { label:"High School (NFHS)",         ageRange:[14,18], stealBreakEven:0.65, leadsAllowed:true,  maxDifficulty:3, vocabularyTier:4,
+                     buntNote:"High school bunt RE is slightly better than MLB — fielding is less reliable. Still costs RE in most situations but the margin is smaller." },
+      mlb:         { label:"MLB / Advanced",             ageRange:[16,99], stealBreakEven:0.72, leadsAllowed:true,  maxDifficulty:3, vocabularyTier:5 },
+    },
+    vocabularyTiers: {
+      1: { label:"Plain English",    avoidTerms:["RE24","wOBA","leverage","platoon","FIP","OPS","Statcast","run expectancy"] },
+      2: { label:"Simple Stats",     avoidTerms:["RE24","wOBA","leverage index","FIP","Statcast","OPS"] },
+      3: { label:"Intro Analytics",  avoidTerms:["wOBA","FIP","Statcast","xFIP","spin rate"] },
+      4: { label:"Full Stats",       avoidTerms:["wOBA","FIP","xFIP","spin rate","arm angle"] },
+      5: { label:"Full Analytics",   avoidTerms:[] },
+    },
+    conceptLevelMap: {
+      "force-vs-tag":"tball","fly-ball-priority":"tball","backup-duties":"tball",
+      "tag-up":"youthPitch","cutoff-roles":"youthPitch","secondary-lead":"youthPitch",
+      "steal-breakeven":"travelMiddle","bunt-re24":"travelMiddle","count-leverage":"travelMiddle","pickoff-mechanics":"travelMiddle",
+      "platoon-advantage":"highSchool","times-through-order":"highSchool","pitch-sequencing":"highSchool","win-probability":"highSchool",
+      "leverage-index":"mlb","pitch-tunneling":"mlb","woba-by-count":"mlb",
     },
   },
   platoonEdge: 18,          // ~18 BA points for opposite-hand matchup
@@ -4044,6 +4101,27 @@ function getMatchupData(pitcherHand, batterHand, tto, pitchCount) {
       : `Matchup is manageable — .${Math.round(compound.ba * 1000)} projected BA`
   };
 }
+function getLevelContext(age) {
+  const la = BRAIN.stats.levelAdjustments;
+  let level;
+  if (age <= 8)       level = la.levels.tball;
+  else if (age <= 11) level = la.levels.youthPitch;
+  else if (age <= 14) level = la.levels.travelMiddle;
+  else if (age <= 18) level = la.levels.highSchool;
+  else                level = la.levels.mlb;
+  const vocabTier = la.vocabularyTiers[level.vocabularyTier];
+  return {
+    level,
+    vocabTier,
+    stealBreakEven: level.stealBreakEven,
+    maxDiff: level.maxDifficulty,
+    leadsAllowed: level.leadsAllowed,
+    buntNote: level.buntNote || null,
+    stealNote: level.stealNote || null,
+    summary: `Level: ${level.label}. Steal break-even: ${level.stealBreakEven !== null ? Math.round(level.stealBreakEven*100)+'%' : 'N/A'}. Vocab: ${vocabTier.label}. Max difficulty: ${level.maxDifficulty}.`,
+    youthQualifier: !level.leadsAllowed ? "Note: In many youth leagues, runners cannot lead off until the pitch crosses home plate." : null,
+  };
+}
 function isConceptReady(tag, mastered, ageGroup) {
   const concept = BRAIN.concepts[tag];
   if (!concept) return {ready: true, missing: []};
@@ -4313,8 +4391,19 @@ function getSmartCoachLine(cat, situation, position, streak, isPro) {
   // Fall through to original getCoachLine logic
   return getCoachLine(cat, position, streak, isPro);
 }
-function formatBrainStats(position) {
+function formatBrainStats(position, age) {
   const lines = [];
+  // Level context injection
+  if (age) {
+    const levelCtx = getLevelContext(age);
+    lines.push("PLAYER LEVEL CONTEXT: " + levelCtx.summary);
+    if (levelCtx.youthQualifier) lines.push("YOUTH RULE NOTE: " + levelCtx.youthQualifier);
+    if (levelCtx.buntNote) lines.push("BUNT NOTE FOR THIS LEVEL: " + levelCtx.buntNote);
+    if (levelCtx.stealNote) lines.push("STEAL NOTE FOR THIS LEVEL: " + levelCtx.stealNote);
+    lines.push("VOCABULARY: Explain at \"" + levelCtx.vocabTier.label + "\" level. Avoid: " + (levelCtx.vocabTier.avoidTerms.join(', ') || 'none') + ".");
+    lines.push("STEAL BREAK-EVEN FOR THIS LEVEL: " + (levelCtx.stealBreakEven !== null ? Math.round(levelCtx.stealBreakEven*100)+'%' : 'N/A — not applicable') + ".");
+    lines.push("MAX SCENARIO DIFFICULTY: " + levelCtx.maxDiff + "/3.");
+  }
   // Everyone gets key RE24 states
   lines.push("RUN EXPECTANCY (RE24): ---/0out=0.54, 1--/0out=0.94, -2-/0out=1.17, 123/0out=2.29, ---/2out=0.11");
   // Everyone gets scoring probability
