@@ -7615,7 +7615,7 @@ export default function App(){
     const conceptTagForEffectiveness = findConceptTag(sc.concept);
     const isOpt=idx===sc.best;const rate=sc.rates[idx];const cat=isOpt?"success":rate>=55?"warning":"danger";
     // Sprint 4.2: Track scenario answer
-    trackAnalyticsEvent("scenario_answer",{pos:curPos,correct:isOpt,diff:sc.diff||1,concept:conceptTagForEffectiveness||"",isAI:!!sc.aiGenerated},{ageGroup:stats.ageGroup,isPro:stats.isPro});
+    trackAnalyticsEvent("scenario_answer",{pos:pos,correct:isOpt,diff:sc.diff||1,concept:conceptTagForEffectiveness||"",isAI:!!sc.aiGenerated},{ageGroup:stats.ageGroup,isPro:stats.isPro});
     let pts=isOpt?15:rate>=55?8:rate>=35?4:2;
     if(dailyMode)pts*=2; // 2x XP for Daily Diamond Play
     if(stats.isPro)pts*=2; // 2x XP for Pro
