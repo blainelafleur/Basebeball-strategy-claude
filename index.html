@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Baseball Strategy Master — Think Like a Pro</title>
+<meta name="description" content="The #1 baseball IQ training app for kids ages 6-18. 500+ real game scenarios, adaptive difficulty, and AI coaching. Free to play.">
+<meta property="og:title" content="Baseball Strategy Master">
+<meta property="og:description" content="Train your baseball brain with 500+ real game scenarios. Free for kids 6-18.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://bsm-app.pages.dev">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--green:#2d5016;--dark:#0f172a;--card:#1a1a2e;--gold:#f59e0b;--blue:#3b82f6;--red:#ef4444}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--dark);color:#e2e8f0;overflow-x:hidden}
+
+/* Hero */
+.hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 20px;background:linear-gradient(180deg,#0c1220 0%,#1a1a2e 40%,#0f172a 100%);position:relative;overflow:hidden}
+.hero::before{content:"";position:absolute;top:50%;left:50%;width:600px;height:600px;background:radial-gradient(circle,rgba(34,197,94,.06) 0%,transparent 70%);transform:translate(-50%,-50%);pointer-events:none}
+.logo{font-size:80px;margin-bottom:8px;filter:drop-shadow(0 4px 24px rgba(34,197,94,.3))}
+.title{font-family:"Bebas Neue",sans-serif;font-size:clamp(2.5rem,6vw,4.5rem);letter-spacing:3px;color:#fff;line-height:1.1;margin-bottom:8px}
+.title span{color:#22c55e}
+.subtitle{font-size:clamp(1rem,2.5vw,1.35rem);color:#94a3b8;max-width:520px;margin:0 auto 32px;line-height:1.5}
+.cta{display:inline-block;padding:18px 48px;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;font-family:"Bebas Neue",sans-serif;font-size:1.6rem;letter-spacing:2px;border-radius:14px;text-decoration:none;box-shadow:0 8px 32px rgba(34,197,94,.35);transition:transform .15s,box-shadow .15s}
+.cta:hover{transform:translateY(-2px);box-shadow:0 12px 40px rgba(34,197,94,.45)}
+.cta:active{transform:scale(.97)}
+.hero-note{margin-top:16px;font-size:.85rem;color:#64748b}
+
+/* Stats bar */
+.stats-bar{display:flex;justify-content:center;gap:clamp(24px,5vw,60px);padding:20px;margin:24px 0 0;flex-wrap:wrap}
+.stat{text-align:center}
+.stat-num{font-family:"Bebas Neue",sans-serif;font-size:clamp(2rem,4vw,3rem);color:#22c55e;letter-spacing:1px}
+.stat-label{font-size:.8rem;color:#64748b;margin-top:2px}
+
+/* Sections */
+section{padding:80px 20px}
+.section-inner{max-width:960px;margin:0 auto}
+.section-title{font-family:"Bebas Neue",sans-serif;font-size:clamp(1.8rem,3.5vw,2.5rem);color:#fff;text-align:center;margin-bottom:48px;letter-spacing:2px}
+
+/* How it works */
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:24px;margin-bottom:40px}
+.step{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:28px 20px;text-align:center;transition:border-color .2s}
+.step:hover{border-color:rgba(34,197,94,.3)}
+.step-num{font-family:"Bebas Neue",sans-serif;font-size:2.5rem;color:#22c55e;margin-bottom:4px}
+.step-title{font-size:1.05rem;font-weight:700;color:#fff;margin-bottom:8px}
+.step-desc{font-size:.9rem;color:#94a3b8;line-height:1.5}
+
+/* Features */
+.features{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px}
+.feature{background:linear-gradient(135deg,rgba(255,255,255,.03),rgba(255,255,255,.01));border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:24px;transition:border-color .2s}
+.feature:hover{border-color:rgba(34,197,94,.3)}
+.feature-icon{font-size:2rem;margin-bottom:10px}
+.feature-title{font-size:1.05rem;font-weight:700;color:#fff;margin-bottom:6px}
+.feature-desc{font-size:.88rem;color:#94a3b8;line-height:1.5}
+
+/* Positions */
+.positions{text-align:center;margin-top:20px}
+.pos-grid{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:12px}
+.pos-tag{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:6px 14px;font-size:.82rem;color:#cbd5e1}
+
+/* Pricing */
+.pricing{background:rgba(255,255,255,.02)}
+.price-cards{display:flex;justify-content:center;gap:24px;flex-wrap:wrap}
+.price-card{background:var(--card);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:32px 28px;width:280px;text-align:center}
+.price-card.pro{border-color:rgba(34,197,94,.4);box-shadow:0 4px 24px rgba(34,197,94,.1)}
+.price-label{font-family:"Bebas Neue",sans-serif;font-size:1.4rem;color:#22c55e;letter-spacing:2px;margin-bottom:8px}
+.price-amount{font-size:2.2rem;font-weight:800;color:#fff;margin-bottom:4px}
+.price-period{font-size:.85rem;color:#64748b;margin-bottom:16px}
+.price-features{list-style:none;text-align:left;margin-bottom:20px}
+.price-features li{font-size:.88rem;color:#94a3b8;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.price-features li::before{content:"✓ ";color:#22c55e;font-weight:700}
+.price-btn{display:inline-block;padding:12px 32px;border-radius:10px;text-decoration:none;font-weight:700;font-size:.95rem;transition:transform .15s}
+.price-btn.free{background:rgba(255,255,255,.08);color:#e2e8f0}
+.price-btn.paid{background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;box-shadow:0 4px 16px rgba(34,197,94,.3)}
+.price-btn:hover{transform:translateY(-1px)}
+
+/* Testimonial / quote */
+.quote-section{text-align:center;padding:60px 20px}
+.quote{font-size:clamp(1.1rem,2vw,1.4rem);color:#cbd5e1;font-style:italic;max-width:600px;margin:0 auto 12px;line-height:1.6}
+.quote-attr{font-size:.9rem;color:#64748b}
+
+/* Footer */
+footer{text-align:center;padding:40px 20px;border-top:1px solid rgba(255,255,255,.06)}
+footer a{color:#64748b;text-decoration:none;font-size:.85rem;margin:0 12px}
+footer a:hover{color:#94a3b8}
+footer p{color:#475569;font-size:.8rem;margin-top:12px}
+
+/* Mobile adjustments */
+@media(max-width:600px){
+  .hero{padding:60px 16px 40px}
+  .cta{padding:16px 36px;font-size:1.4rem}
+  section{padding:60px 16px}
+  .price-card{width:100%;max-width:320px}
+}
+</style>
+</head>
+<body>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="logo">⚾</div>
+  <h1 class="title">BASEBALL <span>STRATEGY</span> MASTER</h1>
+  <p class="subtitle">Train your baseball brain with 500+ real game scenarios. Pick your position, make the call, learn why it matters.</p>
+  <a href="/preview.html" class="cta">PLAY NOW — FREE</a>
+  <p class="hero-note">No account needed. Ages 6–18.</p>
+  <div class="stats-bar">
+    <div class="stat"><div class="stat-num">539+</div><div class="stat-label">Scenarios</div></div>
+    <div class="stat"><div class="stat-num">15</div><div class="stat-label">Positions</div></div>
+    <div class="stat"><div class="stat-num">5</div><div class="stat-label">Game Modes</div></div>
+    <div class="stat"><div class="stat-num">3</div><div class="stat-label">Difficulty Levels</div></div>
+  </div>
+</div>
+
+<!-- How It Works -->
+<section>
+  <div class="section-inner">
+    <h2 class="section-title">HOW IT WORKS</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-title">Pick Your Position</div>
+        <div class="step-desc">Pitcher, shortstop, center fielder, manager — every position has its own scenarios and strategy.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-title">Face a Real Situation</div>
+        <div class="step-desc">Runner on second, two outs, 3-2 count. The game is on the line. What's your move?</div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-title">Make the Call</div>
+        <div class="step-desc">Choose from 4 options. Each one gets a real-world success rate so you learn the odds.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-title">Learn Why</div>
+        <div class="step-desc">Instant color-coded feedback explains the strategy behind every choice — green, yellow, or red.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Features -->
+<section style="background:rgba(255,255,255,.01)">
+  <div class="section-inner">
+    <h2 class="section-title">WHAT MAKES IT DIFFERENT</h2>
+    <div class="features">
+      <div class="feature">
+        <div class="feature-icon">🧠</div>
+        <div class="feature-title">Adaptive Difficulty</div>
+        <div class="feature-desc">The app learns what you know and what you don't. Scenarios adjust to your skill level automatically.</div>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">📊</div>
+        <div class="feature-title">Real MLB Data</div>
+        <div class="feature-desc">Success rates, RE24 run expectancy, and count leverage data from real baseball — not made up numbers.</div>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">🤖</div>
+        <div class="feature-title">AI Coaching</div>
+        <div class="feature-desc">Pro players get personalized AI-generated scenarios that target their weak spots. Powered by xAI.</div>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">🏟️</div>
+        <div class="feature-title">Beautiful Field</div>
+        <div class="feature-desc">Animated SVG baseball diamond with 10 stadium themes — from sandlot to World Series.</div>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">🏆</div>
+        <div class="feature-title">Season Mode</div>
+        <div class="feature-desc">Progress from Rookie to Hall of Fame across a full season. Earn XP, unlock achievements, build your legacy.</div>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">⚡</div>
+        <div class="feature-title">Speed Round</div>
+        <div class="feature-desc">5 scenarios, 15-second timer each. Test how fast you can think under pressure.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Positions -->
+<section>
+  <div class="section-inner">
+    <h2 class="section-title">EVERY POSITION. EVERY SITUATION.</h2>
+    <div class="positions">
+      <p style="color:#94a3b8;margin-bottom:16px">Scenarios for every spot on the diamond — plus manager decisions, famous plays, rules, and count strategy.</p>
+      <div class="pos-grid">
+        <span class="pos-tag">⚾ Pitcher</span>
+        <span class="pos-tag">🧤 Catcher</span>
+        <span class="pos-tag">🥇 First Base</span>
+        <span class="pos-tag">✌️ Second Base</span>
+        <span class="pos-tag">💪 Shortstop</span>
+        <span class="pos-tag">🔥 Third Base</span>
+        <span class="pos-tag">👈 Left Field</span>
+        <span class="pos-tag">🎯 Center Field</span>
+        <span class="pos-tag">👉 Right Field</span>
+        <span class="pos-tag">🏏 Batter</span>
+        <span class="pos-tag">🏃 Baserunner</span>
+        <span class="pos-tag">📋 Manager</span>
+        <span class="pos-tag">⭐ Famous Plays</span>
+        <span class="pos-tag">📖 Rules</span>
+        <span class="pos-tag">🔢 Counts</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Quote -->
+<div class="quote-section">
+  <p class="quote">"The game is 90% mental and the other half is physical."</p>
+  <p class="quote-attr">— Yogi Berra</p>
+</div>
+
+<!-- Pricing -->
+<section class="pricing">
+  <div class="section-inner">
+    <h2 class="section-title">START FREE. GO PRO WHEN YOU'RE READY.</h2>
+    <div class="price-cards">
+      <div class="price-card">
+        <div class="price-label">FREE</div>
+        <div class="price-amount">$0</div>
+        <div class="price-period">forever</div>
+        <ul class="price-features">
+          <li>8 plays per day</li>
+          <li>All 15 positions</li>
+          <li>3 field themes</li>
+          <li>Daily Diamond challenge</li>
+          <li>Season mode</li>
+          <li>Speed round & survival</li>
+        </ul>
+        <a href="/preview.html" class="price-btn free">Play Free</a>
+      </div>
+      <div class="price-card pro">
+        <div class="price-label">ALL-STAR PASS</div>
+        <div class="price-amount">$4.99</div>
+        <div class="price-period">/month or $29.99/year</div>
+        <ul class="price-features">
+          <li>Unlimited plays</li>
+          <li>AI Coach scenarios</li>
+          <li>All 10 field themes</li>
+          <li>Full avatar customization</li>
+          <li>2x XP multiplier</li>
+          <li>Streak freeze protection</li>
+        </ul>
+        <a href="/preview.html" class="price-btn paid">Start Playing</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Final CTA -->
+<section style="text-align:center;padding:80px 20px">
+  <h2 class="section-title">READY TO THINK LIKE A PRO?</h2>
+  <p style="color:#94a3b8;margin-bottom:32px;font-size:1.1rem">No account needed. No download. Just baseball.</p>
+  <a href="/preview.html" class="cta">PLAY NOW — FREE</a>
+</section>
+
+<!-- Footer -->
+<footer>
+  <a href="/privacy.html">Privacy Policy</a>
+  <a href="/terms.html">Terms of Service</a>
+  <a href="mailto:blafleur@vested.marketing">Contact</a>
+  <p>&copy; 2026 Baseball Strategy Master. All rights reserved.</p>
+</footer>
+
+</body>
+</html>

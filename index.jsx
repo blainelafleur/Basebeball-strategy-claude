@@ -759,6 +759,12 @@ const SCENARIOS = {
       options:["Sit on the slider — he got you with it once","Look for the changeup — it worked last time","Expect fastball early, then adjust to off-speed","Look for the pitch you HAVEN'T seen — he might go there"],
       best:2,explanations:["Sitting on the slider only means he throws the changeup and you're lost again.","Sitting changeup means the slider gets you. You can't guess one pitch against a pitcher with multiple weapons.","Third time through, you KNOW his arsenal. He has a fastball, slider, and changeup. Expect fastball early in the count (most pitchers go back to the fastball to get ahead), then be ready to react to the off-speed. Your previous at-bats taught you what the slider and changeup LOOK like — use that knowledge to recognize them earlier.","Trying to guess a new pitch is overthinking. Use what you've learned from your first two at-bats."],
       rates:[30,25,85,35],concept:"Third at-bat, use your data — expect fastball early, react to off-speed with what you've learned",anim:"hit"},
+    {id:"b_hr1",title:"Hit and Run \u2014 Where Should You Hit It?",diff:2,cat:"situational",conceptTag:"hit-and-run",ageMin:11,ageMax:99,
+      description:"Runner on 1st, 1 out, tie game. The coach puts the hit-and-run on. The pitcher winds up and throws a fastball middle-away. Where should you try to hit this ball?",
+      situation:{inning:"Bot 5",outs:1,count:"1-0",runners:[1],score:[3,3]},
+      options:["Pull it to left field for a double","Hit it on the ground to the right side \u2014 behind the runner","Hit a fly ball to the outfield","Bunt it down the third base line"],
+      best:1,explanations:["Pulling the ball on a hit-and-run is risky. A pulled grounder to the shortstop or third baseman is an easy double play \u2014 the runner is already going and can't get back. Pulling a line drive might double off the runner at first.","Correct! On the hit-and-run, your job is to put the ball on the ground to the RIGHT side. Why? The runner is going to first-to-second. The second baseman or shortstop has to cover second base for the steal, which opens a hole on the right side. A groundball through that hole advances the runner to third (or even scores him) and you reach first safely. The pitch is away, which naturally sets up a right-side groundball. Go with the pitch.","A fly ball on the hit-and-run is dangerous. If it's caught, the runner is way off first base and easily doubled off. The whole point of the hit-and-run is to put the ball on the ground.","Bunting defeats the purpose of the hit-and-run. The coach called hit-and-run specifically because they want you to swing and protect the runner. A bunt is a different play \u2014 and a foul bunt with 1 strike puts you behind in the count."],
+      rates:[25,82,15,20],concept:"On the hit-and-run, hit the ball on the ground to the right side \u2014 the middle infielder covering second leaves a hole",anim:"hit"},
   ],
   secondBase: [
     {id:"f1", conceptTag:"double-play-turn",title:"Double Play Chance",diff:1,cat:"infield",ageMin:6,ageMax:99,
@@ -2326,6 +2332,12 @@ const SCENARIOS = {
       options:["Go on the pitch — both runners break simultaneously","Runner on 1st goes on the pitch, runner on 3rd reads the catcher's throw","Runner on 1st goes on the pitch, runner on 3rd goes when the throw leaves the catcher's hand","Runner on 1st fakes a steal to draw the throw, runner on 3rd scores on the throw to second"],
       best:1,explanations:["Both runners breaking simultaneously tips off the defense too early. The catcher sees the runner on third break and either throws home or fakes to second and throws home. You need the element of the catcher committing to second before the runner on third goes.","Correct! The classic 1st-and-3rd double steal: the runner on first breaks on the pitch like a normal steal. The runner on third reads the catcher. If the catcher throws to second, the runner on third breaks home. If the catcher fakes or throws home, the runner on third stays and the runner on first either steals second or gets back. The key is the READ — the runner on third decides based on the catcher's throw, not a predetermined break.","Going when the throw 'leaves the catcher's hand' is often too late. By the time you read the release, the throw is already at second and the middle infielder can redirect home. The read should happen when the catcher commits his body toward second — before the release.","The fake steal can work but is less reliable because the catcher may not bite. If the catcher holds the ball, you've achieved nothing. The straight steal with a read is a higher-percentage play."],
       rates:[25,82,40,45],concept:"On the 1st-and-3rd double steal, the runner on third READS the catcher's throw — never break on a predetermined signal",anim:"steal"},
+    {id:"r_hr1",title:"Hit and Run \u2014 Batter Swings and Misses",diff:2,cat:"baserunning",conceptTag:"hit-and-run",ageMin:11,ageMax:99,
+      description:"Runner on 1st, 1 out. The hit-and-run is on. You break on the pitch, but the batter swings and misses. The catcher catches the ball cleanly. What do you do?",
+      situation:{inning:"Top 4",outs:1,count:"1-1",runners:[1],score:[2,2]},
+      options:["Keep running \u2014 commit to the steal and hope you beat the throw","Stop and get back to first as quickly as possible","Stop halfway and get in a rundown to buy time","Slide headfirst into second \u2014 surprise them with aggression"],
+      best:0,explanations:["Correct! Once the hit-and-run is on and you've broken, you're committed. Stopping or hesitating is the worst thing you can do \u2014 you'll be in no-man's land between bases and an easy out. Your jump was timed to the pitch, so you have a full stride. Keep running hard to second. Even if the catcher catches it cleanly, you have a fighting chance if your jump was good. The hit-and-run gives you a better jump than a straight steal because you go on the pitch, not on the catcher's throw.","Trying to get back to first is almost always too late. You're already several steps toward second. Reversing direction means you'll be tagged out in a rundown. You've lost your momentum and the catcher has a clear throw.","Getting in a rundown on purpose wastes time and energy, and with 1 out, it just gives the defense an easy second out. A rundown only helps if there's another runner who can advance \u2014 here there isn't.","Sliding headfirst doesn't change the physics. Your speed and jump determine if you're safe, not the slide type. A headfirst slide can actually slow you down if you're not practiced at it."],
+      rates:[72,15,20,55],concept:"On the hit-and-run, if the batter misses, keep running \u2014 you're committed and stopping makes it worse",anim:"steal"},
   ],
   manager: [
     {id:"m1",title:"Intentional Walk",diff:2,cat:"late-game",conceptTag:"force-vs-tag",ageMin:6,ageMax:99,
@@ -2508,6 +2520,12 @@ const SCENARIOS = {
       options:["Bad call — should never have called it","Unlucky — the hit and run was the right play","Should have called a straight steal instead","Only call hit and runs with 2-strike hitters"],
       best:1,explanations:["Just because it didn't work doesn't mean it was the wrong call. Baseball involves probability, not certainty.","The hit and run was a reasonable call — runner on first, 1 out, 1-1 count, your team has a lead. The batter just didn't execute. In baseball, good decisions sometimes lead to bad results. That doesn't make the decision wrong. You'd call it again in the same spot.","A straight steal doesn't put pressure on the defense the same way. The hit and run has more upside when it works.","The hitter's count doesn't determine when to hit and run — the game situation does."],
       rates:[20,85,35,25],concept:"Good strategy sometimes fails — judge decisions by the reasoning, not just the result",anim:"safe"},
+    {id:"m_hr1",title:"Hit and Run \u2014 When to Call It Off",diff:3,cat:"plays",conceptTag:"hit-and-run",ageMin:12,ageMax:99,
+      description:"Runner on 1st, 1 out, tie game in the 6th. You had the hit-and-run on the last pitch but the batter fouled it off. The count is now 0-2. The runner is average speed. Do you put the hit-and-run back on?",
+      situation:{inning:"Bot 6",outs:1,count:"0-2",runners:[1],score:[4,4]},
+      options:["Yes \u2014 the defense won't expect it on 0-2","No \u2014 take the hit-and-run off, let the batter fight the count","Yes \u2014 but only if the pitcher throws a fastball","Switch to a straight steal \u2014 the batter can't protect the runner in an 0-2 count"],
+      best:1,explanations:["'They won't expect it' is gambling, not strategy. On 0-2, the pitcher has the advantage and will likely throw something off-speed or out of the zone. The batter MUST swing on a hit-and-run, and swinging at a 0-2 waste pitch means almost certain weak contact or a miss \u2014 leaving your runner hung out to dry.","Correct! The hit-and-run on 0-2 is one of the worst calls in baseball. Here's why: on 0-2, the pitcher throws waste pitches \u2014 balls out of the zone designed to get the batter to chase. The hit-and-run FORCES the batter to swing at whatever comes, turning a potential take into a chase. The batter can't protect the runner if the pitch is a slider in the dirt or a fastball at eye level. Take the play off, let the batter work the count back, and reassess if the count improves.","You can't condition the hit-and-run on pitch type \u2014 the runner has to go before the pitch arrives. There's no way to know it's a fastball until it's too late.","A straight steal on 0-2 is slightly better than a hit-and-run (because the batter doesn't have to swing), but with an average-speed runner, the risk of a caught stealing still outweighs the benefit. With 0-2, the catcher might call a pitchout or the pitcher might slide-step. Better to take everything off and let the batter fight."],
+      rates:[15,82,10,35],concept:"Never run the hit-and-run on 0-2 \u2014 the batter can't protect the runner when the pitcher owns the count",anim:"safe"},
     {id:"m29", conceptTag:"platoon-advantage",title:"Slumping Cleanup Hitter",diff:2,cat:"lineup",ageMin:9,ageMax:99,
       description:"Your cleanup hitter is 0-for-15 over the last 4 games. He's frustrated but he's still your best power hitter. Today's game matters. Do you drop him in the order?",
       situation:{inning:"Top 1",outs:0,count:"-",runners:[],score:[0,0]},
@@ -2805,6 +2823,24 @@ const SCENARIOS = {
       options:["Infield in — must cut off the tying run","Normal depth — the force play at first is all you need","Infield halfway — still protect against the run but keep range","Corners in, middle back — cover all the options"],
       best:1,explanations:["Infield in with 2 outs is almost never correct. Here's why: with 2 outs, ANY out ends the inning. You don't need to get the runner at home — you just need one out at first base. Normal depth gives you the maximum range to field the groundball and throw to first. The runner at third is irrelevant because the force play at first ends the inning regardless.","Correct! With 2 outs, the defense only needs ONE out to end the inning. That out can come at first base on any groundball. Normal depth maximizes your range and throwing accuracy. The runner on third doesn't matter because if you get the batter out at first, the inning is over and the run doesn't score. Infield in reduces your range and makes it HARDER to get the out you need. The only time infield in with 2 outs makes sense is if you're playing a bunt defense — but nobody bunts with 2 outs.","Halfway still sacrifices range. With 2 outs, commit to normal depth for maximum range. Simple and effective.","Split alignments add confusion. With 2 outs, every fielder should be at normal depth for maximum range."],
       rates:[20,85,35,25],concept:"With 2 outs, the run on third doesn't matter — normal depth and get the out at first to end the inning",anim:"groundout"},
+    {id:"m_wp1",title:"Win Probability \u2014 Tie Game in the 9th, Sacrifice or Swing Away?",diff:2,cat:"game-management",conceptTag:"win-probability",ageMin:10,ageMax:99,
+      description:"Bottom of the 9th, tie game. Leadoff man reaches on a single. Your #2 hitter is up \u2014 a good contact hitter who rarely strikes out. Do you sacrifice bunt him to second?",
+      situation:{inning:"Bot 9",outs:0,count:"0-0",runners:[1],score:[3,3]},
+      options:["Sacrifice bunt \u2014 move the winning run to second with one out","Let him swing away \u2014 he's a good hitter, don't give away outs","Hit and run \u2014 move the runner and put pressure on the defense","Steal second \u2014 don't risk an out at the plate, get the runner in scoring position for free"],
+      best:1,explanations:["Bunting drops your win probability from about 64% to roughly 59%. You're trading an out to move a runner 90 feet \u2014 but that out is more valuable than the base. With a runner on 1st and 0 outs, you have multiple chances to drive him in. With a runner on 2nd and 1 out, you need a hit. The math consistently shows bunting in tie games costs you wins.","Correct! Win Probability Added (WPA) research shows that runner on 1st with 0 outs in a tie game gives you about a 64% chance of winning. After a successful sacrifice (runner on 2nd, 1 out), it drops to about 59%. Your good contact hitter is more likely to get a hit, walk, or advance the runner than a bunt gains. Outs are precious in the 9th \u2014 you only get three, and giving one away for 90 feet of baserunning rarely helps.","Hit and run is aggressive and can backfire if the batter misses or lines out, turning a double play. It's not bad, but the highest win probability comes from simply letting a good hitter hit.","Stealing is risky \u2014 a caught stealing drops your win probability to about 40%. Even with a fast runner, the risk-reward ratio doesn't justify it when you have 0 outs and a good hitter up."],
+      rates:[40,72,50,38],concept:"In a tie game in the 9th with 0 outs, don't sacrifice bunt \u2014 outs are too precious, and the math shows your win probability drops after a successful bunt",anim:"hit"},
+    {id:"m_wp2",title:"Win Probability \u2014 Down 1 in the 8th, Use Your Closer?",diff:3,cat:"game-management",conceptTag:"win-probability",ageMin:12,ageMax:99,
+      description:"You're down 3-4 in the bottom of the 8th. Your offense is about to bat. Your closer is available and fresh. The other team's 3-4-5 hitters are due up in the top of the 9th. Do you save your closer for the 9th if you tie it up, or use him now in a non-save situation?",
+      situation:{inning:"Bot 8",outs:0,count:"0-0",runners:[],score:[3,4]},
+      options:["Save the closer for the 9th \u2014 he only pitches in save situations","Use the closer in the 9th regardless \u2014 their best hitters are up, keep the game within reach","Use a middle reliever in the 9th \u2014 the closer needs to be fresh for extra innings","Match up: use your best lefty for their lefty #3 hitter, then bring the closer for #4 and #5"],
+      best:1,explanations:["Saving the closer for a save situation that might never come is results-oriented thinking. If you don't keep the game close in the 9th, you might never get the chance to tie it up. Your best pitcher should face their best hitters at the most critical moment.","Correct! Win probability analysis shows that keeping the deficit to 1 run in the 9th gives you about a 28% chance of winning. Letting it grow to 2+ runs drops that to around 12%. Using your closer against their heart-of-the-order in the 9th \u2014 even though it's not a 'save situation' \u2014 maximizes your chance of keeping the game within reach. The traditional 'save the closer for the save' approach loses more games than it wins. High-leverage moments matter more than labels.","A middle reliever against their 3-4-5 hitters is a mismatch. Your win probability depends on keeping the game close. Use your best arm when the game is on the line.","Matchup pitching in the 9th when you're down is overthinking it. Your closer is your best pitcher \u2014 let him face all three and minimize damage. Managing by matchups works when you're ahead, but when you're behind, you need maximum outs with minimum runs."],
+      rates:[30,70,25,45],concept:"Use your best pitcher in the highest-leverage moment, not just in 'save situations' \u2014 win probability doesn't care about traditional closer roles",anim:"strikeout"},
+    {id:"m_wp3",title:"Win Probability \u2014 Intentional Walk to Load the Bases?",diff:2,cat:"game-management",conceptTag:"win-probability",ageMin:10,ageMax:99,
+      description:"Top of the 7th, you're up 5-4. Runners on 2nd and 3rd, 1 out. Their cleanup hitter is at the plate \u2014 he's 2-for-3 today with a double. The #5 hitter behind him is 0-for-3 with 2 strikeouts. Do you intentionally walk the cleanup hitter to load the bases?",
+      situation:{inning:"Top 7",outs:1,count:"0-0",runners:[2,3],score:[5,4]},
+      options:["Walk him \u2014 load the bases to set up the force at every base and face the weaker hitter","Pitch to him carefully \u2014 don't put the go-ahead run on base","Walk him and bring in a new pitcher to face #5","Pitch around him \u2014 nothing to hit, but don't intentionally walk him"],
+      best:0,explanations:["Correct! Loading the bases sets up a force play at every base, including home. This means a groundball to any infielder can get an out at home or start a double play. The #5 hitter has 2 strikeouts today, and with the bases loaded, any out ends the inning with your lead intact. Win probability actually goes UP slightly when you walk a hot hitter to face a cold one \u2014 the force at home plate is worth more than the extra baserunner.","Pitching 'carefully' to a hitter who's 2-for-3 with a double is how you give up a 3-run triple. He's locked in today. The risk of him driving in 2 runs is much higher than the risk of walking him.","Walking him AND changing pitchers is too disruptive. Your current pitcher has been fine against everyone except the cleanup hitter. Let him face the struggling #5 hitter.","Pitching around him risks a wild pitch that scores a run, or an accidental strike that he crushes. If you've decided not to let him beat you, commit to the walk \u2014 half-measures are the worst option."],
+      rates:[75,30,45,25],concept:"Loading the bases to set up force plays and face a weaker hitter can increase your win probability \u2014 the force at home is worth the extra baserunner",anim:"walk"},
   ],
   catcher: [
     {id:"ct1", conceptTag:"pitch-sequencing",title:"Pitch Calling — Full Count",diff:2,cat:"pitch-calling",ageMin:9,ageMax:99,
@@ -3285,6 +3321,52 @@ const SCENARIOS = {
       options:["Home run \u2014 the ball was going out anyway","Fan interference \u2014 dead ball, umpire places runners where they would have been","The batter is out because the ball was caught (even by a fan)","Replay review \u2014 only the replay officials can make this call"],
       best:1,explanations:["Even if the ball was going out, the umpire can't assume that. When a fan reaches into the field of play, the result is fan interference regardless of the ball's trajectory.","Correct! MLB Rule 6.01(e): When a spectator reaches INTO the field of play and interferes with a fielder, it's spectator interference. The ball is dead immediately, and the umpire places all runners where they believe the runners would have ended up without the interference. The fan reaching over the wall is the key \u2014 the field of play boundary is the TOP of the wall.","Fans can't record outs! The ball is dead the moment a fan interferes with play. The batter is not out.","While this IS reviewable, the on-field umpire makes the initial call. The key ruling is fan interference (dead ball), which the crew chief can make in real time. Review can confirm or overturn whether the fan actually reached over the wall."],
       rates:[30,80,10,25],concept:"Fan interference: when a spectator reaches INTO the field of play, it's a dead ball. The umpire places runners where they would have been. The boundary is the top of the wall.",anim:"catch"},
+    {id:"rl26",title:"Pitch Clock \u2014 Batter Not Ready",diff:1,cat:"rules",conceptTag:"pitch-clock-strategy",ageMin:8,ageMax:99,
+      description:"Top of the 5th, nobody on, 2-1 count. The batter steps out to adjust his gloves. The pitch clock shows 8 seconds left. He's still adjusting when it hits zero. What happens?",
+      situation:{inning:"Top 5",outs:1,count:"2-1",runners:[],score:[1,0]},
+      options:["Automatic strike \u2014 now it's 2-2","Automatic ball \u2014 now it's 3-1","The umpire pauses the clock until the batter is ready","Nothing \u2014 batters can't get clock violations"],
+      best:0,explanations:["Correct! The batter must be alert in the box with at least 8 seconds on the pitch clock. If the batter isn't ready when the clock expires, it's an automatic STRIKE. The count goes from 2-1 to 2-2. Pitchers get balls, batters get strikes \u2014 each side is penalized in a way that hurts them.","That's the penalty for pitchers, not batters. Pitchers get balls when they're too slow. Batters get strikes when they're not ready.","The clock does not pause for batter delays. The rule is designed to keep the game moving, with immediate consequences.","Both pitchers AND batters can get pitch clock violations. The batter must be ready with 8 seconds left on the clock."],
+      explSimple:["Right! If the batter isn't ready in time, the umpire calls an automatic strike. It's like the batter got a strike for being too slow!","That's what happens to pitchers, not batters. Batters get strikes, pitchers get balls.","The clock doesn't stop just because the batter isn't ready \u2014 that's the whole point of the rule!","Both the pitcher and the batter have to follow the clock. Batters get strikes if they're too slow."],
+      rates:[82,20,15,10],concept:"Pitch clock violations: batters must be alert with 8 seconds left or it's an automatic strike",anim:"strike"},
+    {id:"rl27",title:"Pitch Clock \u2014 Strategic Step-Off",diff:3,cat:"rules",conceptTag:"pitch-clock-strategy",ageMin:12,ageMax:99,
+      description:"Bot 7th, runners on 1st and 2nd, 0 outs, tie game. The speedy runner on 2nd is dancing off the bag. Your pitcher has already used both of his disengagements this plate appearance. The clock shows 12 seconds. Can the pitcher step off the rubber again?",
+      situation:{inning:"Bot 7",outs:0,count:"1-0",runners:[1,2],score:[2,2]},
+      options:["No \u2014 a third step-off is an automatic balk, runners advance","Yes \u2014 but only if the pitcher picks off the runner successfully","Yes \u2014 the pitcher can step off as many times as he wants","No \u2014 but the pitcher can request time from the umpire instead"],
+      best:1,explanations:["Close, but not quite! A third disengagement IS a balk \u2014 UNLESS the pitcher successfully picks off the runner. It's a high-risk, high-reward play.","Correct! Under the 2023 pitch clock rules, pitchers get two disengagements (step-offs or pickoff throws) per plate appearance. A third disengagement is an automatic balk \u2014 UNLESS the pitcher picks off the runner. This creates a fascinating cat-and-mouse game: the runner knows the pitcher used both disengagements, so he can take a bigger lead. But if the pitcher reads him leaning too far, a third throw that gets him out resets the count.","Pitchers are limited to two disengagements per plate appearance under the 2023 rules. Unlimited step-offs slowed the game down and frustrated base stealers \u2014 that's exactly what the rule changed.","Requesting time doesn't pause the disengagement limit. The pitcher either throws a pitch, attempts a third pickoff (risky), or deals with the runner's bigger lead."],
+      rates:[35,80,15,10],concept:"Pitchers get 2 disengagements per plate appearance. A third is an automatic balk unless the runner is picked off.",anim:"steal"},
+    {id:"rl28",title:"Pitch Clock \u2014 Mound Visit Resets the Clock",diff:2,cat:"rules",conceptTag:"pitch-clock-strategy",ageMin:10,ageMax:99,
+      description:"Top of the 6th, runners on 1st and 3rd, 1 out. The pitcher looks rattled \u2014 just walked two straight batters. The catcher trots to the mound for a quick chat. When the catcher returns, what happens to the pitch clock?",
+      situation:{inning:"Top 6",outs:1,count:"0-0",runners:[1,3],score:[2,4]},
+      options:["The clock resets to the full time (20 seconds with runners on)","The clock continues from where it was \u2014 the visit doesn't reset it","The clock resets, AND the pitcher's disengagement count resets too","The clock starts at 30 seconds after a mound visit as a bonus"],
+      best:0,explanations:["Correct! Any mound visit \u2014 whether from the catcher, pitching coach, or manager \u2014 resets the pitch clock to its full amount. With runners on base, that's 20 seconds. This is why smart catchers time their mound visits: it gives the pitcher a breather AND resets the clock. But remember, teams have a limited number of mound visits per game (5 in MLB).","The clock always resets after a mound visit. This is one of the strategic benefits of visiting the mound \u2014 it's a built-in reset button.","The clock resets, but the pitcher's disengagement count does NOT reset. The two-disengagement limit is per plate appearance, and a mound visit doesn't change the plate appearance.","The clock resets to the standard amount (15 seconds with bases empty, 20 with runners on), not a bonus 30 seconds."],
+      explSimple:["Right! When the catcher visits the mound, the pitch clock gets reset to full time. It's like a timeout that gives the pitcher more time.","The clock always resets after a visit. That's one reason catchers go out there!","The clock resets, but the pitcher's pickoff attempts don't reset \u2014 those are separate rules.","It resets to the normal time (20 seconds with runners), not 30 seconds."],
+      rates:[82,20,15,10],concept:"Mound visits reset the pitch clock to its full amount \u2014 a strategic benefit of visiting the mound",anim:"freeze"},
+    {id:"rl29",title:"Pitch Clock \u2014 What Counts as 'Ready'?",diff:1,cat:"rules",conceptTag:"pitch-clock-strategy",ageMin:8,ageMax:99,
+      description:"You're a 10-year-old batter stepping into the box for the first time in a pitch clock game. The announcer says the batter must be 'alert to the pitcher' with 8 seconds on the clock. What does that actually mean you need to do?",
+      situation:{inning:"Top 1",outs:0,count:"0-0",runners:[],score:[0,0]},
+      options:["Be in the batter's box with both feet, looking at the pitcher","Just be standing near the plate \u2014 doesn't matter if you're looking","Have your bat on your shoulder in your stance","Be in the box but you can still be adjusting your gloves"],
+      best:0,explanations:["Correct! 'Alert to the pitcher' means you must be in the batter's box AND looking at the pitcher, ready for the pitch to come. Both feet in the box, eyes on the mound. If you're still adjusting your helmet, looking at the scoreboard, or not in your stance, the umpire can call an automatic strike.","You need to be IN the batter's box specifically, not just near the plate. And you need to be looking at the pitcher \u2014 being distracted counts as not ready.","Having your bat on your shoulder isn't required \u2014 some hitters hold their bat up, some down. What matters is that you're in the box and looking at the pitcher.","If you're adjusting your gloves with 8 seconds left, you're NOT alert to the pitcher. Get your adjustments done early! Step out between pitches if needed, but be ready at 8 seconds."],
+      explSimple:["Right! You need to be standing in the box with both feet and looking at the pitcher. Think of it like being ready to play \u2014 no fiddling with your gear!","You need to actually be in the batter's box, not just somewhere nearby.","You don't have to hold your bat a certain way, but you do need to be in the box and watching the pitcher.","If you're messing with your gloves when there's 8 seconds left, the umpire can call a strike! Get ready early."],
+      rates:[85,15,20,25],concept:"Being 'alert to the pitcher' means both feet in the box, eyes on the mound, ready for the pitch",anim:"strike"},
+    {id:"rl30",title:"Infield Fly \u2014 Does It Apply with Two Outs?",diff:2,cat:"rules",conceptTag:"infield-fly",ageMin:9,ageMax:99,
+      description:"Bot 6th, runners on 1st and 2nd, TWO outs. The batter pops the ball straight up near the pitcher's mound. An easy catch. Should the umpire call 'Infield Fly'?",
+      situation:{inning:"Bot 6",outs:2,count:"1-2",runners:[1,2],score:[5,3]},
+      options:["No \u2014 infield fly does NOT apply with 2 outs","Yes \u2014 infield fly applies whenever there are runners on 1st and 2nd","Yes \u2014 any easy popup with runners on base is infield fly","No \u2014 but only because the ball is near the mound, not in the infield"],
+      best:0,explanations:["Correct! The infield fly rule ONLY applies with less than 2 outs (0 or 1 out) AND runners on 1st and 2nd, or bases loaded. With 2 outs, the rule doesn't apply because there's no reason for the defense to intentionally drop the ball \u2014 they can just catch it for the third out. The rule exists to prevent the defense from getting a cheap double play by dropping the ball on purpose.","The infield fly rule requires less than 2 outs. With 2 outs, the defense would just catch the ball for the easy third out \u2014 there's no incentive to drop it.","The infield fly rule has specific conditions: less than 2 outs, runners on 1st and 2nd (or bases loaded), and a fair fly ball that an infielder can catch with ordinary effort.","The location of the ball doesn't determine whether the infield fly rule applies \u2014 the conditions do (less than 2 outs + runners on 1st and 2nd or bases loaded)."],
+      explSimple:["Right! The infield fly rule only works with 0 or 1 out, not 2 outs. With 2 outs, the fielder would just catch it for the third out anyway.","The rule only works with less than 2 outs. Think about it \u2014 with 2 outs, why would anyone drop the ball on purpose?","There are specific rules about when infield fly applies \u2014 it's not just any popup.","Where the ball is doesn't matter. What matters is how many outs there are and where the runners are."],
+      rates:[82,25,15,10],concept:"Infield fly rule only applies with less than 2 outs. With 2 outs, the defense has no reason to drop the ball.",anim:"catch"},
+    {id:"rl31",title:"Infield Fly \u2014 Can Runners Still Advance?",diff:2,cat:"rules",conceptTag:"infield-fly",ageMin:10,ageMax:99,
+      description:"Bot 4th, runners on 1st and 2nd, 1 out. The batter pops up to shallow left field. The umpire calls 'Infield Fly, batter is out!' But the shortstop loses the ball in the sun and it drops! Can the runners advance?",
+      situation:{inning:"Bot 4",outs:1,count:"0-1",runners:[1,2],score:[1,2]},
+      options:["Yes \u2014 runners can advance at their own risk, but they don't have to","No \u2014 since infield fly was called, the ball is dead and runners must stay","Yes \u2014 runners MUST advance because the ball wasn't caught","No \u2014 runners can only advance if they were tagging up when the ball dropped"],
+      best:0,explanations:["Correct! When the infield fly rule is called, the batter is out regardless of whether the ball is caught. But the ball is still LIVE! Runners can advance at their own risk. They are NOT forced to run (since the batter is already out, the force is removed). If the ball drops, runners can try to advance, but they can be tagged out. If the ball is caught, runners must tag up before advancing \u2014 just like any fly ball. The key: the batter is out, but the runners still have options.","The ball is NOT dead on an infield fly! This is one of the most common misconceptions. The ball stays live, and runners can advance at their own risk.","Runners do NOT have to advance. The infield fly call removes the force play (because the batter is already out). Runners can choose to stay at their base if it's safer.","Runners don't need to be tagging up. If the ball drops, they can simply run \u2014 there's no force and no tag-up requirement on a dropped ball. But they CAN be tagged out."],
+      rates:[80,20,15,25],concept:"On an infield fly, the batter is out but the ball is LIVE. Runners can advance at their own risk \u2014 the force is removed.",anim:"catch"},
+    {id:"rl32",title:"Infield Fly \u2014 Foul Territory Twist",diff:3,cat:"rules",conceptTag:"infield-fly",ageMin:12,ageMax:99,
+      description:"Runners on 1st and 2nd, 0 outs. The batter pops the ball high near the 3rd base line. It could land fair or foul. The umpire calls 'Infield Fly If Fair!' The third baseman drifts over and catches it in FOUL territory. Is the batter out?",
+      situation:{inning:"Top 3",outs:0,count:"2-2",runners:[1,2],score:[0,0]},
+      options:["Yes \u2014 the fielder caught it, so the batter is out regardless of fair/foul","No \u2014 since the ball was caught in foul territory, the infield fly is cancelled and it's just a regular foul ball","Yes \u2014 the umpire already called it, so the batter is out either way","No \u2014 the batter is out because of the catch, not the infield fly rule"],
+      best:0,explanations:["Correct! This is a tricky one. The umpire called 'Infield Fly If Fair' \u2014 meaning the infield fly would apply IF the ball lands fair. But here the fielder CAUGHT the ball. When any fly ball is caught \u2014 fair or foul territory \u2014 the batter is out. The infield fly rule doesn't even matter here because the catch itself retires the batter. The ump's conditional call ('If Fair') was correct procedure for a ball near the line.","If the ball DROPPED in foul territory, the infield fly would be cancelled and it would be a foul ball. But the ball was CAUGHT, so the batter is out on the catch \u2014 just like any caught foul fly ball.","The umpire's call was conditional ('If Fair'). Since the ball was caught in foul territory, the infield fly technically didn't apply. But the batter IS out \u2014 because of the catch, not the infield fly.","Actually, the batter is out because of the catch, which is correct. But the answer should acknowledge that the catch in foul territory makes the infield fly rule moot. The catch itself retires the batter."],
+      rates:[78,15,30,65],concept:"'Infield Fly If Fair' is a conditional call. If caught in foul territory, the infield fly doesn't apply \u2014 but the catch still retires the batter.",anim:"catch"},
   ],
   counts: [
     {id:"cn1", conceptTag:"first-pitch-value",title:"0-0: First Pitch Approach (Batter)",diff:1,cat:"counts",ageMin:6,ageMax:99,
@@ -3453,6 +3535,53 @@ const STRIPE_YEARLY_URL = "https://buy.stripe.com/4gM7sKgD2g1YbrQ9u16kg01";
 const WORKER_BASE = "https://bsm-ai-proxy.blafleur.workers.dev";
 const AI_PROXY_URL = WORKER_BASE + "/v1/chat/completions";
 
+// Sprint C3: Shareable player card generator
+function generatePlayerCard(stats,callback){
+  const c=document.createElement("canvas");c.width=400;c.height=560;const ctx=c.getContext("2d");
+  // Background gradient
+  const bg=ctx.createLinearGradient(0,0,0,560);bg.addColorStop(0,"#1a1a2e");bg.addColorStop(1,"#16213e");ctx.fillStyle=bg;ctx.fillRect(0,0,400,560);
+  // Gold border
+  ctx.strokeStyle="#f59e0b";ctx.lineWidth=4;ctx.strokeRect(8,8,384,544);ctx.strokeStyle="rgba(245,158,11,.3)";ctx.lineWidth=1;ctx.strokeRect(14,14,372,532);
+  // Header
+  ctx.fillStyle="#f59e0b";ctx.font="bold 28px 'Bebas Neue',sans-serif";ctx.textAlign="center";ctx.letterSpacing="4px";ctx.fillText("BASEBALL STRATEGY MASTER",200,48);
+  // Player name
+  ctx.fillStyle="white";ctx.font="bold 24px sans-serif";ctx.fillText(stats.displayName||"Rookie",200,90);
+  // Level badge
+  const lv=stats.lv||1;const lvl=LEVELS.find(l=>lv>=l.min)||LEVELS[0];
+  ctx.fillStyle=lvl.color||"#f59e0b";ctx.font="bold 16px sans-serif";ctx.fillText("Level "+lv+" \u2014 "+(lvl.title||"Rookie"),200,116);
+  // Season
+  ctx.fillStyle="#6b7280";ctx.font="12px sans-serif";ctx.fillText("Season "+(stats.season||1),200,138);
+  // Diamond separator
+  ctx.fillStyle="#f59e0b";ctx.beginPath();ctx.moveTo(170,158);ctx.lineTo(200,148);ctx.lineTo(230,158);ctx.lineTo(200,168);ctx.closePath();ctx.fill();
+  // Stats box
+  const drawStat=(label,value,x,y)=>{ctx.fillStyle="#f59e0b";ctx.font="bold 32px 'Bebas Neue',sans-serif";ctx.fillText(String(value),x,y);ctx.fillStyle="#9ca3af";ctx.font="10px sans-serif";ctx.fillText(label,x,y+16)};
+  drawStat("GAMES",stats.gp||0,80,210);drawStat("POINTS",stats.pts||0,200,210);drawStat("STREAK",stats.ds||0,320,210);
+  // Accuracy by position
+  ctx.fillStyle="#374151";ctx.fillRect(30,250,340,1);
+  ctx.fillStyle="white";ctx.font="bold 12px sans-serif";ctx.fillText("POSITION ACCURACY",200,274);
+  const positions=Object.entries(stats.ps||{}).filter(([,v])=>v.t>=3).sort(([,a],[,b])=>(b.c/b.t)-(a.c/a.t)).slice(0,5);
+  positions.forEach(([p,v],i)=>{
+    const y=295+i*24;const pct=Math.round((v.c/v.t)*100);
+    ctx.fillStyle="#9ca3af";ctx.font="11px sans-serif";ctx.textAlign="left";ctx.fillText(p.replace(/([A-Z])/g," $1").trim(),40,y);
+    ctx.fillStyle="#1f2937";ctx.fillRect(180,y-10,160,14);
+    ctx.fillStyle=pct>=70?"#22c55e":pct>=50?"#f59e0b":"#ef4444";ctx.fillRect(180,y-10,160*(pct/100),14);
+    ctx.fillStyle="white";ctx.textAlign="right";ctx.font="bold 11px sans-serif";ctx.fillText(pct+"%",350,y);
+  });
+  ctx.textAlign="center";
+  // Achievements count
+  const achCount=(stats.achs||[]).length;
+  ctx.fillStyle="#374151";ctx.fillRect(30,430,340,1);
+  ctx.fillStyle="#f59e0b";ctx.font="bold 14px sans-serif";ctx.fillText(achCount+" Achievement"+(achCount!==1?"s":"")+" Earned",200,458);
+  // Scenarios completed
+  ctx.fillStyle="#6b7280";ctx.font="12px sans-serif";ctx.fillText((stats.cl||[]).length+" Scenarios Mastered",200,480);
+  // QR-like call to action
+  ctx.fillStyle="#374151";ctx.fillRect(30,500,340,1);
+  ctx.fillStyle="#06b6d4";ctx.font="bold 12px sans-serif";ctx.fillText("bsm-app.pages.dev",200,526);
+  ctx.fillStyle="#4b5563";ctx.font="10px sans-serif";ctx.fillText("Think like a pro. Play like a pro.",200,544);
+  // Export
+  c.toBlob(blob=>{if(callback)callback(blob,c.toDataURL("image/png"))});
+}
+
 // Sprint 4.2: Anonymized analytics pipeline
 const ANALYTICS_BATCH_INTERVAL = 30000 // flush every 30 seconds
 const ANALYTICS_MAX_BATCH = 50
@@ -3614,7 +3743,7 @@ const STADIUM_MILESTONES=[
   {games:200,label:"Fireworks",desc:"Fireworks on perfect answers!",icon:"🎆"},
   {games:330,label:"Legend Stadium",desc:"Golden border + Legend title!",icon:"👑"},
 ];
-const DEFAULT = {pts:0,str:0,bs:0,gp:0,co:0,ps:{},achs:[],cl:[],ds:0,lastDay:null,todayPlayed:0,todayDate:null,sp:0,isPro:false,onboarded:false,soundOn:true,recentWrong:[],dailyDone:false,dailyDate:null,streakFreezes:0,survivalBest:0,ageGroup:"11-12",displayName:"",teamCode:"",seasonGame:0,seasonCorrect:0,seasonComplete:false,fieldTheme:"default",avatarJersey:0,avatarCap:0,avatarBat:0,season:1,proPlan:null,proPurchaseDate:null,proExpiry:null,lastStreakFreezeDate:null,wrongCounts:{},posGrad:{},funnel:[],hist:{},posPlayed:{},firstPlayDate:null,lastPlayDate:null,sessionCount:0,tutorialDone:false,promoCode:null,promoActivatedDate:null,masteryShown:[],masteryData:{concepts:{},errorPatterns:{},sessionHistory:[]},qualitySignals:{},flaggedScenarios:{},explanationLog:{},gapDetectionCache:null,lastWrongConceptTag:null,aiHistory:[]};
+const DEFAULT = {pts:0,str:0,bs:0,gp:0,co:0,ps:{},achs:[],cl:[],ds:0,lastDay:null,todayPlayed:0,todayDate:null,sp:0,isPro:false,onboarded:false,soundOn:true,recentWrong:[],dailyDone:false,dailyDate:null,weeklyDone:null,streakFreezes:0,survivalBest:0,ageGroup:"11-12",displayName:"",teamCode:"",teamName:"",seasonGame:0,seasonCorrect:0,seasonComplete:false,fieldTheme:"default",avatarJersey:0,avatarCap:0,avatarBat:0,season:1,proPlan:null,proPurchaseDate:null,proExpiry:null,lastStreakFreezeDate:null,wrongCounts:{},posGrad:{},funnel:[],hist:{},posPlayed:{},firstPlayDate:null,lastPlayDate:null,sessionCount:0,tutorialDone:false,promoCode:null,promoActivatedDate:null,masteryShown:[],masteryData:{concepts:{},errorPatterns:{},sessionHistory:[]},qualitySignals:{},flaggedScenarios:{},explanationLog:{},gapDetectionCache:null,lastWrongConceptTag:null,aiHistory:[]};
 
 // Streak flame visual — grows with daily streak length
 function getFlame(ds){
@@ -3639,6 +3768,16 @@ function getDailyScenario(){
   const idx=hash%allSc.length;
   // Also pick a secondary based on different hash for variety across days
   return allSc[idx];
+}
+
+// Sprint D4: Scenario of the Week — hardest scenario, same for all players each week
+function getWeeklyScenario(){
+  const now=new Date();const jan1=new Date(now.getFullYear(),0,1);
+  const weekNum=Math.ceil(((now-jan1)/86400000+jan1.getDay()+1)/7);
+  const allSc=Object.entries(SCENARIOS).flatMap(([pos,arr])=>arr.map(s=>({...s,_pos:pos})));
+  const hardPool=allSc.filter(s=>(s.diff||1)>=2);
+  let hash=weekNum*2654435761;hash=Math.abs(hash)%hardPool.length;
+  return hardPool[hash];
 }
 
 // ============================================================================
@@ -6791,6 +6930,7 @@ export default function App(){
   const seasonNextRef=useRef(null);
   const goHomeRef=useRef(null);
 
+  const[achCelebration,setAchCelebration]=useState(null); // Sprint D2: full-screen achievement celebration
   const[challengeMode,setChallengeMode]=useState(false);
   const[challengeId,setChallengeId]=useState(null);
   const[upgradeGatePass,setUpgradeGatePass]=useState(()=>sessionStorage.getItem('bsm_upgradeGate')==='true');
@@ -6805,6 +6945,8 @@ export default function App(){
   const[authLoading,setAuthLoading]=useState(false);
   const syncTimerRef=useRef(null);
   const lastSyncRef=useRef(null);
+  const localSaveTimerRef=useRef(null);
+  const placeholderNameRef=useRef(BASEBALL_NAMES[Math.floor(Math.random()*BASEBALL_NAMES.length)]);
   // Auth helpers
   const authFetch=useCallback(async(path,opts={})=>{
     const headers={...opts.headers};
@@ -6874,8 +7016,28 @@ export default function App(){
     }
     // Check for challenge in URL
     const hash=window.location.hash;if(hash.startsWith("#challenge=")){const cid=hash.slice(11);setChallengeId(cid);window.location.hash="";}
-    // Check for Stripe return
+    // Sprint D3: Check for 5-scenario challenge pack in URL
     const params=new URLSearchParams(window.location.search);
+    const cpkId=params.get("cpk");
+    if(cpkId){
+      window.history.replaceState({},"",window.location.pathname+window.location.hash);
+      fetch(WORKER_BASE+"/challenge/get",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({challengeId:cpkId})})
+        .then(r=>r.json()).then(d=>{
+          if(d.ok){
+            const allSc=Object.entries(SCENARIOS).flatMap(([p,arr])=>arr.map(s=>({...s,_pos:p})));
+            const matched=d.scenarioIds.map(sid=>allSc.find(s=>s.id===sid)).filter(Boolean);
+            if(matched.length===5){
+              setChallengePack({id:cpkId,scenarioIds:d.scenarioIds,scenarios:matched,round:0,results:[],creating:false,creatorName:d.creatorName,creatorScore:d.creatorScore});
+              const first=matched[0];
+              setPos(first._pos);setSc(first);setChoice(null);setOd(null);setRi(-1);setFo(null);setShowC(false);setShowExp(true);setScreen("play");
+              first.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80)});
+              setToast({e:"⚔️",n:"Challenge Accepted!",d:`Beat ${d.creatorName}'s score of ${d.creatorScore} pts!`});
+              setTimeout(()=>setToast(null),3500);
+            }
+          }
+        }).catch(()=>{});
+    }
+    // Check for Stripe return
     if(params.get("pro")==="success"){
       const plan=params.get("plan")||"monthly";
       const expiry=plan==="yearly"?Date.now()+365*86400000:Date.now()+31*86400000;
@@ -6908,14 +7070,34 @@ export default function App(){
         }).catch(()=>{setTimeout(()=>{setToast({e:"⚠️",n:"Error",d:"Could not verify promo code. Try again later."});setTimeout(()=>setToast(null),4000)},500)});
     }
   })()},[]);
+  // Sprint D1: Register service worker for push notifications
+  useEffect(()=>{
+    if("serviceWorker" in navigator){
+      navigator.serviceWorker.register("/sw.js").catch(()=>{});
+    }
+  },[]);
   // Sprint 4.2+4.5: Track session start with load performance
   useEffect(()=>{
     const perf=typeof performance!=="undefined"?performance.now():null;
     trackAnalyticsEvent("session_start",{level:stats.lv||1,gamesPlayed:stats.gp||0,scenariosCompleted:(stats.cl||[]).length,loadTimeMs:perf?Math.round(perf):null},{ageGroup:stats.ageGroup,isPro:stats.isPro});
   },[]);
-  // Save (local + debounced server sync)
+  // Save (debounced local + debounced server sync)
   useEffect(()=>{
-    (async()=>{try{await window.storage.set(STORAGE_KEY,JSON.stringify(stats))}catch{}})();
+    // Debounced local save (2s) with quota guard
+    if(localSaveTimerRef.current)clearTimeout(localSaveTimerRef.current);
+    localSaveTimerRef.current=setTimeout(()=>{
+      (async()=>{try{
+        const json=JSON.stringify(stats)
+        // Quota guard: warn if approaching 4MB (mobile Safari limit ~5MB)
+        if(json.length>4*1024*1024){
+          console.warn("[BSM] localStorage data exceeds 4MB — trimming aiHistory")
+          const trimmed={...stats,aiHistory:(stats.aiHistory||[]).slice(-20),sessionHistory:(stats.sessionHistory||[]).slice(-50)}
+          await window.storage.set(STORAGE_KEY,JSON.stringify(trimmed))
+        } else {
+          await window.storage.set(STORAGE_KEY,json)
+        }
+      }catch(e){console.warn("[BSM] localStorage save failed:",e.message)}})()
+    },2000);
     // Debounced server sync (3s after last change)
     if(authToken){
       if(syncTimerRef.current)clearTimeout(syncTimerRef.current);
@@ -7054,6 +7236,59 @@ export default function App(){
     }
     setTimeout(()=>setToast(null),3000);
   },[sc]);
+
+  // Sprint D3: 5-Scenario Challenge a Friend system
+  const[challengePack,setChallengePack]=useState(null); // {id,scenarioIds,round,results,creatorScore,creatorName,challengerName,challengerScore,winner}
+  const startChallengePack=useCallback(async()=>{
+    const allSc=Object.entries(SCENARIOS).flatMap(([p,arr])=>arr.map(s=>({...s,_pos:p})));
+    const pool=allSc.filter(s=>(s.diff||1)<=maxDiff);
+    const shuffled=[...pool].sort(()=>Math.random()-.5).slice(0,5);
+    setChallengePack({scenarioIds:shuffled.map(s=>s.id),scenarios:shuffled,round:0,results:[],creating:true});
+    // Play the first scenario
+    const first=shuffled[0];
+    setPos(first._pos);setSc(first);setChoice(null);setOd(null);setRi(-1);setFo(null);setShowC(false);setLvlUp(null);setShowExp(true);setScreen("play");
+    first.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80)});
+  },[maxDiff]);
+  const advanceChallengePack=useCallback((isOpt,pts)=>{
+    setChallengePack(prev=>{
+      if(!prev)return null;
+      const newResults=[...prev.results,{isOpt,pts,scenarioId:prev.scenarioIds[prev.round]}];
+      const nextRound=prev.round+1;
+      if(nextRound>=5){
+        // Finished all 5 — submit to server
+        const totalPts=newResults.reduce((s,r)=>s+r.pts,0);
+        const correct=newResults.filter(r=>r.isOpt).length;
+        if(prev.creating){
+          // Creator finished — save to server
+          fetch(WORKER_BASE+"/challenge/create",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({creatorName:stats.displayName||"Player",scenarioIds:prev.scenarioIds,creatorScore:totalPts})})
+            .then(r=>r.json()).then(d=>{
+              if(d.ok)setChallengePack(p=>p?{...p,id:d.challengeId,round:5,results:newResults,done:true,totalPts,correct}:null);
+            }).catch(()=>{setChallengePack(p=>p?{...p,round:5,results:newResults,done:true,totalPts,correct,error:true}:null);});
+        } else {
+          // Challenger finished — submit score
+          fetch(WORKER_BASE+"/challenge/submit",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({challengeId:prev.id,challengerName:stats.displayName||"Challenger",challengerScore:totalPts})})
+            .then(r=>r.json()).then(d=>{
+              if(d.ok)setChallengePack(p=>p?{...p,round:5,results:newResults,done:true,totalPts,correct,winner:d.winner,creatorName:d.creatorName,creatorScore:d.creatorScore}:null);
+            }).catch(()=>{setChallengePack(p=>p?{...p,round:5,results:newResults,done:true,totalPts,correct,error:true}:null);});
+        }
+        return {...prev,round:5,results:newResults};
+      }
+      // Play next scenario
+      const next=prev.scenarios[nextRound];
+      setTimeout(()=>{
+        setPos(next._pos);setSc(next);setChoice(null);setOd(null);setRi(-1);setFo(null);setShowC(false);setShowExp(true);setScreen("play");
+        next.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80)});
+      },1500);
+      return {...prev,round:nextRound,results:newResults};
+    });
+  },[stats.displayName]);
+  const shareChallengeLink=useCallback(async(packId)=>{
+    const url=`${window.location.origin}${window.location.pathname}?cpk=${packId}`;
+    const shareData={title:"Baseball Strategy Master \u2014 5-Scenario Challenge",text:`I scored ${challengePack?.totalPts||0} pts on 5 scenarios. Can you beat me?`,url};
+    try{if(navigator.share){await navigator.share(shareData);return;}}catch(e){if(e.name==='AbortError')return;}
+    try{await navigator.clipboard.writeText(url);setToast({e:"📎",n:"Challenge Link Copied!",d:"Send to a friend!"});}catch{setToast({e:"⚠️",n:"Couldn't Copy",d:"Try again"});}
+    setTimeout(()=>setToast(null),3000);
+  },[challengePack]);
 
   const totalSc=Object.values(SCENARIOS).reduce((s,a)=>s+a.length,0);
   const remaining=DAILY_FREE-stats.todayPlayed;
@@ -7369,7 +7604,7 @@ export default function App(){
 
   const checkAch=useCallback((ns)=>{
     const earned=ns.achs||[];
-    for(const a of ACHS){if(!earned.includes(a.id)&&a.ck(ns)){setToast(a);snd.play('ach');setTimeout(()=>setToast(null),3500);return[...earned,a.id];}}
+    for(const a of ACHS){if(!earned.includes(a.id)&&a.ck(ns)){setAchCelebration(a);snd.play('ach');setTimeout(()=>setAchCelebration(null),4500);return[...earned,a.id];}}
     return earned;
   },[snd]);
 
@@ -7481,6 +7716,7 @@ export default function App(){
         todayPlayed:dailyMode?p.todayPlayed:(p.todayDate===today?p.todayPlayed:0)+1,todayDate:today,
         sp:isOpt?(p.sp||0)+1:0,
         dailyDone:dailyMode?true:p.dailyDone,dailyDate:dailyMode?today:(p.dailyDate||today),
+        weeklyDone:(()=>{const wk=getWeeklyScenario();if(sc&&sc.id===wk.id){const d=new Date();return`${d.getFullYear()}-W${Math.ceil(((d-new Date(d.getFullYear(),0,1))/86400000+new Date(d.getFullYear(),0,1).getDay()+1)/7)}`;}return p.weeklyDone})(),
         firstPlayDate:p.firstPlayDate||now,lastPlayDate:now,
         seasonCorrect:seasonMode&&isOpt?(p.seasonCorrect||0)+1:(p.seasonCorrect||0),
         wrongCounts:wc,posGrad,posPlayed:posP,masteryData:updMastery,aiHistory:aiHist,scenarioCalibration:scenCal,
@@ -7506,10 +7742,14 @@ export default function App(){
         // Correct — brief feedback then next
         setTimeout(()=>{setScreen("outcome");setTimeout(()=>{setShowC(true);setTimeout(()=>survivalNextRef.current?.(),1200)},200)},1400);
       }
+    }else if(challengePack&&challengePack.round<5){
+      // Sprint D3: Challenge pack — brief feedback then auto-advance
+      const cpPts=isOpt?15:rate>=55?8:rate>=35?4:2;
+      setTimeout(()=>{setScreen("outcome");setTimeout(()=>{setShowC(true);setTimeout(()=>advanceChallengePack(isOpt,cpPts),1500)},400)},1800);
     }else{
       setTimeout(()=>{setScreen("outcome");setTimeout(()=>setShowC(true),400);},1800);
     }
-  },[choice,sc,pos,snd,checkAch,stats.pts,dailyMode,speedMode,timer,survivalMode,survivalRun,seasonMode]);
+  },[choice,sc,pos,snd,checkAch,stats.pts,dailyMode,speedMode,timer,survivalMode,survivalRun,seasonMode,challengePack,advanceChallengePack]);
 
   const goHome=useCallback(()=>{
     // Show session recap for normal play with 3+ plays
@@ -7519,7 +7759,7 @@ export default function App(){
       sessionRef.current={plays:0,correct:0,concepts:[]};
     }
     sessionConceptsRef.current=[] // Sprint 3.1: reset session concept diversity tracker
-    setScreen("home");setPos(null);setSc(null);setChoice(null);setOd(null);setFo(null);setPanel(null);setLvlUp(null);setCoachMsg(null);setDailyMode(false);setSpeedMode(false);setSpeedRound(null);setSurvivalMode(false);setSurvivalRun(null);setChallengeMode(false);setSeasonMode(false);setSeasonStageIntro(null);setAiMode(false);setAiFallback(false);setExplainMore(null);setExplainLoading(false);if(timerRef.current)clearTimeout(timerRef.current)
+    setScreen("home");setPos(null);setSc(null);setChoice(null);setOd(null);setFo(null);setPanel(null);setLvlUp(null);setCoachMsg(null);setDailyMode(false);setSpeedMode(false);setSpeedRound(null);setSurvivalMode(false);setSurvivalRun(null);setChallengeMode(false);setChallengePack(null);setSeasonMode(false);setSeasonStageIntro(null);setAiMode(false);setAiFallback(false);setExplainMore(null);setExplainLoading(false);if(timerRef.current)clearTimeout(timerRef.current)
   },[speedMode,survivalMode,seasonMode,dailyMode,screen]);
   goHomeRef.current=goHome;
   const next=useCallback(()=>{setLvlUp(null);setExplainMore(null);setExplainLoading(false);if(speedMode){speedNextRef.current?.()}else if(survivalMode){survivalNextRef.current?.()}else if(seasonMode){seasonNextRef.current?.()}else if(dailyMode){goHomeRef.current?.()}else if(atLimit){setScreen("home");setTimeout(()=>setPanel('limit'),100)}else{startGame(pos,aiMode)}},[pos,startGame,dailyMode,speedMode,survivalMode,seasonMode,atLimit,aiMode]);
@@ -7737,6 +7977,18 @@ export default function App(){
         </div>
       </div>}
 
+      {/* Sprint D2: Achievement Celebration Overlay */}
+      {achCelebration&&<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.8)",zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",animation:"fi .3s ease-out"}} onClick={()=>setAchCelebration(null)}>
+        <Confetti active={true}/>
+        <div style={{textAlign:"center",animation:"su .4s ease-out",position:"relative",zIndex:1}} onClick={e=>e.stopPropagation()}>
+          <div style={{fontSize:80,marginBottom:8,animation:"pulse 1s ease-in-out infinite"}}>{achCelebration.e}</div>
+          <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:14,color:"#f59e0b",letterSpacing:3,marginBottom:4}}>ACHIEVEMENT UNLOCKED!</div>
+          <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:32,color:"white",letterSpacing:2,marginBottom:8}}>{achCelebration.n.toUpperCase()}</div>
+          <div style={{fontSize:14,color:"#9ca3af",maxWidth:280,margin:"0 auto",lineHeight:1.4}}>{achCelebration.d}</div>
+          <button onClick={()=>{setAchCelebration(null);}} style={{...btn("linear-gradient(135deg,#f59e0b,#d97706)"),width:"auto",padding:"8px 24px",marginTop:16,fontSize:13,color:"#000",fontWeight:700}}>Awesome!</button>
+        </div>
+      </div>}
+
       {/* Header */}
       {screen!=="onboard"&&<div style={{background:"rgba(0,0,0,.6)",borderBottom:"1px solid rgba(255,255,255,.06)",padding:"6px 12px",display:"flex",justifyContent:"space-between",alignItems:"center",backdropFilter:"blur(10px)",position:"sticky",top:0,zIndex:100}}>
         <div style={{display:"flex",alignItems:"center",gap:5,cursor:"pointer"}} onClick={goHome}>
@@ -7824,7 +8076,7 @@ export default function App(){
           <div style={{maxWidth:300,margin:"0 auto 20px"}}>
             <div style={{fontSize:11,color:"#6b7280",textTransform:"uppercase",letterSpacing:1,fontWeight:700,marginBottom:6,textAlign:"center"}}>Your Player Name</div>
             <input value={stats.displayName} onChange={e=>setStats(p=>({...p,displayName:e.target.value.slice(0,15)}))}
-              placeholder={BASEBALL_NAMES[Math.floor(Math.random()*BASEBALL_NAMES.length)]}
+              placeholder={placeholderNameRef.current}
               style={{width:"100%",background:"rgba(255,255,255,.04)",border:"1.5px solid rgba(255,255,255,.1)",borderRadius:10,padding:"10px 12px",color:"white",fontSize:14,textAlign:"center",outline:"none",marginBottom:12}}/>
           </div>
           <div style={{maxWidth:300,margin:"0 auto 20px",textAlign:"left"}}>
@@ -7955,7 +8207,8 @@ export default function App(){
               <button onClick={()=>setPanel(panel==='stats'?null:'stats')} style={{flex:"1 1 22%",background:"rgba(34,197,94,.05)",border:"1px solid rgba(34,197,94,.12)",borderRadius:10,padding:"8px 4px",color:"#22c55e",fontSize:10,fontWeight:600,cursor:"pointer",minHeight:38}}>📊 Stats</button>
               <button onClick={()=>setPanel(panel==='progress'?null:'progress')} style={{flex:"1 1 22%",background:"rgba(168,85,247,.05)",border:"1px solid rgba(168,85,247,.12)",borderRadius:10,padding:"8px 4px",color:"#a855f7",fontSize:10,fontWeight:600,cursor:"pointer",minHeight:38}}>📈 Map</button>
               <button onClick={()=>setPanel(panel==='cosmetics'?null:'cosmetics')} style={{flex:"1 1 22%",background:"rgba(236,72,153,.05)",border:"1px solid rgba(236,72,153,.12)",borderRadius:10,padding:"8px 4px",color:"#ec4899",fontSize:10,fontWeight:600,cursor:"pointer",minHeight:38}}>🎨 Theme</button>
-              <button onClick={()=>setPanel(panel==='lb'?null:'lb')} style={{flex:"1 1 100%",background:"rgba(234,179,8,.05)",border:"1px solid rgba(234,179,8,.12)",borderRadius:10,padding:"6px 4px",color:"#eab308",fontSize:10,fontWeight:600,cursor:"pointer",minHeight:34}}>🏆 Leaderboard</button>
+              <button onClick={()=>setPanel(panel==='lb'?null:'lb')} style={{flex:"1 1 45%",background:"rgba(234,179,8,.05)",border:"1px solid rgba(234,179,8,.12)",borderRadius:10,padding:"6px 4px",color:"#eab308",fontSize:10,fontWeight:600,cursor:"pointer",minHeight:34}}>🏆 Leaderboard</button>
+              <button onClick={()=>setPanel(panel==='team'?null:'team')} style={{flex:"1 1 45%",background:"rgba(6,182,212,.05)",border:"1px solid rgba(6,182,212,.12)",borderRadius:10,padding:"6px 4px",color:"#06b6d4",fontSize:10,fontWeight:600,cursor:"pointer",minHeight:34}}>{stats.teamCode?"👥 My Team":"👥 Join Team"}</button>
             </div>
           </div>}
 
@@ -7998,6 +8251,12 @@ export default function App(){
                 </div>
               )})}
             </div>
+            <button onClick={()=>{
+              generatePlayerCard(stats,(blob,dataUrl)=>{
+                if(navigator.share&&blob){navigator.share({files:[new File([blob],"bsm-card.png",{type:"image/png"})],title:"My Baseball Strategy Master Card"}).catch(()=>{})}
+                else if(dataUrl){const a=document.createElement("a");a.href=dataUrl;a.download="bsm-card.png";a.click()}
+              })
+            }} style={{...btn("linear-gradient(135deg,#06b6d4,#0891b2)"),...{fontSize:11,padding:"6px 14px",width:"100%",marginTop:8}}}>📸 Share My Player Card</button>
           </div>}
 
           {panel==='progress'&&<div style={{...card,marginBottom:12}}>
@@ -8092,6 +8351,60 @@ export default function App(){
                 <span style={{fontSize:10,color:"#6b7280"}}>{e.acc}%</span>
               </div>
             ))}
+          </div>}
+
+          {panel==='team'&&<div style={{...card,marginBottom:12}}>
+            <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:14,color:"#06b6d4",letterSpacing:1,marginBottom:6}}>TEAM ZONE</div>
+            {stats.teamCode?<div>
+              <div style={{background:"rgba(6,182,212,.06)",border:"1px solid rgba(6,182,212,.15)",borderRadius:10,padding:"10px 12px",marginBottom:8}}>
+                <div style={{fontSize:11,color:"#06b6d4",fontWeight:600,marginBottom:2}}>Team: {stats.teamName||"My Team"}</div>
+                <div style={{fontSize:10,color:"#6b7280"}}>Code: <span style={{fontFamily:"monospace",color:"#22d3ee",fontWeight:700,letterSpacing:2}}>{stats.teamCode}</span></div>
+                <div style={{fontSize:9,color:"#4b5563",marginTop:4}}>Share this code with teammates so they can join!</div>
+              </div>
+              <button onClick={async()=>{
+                try{
+                  const ph=btoa((stats.displayName||"anon")+":"+stats.firstPlayDate).slice(0,32);
+                  await fetch(AI_PROXY_URL+"/team/sync",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({code:stats.teamCode,playerHash:ph,stats})});
+                }catch{}
+              }} style={{...btn("linear-gradient(135deg,#06b6d4,#0891b2)"),...{fontSize:11,padding:"6px 14px",width:"100%",marginBottom:6}}}>Sync My Stats to Team</button>
+              <button onClick={()=>setStats(p=>({...p,teamCode:"",teamName:""}))} style={{...ghost,fontSize:10,width:"100%",color:"#6b7280"}}>Leave Team</button>
+            </div>:
+            <div>
+              <div style={{fontSize:11,color:"#9ca3af",marginBottom:8}}>Join your coach's team to track progress together, or create a team if you're a coach.</div>
+              <div style={{marginBottom:8}}>
+                <div style={{fontSize:10,color:"#06b6d4",fontWeight:600,marginBottom:4}}>JOIN A TEAM</div>
+                <div style={{display:"flex",gap:6}}>
+                  <input id="teamCodeInput" placeholder="Enter 6-letter code" maxLength={6} style={{flex:1,background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.1)",borderRadius:8,padding:"6px 10px",color:"white",fontSize:12,outline:"none",textTransform:"uppercase",letterSpacing:2,fontFamily:"monospace"}}/>
+                  <button onClick={async()=>{
+                    const code=document.getElementById("teamCodeInput").value.trim();
+                    if(code.length!==6)return;
+                    const ph=btoa((stats.displayName||"anon")+":"+stats.firstPlayDate).slice(0,32);
+                    try{
+                      const r=await fetch(AI_PROXY_URL+"/team/join",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({code,playerHash:ph,displayName:stats.displayName})});
+                      const d=await r.json();
+                      if(d.ok){setStats(p=>({...p,teamCode:code.toUpperCase(),teamName:d.teamName}));snd.play("lvl")}
+                    }catch{}
+                  }} style={{...btn("linear-gradient(135deg,#06b6d4,#0891b2)"),...{fontSize:11,padding:"6px 14px"}}}>Join</button>
+                </div>
+              </div>
+              <div style={{borderTop:"1px solid rgba(255,255,255,.06)",paddingTop:8,marginTop:4}}>
+                <div style={{fontSize:10,color:"#06b6d4",fontWeight:600,marginBottom:4}}>CREATE A TEAM (Coaches)</div>
+                <input id="teamNameInput" placeholder="Team name" maxLength={40} style={{width:"100%",background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.1)",borderRadius:8,padding:"6px 10px",color:"white",fontSize:12,outline:"none",marginBottom:4}}/>
+                <input id="coachNameInput" placeholder="Your name" maxLength={30} style={{width:"100%",background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.1)",borderRadius:8,padding:"6px 10px",color:"white",fontSize:12,outline:"none",marginBottom:4}}/>
+                <input id="coachPinInput" placeholder="4-8 digit PIN (to view reports)" maxLength={8} type="password" style={{width:"100%",background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.1)",borderRadius:8,padding:"6px 10px",color:"white",fontSize:12,outline:"none",marginBottom:6}}/>
+                <button onClick={async()=>{
+                  const tn=document.getElementById("teamNameInput").value.trim();
+                  const cn=document.getElementById("coachNameInput").value.trim();
+                  const cp=document.getElementById("coachPinInput").value.trim();
+                  if(!tn||!cn||cp.length<4)return;
+                  try{
+                    const r=await fetch(AI_PROXY_URL+"/team/create",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({teamName:tn,coachName:cn,coachPin:cp})});
+                    const d=await r.json();
+                    if(d.ok){setStats(p=>({...p,teamCode:d.code,teamName:tn}));snd.play("lvl")}
+                  }catch{}
+                }} style={{...btn("linear-gradient(135deg,#06b6d4,#0891b2)"),...{fontSize:11,padding:"6px 14px",width:"100%"}}}>Create Team</button>
+              </div>
+            </div>}
           </div>}
 
           {panel==='cosmetics'&&<div style={{...card,marginBottom:12}}>
@@ -8297,6 +8610,29 @@ export default function App(){
             </div>
           );})()}
 
+          {/* Sprint D4: Scenario of the Week */}
+          {stats.gp>=5&&(()=>{const weekly=getWeeklyScenario();const wm=POS_META[weekly._pos];const now=new Date();const weekKey=`${now.getFullYear()}-W${Math.ceil(((now-new Date(now.getFullYear(),0,1))/86400000+new Date(now.getFullYear(),0,1).getDay()+1)/7)}`;const done=(stats.weeklyDone===weekKey);return(
+            <div style={{marginBottom:12,background:done?"rgba(59,130,246,.04)":"linear-gradient(135deg,rgba(59,130,246,.08),rgba(37,99,235,.04))",border:`1.5px solid ${done?"rgba(59,130,246,.15)":"rgba(59,130,246,.25)"}`,borderRadius:14,padding:14,position:"relative",overflow:"hidden"}}
+              onClick={done?undefined:()=>{setPos(weekly._pos);setSc(weekly);setChoice(null);setOd(null);setRi(-1);setFo(null);setShowC(false);setShowExp(true);setScreen("play");weekly.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80)})}}>
+              <div style={{display:"flex",alignItems:"center",gap:12,position:"relative"}}>
+                <div style={{width:48,height:48,borderRadius:12,background:done?"rgba(59,130,246,.1)":"linear-gradient(135deg,#2563eb,#3b82f6)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:24,flexShrink:0}}>
+                  {done?"✅":"🏆"}
+                </div>
+                <div style={{flex:1}}>
+                  <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:2}}>
+                    <span style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:14,letterSpacing:1,color:done?"#3b82f6":"#60a5fa"}}>SCENARIO OF THE WEEK</span>
+                    <span style={{background:"rgba(59,130,246,.15)",border:"1px solid rgba(59,130,246,.25)",borderRadius:6,padding:"1px 6px",fontSize:9,fontWeight:800,color:"#60a5fa"}}>PRO+</span>
+                  </div>
+                  <div style={{fontSize:11,color:done?"#6b7280":"#d1d5db",lineHeight:1.3}}>
+                    {done?"Completed this week! New challenge next Monday."
+                      :<>{wm.emoji} {weekly.title} · <span style={{color:DIFF_TAG[(weekly.diff||1)-1].c}}>{"⭐".repeat(weekly.diff||1)}</span></>}
+                  </div>
+                </div>
+                {!done&&<div style={{color:"#60a5fa",fontSize:20,flexShrink:0,cursor:"pointer"}}>▶</div>}
+              </div>
+            </div>
+          );})()}
+
           {/* Season Mode */}
           {(()=>{const stage=getSeasonStage(stats.seasonGame);const pct=Math.round((stats.seasonGame/SEASON_TOTAL)*100);return(
             <div onClick={stats.seasonComplete?()=>setStats(p=>({...p,seasonGame:0,seasonCorrect:0,seasonComplete:false})):startSeason} style={{background:"linear-gradient(135deg,rgba(245,158,11,.06),rgba(234,179,8,.03))",border:"1px solid rgba(245,158,11,.15)",borderRadius:14,padding:"12px 14px",cursor:"pointer",marginBottom:12}}>
@@ -8322,17 +8658,22 @@ export default function App(){
           );})()}
 
           {/* Game Modes */}
-          {stats.gp>=3&&<div style={{display:"flex",gap:8,marginBottom:12}}>
-            <div onClick={startSpeedRound} style={{flex:1,background:"linear-gradient(135deg,rgba(239,68,68,.08),rgba(220,38,38,.04))",border:"1px solid rgba(239,68,68,.2)",borderRadius:14,padding:"16px 12px",textAlign:"center",cursor:"pointer",minHeight:48}}>
+          {stats.gp>=3&&<div style={{display:"flex",gap:8,marginBottom:12,flexWrap:"wrap"}}>
+            <div onClick={startSpeedRound} style={{flex:"1 1 45%",background:"linear-gradient(135deg,rgba(239,68,68,.08),rgba(220,38,38,.04))",border:"1px solid rgba(239,68,68,.2)",borderRadius:14,padding:"16px 12px",textAlign:"center",cursor:"pointer",minHeight:48}}>
               <div style={{fontSize:22,marginBottom:3}}>⚡</div>
               <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:14,color:"#ef4444",letterSpacing:1}}>SPEED ROUND</div>
               <div style={{fontSize:10,color:"#9ca3af",marginTop:3}}>5 scenarios · 15s timer</div>
             </div>
-            <div onClick={startSurvival} style={{flex:1,background:"linear-gradient(135deg,rgba(168,85,247,.08),rgba(124,58,237,.04))",border:"1px solid rgba(168,85,247,.2)",borderRadius:14,padding:"16px 12px",textAlign:"center",cursor:"pointer",minHeight:48}}>
+            <div onClick={startSurvival} style={{flex:"1 1 45%",background:"linear-gradient(135deg,rgba(168,85,247,.08),rgba(124,58,237,.04))",border:"1px solid rgba(168,85,247,.2)",borderRadius:14,padding:"16px 12px",textAlign:"center",cursor:"pointer",minHeight:48}}>
               <div style={{fontSize:22,marginBottom:3}}>💀</div>
               <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:14,color:"#a855f7",letterSpacing:1}}>SURVIVAL</div>
               <div style={{fontSize:10,color:"#9ca3af",marginTop:3}}>Until you miss{stats.survivalBest>0?` · Best: ${stats.survivalBest}`:""}</div>
               <div style={{fontSize:8,color:"#6b7280",marginTop:2}}>1-3 Rookie · 4-6 Pro · 7+ All-Star</div>
+            </div>
+            <div onClick={startChallengePack} style={{flex:"1 1 100%",background:"linear-gradient(135deg,rgba(59,130,246,.08),rgba(37,99,235,.04))",border:"1px solid rgba(59,130,246,.2)",borderRadius:14,padding:"14px 12px",textAlign:"center",cursor:"pointer",minHeight:48}}>
+              <div style={{fontSize:22,marginBottom:3}}>⚔️</div>
+              <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:14,color:"#3b82f6",letterSpacing:1}}>CHALLENGE A FRIEND</div>
+              <div style={{fontSize:10,color:"#9ca3af",marginTop:3}}>Play 5 scenarios · Share link · Compare scores</div>
             </div>
           </div>}
 
@@ -8484,6 +8825,15 @@ export default function App(){
           <div style={{display:"flex",justifyContent:"center",gap:8,marginTop:8,flexWrap:"wrap",alignItems:"center"}}>
             <button onClick={()=>{const v=!stats.soundOn;setStats(p=>({...p,soundOn:v}));snd.setEnabled(v)}} style={{...ghost,fontSize:10}}>{stats.soundOn?"🔊 Sound On":"🔇 Sound Off"}</button>
             <span style={{color:"#374151"}}>·</span>
+            <button onClick={async()=>{
+              if(!("Notification" in window)){setToast({e:"⚠️",n:"Not Supported",d:"Your browser doesn't support notifications"});setTimeout(()=>setToast(null),3000);return;}
+              if(Notification.permission==="granted"){setToast({e:"🔔",n:"Already Enabled",d:"You'll get daily reminders!"});setTimeout(()=>setToast(null),3000);return;}
+              const perm=await Notification.requestPermission();
+              if(perm==="granted"){setToast({e:"🔔",n:"Notifications On!",d:"We'll remind you about Daily Diamond"});snd.play('ach');}
+              else{setToast({e:"🔕",n:"Notifications Off",d:"You can enable them later in settings"});}
+              setTimeout(()=>setToast(null),3000);
+            }} style={{...ghost,fontSize:10}}>{"Notification" in window&&Notification.permission==="granted"?"🔔 Reminders On":"🔕 Reminders"}</button>
+            <span style={{color:"#374151"}}>·</span>
             <button onClick={()=>{const groups=AGE_GROUPS.map(a=>a.id);const cur=groups.indexOf(stats.ageGroup);const next=groups[(cur+1)%groups.length];setStats(p=>({...p,ageGroup:next}))}} style={{...ghost,fontSize:10}}>🎂 {stats.ageGroup}</button>
             <span style={{color:"#374151"}}>·</span>
             <button onClick={()=>{
@@ -8568,6 +8918,11 @@ export default function App(){
               a.download=`bsm-analytics-${new Date().toISOString().slice(0,10)}.json`;a.click();URL.revokeObjectURL(url);
             }} style={{...ghost,fontSize:10,marginTop:4,width:"100%"}}>📊 Export Analytics (JSON)</button>
           </div>}
+          {/* Footer links */}
+          <div style={{textAlign:"center",marginTop:20,paddingTop:12,borderTop:"1px solid rgba(255,255,255,.06)"}}>
+            <a href="/privacy.html" target="_blank" rel="noopener" style={{fontSize:10,color:"#6b7280",textDecoration:"none",marginRight:16}}>Privacy Policy</a>
+            <a href="/terms.html" target="_blank" rel="noopener" style={{fontSize:10,color:"#6b7280",textDecoration:"none"}}>Terms of Service</a>
+          </div>
         </div>}
 
         {/* PLAYING */}
@@ -8589,6 +8944,7 @@ export default function App(){
               {speedMode&&<span style={{background:"rgba(239,68,68,.15)",border:"1px solid rgba(239,68,68,.25)",borderRadius:7,padding:"2px 7px",fontSize:9,fontWeight:700,color:"#ef4444"}}>⚡ {speedRound?speedRound.round+1:1}/5</span>}
               {dailyMode&&<span style={{background:"rgba(245,158,11,.15)",border:"1px solid rgba(245,158,11,.25)",borderRadius:7,padding:"2px 7px",fontSize:9,fontWeight:700,color:"#f59e0b"}}>💎 Daily · 2x XP</span>}
               {seasonMode&&(()=>{const st=getSeasonStage(stats.seasonGame);return <span style={{background:`${st.color}15`,border:`1px solid ${st.color}25`,borderRadius:7,padding:"2px 7px",fontSize:9,fontWeight:700,color:st.color}}>{st.emoji} {st.name}</span>})()}
+              {challengePack&&<span style={{background:"rgba(59,130,246,.15)",border:"1px solid rgba(59,130,246,.25)",borderRadius:7,padding:"2px 7px",fontSize:9,fontWeight:700,color:"#3b82f6"}}>⚔️ {(challengePack.round||0)+1}/5</span>}
               {aiMode&&<span style={{background:"rgba(168,85,247,.15)",border:"1px solid rgba(168,85,247,.25)",borderRadius:7,padding:"2px 7px",fontSize:9,fontWeight:700,color:"#a855f7"}}>🤖 AI</span>}
               {aiFallback&&!aiMode&&<span style={{background:"rgba(59,130,246,.12)",border:"1px solid rgba(59,130,246,.2)",borderRadius:7,padding:"2px 7px",fontSize:9,fontWeight:700,color:"#60a5fa"}}>📚 Practice</span>}
               <span style={{fontSize:9,color:DIFF_TAG[(sc.diff||1)-1].c}}>{"⭐".repeat(sc.diff||1)}</span>
@@ -8824,6 +9180,34 @@ export default function App(){
             </div>}
             <button onClick={startSurvival} style={{...btn("linear-gradient(135deg,#7c3aed,#a855f7)"),...{marginBottom:6,boxShadow:"0 4px 12px rgba(168,85,247,.25)"}}}>💀 Try Again</button>
             <button onClick={goHome} style={{...btn("rgba(255,255,255,.06)"),...{fontSize:12}}}>← Back to Home</button>
+          </div>);
+        })()}
+
+        {/* Sprint D3: CHALLENGE PACK RESULTS */}
+        {challengePack&&challengePack.done&&screen==="play"&&(()=>{
+          const cp=challengePack;const correct=cp.correct;const total=cp.totalPts;
+          const isCreator=cp.creating;const won=cp.winner==="challenger"?"You win!":cp.winner==="creator"?"They win!":"It's a tie!";
+          return(<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.85)",zIndex:250,display:"flex",alignItems:"center",justifyContent:"center",animation:"fi .3s ease-out"}}>
+            <div style={{textAlign:"center",maxWidth:360,padding:"20px",width:"90%"}}>
+              <div style={{fontSize:56,marginBottom:8}}>⚔️</div>
+              <h2 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:28,letterSpacing:2,color:"#3b82f6",marginBottom:4}}>{isCreator?"CHALLENGE CREATED":"CHALLENGE COMPLETE"}</h2>
+              <p style={{color:"#9ca3af",fontSize:12,marginBottom:16}}>{correct}/5 correct \u2014 {total} points</p>
+              <div style={{display:"flex",justifyContent:"space-around",maxWidth:300,margin:"0 auto 16px"}}>
+                {[{v:correct+"/5",l:"Correct",c:"#22c55e"},{v:total,l:"Points",c:"#f59e0b"}].map((s,i)=>(
+                  <div key={i}><div style={{fontSize:22,fontWeight:800,color:s.c}}>{s.v}</div><div style={{fontSize:9,color:"#6b7280",marginTop:1}}>{s.l}</div></div>
+                ))}
+              </div>
+              {!isCreator&&cp.winner&&<div style={{background:"rgba(59,130,246,.08)",border:"1px solid rgba(59,130,246,.2)",borderRadius:10,padding:"10px 16px",marginBottom:16}}>
+                <div style={{fontSize:11,color:"#6b7280",marginBottom:4}}>{cp.creatorName}: {cp.creatorScore} pts vs You: {total} pts</div>
+                <div style={{fontSize:20,fontWeight:800,color:cp.winner==="challenger"?"#22c55e":cp.winner==="tie"?"#f59e0b":"#ef4444"}}>{won}</div>
+              </div>}
+              {isCreator&&cp.id&&<div style={{marginBottom:16}}>
+                <button onClick={()=>shareChallengeLink(cp.id)} style={{...btn("linear-gradient(135deg,#3b82f6,#2563eb)"),boxShadow:"0 4px 12px rgba(59,130,246,.25)"}}>📎 Send Challenge to a Friend</button>
+                <p style={{color:"#6b7280",fontSize:10,marginTop:6}}>They'll play the same 5 scenarios and try to beat your score!</p>
+              </div>}
+              {cp.error&&<p style={{color:"#ef4444",fontSize:11,marginBottom:8}}>Couldn't save to server \u2014 but your score counted locally!</p>}
+              <button onClick={goHome} style={{...btn("rgba(255,255,255,.06)"),...{fontSize:12}}}>← Back to Home</button>
+            </div>
           </div>);
         })()}
 

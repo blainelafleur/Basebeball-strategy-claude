@@ -4,15 +4,13 @@
 
 const ALLOWED_ORIGINS = [
   "https://bsm-app.pages.dev",
-  "https://baseball-strategy-master-blafleur.replit.app",
-  "http://localhost:3000",
-  "http://localhost:5000",
 ];
 
 const RATE_LIMIT_AI = 10; // AI proxy: req/min/IP
 const RATE_LIMIT_AUTH = 20; // auth endpoints: req/min/IP
 const RATE_LIMIT_SYNC = 30; // sync: req/min/user
 const RATE_LIMIT_VERIFY = 20; // verify-pro: req/min/IP
+const RATE_LIMIT_PROMO = 5; // promo code: req/min/IP (tight to prevent brute-force)
 const LOGIN_MAX_ATTEMPTS = 5; // per email per 15 min
 const SESSION_TTL = 30 * 24 * 60 * 60 * 1000; // 30 days
 const VERIFY_TTL = 24 * 60 * 60 * 1000; // 24 hours
@@ -852,6 +850,315 @@ async function handleErrorsSummary(request, env, cors) {
   }
 }
 
+// --- Sprint C1: Team code system ---
+
+// D1 migration for teams:
+// CREATE TABLE IF NOT EXISTS teams (
+//   id TEXT PRIMARY KEY,
+//   code TEXT UNIQUE NOT NULL,
+//   name TEXT NOT NULL,
+//   coach_name TEXT NOT NULL,
+//   coach_pin TEXT NOT NULL,
+//   created_at INTEGER NOT NULL
+// );
+// CREATE INDEX IF NOT EXISTS idx_teams_code ON teams(code);
+//
+// CREATE TABLE IF NOT EXISTS team_members (
+//   id TEXT PRIMARY KEY,
+//   team_id TEXT NOT NULL,
+//   player_hash TEXT NOT NULL,
+//   display_name TEXT NOT NULL DEFAULT 'Player',
+//   last_sync INTEGER NOT NULL,
+//   stats_json TEXT,
+//   FOREIGN KEY(team_id) REFERENCES teams(id)
+// );
+// CREATE INDEX IF NOT EXISTS idx_members_team ON team_members(team_id);
+// CREATE UNIQUE INDEX IF NOT EXISTS idx_members_unique ON team_members(team_id, player_hash);
+
+const RATE_LIMIT_TEAM = 20;
+
+function generateTeamCode() {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let code = "";
+  for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
+  return code;
+}
+
+// POST /team/create — coach creates a team
+async function handleTeamCreate(request, env, cors) {
+  let body;
+  try { body = await request.json(); } catch {
+    return jsonResponse({ ok: false, error: "Invalid JSON" }, 400, cors);
+  }
+
+  const { teamName, coachName, coachPin } = body;
+  if (!teamName || !coachName || !coachPin) {
+    return jsonResponse({ ok: false, error: "Team name, coach name, and PIN required" }, 400, cors);
+  }
+  if (String(coachPin).length < 4 || String(coachPin).length > 8) {
+    return jsonResponse({ ok: false, error: "PIN must be 4-8 characters" }, 400, cors);
+  }
+
+  const teamId = generateId();
+  const code = generateTeamCode();
+  const now = Date.now();
+
+  try {
+    await env.DB.prepare(
+      "INSERT INTO teams (id, code, name, coach_name, coach_pin, created_at) VALUES (?, ?, ?, ?, ?, ?)"
+    ).bind(teamId, code, teamName.trim().slice(0, 40), coachName.trim().slice(0, 30), String(coachPin), now).run();
+
+    return jsonResponse({ ok: true, teamId, code, teamName: teamName.trim() }, 201, cors);
+  } catch (err) {
+    // Retry with different code on unique constraint violation
+    const code2 = generateTeamCode();
+    try {
+      await env.DB.prepare(
+        "INSERT INTO teams (id, code, name, coach_name, coach_pin, created_at) VALUES (?, ?, ?, ?, ?, ?)"
+      ).bind(teamId, code2, teamName.trim().slice(0, 40), coachName.trim().slice(0, 30), String(coachPin), now).run();
+      return jsonResponse({ ok: true, teamId, code: code2, teamName: teamName.trim() }, 201, cors);
+    } catch {
+      return jsonResponse({ ok: false, error: "Failed to create team" }, 500, cors);
+    }
+  }
+}
+
+// POST /team/join — player joins a team
+async function handleTeamJoin(request, env, cors) {
+  let body;
+  try { body = await request.json(); } catch {
+    return jsonResponse({ ok: false, error: "Invalid JSON" }, 400, cors);
+  }
+
+  const { code, playerHash, displayName } = body;
+  if (!code || !playerHash) {
+    return jsonResponse({ ok: false, error: "Team code and player ID required" }, 400, cors);
+  }
+
+  const team = await env.DB.prepare("SELECT * FROM teams WHERE code = ?").bind(code.toUpperCase().trim()).first();
+  if (!team) return jsonResponse({ ok: false, error: "Team not found" }, 404, cors);
+
+  const memberId = generateId();
+  const now = Date.now();
+  const name = (displayName || "Player").trim().slice(0, 15);
+
+  try {
+    await env.DB.prepare(
+      "INSERT INTO team_members (id, team_id, player_hash, display_name, last_sync, stats_json) VALUES (?, ?, ?, ?, ?, '{}') ON CONFLICT(team_id, player_hash) DO UPDATE SET display_name = excluded.display_name, last_sync = excluded.last_sync"
+    ).bind(memberId, team.id, playerHash.slice(0, 32), name, now).run();
+
+    return jsonResponse({ ok: true, teamName: team.name, coachName: team.coach_name }, 200, cors);
+  } catch (err) {
+    return jsonResponse({ ok: false, error: "Failed to join team" }, 500, cors);
+  }
+}
+
+// POST /team/sync — player syncs stats to team
+async function handleTeamSync(request, env, cors) {
+  let body;
+  try { body = await request.json(); } catch {
+    return jsonResponse({ ok: false, error: "Invalid JSON" }, 400, cors);
+  }
+
+  const { code, playerHash, stats } = body;
+  if (!code || !playerHash || !stats) {
+    return jsonResponse({ ok: false, error: "Code, player hash, and stats required" }, 400, cors);
+  }
+
+  const team = await env.DB.prepare("SELECT id FROM teams WHERE code = ?").bind(code.toUpperCase().trim()).first();
+  if (!team) return jsonResponse({ ok: false, error: "Team not found" }, 404, cors);
+
+  // Only store aggregate stats, not the full player state
+  const summary = JSON.stringify({
+    gp: stats.gp || 0,
+    pts: stats.pts || 0,
+    str: stats.str || 0,
+    bs: stats.bs || 0,
+    ds: stats.ds || 0,
+    lv: stats.lv || 1,
+    co: stats.co || 0,
+    cl: (stats.cl || []).length,
+    ps: stats.ps || {},
+    posPlayed: stats.posPlayed || {},
+    ageGroup: stats.ageGroup || "",
+    masteryData: stats.masteryData ? {
+      concepts: Object.fromEntries(
+        Object.entries(stats.masteryData.concepts || {}).map(([k, v]) => [k, { correct: v.correct || 0, total: v.total || 0 }])
+      )
+    } : {},
+  }).slice(0, 8192);
+
+  const now = Date.now();
+  await env.DB.prepare(
+    "UPDATE team_members SET stats_json = ?, last_sync = ? WHERE team_id = ? AND player_hash = ?"
+  ).bind(summary, now, team.id, playerHash.slice(0, 32)).run();
+
+  return jsonResponse({ ok: true }, 200, cors);
+}
+
+// POST /team/report — coach views team report (requires PIN)
+async function handleTeamReport(request, env, cors) {
+  let body;
+  try { body = await request.json(); } catch {
+    return jsonResponse({ ok: false, error: "Invalid JSON" }, 400, cors);
+  }
+
+  const { code, coachPin } = body;
+  if (!code || !coachPin) {
+    return jsonResponse({ ok: false, error: "Team code and PIN required" }, 400, cors);
+  }
+
+  const team = await env.DB.prepare("SELECT * FROM teams WHERE code = ?").bind(code.toUpperCase().trim()).first();
+  if (!team) return jsonResponse({ ok: false, error: "Team not found" }, 404, cors);
+  if (team.coach_pin !== String(coachPin)) {
+    return jsonResponse({ ok: false, error: "Incorrect PIN" }, 403, cors);
+  }
+
+  const members = await env.DB.prepare(
+    "SELECT display_name, last_sync, stats_json FROM team_members WHERE team_id = ? ORDER BY last_sync DESC"
+  ).bind(team.id).all();
+
+  const players = (members?.results || []).map(m => {
+    const s = m.stats_json ? JSON.parse(m.stats_json) : {};
+    return {
+      name: m.display_name,
+      lastActive: m.last_sync,
+      gamesPlayed: s.gp || 0,
+      points: s.pts || 0,
+      streak: s.ds || 0,
+      level: s.lv || 1,
+      scenariosCompleted: s.cl || 0,
+      positionAccuracy: s.ps || {},
+      conceptMastery: s.masteryData?.concepts || {},
+    };
+  });
+
+  // Aggregate team stats
+  const totalGames = players.reduce((a, p) => a + p.gamesPlayed, 0);
+  const activeThisWeek = players.filter(p => Date.now() - p.lastActive < 7 * 86400000).length;
+
+  // Find weakest concepts across team
+  const conceptTotals = {};
+  players.forEach(p => {
+    Object.entries(p.conceptMastery).forEach(([tag, data]) => {
+      if (!conceptTotals[tag]) conceptTotals[tag] = { correct: 0, total: 0 };
+      conceptTotals[tag].correct += data.correct || 0;
+      conceptTotals[tag].total += data.total || 0;
+    });
+  });
+  const weakConcepts = Object.entries(conceptTotals)
+    .filter(([, d]) => d.total >= 3)
+    .map(([tag, d]) => ({ tag, accuracy: Math.round((d.correct / d.total) * 100) }))
+    .sort((a, b) => a.accuracy - b.accuracy)
+    .slice(0, 5);
+
+  const strongConcepts = Object.entries(conceptTotals)
+    .filter(([, d]) => d.total >= 3)
+    .map(([tag, d]) => ({ tag, accuracy: Math.round((d.correct / d.total) * 100) }))
+    .sort((a, b) => b.accuracy - a.accuracy)
+    .slice(0, 5);
+
+  return jsonResponse({
+    ok: true,
+    team: { name: team.name, code: team.code, coachName: team.coach_name, created: team.created_at },
+    summary: { totalPlayers: players.length, activeThisWeek, totalGames, weakConcepts, strongConcepts },
+    players,
+  }, 200, cors);
+}
+
+// --- Sprint D3: Challenge a Friend ---
+
+// D1 migration for challenges:
+// CREATE TABLE IF NOT EXISTS challenges (
+//   id TEXT PRIMARY KEY,
+//   creator_name TEXT NOT NULL,
+//   creator_score INTEGER DEFAULT 0,
+//   scenario_ids TEXT NOT NULL,
+//   challenger_name TEXT,
+//   challenger_score INTEGER,
+//   created_at INTEGER NOT NULL,
+//   expires_at INTEGER NOT NULL
+// );
+
+// POST /challenge/create — create a 5-scenario challenge
+async function handleChallengeCreate(request, env, cors) {
+  let body;
+  try { body = await request.json(); } catch {
+    return jsonResponse({ ok: false, error: "Invalid JSON" }, 400, cors);
+  }
+
+  const { creatorName, scenarioIds, creatorScore } = body;
+  if (!scenarioIds || !Array.isArray(scenarioIds) || scenarioIds.length !== 5) {
+    return jsonResponse({ ok: false, error: "Exactly 5 scenario IDs required" }, 400, cors);
+  }
+
+  const challengeId = generateId().slice(0, 12);
+  const now = Date.now();
+  const expiresAt = now + 7 * 86400000; // 7 days
+
+  await env.DB.prepare(
+    "INSERT INTO challenges (id, creator_name, creator_score, scenario_ids, created_at, expires_at) VALUES (?, ?, ?, ?, ?, ?)"
+  ).bind(challengeId, (creatorName || "Player").slice(0, 15), creatorScore || 0, JSON.stringify(scenarioIds), now, expiresAt).run();
+
+  return jsonResponse({ ok: true, challengeId, expiresAt }, 201, cors);
+}
+
+// POST /challenge/get — retrieve a challenge
+async function handleChallengeGet(request, env, cors) {
+  let body;
+  try { body = await request.json(); } catch {
+    return jsonResponse({ ok: false, error: "Invalid JSON" }, 400, cors);
+  }
+
+  const { challengeId } = body;
+  if (!challengeId) return jsonResponse({ ok: false, error: "Challenge ID required" }, 400, cors);
+
+  const challenge = await env.DB.prepare(
+    "SELECT * FROM challenges WHERE id = ?"
+  ).bind(challengeId).first();
+
+  if (!challenge) return jsonResponse({ ok: false, error: "Challenge not found" }, 404, cors);
+  if (challenge.expires_at < Date.now()) return jsonResponse({ ok: false, error: "Challenge expired" }, 410, cors);
+
+  return jsonResponse({
+    ok: true,
+    creatorName: challenge.creator_name,
+    creatorScore: challenge.creator_score,
+    scenarioIds: JSON.parse(challenge.scenario_ids),
+    challengerName: challenge.challenger_name,
+    challengerScore: challenge.challenger_score,
+    expiresAt: challenge.expires_at,
+  }, 200, cors);
+}
+
+// POST /challenge/submit — challenger submits their score
+async function handleChallengeSubmit(request, env, cors) {
+  let body;
+  try { body = await request.json(); } catch {
+    return jsonResponse({ ok: false, error: "Invalid JSON" }, 400, cors);
+  }
+
+  const { challengeId, challengerName, challengerScore } = body;
+  if (!challengeId) return jsonResponse({ ok: false, error: "Challenge ID required" }, 400, cors);
+
+  const challenge = await env.DB.prepare("SELECT * FROM challenges WHERE id = ?").bind(challengeId).first();
+  if (!challenge) return jsonResponse({ ok: false, error: "Challenge not found" }, 404, cors);
+  if (challenge.challenger_score !== null) return jsonResponse({ ok: false, error: "Challenge already completed" }, 409, cors);
+
+  await env.DB.prepare(
+    "UPDATE challenges SET challenger_name = ?, challenger_score = ? WHERE id = ?"
+  ).bind((challengerName || "Challenger").slice(0, 15), challengerScore || 0, challengeId).run();
+
+  return jsonResponse({
+    ok: true,
+    creatorName: challenge.creator_name,
+    creatorScore: challenge.creator_score,
+    challengerName: (challengerName || "Challenger").slice(0, 15),
+    challengerScore: challengerScore || 0,
+    winner: (challengerScore || 0) > challenge.creator_score ? "challenger" : challenge.creator_score > (challengerScore || 0) ? "creator" : "tie",
+  }, 200, cors);
+}
+
 // --- Existing handlers ---
 
 // POST /validate-code — redeem a single-use promo code
@@ -1046,6 +1353,38 @@ export default {
       }
     }
 
+    // Sprint C1: Team endpoints
+    if (path.startsWith("/team/") && request.method === "POST") {
+      if (!checkRateLimit(`team:${ip}`, RATE_LIMIT_TEAM)) {
+        return jsonResponse({ ok: false, error: "Rate limited" }, 429, cors);
+      }
+      try {
+        if (path === "/team/create") return await handleTeamCreate(request, env, cors);
+        if (path === "/team/join") return await handleTeamJoin(request, env, cors);
+        if (path === "/team/sync") return await handleTeamSync(request, env, cors);
+        if (path === "/team/report") return await handleTeamReport(request, env, cors);
+        return jsonResponse({ error: "Not found" }, 404, cors);
+      } catch (err) {
+        console.error("[BSM Worker] Team error:", err);
+        return jsonResponse({ ok: false, error: "Server error" }, 500, cors);
+      }
+    }
+
+    // Sprint D3: Challenge a Friend endpoints
+    if (path.startsWith("/challenge/") && request.method === "POST") {
+      if (!checkRateLimit(`challenge:${ip}`, RATE_LIMIT_TEAM)) {
+        return jsonResponse({ ok: false, error: "Rate limited" }, 429, cors);
+      }
+      try {
+        if (path === "/challenge/create") return await handleChallengeCreate(request, env, cors);
+        if (path === "/challenge/get") return await handleChallengeGet(request, env, cors);
+        if (path === "/challenge/submit") return await handleChallengeSubmit(request, env, cors);
+        return jsonResponse({ error: "Not found" }, 404, cors);
+      } catch (err) {
+        return jsonResponse({ ok: false, error: "Server error" }, 500, cors);
+      }
+    }
+
     // Existing routes require POST
     if (request.method !== "POST" && request.method !== "GET") {
       return new Response("Method not allowed", { status: 405, headers: cors });
@@ -1060,7 +1399,12 @@ export default {
     }
 
     try {
-      if (path === "/validate-code") return await handleValidateCode(request, env, cors);
+      if (path === "/validate-code") {
+        if (!checkRateLimit(`promo:${ip}`, RATE_LIMIT_PROMO)) {
+          return jsonResponse({ valid: false, error: "Too many attempts. Try again in a minute." }, 429, cors);
+        }
+        return await handleValidateCode(request, env, cors);
+      }
       if (path === "/flag-scenario") return await handleFlagScenario(request, env, cors);
       return await handleAIProxy(request, env, cors);
     } catch (err) {

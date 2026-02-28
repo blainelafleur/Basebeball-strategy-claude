@@ -2,7 +2,7 @@
 
 ## Context
 
-**Where We Are:** A polished educational baseball game — 539 handcrafted scenarios across 15 categories, SVG field with 10 themes, avatar customization, season mode, coach mascot, survival/speed/daily modes, AI scenarios via xAI Grok + Cloudflare Worker proxy — running as a single-file React app (`index.jsx`, ~8,270 lines) on Replit. Free tier gives 8 plays/day with a well-designed limit screen and Daily Diamond always free. Pro gating, upgrade panel, and Stripe Payment Links are implemented. BRAIN knowledge system (v2.4.0) includes QUALITY_FIREWALL, CONSISTENCY_RULES, 7 knowledge maps, POS_PRINCIPLES, and Living Document System.
+**Where We Are:** A polished educational baseball game — 539 handcrafted scenarios across 15 categories, SVG field with 10 themes, avatar customization, season mode, coach mascot, survival/speed/daily modes, AI scenarios via xAI Grok + Cloudflare Worker proxy — running as a single-file React app (`index.jsx`, ~8,270 lines) on Cloudflare Pages. Free tier gives 8 plays/day with a well-designed limit screen and Daily Diamond always free. Pro gating, upgrade panel, and Stripe Payment Links are implemented. BRAIN knowledge system (v2.4.0) includes QUALITY_FIREWALL, CONSISTENCY_RULES, 7 knowledge maps, POS_PRINCIPLES, and Living Document System.
 
 **The Strategy:** Complete the Quality & Intelligence sprints (Phase 2.95) to fix the data model and make the AI actually smart. Then build production infrastructure. Then grow with social features and coach tools.
 
@@ -17,7 +17,7 @@
 
 ## Phase 1: "Make It Irresistible" (Game Polish) — COMPLETE
 
-All work in `index.jsx`. No backend changes. Shipped to Replit.
+All work in `index.jsx`. No backend changes. Shipped to Cloudflare Pages.
 
 ### 1.1 AI-Powered Coach Mascot — DONE
 - Expanded from 18 static lines to 65+ across success/warning/danger
@@ -265,7 +265,7 @@ Comprehensive improvement plan based on full audit (see `AUDIT_REPORT.md`). Four
 | 1 | Server-side Pro verification via Cloudflare Worker | DONE | /verify-pro, /activate-pro, /stripe-webhook endpoints; D1 subscriptions table; graceful degradation with client fallback; reconciliation for existing Pro users |
 | 2 | Real-time analytics pipeline (anonymized) | DONE | Batched event ingestion (30s flush), per-session random hash (no PII), 5 event types, /analytics + /analytics/summary endpoints, D1 analytics_events table |
 | 3 | A/B testing framework for AI prompts | DONE | Deterministic hash-based bucket assignment, 2 active tests (ai_temperature, ai_system_prompt), weighted variant selection, tracked in analytics |
-| 4 | Error monitoring + alerting for AI failures | DONE | Batched error reporting, auto-alert webhook (10 AI errors in 5 min), global JS/promise handlers, /error-report + /errors/summary endpoints, D1 error_logs table |
+| 4 | Error monitoring + alerting for AI failures | DONE | Batched error reporting, auto-alert webhook (10 AI errors in 5 min), global JS/promise handlers, /error-report + /errors/summary endpoints, D1 error_logs table. **TODO:** Set up Slack Incoming Webhook and run `npx wrangler secret put ALERT_WEBHOOK_URL` to enable live error alerts. |
 | 5 | Performance audit (bundle optimization) | DONE | 1.3MB raw / 352KB gzipped, shared style constants (S object), React.memo on Field + Board components, load time tracking in analytics |
 
 ---
@@ -461,7 +461,7 @@ Major scope change: port to Next.js for SSR, move to PostgreSQL for scale, add a
 |------|------|-------|
 | Claude API (AI scenarios) | ~$0.003-0.005/generation | Only for Pro users |
 | Stripe fees | 2.9% + $0.30/transaction | Standard |
-| Hosting (Replit) | Free tier or $7/mo | Current setup |
+| Hosting (Cloudflare Pages) | Free tier | Current setup |
 | At 100 Pro users | ~$490/mo revenue | Positive from day 1 |
 | At 1,000 Pro users | ~$4,900/mo revenue | Sustainable |
 

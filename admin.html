@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BSM Admin Dashboard</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0f172a;color:#e2e8f0;padding:20px;max-width:900px;margin:0 auto}
+h1{font-size:24px;color:#f59e0b;margin-bottom:4px}
+.sub{color:#64748b;font-size:13px;margin-bottom:24px}
+.auth{background:#1e293b;border:1px solid #334155;border-radius:12px;padding:20px;margin-bottom:20px}
+.auth input{background:#0f172a;border:1px solid #475569;border-radius:8px;padding:8px 12px;color:#e2e8f0;width:200px;margin-right:8px;font-size:14px}
+.auth button{background:#f59e0b;color:#000;border:none;border-radius:8px;padding:8px 16px;font-weight:700;cursor:pointer;font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:24px}
+.card{background:#1e293b;border:1px solid #334155;border-radius:12px;padding:16px}
+.card .label{font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+.card .value{font-size:28px;font-weight:800;color:#f59e0b}
+.card .detail{font-size:11px;color:#94a3b8;margin-top:4px}
+.section{background:#1e293b;border:1px solid #334155;border-radius:12px;padding:20px;margin-bottom:16px}
+.section h2{font-size:16px;color:#f59e0b;margin-bottom:12px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:8px;border-bottom:1px solid #334155;color:#64748b;font-size:11px;text-transform:uppercase}
+td{padding:8px;border-bottom:1px solid #1e293b}
+.loading{color:#64748b;font-style:italic}
+.error{color:#ef4444}
+.badge{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:600}
+.badge-green{background:rgba(34,197,94,.1);color:#22c55e;border:1px solid rgba(34,197,94,.2)}
+.badge-red{background:rgba(239,68,68,.1);color:#ef4444;border:1px solid rgba(239,68,68,.2)}
+</style>
+</head>
+<body>
+<h1>⚾ BSM Admin Dashboard</h1>
+<p class="sub">Sprint E1 — Analytics, errors, and app health at a glance</p>
+
+<div class="auth">
+  <label style="font-size:12px;color:#94a3b8;display:block;margin-bottom:6px">Admin Key</label>
+  <input type="password" id="adminKey" placeholder="Enter admin key">
+  <button onclick="loadDashboard()">Load</button>
+</div>
+
+<div id="dashboard" style="display:none">
+  <div class="grid" id="metrics"></div>
+
+  <div class="section">
+    <h2>Recent Errors</h2>
+    <div id="errors"><span class="loading">Loading...</span></div>
+  </div>
+
+  <div class="section">
+    <h2>Top Positions Played</h2>
+    <div id="positions"><span class="loading">Loading...</span></div>
+  </div>
+
+  <div class="section">
+    <h2>Conversion Funnel</h2>
+    <div id="funnel"><span class="loading">Loading...</span></div>
+  </div>
+</div>
+
+<script>
+const WORKER="https://bsm-ai-proxy.blafleur.workers.dev";
+async function loadDashboard(){
+  const key=document.getElementById("adminKey").value.trim();
+  if(!key){alert("Enter admin key");return;}
+  document.getElementById("dashboard").style.display="block";
+
+  // Analytics summary
+  try{
+    const r=await fetch(WORKER+"/analytics/summary",{headers:{"X-Admin-Key":key}});
+    const d=await r.json();
+    if(d.ok){
+      const m=d.summary||{};
+      document.getElementById("metrics").innerHTML=[
+        {label:"Total Events",value:m.totalEvents||0},
+        {label:"Unique Sessions",value:m.uniqueSessions||0},
+        {label:"Pro Users",value:m.proUsers||0},
+        {label:"Avg Games/Session",value:m.avgGamesPerSession||"—"},
+        {label:"Today Events",value:m.todayEvents||0},
+        {label:"Error Rate",value:(m.errorRate||0)+"%"},
+      ].map(c=>`<div class="card"><div class="label">${c.label}</div><div class="value">${c.value}</div></div>`).join("");
+    }else{
+      document.getElementById("metrics").innerHTML=`<div class="card"><span class="error">${d.error||"Auth failed"}</span></div>`;
+    }
+  }catch(e){
+    document.getElementById("metrics").innerHTML=`<div class="card"><span class="error">Network error</span></div>`;
+  }
+
+  // Errors
+  try{
+    const r=await fetch(WORKER+"/errors/summary",{headers:{"X-Admin-Key":key}});
+    const d=await r.json();
+    if(d.ok&&d.errors?.length){
+      document.getElementById("errors").innerHTML=`<table><tr><th>Time</th><th>Type</th><th>Message</th></tr>${d.errors.slice(0,20).map(e=>`<tr><td>${new Date(e.ts).toLocaleString()}</td><td><span class="badge badge-red">${e.type||"error"}</span></td><td>${(e.message||"").slice(0,100)}</td></tr>`).join("")}</table>`;
+    }else{
+      document.getElementById("errors").innerHTML="<span style='color:#22c55e'>No recent errors</span>";
+    }
+  }catch{
+    document.getElementById("errors").innerHTML="<span class='error'>Could not load errors</span>";
+  }
+
+  // Positions and funnel are mock placeholders — they aggregate from analytics events
+  document.getElementById("positions").innerHTML="<p style='color:#64748b;font-size:12px'>Position data aggregates from scenario_answer events. Connect your analytics pipeline to populate this view.</p>";
+  document.getElementById("funnel").innerHTML="<p style='color:#64748b;font-size:12px'>Funnel stages: first_play → 3_plays → limit_hit → upgrade_shown → pro_activated. Connect analytics pipeline to populate.</p>";
+}
+</script>
+</body>
+</html>

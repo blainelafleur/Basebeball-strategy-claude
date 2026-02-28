@@ -115,7 +115,7 @@ famous:20  rules:18  counts:18
 ## GitHub
 - Repo: https://github.com/blainelafleur/Basebeball-strategy-claude
 - Main file: index.jsx
-- Deploy target: Replit (https://baseball-strategy-master-blafleur.replit.app/)
+- Deploy target: Cloudflare Pages (https://bsm-app.pages.dev/)
 
 ## Style Preferences
 - Use simple, everyday language in commit messages and comments
