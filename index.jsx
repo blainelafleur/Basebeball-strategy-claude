@@ -3800,7 +3800,40 @@ const POS_PRINCIPLES = {
   famous:"Historical accuracy is paramount. Cite the actual year, teams, and players. Teach the strategic lesson the play illustrates. All 4 options must be decisions the real player/manager could have made in that moment.",
   rules:"Teach MLB Official Rules accurately. Include recent changes (pitch clock 2023, shift ban, universal DH). Focus on force vs tag, infield fly, balk, obstruction, interference. All options must be plausible interpretations.",
   counts:"Count-specific strategy driven by real batting averages. Hitter's counts (2-0, 3-1): aggressive. Pitcher's counts (0-2, 1-2): protect zone. Tie scenarios to real count leverage data."
-};
+}
+
+// Condensed position principles for AI prompt (cuts ~70% of token bloat)
+const AI_POS_PRINCIPLES = {
+  pitcher:"Pitch selection by count/situation. First-pitch strikes critical (.340 vs .167 on 0-2). Stretch with runners (windup=balk). Step off rubber=no balk. Never fake 3rd throw 1st (balk 2013+). Field bunts, cover 1B on grounders right side. Sprint cover home on WP/PB. Back up home and 3B only. NEVER cutoff/relay man.",
+  catcher:"Field general\u2014calls pitches by count/batter/situation. Frame borderlines. Block dirt. Quick transfer on steals. Priority on home pop-ups (turn back to field). Direct cutoff: Cut!/Cut two!/silence. Go to ball FIRST on WP/PB. Dropped 3rd strike: throw to 1B if open or 2 outs. Foul tip into glove=strike (can be K3).",
+  firstBase:"Scoop low throws, stretch toward throw. Hold runners. Charge bunts (2B covers 1B). CUTOFF on CF/RF throws home. 3-6-3 DP. Know force vs tag.",
+  secondBase:"DP pivot: touch 2nd, get off bag quick. RELAY on extra-base hits RIGHT side (RF line, RF-CF gap). Cover 1B when 1B is cutoff. Cover 1B on bunts. OF has fly priority over you going back.",
+  shortstop:"Infield captain. DP feed: firm chest-high. RELAY on extra-base hits LEFT side (LF line, LF-CF gap, deep CF). CUTOFF on throws to 3B. Cover 3B when 3B is cutoff. OF has fly priority over you going back.",
+  thirdBase:"Quick reactions, hot corner. Crash bunts hard. Guard line late/close. CUTOFF on LF singles to home. SS covers 3B when you're cutoff.",
+  leftField:"Priority over all infielders on flies. Hit cutoff man (3B is your cutoff home). Back up 3B on grounders. Relay man=SS on doubles.",
+  centerField:"Priority over ALL fielders on flies. Call loud/early. Gap routes. Back up 2B. Cutoff home=1B. Relay=SS on doubles.",
+  rightField:"Strong arm\u2014throw out runners at 3B/home. Back up 1B on EVERY grounder (most important routine job). Cutoff home=1B. Relay=2B on doubles.",
+  batter:"Count leverage: hitter's counts (2-0,3-1)=aggressive. Pitcher's counts (0-2,1-2)=protect zone, shorten swing. Two-strike='protect the plate' (same as 'expand zone'). R3 <2 outs=fly ball scores him. Sac bunts usually lower RE24 except weak hitter late/close/need 1 run.",
+  baserunner:"Steals break even ~72%. Read pitcher's first move. Tag-ups: leave on catch. Line drives: freeze. Never 1st/3rd out at 3B. Secondary leads key for WP/PB advancement. Delayed steal on sleepy pitchers. Scoring from 2nd: go on OF single 0-1 outs. Runner controls leads/jumps/reads\u2014coach controls signs.",
+  manager:"RE24 guides bunt decisions (usually bad except weak hitter/late/need 1 run). WP can justify bunt trailing 1, inn 7+. Steals need 72%. TTO: +30 BA pts 3rd time through\u2014pull starter. IBB increases RE24\u2014only if clear skill gap to next hitter. Cutoffs: 3B cuts LF, 1B cuts CF/RF. Manager decides pitching changes/positioning/signals\u2014NOT pitch selection.",
+  famous:"Historical accuracy paramount. Cite actual year/teams/players. Teach the strategic lesson. All 4 options must be decisions the real player/manager could have made.",
+  rules:"Teach MLB Official Rules accurately. Include 2023+ changes (pitch clock, shift ban, universal DH). Focus on force vs tag, infield fly, balk, obstruction, interference.",
+  counts:"Count-specific strategy from real batting averages. Hitter's counts (2-0,3-1): aggressive. Pitcher's counts (0-2,1-2): protect zone."
+}
+
+// Slim knowledge map injection for AI \u2014 max 1 most-relevant map per position
+const AI_MAP_PRIORITY = {
+  pitcher:"CUTOFF_RELAY_MAP", catcher:"FIRST_THIRD_MAP", firstBase:"CUTOFF_RELAY_MAP",
+  secondBase:"DP_POSITIONING_MAP", shortstop:"CUTOFF_RELAY_MAP", thirdBase:"BUNT_DEFENSE_MAP",
+  leftField:"CUTOFF_RELAY_MAP", centerField:"OF_COMMUNICATION_MAP", rightField:"CUTOFF_RELAY_MAP",
+  batter:"HIT_RUN_MAP", baserunner:"RUNDOWN_MAP", manager:"FIRST_THIRD_MAP",
+  famous:null, rules:null, counts:null
+}
+function getAIMap(position) {
+  const key = AI_MAP_PRIORITY[position]
+  return key && KNOWLEDGE_MAPS[key] ? `KEY REFERENCE:\n${KNOWLEDGE_MAPS[key]}` : ""
+}
+
 const KNOWLEDGE_MAPS = {
   CUTOFF_RELAY_MAP: `CUTOFF/RELAY ASSIGNMENTS (non-negotiable):
 SINGLE CUTS to HOME: LF→Home cutoff=3B. CF→Home cutoff=1B. RF→Home cutoff=1B.
@@ -6034,63 +6067,24 @@ async function generateAIScenario(position, stats, conceptsLearned = [], recentW
     masteryPrompt += `\nACTIVE ERROR PATTERN: "${p.label}" — ${p.aiInstruction}`;
   }
 
-  const prompt = `You are creating a baseball strategy scenario for an educational game aimed at young players (ages 8-18).
+  // Sprint 5: Condensed AI prompt for speed (cuts ~70% of input tokens)
+  const aiMapText = getAIMap(position)
+  const teachCtx = getTeachingContext(position, conceptsLearned, stats.ageGroup||"11-12")
+  const prompt = `Create a baseball strategy scenario for position: ${position}.
 
-PLAYER CONTEXT:
-- Level: ${lvl.n} (${stats.pts} points, ${stats.gp} games played)
-- Position: ${position} (${posStats.p} played, ${posAcc}% accuracy)
-- Target difficulty: ${diffTarget}/3 (1=Rookie, 2=Intermediate, 3=Advanced)
-- Concepts already mastered: ${conceptsLearned.length > 0 ? conceptsLearned.slice(-10).join("; ") : "none yet"}
-${weakAreas.length > 0 ? `- Personalization: ${weakAreas.join(". ")}` : ""}${masteryPrompt}
+PLAYER: Level ${lvl.n}, ${posStats.p} games at ${posAcc}% accuracy, difficulty ${diffTarget}/3.${conceptsLearned.length > 0 ? ` Mastered: ${conceptsLearned.slice(-8).join(", ")}.` : ""}
+${weakAreas.length > 0 ? weakAreas.join(" ") : ""}${masteryPrompt}${teachCtx}
 
-POSITION PRINCIPLES (authoritative — follow these strictly): ${POS_PRINCIPLES[position] || "No specific principles — use general baseball knowledge and ensure accuracy."}
+POSITION RULES: ${AI_POS_PRINCIPLES[position] || POS_PRINCIPLES[position] || "Use general baseball knowledge."}
 
-${getRelevantMaps(position)}
+${aiMapText}
 
-DATA REFERENCE (position-filtered, use in explanations when relevant):
-- ${formatBrainStats(position, stats.ageGroup, stats)}
-${getTeachingContext(position, conceptsLearned, stats.ageGroup||"11-12")}
+AUDIT: All 4 options must be actions THIS position performs at the SAME decision point. Best answer=coaching consensus. Manager=dugout decisions only. Baserunner=runner's physical actions only. rates[best] MUST be highest. score=[HOME,AWAY].
 
-SELF-AUDIT (content quality — structural issues are validated client-side):
-1. All 4 options must be actions THIS position performs at the SAME decision point. Don't mix pre-pitch and mid-play decisions.
-2. Best answer matches authoritative coaching consensus. Explanations cite correct rules (force vs tag, priority, relay).
-3. Statistics must be approximately correct — don't invent fake percentages.
-4. Bunt nuance: only teach "never bunt" in innings 1-6 or with strong hitters. Late/close trailing by 1 with weak hitter = WP may justify bunt.
-5. Foul tip (into glove) = strike, CAN be K3. Foul ball with 2 strikes = count stays. Bunted foul with 2 strikes = out.
-6. Manager options = dugout decisions only (no specific pitch types). Baserunner options = runner's physical actions only.
-${getRelevantAudits(position)}
+Respond with ONLY valid JSON:
+{"title":"Short Title","diff":${diffTarget},"description":"2-3 sentence scenario","situation":{"inning":"Bot 7","outs":1,"count":"2-1","runners":[1,3],"score":[3,2]},"options":["A","B","C","D"],"best":0,"explanations":["Why A","Why B","Why C","Why D"],"rates":[85,55,30,20],"concept":"One-sentence lesson","anim":"strike|strikeout|hit|groundout|flyout|steal|score|advance|catch|throwHome|doubleplay|bunt|walk|safe|freeze"}
 
-REQUIREMENTS:
-- Create ONE unique scenario the player hasn't seen before
-- It must teach a SPECIFIC baseball strategy concept not in the mastered list above
-- Include realistic MLB context (real stats, real situations)
-- Description should be 2-3 sentences, vivid and immersive
-- Exactly 4 options — one clearly optimal, one decent, two poor
-- Each explanation should be 1-2 sentences teaching the WHY
-- The concept should be a single memorable sentence
-- Success rates: optimal=75-90, decent=45-65, poor options=10-40
-- Use age-appropriate language but don't talk down
-
-Respond with ONLY a JSON object in this exact format (no markdown, no explanation):
-{
-  "title": "Short Catchy Title",
-  "diff": ${diffTarget},
-  "description": "Vivid 2-3 sentence scenario description",
-  "situation": {"inning": "Bot 7", "outs": 1, "count": "2-1", "runners": [1, 3], "score": [3, 2]},
-  "options": ["Option A", "Option B", "Option C", "Option D"],
-  "best": 0,
-  "explanations": ["Why A is best/worst", "Why B is best/worst", "Why C is best/worst", "Why D is best/worst"],
-  "rates": [85, 55, 30, 20],
-  "concept": "One-sentence strategic concept this teaches",
-  "anim": "one of: strike, strikeout, hit, groundout, flyout, steal, score, advance, catch, throwHome, doubleplay, bunt, walk, safe, freeze"
-}
-
-Rules for situation.runners: empty array [] = no runners, [1] = runner on 1st, [1,3] = runners on 1st and 3rd, [1,2,3] = bases loaded, etc.
-Rules for situation.count: use "B-S" format like "2-1" or "3-2", or "-" for fielding scenarios where count doesn't matter. B must be 0-3, S must be 0-2. INVALID: "3-3", "4-1", "2-3".
-Rules for situation.score: MUST be array format [HOME_RUNS, AWAY_RUNS] like [3, 2] = home leads 3-2. WARNING: standard box scores use away-home order, but this app uses HOME-AWAY. If the home team leads in your description, score[0] MUST be larger than score[1].
-Rules for best: 0-indexed integer matching the optimal option in the options array.
-RATES CONSTRAINT: rates[best] MUST be the highest value in the rates array. If best=2, then rates[2] must be larger than rates[0], rates[1], and rates[3].
-EXPLANATION ORDER: explanations[0] explains ONLY options[0], explanations[1] explains ONLY options[1], etc. Each explanation must reference the specific action in its corresponding option. The best answer's explanation should start positive. Wrong answer explanations should explain WHY it fails.`;
+count format: "B-S" (0-3 balls, 0-2 strikes) or "-". runners: [] empty, [1]=1st, [1,3]=1st+3rd. rates: optimal 75-90, decent 45-65, poor 10-40.`;
 
   try {
     // Sprint 4.3: Apply A/B test configs to AI generation
@@ -6106,7 +6100,7 @@ EXPLANATION ORDER: explanations[0] explains ONLY options[0], explanations[1] exp
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         model: "grok-4-1-fast",
-        max_tokens: 1500,
+        max_tokens: 800,
         temperature: aiTemp,
         messages: [
           { role: "system", content: "You are an expert baseball coach creating personalized training scenarios for the Baseball Strategy Master app. You always respond with ONLY a valid JSON object — no markdown, no code fences, no explanation text. Just the raw JSON." + systemSuffix },
@@ -6284,6 +6278,43 @@ EXPLANATION ORDER: explanations[0] explains ONLY options[0], explanations[1] exp
     reportError("ai_" + errType, detail || errType, { position });
     return { scenario: null, error: errType, detail };
   }
+}
+
+// Sprint 5: AI pre-generation cache \u2014 fetch next scenario in background
+const _aiCache = { scenario: null, position: null, fetching: false, controller: null }
+async function prefetchAIScenario(position, stats, conceptsLearned, recentWrong, aiHistory) {
+  if (_aiCache.fetching) return
+  if (_aiCache.scenario && _aiCache.position === position) return // already cached for this position
+  _aiCache.fetching = true
+  _aiCache.controller = new AbortController()
+  try {
+    console.log("[BSM] Pre-fetching AI scenario for", position)
+    const result = await generateAIScenario(position, stats, conceptsLearned, recentWrong, _aiCache.controller.signal, null, aiHistory)
+    if (result.scenario) {
+      _aiCache.scenario = result
+      _aiCache.position = position
+      console.log("[BSM] AI scenario pre-cached:", result.scenario.title)
+    }
+  } catch (e) {
+    console.warn("[BSM] Pre-fetch failed:", e.message)
+  } finally {
+    _aiCache.fetching = false
+    _aiCache.controller = null
+  }
+}
+function consumeCachedAI(position) {
+  if (_aiCache.scenario && _aiCache.position === position) {
+    const cached = _aiCache.scenario
+    _aiCache.scenario = null
+    _aiCache.position = null
+    console.log("[BSM] Using pre-cached AI scenario:", cached.scenario?.title)
+    return cached
+  }
+  return null
+}
+function cancelPrefetch() {
+  if (_aiCache.controller) { _aiCache.controller.abort(); _aiCache.controller = null }
+  _aiCache.fetching = false
 }
 
 // Sound
@@ -7532,11 +7563,15 @@ export default function App(){
         if(wrongSc)concept=wrongSc.concept;
       }
       const _aiHist=stats.aiHistory||[]
-      let result=await generateAIScenario(p,stats,stats.cl||[],stats.recentWrong||[],ctrl.signal,concept,_aiHist);
-      // Retry once on parse/role/rate errors (not timeout or abort — those won't change on retry)
-      if(!result?.scenario&&(result?.error==="parse"||result?.error==="role-violation"||result?.error==="rate-mismatch")){
-        console.log("[BSM] AI retry attempt (no targetConcept)...");
-        result=await generateAIScenario(p,stats,stats.cl||[],stats.recentWrong||[],ctrl.signal,null,_aiHist);
+      // Sprint 5: Try pre-cached scenario first for instant load
+      let result=consumeCachedAI(p)
+      if(!result){
+        result=await generateAIScenario(p,stats,stats.cl||[],stats.recentWrong||[],ctrl.signal,concept,_aiHist);
+        // Retry once on parse/role/rate errors (not timeout or abort — those won't change on retry)
+        if(!result?.scenario&&(result?.error==="parse"||result?.error==="role-violation"||result?.error==="rate-mismatch")){
+          console.log("[BSM] AI retry attempt (no targetConcept)...");
+          result=await generateAIScenario(p,stats,stats.cl||[],stats.recentWrong||[],ctrl.signal,null,_aiHist);
+        }
       }
       abortRef.current=null;
       setAiLoading(false);
@@ -7650,6 +7685,10 @@ export default function App(){
     const expArr=useSimple?sc.explSimple:sc.explanations;
     const o={cat,isOpt,exp:expArr[idx],bestExp:expArr[sc.best],bestOpt:sc.options[sc.best],concept:sc.concept,pts,chosen:sc.options[idx],rate,anim:sc.anim,speedBonus,timeLeft:timer};
     setOd(o);
+    // Sprint 5: Pre-fetch next AI scenario while player reads explanation
+    if(stats.isPro&&aiMode&&!speedMode&&!survivalMode){
+      prefetchAIScenario(pos,stats,stats.cl||[],stats.recentWrong||[],stats.aiHistory||[])
+    }
     // Track speed round result
     if(speedMode)setSpeedRound(sr=>sr?{...sr,results:[...sr.results,{isOpt,pts,speedBonus,timeLeft:timer,concept:sc.concept,pos}]}:sr);
     // Track survival run result
