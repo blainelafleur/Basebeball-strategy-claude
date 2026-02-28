@@ -6070,9 +6070,10 @@ async function generateAIScenario(position, stats, conceptsLearned = [], recentW
   // Sprint 5: Condensed AI prompt for speed (cuts ~70% of input tokens)
   const aiMapText = getAIMap(position)
   const teachCtx = getTeachingContext(position, conceptsLearned, stats.ageGroup||"11-12")
+  const masteredStr = conceptsLearned.length > 0 ? " Mastered: " + conceptsLearned.slice(-8).join(", ") + "." : ""
   const prompt = `Create a baseball strategy scenario for position: ${position}.
 
-PLAYER: Level ${lvl.n}, ${posStats.p} games at ${posAcc}% accuracy, difficulty ${diffTarget}/3.${conceptsLearned.length > 0 ? ` Mastered: ${conceptsLearned.slice(-8).join(", ")}.` : ""}
+PLAYER: Level ${lvl.n}, ${posStats.p} games at ${posAcc}% accuracy, difficulty ${diffTarget}/3.${masteredStr}
 ${weakAreas.length > 0 ? weakAreas.join(" ") : ""}${masteryPrompt}${teachCtx}
 
 POSITION RULES: ${AI_POS_PRINCIPLES[position] || POS_PRINCIPLES[position] || "Use general baseball knowledge."}
