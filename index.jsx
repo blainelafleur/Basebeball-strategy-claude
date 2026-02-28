@@ -7237,6 +7237,9 @@ export default function App(){
     setTimeout(()=>setToast(null),3000);
   },[sc]);
 
+  // Age-group difficulty cap (moved above challenge pack which depends on it)
+  const maxDiff=(AGE_GROUPS.find(a=>a.id===stats.ageGroup)||AGE_GROUPS[2]).maxDiff;
+
   // Sprint D3: 5-Scenario Challenge a Friend system
   const[challengePack,setChallengePack]=useState(null); // {id,scenarioIds,round,results,creatorScore,creatorName,challengerName,challengerScore,winner}
   const startChallengePack=useCallback(async()=>{
@@ -7295,7 +7298,6 @@ export default function App(){
   const atLimit=remaining<=0&&!stats.isPro;
   
   // INFIELD_CATS/OUTFIELD_CATS removed — individual position arrays replace fielder filtering
-  const maxDiff=(AGE_GROUPS.find(a=>a.id===stats.ageGroup)||AGE_GROUPS[2]).maxDiff;
 
   // Sprint 3.3: Difficulty auto-calibration — adjusts scenario priority based on player's actual performance
   const getPlayerDifficultyLevel=useCallback(()=>{
