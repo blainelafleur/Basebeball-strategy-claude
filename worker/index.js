@@ -1391,6 +1391,9 @@ export default {
     }
 
     if (request.method === "GET") {
+      if (path === "/health") {
+        return jsonResponse({ ok: true, ts: Date.now() }, 200, cors);
+      }
       return new Response("Method not allowed", { status: 405, headers: cors });
     }
 
