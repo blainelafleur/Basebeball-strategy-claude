@@ -6100,7 +6100,7 @@ count format: "B-S" (0-3 balls, 0-2 strikes) or "-". runners: [] empty, [1]=1st,
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "grok-4-1-fast",
+        model: "grok-4-1-fast-non-reasoning",
         max_tokens: 800,
         temperature: aiTemp,
         messages: [
@@ -6111,21 +6111,23 @@ count format: "B-S" (0-3 balls, 0-2 strikes) or "-". runners: [] empty, [1]=1st,
     };
     if (signal) fetchOpts.signal = signal;
 
+    const _aiT0 = Date.now()
     const response = await Promise.race([
       fetch(AI_PROXY_URL, fetchOpts),
       new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 25000))
     ]);
+    const _aiFetchMs = Date.now() - _aiT0
 
     if (!response.ok) {
       const errBody = await response.text().catch(() => "");
-      console.error("[BSM] AI API error:", response.status, errBody);
-      reportError("ai_api", `HTTP ${response.status}`, { position, body: errBody.slice(0, 200) });
+      console.error("[BSM] AI API error:", response.status, "(" + _aiFetchMs + "ms)", errBody.slice(0, 300));
+      reportError("ai_api", `HTTP ${response.status}`, { position, body: errBody.slice(0, 200), ms: _aiFetchMs });
       throw new Error(`API ${response.status}`);
     }
     const data = await response.json();
     const text = data.choices?.[0]?.message?.content || "";
     const finishReason = data.choices?.[0]?.finish_reason || "unknown";
-    console.log("[BSM] AI response received, length:", text.length, "finish:", finishReason);
+    console.log("[BSM] AI response received in " + _aiFetchMs + "ms, length:", text.length, "finish:", finishReason);
     if (text.length > 0) console.log("[BSM] AI raw (first 300):", text.slice(0, 300));
     if (!text) throw new Error("API returned empty content");
     if (finishReason === "length") console.warn("[BSM] AI response truncated (hit max_tokens)");
@@ -6152,11 +6154,12 @@ count format: "B-S" (0-3 balls, 0-2 strikes) or "-". runners: [] empty, [1]=1st,
       throw new Error("Parse: missing " + missing.join(", "));
     }
 
-    // Validate rates[best] is highest rate
+    // Auto-fix rates[best] alignment instead of rejecting (Fix 2C)
     const maxRate = Math.max(...scenario.rates);
     if (scenario.rates[scenario.best] !== maxRate) {
-      console.warn("[BSM] AI scenario: best=", scenario.best, "rate=", scenario.rates[scenario.best], "max=", maxRate, "— rejecting");
-      throw new Error("Rate-best misalignment");
+      const oldBest = scenario.best
+      scenario.best = scenario.rates.indexOf(maxRate)
+      console.warn("[BSM] AI auto-fixed rate-best: best " + oldBest + " (" + scenario.rates[oldBest] + "%) -> " + scenario.best + " (" + maxRate + "%)")
     }
     // Ensure anim is valid
     if (!ANIMS.includes(scenario.anim)) scenario.anim = "strike";
@@ -6921,6 +6924,8 @@ export default function App(){
   const setHist=useCallback((updater)=>{setStats(p=>({...p,hist:typeof updater==='function'?updater(p.hist||{}):updater}))},[]);
   const[lvlUp,setLvlUp]=useState(null);
   const[aiLoading,setAiLoading]=useState(false);
+  const[aiLoadTick,setAiLoadTick]=useState(0);
+  useEffect(()=>{if(!aiLoading){setAiLoadTick(0);return}const iv=setInterval(()=>setAiLoadTick(t=>t+1),3000);return()=>clearInterval(iv)},[aiLoading])
   const[coachMsg,setCoachMsg]=useState(null);
   const[parentGate,setParentGate]=useState(false);
   const[parentGateInline,setParentGateInline]=useState(null); // {a,b,answer:""} when showing inline gate
@@ -7553,7 +7558,7 @@ export default function App(){
         setTimeout(()=>{setToast({e:"⚠️",n:"AI Resting",d:`AI Coach is resting. Try again in ${mins} min.`});setTimeout(()=>setToast(null),3500)},300);
         return;
       }
-      setAiLoading(true);setAiMode(true);setScreen("play");
+      setAiLoading(true);setAiMode(true);setScreen("play")
       const ctrl=new AbortController();abortRef.current=ctrl;
       let concept=null;
       const wc=stats.wrongCounts||{};
@@ -7564,16 +7569,20 @@ export default function App(){
         if(wrongSc)concept=wrongSc.concept;
       }
       const _aiHist=stats.aiHistory||[]
+      const _aiStartMs=Date.now()
       // Sprint 5: Try pre-cached scenario first for instant load
       let result=consumeCachedAI(p)
       if(!result){
         result=await generateAIScenario(p,stats,stats.cl||[],stats.recentWrong||[],ctrl.signal,concept,_aiHist);
-        // Retry once on parse/role/rate errors (not timeout or abort — those won't change on retry)
-        if(!result?.scenario&&(result?.error==="parse"||result?.error==="role-violation"||result?.error==="rate-mismatch")){
-          console.log("[BSM] AI retry attempt (no targetConcept)...");
+        // Fix 2A+2B: Retry on any non-timeout/non-abort failure if >5s remains in budget
+        const retryable=result?.error&&result.error!=="timeout"&&result.error!=="aborted"
+        const remaining=25000-(Date.now()-_aiStartMs)
+        if(!result?.scenario&&retryable&&remaining>5000){
+          console.log("[BSM] AI retry (" + result.error + "), " + Math.round(remaining/1000) + "s remaining...");
           result=await generateAIScenario(p,stats,stats.cl||[],stats.recentWrong||[],ctrl.signal,null,_aiHist);
         }
       }
+      console.log("[BSM] AI total flow took " + (Date.now()-_aiStartMs) + "ms")
       abortRef.current=null;
       setAiLoading(false);
       if(result?.scenario){
@@ -8968,15 +8977,19 @@ export default function App(){
         </div>}
 
         {/* PLAYING */}
-        {screen==="play"&&aiLoading&&<div style={{textAlign:"center",padding:"80px 20px"}}>
+        {screen==="play"&&aiLoading&&(()=>{
+          const msgs=["COACH IS DRAWING UP A PLAY...","AI COACH IS THINKING...","ALMOST THERE...","TAKING A LITTLE LONGER..."]
+          const subs=["Creating a personalized scenario based on your skill level","Analyzing your strengths and building a challenge","Putting the finishing touches on your scenario","Hang tight \u2014 the AI is working hard on this one"]
+          const phase=Math.min(aiLoadTick, 3)
+          return <div style={{textAlign:"center",padding:"80px 20px"}}>
           <div style={{fontSize:48,marginBottom:12,animation:"spin 2s linear infinite"}}>⚾</div>
-          <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:22,color:"#f59e0b",letterSpacing:2,marginBottom:6}}>COACH IS DRAWING UP A PLAY...</div>
-          <p style={{color:"#6b7280",fontSize:12,maxWidth:280,margin:"0 auto"}}>Creating a personalized scenario based on your skill level and learning history</p>
+          <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:22,color:"#f59e0b",letterSpacing:2,marginBottom:6}}>{msgs[phase]}</div>
+          <p style={{color:"#6b7280",fontSize:12,maxWidth:280,margin:"0 auto"}}>{subs[phase]}</p>
           <div style={{marginTop:16,display:"flex",justifyContent:"center",gap:4}}>
-            {[0,1,2].map(i=><div key={i} style={{width:8,height:8,borderRadius:4,background:"#f59e0b",animation:`pulse 1s ease-in-out ${i*.2}s infinite`}}/>)}
+            {[0,1,2].map(i=><div key={i} style={{width:8,height:8,borderRadius:4,background:"#f59e0b",animation:"pulse 1s ease-in-out " + (i*.2) + "s infinite"}}/>)}
           </div>
-          <button onClick={()=>{if(abortRef.current)abortRef.current.abort();setAiLoading(false);goHome()}} style={{marginTop:20,background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.08)",borderRadius:8,padding:"6px 16px",color:"#6b7280",fontSize:11,cursor:"pointer"}}>← Cancel</button>
-        </div>}
+          <button onClick={()=>{if(abortRef.current)abortRef.current.abort();setAiLoading(false);goHome()}} style={{marginTop:20,background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.08)",borderRadius:8,padding:"6px 16px",color:"#6b7280",fontSize:11,cursor:"pointer"}}>{"\u2190"} Cancel</button>
+        </div>})()}
 
         {screen==="play"&&!aiLoading&&sc&&<div>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>

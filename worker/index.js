@@ -1202,25 +1202,47 @@ async function handleValidateCode(request, env, cors) {
   return jsonResponse({ valid: true, type: entry.type }, 200, cors);
 }
 
-// POST /v1/chat/completions — xAI proxy
+// POST /v1/chat/completions — xAI proxy (with timeout + streaming passthrough)
 async function handleAIProxy(request, env, cors) {
   const body = await request.text();
-  const xaiResponse = await fetch("https://api.x.ai/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${env.XAI_API_KEY}`,
-    },
-    body,
-  });
-  const responseBody = await xaiResponse.text();
-  if (!xaiResponse.ok) {
-    console.error(`[BSM Worker] xAI error ${xaiResponse.status}:`, responseBody.slice(0, 500));
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 22000);
+  try {
+    const t0 = Date.now();
+    const xaiResponse = await fetch("https://api.x.ai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${env.XAI_API_KEY}`,
+      },
+      body,
+      signal: controller.signal,
+    });
+    clearTimeout(timeout);
+    const elapsed = Date.now() - t0;
+    if (!xaiResponse.ok) {
+      const errBody = await xaiResponse.text();
+      console.error(`[BSM Worker] xAI error ${xaiResponse.status} (${elapsed}ms):`, errBody.slice(0, 500));
+      return new Response(errBody, {
+        status: xaiResponse.status,
+        headers: { ...cors, "Content-Type": "application/json", "X-XAI-Elapsed": String(elapsed) },
+      });
+    }
+    console.log(`[BSM Worker] xAI responded ${xaiResponse.status} in ${elapsed}ms`);
+    // Stream response through directly — no buffering
+    return new Response(xaiResponse.body, {
+      status: xaiResponse.status,
+      headers: { ...cors, "Content-Type": "application/json", "X-XAI-Elapsed": String(elapsed) },
+    });
+  } catch (e) {
+    clearTimeout(timeout);
+    if (e.name === "AbortError") {
+      console.error("[BSM Worker] xAI timeout after 22s");
+      return jsonResponse({ error: { message: "xAI API timeout (22s)", type: "timeout" } }, 504, cors);
+    }
+    console.error("[BSM Worker] xAI fetch error:", e.message);
+    return jsonResponse({ error: { message: e.message, type: "fetch_error" } }, 502, cors);
   }
-  return new Response(responseBody, {
-    status: xaiResponse.status,
-    headers: { ...cors, "Content-Type": "application/json" },
-  });
 }
 
 // POST /flag-scenario — player flags a confusing AI scenario
@@ -1393,6 +1415,17 @@ export default {
     if (request.method === "GET") {
       if (path === "/health") {
         return jsonResponse({ ok: true, ts: Date.now() }, 200, cors);
+      }
+      if (path === "/ai-test") {
+        try {
+          const r = await fetch("https://api.x.ai/v1/models", {
+            headers: { "Authorization": `Bearer ${env.XAI_API_KEY}` },
+          });
+          const body = await r.text();
+          return new Response(body, { status: r.status, headers: { ...cors, "Content-Type": "application/json" } });
+        } catch (e) {
+          return jsonResponse({ error: e.message }, 500, cors);
+        }
       }
       return new Response("Method not allowed", { status: 405, headers: cors });
     }
