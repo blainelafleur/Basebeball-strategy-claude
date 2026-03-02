@@ -6450,14 +6450,28 @@ POSITION RULES: ${AI_POS_PRINCIPLES[position] || POS_PRINCIPLES[position] || "Us
 ${aiMapText}
 
 AUDIT: All 4 options must be actions THIS position performs at the SAME decision point. Best answer=coaching consensus backed by modern analytics. Manager=dugout decisions only. Baserunner=runner's physical actions only. rates[best] MUST be highest. score=[HOME,AWAY].
-POSITION-ACTION BOUNDARIES: Each position can ONLY choose actions within their physical control. Pitcher=pitch selection, pickoffs, fielding. Catcher=calling pitches, blocking, throwing, framing. Batter=swing decisions, bunt, take. Baserunner=lead distance, jump timing, steal/hold, tag-up, sliding, secondary lead, advance/hold decisions. Manager=pitching changes, IBB signals, defensive alignment, steal signs, pinch hitters. NEVER give a position options that belong to another position. Baserunner CANNOT "yell at pitcher", "call a play", "signal the batter", or influence what other players do. If a game event removes all meaningful decisions from a position (e.g., baserunner during an IBB simply advances automatically), do NOT create a scenario for that position about that event.
+POSITION-ACTION BOUNDARIES: Each position can ONLY choose actions within their physical control.
+Pitcher=pitch selection, pitch location, pickoff attempts, fielding batted balls, covering 1B on grounders to the right side, backing up bases.
+Catcher=calling pitches, setting up location targets, blocking, throwing out runners, framing, fielding bunts/WP/PB.
+Batter=swing decisions, bunt, take, protect the plate, hit-and-run swing.
+Baserunner=lead distance, jump timing, steal/hold, tag-up, sliding, secondary lead, advance/hold decisions, reading the ball off the bat.
+Manager=pitching changes, IBB signals, defensive alignment/shifts, steal/bunt signs, pinch hitters, lineup decisions.
+FirstBase=holding runners at 1B, scooping low throws, stretch footwork, charging bunts, cutoff on CF/RF throws home, 3-6-3 DP, fielding grounders.
+SecondBase=turning DPs (pivot at 2B), covering 1B on bunts, covering 2B on steals (LHB), relay on LF/CF throws, fielding grounders, positioning.
+Shortstop=turning DPs (feed to 2B), covering 2B on steals (RHB), relay on CF/RF throws, fielding grounders, cutoff alignment, positioning depth.
+ThirdBase=guarding the line, charging bunts/slow rollers, bare-hand plays, tagging runners at 3B, fielding grounders, positioning depth.
+LeftField=tracking fly balls, throwing to cutoff/bases, backing up 3B/SS, playing the wall, reading balls off the bat.
+CenterField=tracking fly balls, calling off corner outfielders, throwing to cutoff/relay, backing up other outfielders, gap coverage.
+RightField=tracking fly balls, throwing to 3B/cutoff, backing up 1B/2B, playing the wall, strongest arm to 3B.
+NEVER give a position options that belong to another position. Fielders do NOT call IBBs, shift the defense, call for pitchouts, or make pitching changes — those are MANAGER or CATCHER decisions. Baserunner CANNOT "yell at pitcher", "call a play", "signal the batter", or influence what other players do. If a game event removes all meaningful decisions from a position (e.g., baserunner during an IBB simply advances automatically), do NOT create a scenario for that position about that event.
 ANALYTICS RULES: Intentional walks are almost always wrong per The Book (Tango). NEVER make IBB the best answer unless runners on 2nd+3rd with 1 out (force at home + DP). Never put the go-ahead or winning run on base via IBB. IBB REQUIRES first base to be OPEN (unoccupied) \u2014 you cannot IBB when there is already a runner on 1st unless you intend to force-advance that runner. NEVER create a scenario where a team IBBs with first base occupied unless the scenario explicitly addresses the forced advancement. Under 2023+ rules, IBB is a dugout signal with no pitches thrown \u2014 there is NO baserunner decision to make during an IBB (runners advance automatically). NEVER create baserunner scenarios about IBBs. Bunting with 0 outs is usually bad (lowers run expectancy). Sac bunt only justified with weak hitter, late game, need exactly 1 run. Always align best answers with modern sabermetric consensus, not old-school instinct.
 
 Respond with ONLY valid JSON:
 {"title":"Short Title","diff":${diffTarget},"description":"2-3 sentence scenario","situation":{"inning":"Bot 7","outs":1,"count":"2-1","runners":[1,3],"score":[3,2]},"options":["A","B","C","D"],"best":0,"explanations":["Why A","Why B","Why C","Why D"],"rates":[85,55,30,20],"concept":"One-sentence lesson","anim":"strike|strikeout|hit|groundout|flyout|steal|score|advance|catch|throwHome|doubleplay|bunt|walk|safe|freeze"}
 
 count format: "B-S" (0-3 balls, 0-2 strikes) or "-". runners: [] empty, [1]=1st, [1,3]=1st+3rd. rates: optimal 75-90, decent 45-65, poor 10-40.
-SITUATION CONSISTENCY: outs must be 0-2 (never 3). count must be valid (0-3 balls, 0-2 strikes). runners array must not conflict with the scenario premise. score=[HOME,AWAY] where HOME bats in "Bot" half. The scenario description must match the situation object exactly.`;
+SITUATION CONSISTENCY: outs must be 0-2 (never 3). count must be valid (0-3 balls, 0-2 strikes). runners array must not conflict with the scenario premise. score=[HOME,AWAY] where HOME bats in "Bot" half. The scenario description must match the situation object exactly.
+SCORE PERSPECTIVE: If the scenario says "you're up 5-3" and it's "Bot 7" (home batting), and the player is fielding (pitcher/catcher/fielder), the player is on the AWAY team. "You're up 5-3" means AWAY=5, HOME=3, so score=[3,5]. If the player is batting/baserunning in "Bot", they're HOME. Double-check that score=[HOME,AWAY] matches the description's perspective.`;
 
   try {
     // Sprint 4.3: Apply A/B test configs to AI generation
@@ -6586,6 +6600,26 @@ SITUATION CONSISTENCY: outs must be 0-2 (never 3). count must be valid (0-3 ball
     if (matched) {
       console.warn("[BSM] AI scenario rejected: role violation for", position, "pattern:", matched.toString());
       throw new Error("Role violation: " + matched.toString().slice(0, 80));
+    }
+    // Cross-position action check: fielders/baserunners should not have manager/catcher/pitcher options
+    const FIELDER_POS = ["firstBase","secondBase","shortstop","thirdBase","leftField","centerField","rightField"];
+    if (FIELDER_POS.includes(position) || position === "baserunner" || position === "batter") {
+      const optsText = scenario.options.join(" ");
+      const MGR_ACTIONS = [
+        [/\bintentional\s*walk/i, "intentional walk (manager decision)"],
+        [/\bIBB\b/i, "IBB (manager decision)"],
+        [/\bshift\s*the\s*defense/i, "shift the defense (manager decision)"],
+        [/\bpitch(ing)?\s*change/i, "pitching change (manager decision)"],
+        [/\bbring\s*in\s*(a\s*)?(new\s*)?(relief|closer|pitcher)/i, "pitching change (manager decision)"],
+        [/\bcall\s*(for\s*)?(a\s*)?pitchout/i, "call pitchout (catcher decision)"],
+        [/\bpitch\s*to\s*(the|this)\s*(dangerous|cleanup|batter|hitter)\s*(normally|carefully)/i, "pitch to batter (pitcher/manager decision)"],
+        [/\bwalk\s*(him|the\s*batter|this\s*(guy|hitter))\s*(intentionally|on\s*purpose)/i, "intentional walk (manager decision)"],
+      ];
+      const mgrMatch = MGR_ACTIONS.find(([rx]) => rx.test(optsText));
+      if (mgrMatch) {
+        console.warn("[BSM] AI scenario rejected: cross-position violation for", position, "—", mgrMatch[1]);
+        throw new Error("Role violation: " + position + " given " + mgrMatch[1]);
+      }
     }
 
     // QUALITY_FIREWALL — run all automated checks
@@ -9670,14 +9704,14 @@ export default function App(){
         {/* SITUATION ROOM — INTRO */}
         {screen==="sitIntro"&&sitSet&&(()=>{
           const sit=sitSet.situation;
-          const runnerNames=[];if(sit.runners.includes("1st"))runnerNames.push("1st");if(sit.runners.includes("2nd"))runnerNames.push("2nd");if(sit.runners.includes("3rd"))runnerNames.push("3rd");
+          const runnerNames=[];if(sit.runners.includes(1))runnerNames.push("1st");if(sit.runners.includes(2))runnerNames.push("2nd");if(sit.runners.includes(3))runnerNames.push("3rd");
           const runnerStr=runnerNames.length>0?runnerNames.join(", "):"None";
           return(<div style={{textAlign:"center",padding:"20px 0"}}>
             <div style={{fontSize:52,marginBottom:6,animation:"su .4s ease-out"}}>{sitSet.emoji}</div>
             <h2 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:26,letterSpacing:2,color:sitSet.color,marginBottom:4,animation:"su .4s ease-out .1s both"}}>{sitSet.title}</h2>
             <p style={{color:"#9ca3af",fontSize:12,lineHeight:1.5,maxWidth:320,margin:"0 auto 16px",animation:"su .4s ease-out .15s both"}}>{sitSet.desc}</p>
             <div style={{background:"rgba(0,0,0,.3)",borderRadius:12,padding:6,marginBottom:14,border:"1px solid rgba(255,255,255,.04)",animation:"su .4s ease-out .2s both"}}>
-              <Field pos="pitcher" sit={sit} anim="freeze" theme={stats.theme||"classic"} av={{jersey:stats.avatarJersey||0,cap:stats.avatarCap||0,bat:stats.avatarBat||0}}/>
+              <Field pos="pitcher" runners={sit.runners} anim="freeze" theme={FIELD_THEMES.find(th=>th.id===stats.fieldTheme)||FIELD_THEMES[0]} avatar={{j:stats.avatarJersey||0,c:stats.avatarCap||0,b:stats.avatarBat||0}}/>
             </div>
             <div style={{...card,textAlign:"left",marginBottom:14,animation:"su .4s ease-out .25s both"}}>
               <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:12,color:"#6b7280",letterSpacing:1,marginBottom:8}}>GAME STATE</div>
