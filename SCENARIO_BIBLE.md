@@ -1,6 +1,6 @@
 # Baseball Strategy Master — Scenario Quality & Knowledge Framework
 
-> The 394 scenarios are the core product. Every scenario must teach correct baseball strategy backed by authoritative sources. This document defines WHAT knowledge to teach, WHERE it comes from, and HOW to verify it.
+> The 539+ scenarios are the core product. Every scenario must teach correct baseball strategy backed by authoritative sources. This document defines WHAT knowledge to teach, WHERE it comes from, and HOW to verify it.
 
 ---
 
@@ -530,6 +530,26 @@ An intentional walk always increases run expectancy by adding a baserunner. You 
 **Modern Note (2023+):**
 IBB is now signaled by the manager directly — no pitches thrown. The old risk of a wild IBB pitch is gone. This makes the decision purely strategic, with no execution risk.
 
+**Position-Specific IBB Scenario Rules:**
+
+| Position | Can Scenarios Involve IBB? | How? |
+|----------|---------------------------|------|
+| Manager | Yes | Deciding whether to signal an IBB — the core IBB decision belongs here |
+| Pitcher | Yes, rarely | Pitching around a hitter (not a formal IBB), or facing the next batter after an IBB |
+| Catcher | Yes, rarely | Setting up to receive the next hitter after an IBB; game-calling with new base state |
+| Batter | Yes, rarely | Being the hitter AFTER an IBB (facing bases loaded, etc.) |
+| Baserunner | **NEVER** | Under 2023+ rules, forced runners advance one base automatically. The runner has zero agency during an IBB. No decision exists. |
+| Fielders | **NEVER** | Fielders do not make decisions during or because of an IBB |
+
+**IBB Prerequisite Check (for AI and handcrafted):**
+Before any scenario uses an IBB as a premise, verify:
+1. First base must be OPEN (unoccupied) — you cannot IBB with a runner on 1st unless you explicitly address the forced advancement
+2. The go-ahead or winning run must NOT be the runner being put on base via IBB
+3. There must be a clear matchup or tactical justification (skill gap, platoon, force/DP setup)
+4. The position in question must have a real decision to make (not automatic/forced)
+
+**Source:** *The Book: Playing the Percentages in Baseball* (Tango, Lichtman, Dolphin, 2007) — Chapter 10 demonstrates via RE24 that IBBs increase run expectancy in nearly all situations. Also: FanGraphs IBB research (2014-2024), Baseball Prospectus "Prospectus Feature: Intentional Walks" (2018).
+
 ---
 
 ### 3.20 Mound Visit Protocol (Source: MLB Official Rules 5.10(l), ABCA)
@@ -736,6 +756,13 @@ Memory device: "O = fielder Obstructs runner. I = runner Interferes with fielder
 **Runner Advancement on IBB:**
 - Runners forced by the batter's advancement move one base automatically
 - No runner advances more than one base
+- There is NO decision for forced runners — advancement is automatic under the rules
+- NEVER create baserunner scenarios about IBBs (see Section 3.19 Position-Specific IBB Scenario Rules)
+
+**IBB Prerequisite (first base must be open):**
+- An IBB puts the batter on 1st base. If 1st is already occupied, the existing runner is forced to 2nd (and so on up the chain).
+- Before creating any IBB scenario, verify first base is unoccupied OR explicitly account for forced advancement.
+- IBB with bases loaded = force in a run. Almost never justified (RE jumps to 2.29 + you scored a run).
 
 ---
 
@@ -1546,11 +1573,18 @@ When a player answers a scenario wrong, spaced repetition should **not** replay 
 
 ## Key Sources
 
+> **Rule (added 2026-03-01):** Whenever external resources are used to fix an issue, audit a scenario, or inform a decision, those resources MUST be added to this section with their tier classification. This ensures the app's knowledge base grows with every fix.
+
 - [MLB Official Rules](https://www.mlb.com/official-rules) — Tier 1
 - [FanGraphs RE24 / Run Expectancy](https://library.fangraphs.com/misc/re24/) — Tier 2
 - [Baseball Savant / Statcast](https://baseballsavant.mlb.com/) — Tier 2
 - [Baseball Reference](https://baseball-reference.com/) — Tier 2
 - [SABR Research](https://sabr.org/) — Tier 2
+- [*The Book: Playing the Percentages in Baseball* (Tango, Lichtman, Dolphin, 2007)](https://www.insidethebook.com/) — Tier 2 (IBB RE24 analysis, steal break-even, bunt strategy, TTO effect)
+- [FanGraphs — IBB Analysis & Run Expectancy Impact](https://library.fangraphs.com/) — Tier 2 (IBB always increases RE; used to fix p52, p53, cn20)
+- [Baseball Prospectus — Intentional Walk Analytics](https://www.baseballprospectus.com/) — Tier 2 (IBB strategy data, matchup analysis)
+- [The Hardball Times / FanGraphs Community](https://tht.fangraphs.com/) — Tier 2 (IBB situational analysis, historical data)
+- [MLB.com — 2023 Rule Changes (IBB signal, pitch clock, shift ban)](https://www.mlb.com/news/2023-rule-changes) — Tier 1 (IBB is now a dugout signal, no pitches thrown)
 - [Pro Baseball Insider — Pop Fly Priorities](https://probaseballinsider.com/baseball-instruction/pop-fly-priorities/) — Tier 3
 - [Coach and Athletic Director — Priority System](https://coachad.com/articles/the-priority-system-in-baseball/) — Tier 3
 - [ABCA (American Baseball Coaches Association)](https://abca.org/) — Tier 3

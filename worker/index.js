@@ -4,6 +4,9 @@
 
 const ALLOWED_ORIGINS = [
   "https://bsm-app.pages.dev",
+  "http://localhost:3000",
+  "http://localhost:5000",
+  "http://localhost:8080",
 ];
 
 const RATE_LIMIT_AI = 10; // AI proxy: req/min/IP
@@ -1417,6 +1420,10 @@ export default {
         return jsonResponse({ ok: true, ts: Date.now() }, 200, cors);
       }
       if (path === "/ai-test") {
+        const adminKey = request.headers.get("X-Admin-Key");
+        if (!adminKey || adminKey !== env.ADMIN_KEY) {
+          return jsonResponse({ error: "Unauthorized" }, 401, cors);
+        }
         try {
           const r = await fetch("https://api.x.ai/v1/models", {
             headers: { "Authorization": `Bearer ${env.XAI_API_KEY}` },
