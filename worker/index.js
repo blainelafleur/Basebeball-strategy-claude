@@ -1209,7 +1209,7 @@ async function handleValidateCode(request, env, cors) {
 async function handleAIProxy(request, env, cors) {
   const body = await request.text();
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 22000);
+  const timeout = setTimeout(() => controller.abort(), 30000);
   try {
     const t0 = Date.now();
     const xaiResponse = await fetch("https://api.x.ai/v1/chat/completions", {
@@ -1240,8 +1240,8 @@ async function handleAIProxy(request, env, cors) {
   } catch (e) {
     clearTimeout(timeout);
     if (e.name === "AbortError") {
-      console.error("[BSM Worker] xAI timeout after 22s");
-      return jsonResponse({ error: { message: "xAI API timeout (22s)", type: "timeout" } }, 504, cors);
+      console.error("[BSM Worker] xAI timeout after 30s");
+      return jsonResponse({ error: { message: "xAI API timeout (30s)", type: "timeout" } }, 504, cors);
     }
     console.error("[BSM Worker] xAI fetch error:", e.message);
     return jsonResponse({ error: { message: e.message, type: "fetch_error" } }, 502, cors);

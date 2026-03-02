@@ -6450,20 +6450,24 @@ POSITION RULES: ${AI_POS_PRINCIPLES[position] || POS_PRINCIPLES[position] || "Us
 ${aiMapText}
 
 AUDIT: All 4 options must be actions THIS position performs at the SAME decision point. Best answer=coaching consensus backed by modern analytics. Manager=dugout decisions only. Baserunner=runner's physical actions only. rates[best] MUST be highest. score=[HOME,AWAY].
-POSITION-ACTION BOUNDARIES: Each position can ONLY choose actions within their physical control.
-Pitcher=pitch selection, pitch location, pickoff attempts, fielding batted balls, covering 1B on grounders to the right side, backing up bases.
-Catcher=calling pitches, setting up location targets, blocking, throwing out runners, framing, fielding bunts/WP/PB.
-Batter=swing decisions, bunt, take, protect the plate, hit-and-run swing.
-Baserunner=lead distance, jump timing, steal/hold, tag-up, sliding, secondary lead, advance/hold decisions, reading the ball off the bat.
-Manager=pitching changes, IBB signals, defensive alignment/shifts, steal/bunt signs, pinch hitters, lineup decisions.
-FirstBase=holding runners at 1B, scooping low throws, stretch footwork, charging bunts, cutoff on CF/RF throws home, 3-6-3 DP, fielding grounders.
-SecondBase=turning DPs (pivot at 2B), covering 1B on bunts, covering 2B on steals (LHB), relay on LF/CF throws, fielding grounders, positioning.
-Shortstop=turning DPs (feed to 2B), covering 2B on steals (RHB), relay on CF/RF throws, fielding grounders, cutoff alignment, positioning depth.
-ThirdBase=guarding the line, charging bunts/slow rollers, bare-hand plays, tagging runners at 3B, fielding grounders, positioning depth.
-LeftField=tracking fly balls, throwing to cutoff/bases, backing up 3B/SS, playing the wall, reading balls off the bat.
-CenterField=tracking fly balls, calling off corner outfielders, throwing to cutoff/relay, backing up other outfielders, gap coverage.
-RightField=tracking fly balls, throwing to 3B/cutoff, backing up 1B/2B, playing the wall, strongest arm to 3B.
-NEVER give a position options that belong to another position. Fielders do NOT call IBBs, shift the defense, call for pitchouts, or make pitching changes — those are MANAGER or CATCHER decisions. Baserunner CANNOT "yell at pitcher", "call a play", "signal the batter", or influence what other players do. If a game event removes all meaningful decisions from a position (e.g., baserunner during an IBB simply advances automatically), do NOT create a scenario for that position about that event.
+POSITION-ACTION BOUNDARIES: ${(() => {
+  const POS_ACTIONS = {
+    pitcher: "Pitcher=pitch selection, pitch location, pickoff attempts, fielding batted balls, covering 1B on grounders right side, backing up bases.",
+    catcher: "Catcher=calling pitches, setting up location targets, blocking, throwing out runners, framing, fielding bunts/WP/PB.",
+    batter: "Batter=swing decisions, bunt, take, protect the plate, hit-and-run swing.",
+    baserunner: "Baserunner=lead distance, jump timing, steal/hold, tag-up, sliding, secondary lead, advance/hold decisions, reading ball off bat.",
+    manager: "Manager=pitching changes, IBB signals, defensive alignment/shifts, steal/bunt signs, pinch hitters, lineup decisions.",
+    firstBase: "FirstBase=holding runners at 1B, scooping low throws, stretch footwork, charging bunts, cutoff on CF/RF throws home, 3-6-3 DP, fielding grounders.",
+    secondBase: "SecondBase=turning DPs (pivot at 2B), covering 1B on bunts, covering 2B on steals (LHB), relay on LF/CF throws, fielding grounders, positioning.",
+    shortstop: "Shortstop=turning DPs (feed to 2B), covering 2B on steals (RHB), relay on CF/RF throws, fielding grounders, cutoff alignment, positioning depth.",
+    thirdBase: "ThirdBase=guarding the line, charging bunts/slow rollers, bare-hand plays, tagging runners at 3B, fielding grounders, positioning depth.",
+    leftField: "LeftField=tracking fly balls, throwing to cutoff/bases, backing up 3B/SS, playing the wall, reading balls off bat.",
+    centerField: "CenterField=tracking fly balls, calling off corner OFs, throwing to cutoff/relay, backing up other OFs, gap coverage.",
+    rightField: "RightField=tracking fly balls, throwing to 3B/cutoff, backing up 1B/2B, playing the wall, strongest arm to 3B.",
+  };
+  return POS_ACTIONS[position] || POS_ACTIONS.manager;
+})()}
+NEVER give this position options that belong to another position. Fielders do NOT call IBBs, shift the defense, call for pitchouts, or make pitching changes — those are MANAGER/CATCHER decisions. Baserunner CANNOT "yell at pitcher", "call a play", "signal the batter". If a game event removes all meaningful decisions from a position (e.g., baserunner during an IBB simply advances automatically), do NOT create a scenario for that position about that event.
 ANALYTICS RULES: Intentional walks are almost always wrong per The Book (Tango). NEVER make IBB the best answer unless runners on 2nd+3rd with 1 out (force at home + DP). Never put the go-ahead or winning run on base via IBB. IBB REQUIRES first base to be OPEN (unoccupied) \u2014 you cannot IBB when there is already a runner on 1st unless you intend to force-advance that runner. NEVER create a scenario where a team IBBs with first base occupied unless the scenario explicitly addresses the forced advancement. Under 2023+ rules, IBB is a dugout signal with no pitches thrown \u2014 there is NO baserunner decision to make during an IBB (runners advance automatically). NEVER create baserunner scenarios about IBBs. Bunting with 0 outs is usually bad (lowers run expectancy). Sac bunt only justified with weak hitter, late game, need exactly 1 run. Always align best answers with modern sabermetric consensus, not old-school instinct.
 
 Respond with ONLY valid JSON:
@@ -6487,7 +6491,7 @@ SCORE PERSPECTIVE: If the scenario says "you're up 5-3" and it's "Bot 7" (home b
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         model: "grok-4-1-fast-non-reasoning",
-        max_tokens: 800,
+        max_tokens: 1000,
         temperature: aiTemp,
         messages: [
           { role: "system", content: "You are an expert baseball coach creating personalized training scenarios for the Baseball Strategy Master app. You always respond with ONLY a valid JSON object — no markdown, no code fences, no explanation text. Just the raw JSON." + systemSuffix },
@@ -6500,7 +6504,7 @@ SCORE PERSPECTIVE: If the scenario says "you're up 5-3" and it's "Bot 7" (home b
     const _aiT0 = Date.now()
     const response = await Promise.race([
       fetch(AI_PROXY_URL, fetchOpts),
-      new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 25000))
+      new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 35000))
     ]);
     const _aiFetchMs = Date.now() - _aiT0
 
@@ -7981,15 +7985,19 @@ export default function App(){
       }
       const _aiHist=stats.aiHistory||[]
       const _aiStartMs=Date.now()
+      const AI_BUDGET=35000
       // Sprint 5: Try pre-cached scenario first for instant load
       let result=consumeCachedAI(p)
       if(!result){
         result=await generateAIScenario(p,stats,stats.cl||[],stats.recentWrong||[],ctrl.signal,concept,_aiHist);
-        // Fix 2A+2B: Retry on any non-timeout/non-abort failure if >5s remains in budget
-        const retryable=result?.error&&result.error!=="timeout"&&result.error!=="aborted"
-        const remaining=25000-(Date.now()-_aiStartMs)
-        if(!result?.scenario&&retryable&&remaining>5000){
-          console.log("[BSM] AI retry (" + result.error + "), " + Math.round(remaining/1000) + "s remaining...");
+        // Retry up to 2x on non-timeout/non-abort failures if time remains
+        let retries=0
+        while(!result?.scenario&&retries<2){
+          const retryable=result?.error&&result.error!=="timeout"&&result.error!=="aborted"
+          const remaining=AI_BUDGET-(Date.now()-_aiStartMs)
+          if(!retryable||remaining<8000)break
+          retries++
+          console.log("[BSM] AI retry #" + retries + " (" + result.error + "), " + Math.round(remaining/1000) + "s remaining...");
           result=await generateAIScenario(p,stats,stats.cl||[],stats.recentWrong||[],ctrl.signal,null,_aiHist);
         }
       }
