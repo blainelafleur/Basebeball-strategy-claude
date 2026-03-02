@@ -4189,7 +4189,36 @@ const AI_POS_PRINCIPLES = {
   counts:"Count-specific strategy from real batting averages. Hitter's counts (2-0,3-1): aggressive. Pitcher's counts (0-2,1-2): protect zone."
 }
 
-// Slim knowledge map injection for AI \u2014 max 1 most-relevant map per position
+// Position-specific scenario topic guidance \u2014 tells AI WHAT to create scenarios about
+const AI_SCENARIO_TOPICS = {
+  pitcher:"GOOD TOPICS: pitch selection by count/situation, pitching from stretch vs windup, pickoff moves, fielding a comebacker, covering 1B on grounder to right side, backing up home on OF throw, wild pitch coverage, pitch sequencing, working ahead in the count, varying hold times.",
+  catcher:"GOOD TOPICS: calling pitches by count/batter, framing a borderline pitch, blocking a ball in the dirt, throwing out a runner stealing 2B, pop-up near home (turn back to field), directing the cutoff man, mound visit strategy, dropped third strike, first-and-third defense, pitch clock management.",
+  firstBase:"GOOD TOPICS: scooping a low throw, holding a runner at 1B, charging a bunt (2B covers 1B), acting as cutoff on CF/RF throw home, 3-6-3 double play, fielding a grounder in the hole, force vs tag when runner is out ahead, stretch footwork on close play.",
+  secondBase:"GOOD TOPICS: turning the DP pivot at 2B, relay on extra-base hit to RF/RF-CF gap, covering 1B on bunt, covering 2B on steal (vs LHB), fielding a grounder up the middle, positioning for DP vs normal depth, fly ball priority (let OF take tweeners).",
+  shortstop:"GOOD TOPICS: turning the DP (feed to 2B), relay on extra-base hit to LF/LF-CF gap, cutoff on throws to 3B, covering 2B on steal (vs RHB), deep-hole play across the diamond, fly ball priority, communication as infield captain, positioning depth.",
+  thirdBase:"GOOD TOPICS: charging a slow roller (bare-hand play), fielding a hard-hit ball down the line, guarding the line late/close, crashing on a bunt, tagging a runner at 3B, acting as cutoff on LF single to home, positioning against a pull hitter.",
+  leftField:"GOOD TOPICS: tracking a fly ball near the wall, throwing to cutoff (3B) on a single, backing up 3B on grounders, playing a ball off the wall, reading ball off the bat, do-or-die throw, gap coverage in LF-CF gap, throwing to relay (SS) on extra-base hit.",
+  centerField:"GOOD TOPICS: calling off corner OFs on a fly ball, gap coverage (LF-CF or RF-CF), do-or-die throw to cutoff (1B), backing up 2B on steals, reading ball off the bat, angle routes on gap balls, communication and positioning.",
+  rightField:"GOOD TOPICS: throwing out a runner at 3B (strong arm), backing up 1B on infield grounders (most important routine job), fielding a fly ball near the wall, throwing to cutoff (1B) on a single, playing a ball off the RF wall, throwing to relay (2B) on extra-base hit, gap coverage RF-CF, deciding throw to 3B vs cutoff.",
+  batter:"GOOD TOPICS: approach on hitter's vs pitcher's count, two-strike protect-the-plate, situational hitting with R3 (fly ball scores him), hit-and-run swing, hitting behind the runner, bunting decision (RE24), full count with 2 outs, first pitch aggressiveness.",
+  baserunner:"GOOD TOPICS: steal attempt (read pitcher's first move), tag-up on fly ball, line drive freeze, secondary lead, delayed steal, first-to-third on single, scoring from 2nd on OF single, reading OF arm/route, rundown escape, lead distance.",
+  manager:"GOOD TOPICS: pitching change (TTO effect, fatigue, matchup), defensive positioning, steal green light, sacrifice bunt (RE24), intentional walk decision, pinch hitter matchup, mound visit timing, bullpen management, first-and-third call.",
+  famous:"GOOD TOPICS: recreate a real historic baseball moment with the actual decision faced.",
+  rules:"GOOD TOPICS: force vs tag, infield fly rule, balk rule, dropped third strike, obstruction vs interference, pitch clock violations, shift ban, designated runner.",
+  counts:"GOOD TOPICS: count-specific approach with real BA data, hitter's count aggressiveness, pitcher's count survival, full count decisions, 0-2 waste vs attack."
+}
+
+// Position\u2192domain mapping for concept filtering in AI prompts
+const POS_CONCEPT_DOMAINS = {
+  pitcher:["pitching","defense"],catcher:["defense","pitching","rules"],
+  firstBase:["defense"],secondBase:["defense"],shortstop:["defense"],thirdBase:["defense"],
+  leftField:["defense"],centerField:["defense"],rightField:["defense"],
+  batter:["hitting","strategy"],baserunner:["baserunning"],
+  manager:["strategy","pitching","defense","baserunning"],
+  famous:null,rules:["rules"],counts:["pitching","hitting"]
+}
+
+// Slim knowledge map injection for AI \u2014 now uses SCOPED excerpts for OF/IF positions
 const AI_MAP_PRIORITY = {
   pitcher:"CUTOFF_RELAY_MAP", catcher:"FIRST_THIRD_MAP", firstBase:"CUTOFF_RELAY_MAP",
   secondBase:"DP_POSITIONING_MAP", shortstop:"CUTOFF_RELAY_MAP", thirdBase:"BUNT_DEFENSE_MAP",
@@ -4197,7 +4226,41 @@ const AI_MAP_PRIORITY = {
   batter:"HIT_RUN_MAP", baserunner:"RUNDOWN_MAP", manager:"FIRST_THIRD_MAP",
   famous:null, rules:null, counts:null
 }
+// Position-scoped map excerpts \u2014 only include lines relevant to THIS position
+const AI_SCOPED_MAPS = {
+  rightField:`RF CUTOFF/RELAY (your role):
+YOUR CUTOFF on throws home = 1B. Hit the 1B cutoff on singles.
+YOUR RELAY on extra-base hits = 2B is lead relay on RF line / RF-CF gap. You throw to 2B who relays home.
+BACK UP 1B on every infield grounder \u2014 your most important routine job.
+On a single to RF with runner scoring: RF throws to 1B (cutoff), 1B decides cut/let go.
+On extra-base hit down RF line: 2B is lead relay, SS or 1B trails. You throw to 2B.
+NEVER: be the cutoff man yourself, throw directly home when cutoff is available (unless do-or-die).`,
+  leftField:`LF CUTOFF/RELAY (your role):
+YOUR CUTOFF on throws home = 3B. Hit the 3B cutoff on singles.
+YOUR RELAY on extra-base hits = SS is lead relay on LF line / LF-CF gap. You throw to SS who relays home.
+BACK UP 3B on all infield grounders.
+On a single to LF with runner scoring: LF throws to 3B (cutoff), 3B decides cut/let go.
+On extra-base hit down LF line: SS is lead relay, 2B trails. You throw to SS.`,
+  centerField:`CF CUTOFF/RELAY (your role):
+YOUR CUTOFF on throws home = 1B. Hit the 1B cutoff on singles.
+On extra-base hit: SS relays left side, 2B relays right side.
+BACK UP 2B on steal attempts and throws to second.
+You have PRIORITY over all other fielders on fly balls.`,
+  pitcher:`PITCHER BACKUP DUTIES (your role):
+BACK UP HOME on ALL OF throws home. BACK UP 3B on OF throws to third.
+Cover 1B on grounders to right side. Cover home on WP/PB.
+NEVER: be the cutoff or relay man.`,
+  firstBase:`1B CUTOFF DUTIES (your role):
+YOU are the cutoff on CF and RF throws home. Line up between OF and home.
+When you're cutoff, 2B covers 1B. On LF singles to home, 3B is cutoff (not you).
+CATCHER CALLS: "Cut!"=hold. "Cut two!"=throw to 2B. "Cut three!"=throw to 3B. Silence=let it go.`,
+  shortstop:`SS CUTOFF/RELAY (your role):
+RELAY on extra-base hits LEFT side (LF line, LF-CF gap, deep CF) \u2014 you are lead relay.
+CUTOFF on ALL throws to 3B (runner going 1st to 3rd from any OF).
+Cover 3B when 3B goes out as cutoff. Cover 2B on steals (vs RHB).`,
+}
 function getAIMap(position) {
+  if (AI_SCOPED_MAPS[position]) return `KEY REFERENCE:\n${AI_SCOPED_MAPS[position]}`
   const key = AI_MAP_PRIORITY[position]
   return key && KNOWLEDGE_MAPS[key] ? `KEY REFERENCE:\n${KNOWLEDGE_MAPS[key]}` : ""
 }
@@ -6019,8 +6082,12 @@ function formatBrainStats(position, age, stats) {
   return lines.join("\n- ");
 }
 function getTeachingContext(position, mastered, ageGroup) {
+  // Filter concepts by position-relevant domains to prevent cross-position leakage
+  const allowedDomains = POS_CONCEPT_DOMAINS[position]
   const unmasteredConcepts = Object.entries(BRAIN.concepts)
     .filter(([tag, c]) => {
+      // Domain filter: only suggest concepts relevant to this position
+      if (allowedDomains && c.domain && !allowedDomains.includes(c.domain)) return false;
       const {ready} = isConceptReady(tag, mastered || [], ageGroup || "11-12");
       return ready && !(mastered || []).includes(tag);
     })
@@ -6436,11 +6503,25 @@ async function generateAIScenario(position, stats, conceptsLearned = [], recentW
     masteryPrompt += `\nACTIVE ERROR PATTERN: "${p.label}" — ${p.aiInstruction}`;
   }
 
-  // Sprint 5: Condensed AI prompt for speed (cuts ~70% of input tokens)
+  // Sprint 5: Condensed AI prompt for speed + Sprint 6: Scoped context for quality
   const aiMapText = getAIMap(position)
   const teachCtx = getTeachingContext(position, conceptsLearned, stats.ageGroup||"11-12")
   const masteredStr = conceptsLearned.length > 0 ? " Mastered: " + conceptsLearned.slice(-8).join(", ") + "." : ""
+  const topicsText = AI_SCENARIO_TOPICS[position] || ""
+  // Conditional analytics rules \u2014 full IBB text only for manager/pitcher/catcher
+  const FIELDER_POS_LIST = ["firstBase","secondBase","shortstop","thirdBase","leftField","centerField","rightField"]
+  const isFielder = FIELDER_POS_LIST.includes(position)
+  const analyticsRules = isFielder
+    ? "ANALYTICS: Bunting with 0 outs usually lowers run expectancy. Sac bunt only justified with weak hitter, late game, need 1 run. IBBs, pitching changes, and defensive shifts are MANAGER decisions \u2014 do NOT create fielder scenarios about these topics. The scenario TITLE and DESCRIPTION must be about something THIS fielder actually does on the field."
+    : position === "baserunner"
+    ? "ANALYTICS: Steals need ~72% success to break even. Bunting usually lowers RE24. IBBs under 2023+ rules give the runner no decision (automatic advance) \u2014 NEVER create baserunner scenarios about IBBs. Always align with modern sabermetric consensus."
+    : position === "batter"
+    ? "ANALYTICS: Bunting with 0 outs usually lowers RE24. Sac bunt only justified with weak hitter, late game, need 1 run. Two-strike approach = protect the plate. IBBs and pitching changes are not batter decisions. Always align with sabermetric consensus."
+    : "ANALYTICS: Intentional walks almost always wrong per The Book (Tango). NEVER make IBB the best answer unless runners on 2nd+3rd with 1 out (force at home + DP). Never put go-ahead/winning run on base via IBB. IBB REQUIRES 1B open. Under 2023+ rules IBB is a dugout signal, no pitches. Bunting with 0 outs usually bad. Sac bunt only justified with weak hitter, late game, need 1 run. TTO: batters hit +30 pts 3rd time through. Always align with modern sabermetric consensus."
   const prompt = `Create a baseball strategy scenario for position: ${position}.
+THE QUESTION MUST ASK: "What should the ${position.replace(/([A-Z])/g,' $1').trim().toLowerCase()} do?" All 4 options must be physical actions or decisions that ONLY this position makes.
+
+${topicsText}
 
 PLAYER: Level ${lvl.n}, ${posStats.p} games at ${posAcc}% accuracy, difficulty ${diffTarget}/3.${masteredStr}
 ${weakAreas.length > 0 ? weakAreas.join(" ") : ""}${masteryPrompt}${teachCtx}
@@ -6449,7 +6530,7 @@ POSITION RULES: ${AI_POS_PRINCIPLES[position] || POS_PRINCIPLES[position] || "Us
 
 ${aiMapText}
 
-AUDIT: All 4 options must be actions THIS position performs at the SAME decision point. Best answer=coaching consensus backed by modern analytics. Manager=dugout decisions only. Baserunner=runner's physical actions only. rates[best] MUST be highest. score=[HOME,AWAY].
+AUDIT: All 4 options must be actions THIS position performs at the SAME decision point. The scenario TITLE must describe something this position does (not another position's job). Best answer=coaching consensus backed by modern analytics. rates[best] MUST be highest. score=[HOME,AWAY].
 POSITION-ACTION BOUNDARIES: ${(() => {
   const POS_ACTIONS = {
     pitcher: "Pitcher=pitch selection, pitch location, pickoff attempts, fielding batted balls, covering 1B on grounders right side, backing up bases.",
@@ -6467,8 +6548,8 @@ POSITION-ACTION BOUNDARIES: ${(() => {
   };
   return POS_ACTIONS[position] || POS_ACTIONS.manager;
 })()}
-NEVER give this position options that belong to another position. Fielders do NOT call IBBs, shift the defense, call for pitchouts, or make pitching changes — those are MANAGER/CATCHER decisions. Baserunner CANNOT "yell at pitcher", "call a play", "signal the batter". If a game event removes all meaningful decisions from a position (e.g., baserunner during an IBB simply advances automatically), do NOT create a scenario for that position about that event.
-ANALYTICS RULES: Intentional walks are almost always wrong per The Book (Tango). NEVER make IBB the best answer unless runners on 2nd+3rd with 1 out (force at home + DP). Never put the go-ahead or winning run on base via IBB. IBB REQUIRES first base to be OPEN (unoccupied) \u2014 you cannot IBB when there is already a runner on 1st unless you intend to force-advance that runner. NEVER create a scenario where a team IBBs with first base occupied unless the scenario explicitly addresses the forced advancement. Under 2023+ rules, IBB is a dugout signal with no pitches thrown \u2014 there is NO baserunner decision to make during an IBB (runners advance automatically). NEVER create baserunner scenarios about IBBs. Bunting with 0 outs is usually bad (lowers run expectancy). Sac bunt only justified with weak hitter, late game, need exactly 1 run. Always align best answers with modern sabermetric consensus, not old-school instinct.
+NEVER give this position options that belong to another position. Fielders do NOT call IBBs, shift the defense, call for pitchouts, or make pitching changes. Baserunner CANNOT "yell at pitcher", "call a play", "signal the batter". If a game event removes all meaningful decisions from a position, do NOT create a scenario about that event.
+${analyticsRules}
 
 Respond with ONLY valid JSON:
 {"title":"Short Title","diff":${diffTarget},"description":"2-3 sentence scenario","situation":{"inning":"Bot 7","outs":1,"count":"2-1","runners":[1,3],"score":[3,2]},"options":["A","B","C","D"],"best":0,"explanations":["Why A","Why B","Why C","Why D"],"rates":[85,55,30,20],"concept":"One-sentence lesson","anim":"strike|strikeout|hit|groundout|flyout|steal|score|advance|catch|throwHome|doubleplay|bunt|walk|safe|freeze"}
@@ -6621,12 +6702,49 @@ SCORE PERSPECTIVE: If the scenario says "you're up 5-3" and it's "Bot 7" (home b
       ];
       const mgrMatch = MGR_ACTIONS.find(([rx]) => rx.test(optsText));
       if (mgrMatch) {
-        console.warn("[BSM] AI scenario rejected: cross-position violation for", position, "—", mgrMatch[1]);
+        console.warn("[BSM] AI scenario rejected: cross-position violation for", position, "\u2014", mgrMatch[1]);
         throw new Error("Role violation: " + position + " given " + mgrMatch[1]);
       }
     }
 
-    // QUALITY_FIREWALL — run all automated checks
+    // PREMISE VALIDATOR \u2014 check title+description for position-inappropriate concepts
+    const PREMISE_VIOLATIONS = {
+      // Fielders should not have scenarios ABOUT these manager/pitcher/catcher topics
+      fielder: [
+        [/\bIBB\b/i, "IBB is a manager decision"],
+        [/\bintentional\s*walk/i, "intentional walk is a manager decision"],
+        [/\bpitch(ing)?\s*(change|substitut)/i, "pitching change is a manager decision"],
+        [/\bpinch\s*hit/i, "pinch hitting is a manager decision"],
+        [/\bmound\s*visit/i, "mound visit is a manager/catcher decision"],
+        [/\bcall(ing)?\s*(pitch|sign|game)/i, "calling pitches is a catcher decision"],
+        [/\bpitch\s*select/i, "pitch selection is a pitcher/catcher decision"],
+        [/\bsignal\s*(the|a)\s*(steal|bunt|hit)/i, "signals are manager decisions"],
+      ],
+      // Baserunner/batter should not have scenarios about defensive positioning
+      offensive: [
+        [/\bcutoff\s*(man|position|alignment)/i, "cutoff alignment is a fielder decision"],
+        [/\brelay\s*(man|position)/i, "relay is a fielder decision"],
+        [/\bshift\s*(the)?\s*defense/i, "defensive shifts are manager decisions"],
+      ],
+    };
+    const titleDesc = (scenario.title || "") + " " + (scenario.description || "");
+    const FIELDER_CHECK = ["firstBase","secondBase","shortstop","thirdBase","leftField","centerField","rightField"];
+    if (FIELDER_CHECK.includes(position)) {
+      const premMatch = PREMISE_VIOLATIONS.fielder.find(([rx]) => rx.test(titleDesc));
+      if (premMatch) {
+        console.warn("[BSM] AI scenario rejected: premise violation for", position, "\u2014", premMatch[1]);
+        throw new Error("Premise violation: " + position + " scenario about " + premMatch[1]);
+      }
+    }
+    if (position === "baserunner" || position === "batter") {
+      const premMatch = PREMISE_VIOLATIONS.offensive.find(([rx]) => rx.test(titleDesc));
+      if (premMatch) {
+        console.warn("[BSM] AI scenario rejected: premise violation for", position, "\u2014", premMatch[1]);
+        throw new Error("Premise violation: " + position + " scenario about " + premMatch[1]);
+      }
+    }
+
+    // QUALITY_FIREWALL \u2014 run all automated checks
     const fwResult = QUALITY_FIREWALL.validate(scenario)
     if (!fwResult.pass) {
       const failMsg = fwResult.tier1Fails.map(f => f.message).join("; ")
