@@ -5654,36 +5654,52 @@ function getPracticeRecommendations(stats) {
   const ps=stats.ps||{}
   const wc=stats.wrongCounts||{}
   const recs=[]
+  // Helper: find best position for a concept tag (prefers positions player has played)
+  const posForConcept=(tag)=>{
+    const matches=[]
+    for(const[p,arr]of Object.entries(SCENARIOS)){
+      const ct=arr.filter(s=>s.conceptTag===tag)
+      if(ct.length>0)matches.push({p,count:ct.length,played:ps[p]?.p||0})
+    }
+    if(matches.length===0)return null
+    // Prefer position with most matching scenarios, break ties by most played
+    matches.sort((a,b)=>b.count-a.count||b.played-a.played)
+    return matches[0].p
+  }
 
   // 1. Degraded concepts — highest priority (mastery lost)
   Object.entries(cm).filter(([,v])=>v.state==="degraded").forEach(([tag,v])=>{
     const concept=BRAIN.concepts[tag]
+    const p=posForConcept(tag)
     if(concept)recs.push({type:"reinforce",priority:95,tag,name:concept.name,domain:concept.domain,
-      reason:"You knew this but haven't practiced recently",emoji:"🔄"})
+      position:p,reason:"You knew this but haven't practiced recently",emoji:"🔄"})
   })
 
   // 2. Concepts due for spaced repetition review
   const now=new Date()
   Object.entries(cm).filter(([,v])=>v.state==="mastered"&&v.nextReviewDate&&new Date(v.nextReviewDate)<=now).forEach(([tag,v])=>{
     const concept=BRAIN.concepts[tag]
+    const p=posForConcept(tag)
     if(concept)recs.push({type:"review",priority:80,tag,name:concept.name,domain:concept.domain,
-      reason:"Due for review to keep mastery strong",emoji:"📅"})
+      position:p,reason:"Due for review to keep mastery strong",emoji:"📅"})
   })
 
   // 3. Learning concepts with low accuracy (struggling)
   Object.entries(cm).filter(([,v])=>v.state==="learning"&&v.totalAttempts>=3&&(v.totalCorrect/v.totalAttempts)<0.5).forEach(([tag,v])=>{
     const concept=BRAIN.concepts[tag]
     const acc=Math.round(v.totalCorrect/v.totalAttempts*100)
+    const p=posForConcept(tag)
     if(concept)recs.push({type:"practice",priority:75,tag,name:concept.name,domain:concept.domain,
-      reason:`Only ${acc}% accuracy \u2014 keep practicing!`,emoji:"💪"})
+      position:p,reason:`Only ${acc}% accuracy \u2014 keep practicing!`,emoji:"💪"})
   })
 
   // 4. Ready-to-unlock concepts (all prereqs mastered, concept unseen)
   Object.entries(BRAIN.concepts).filter(([tag])=>!cm[tag]||cm[tag].state==="unseen").forEach(([tag,concept])=>{
     if(!concept.prereqs||concept.prereqs.length===0)return // skip root concepts (no prereqs)
     const allPreqsMastered=concept.prereqs.every(p=>cm[p]&&cm[p].state==="mastered")
+    const pos=posForConcept(tag)
     if(allPreqsMastered)recs.push({type:"new",priority:65,tag,name:concept.name,domain:concept.domain,
-      reason:"You've mastered the prerequisites!",emoji:"🆕"})
+      position:pos,reason:"You've mastered the prerequisites!",emoji:"🆕"})
   })
 
   // 5. Weakest positions (>5 plays, <50% accuracy)
@@ -7495,6 +7511,7 @@ export default function App(){
   const aiCacheRef=useRef({scenarios:{},generating:false,lastGenTime:0});
   const lastScRef=useRef(null);
   lastScRef.current=sc?.id||null;
+  const conceptTargetRef=useRef(null); // Set by "Recommended for You" click to target a specific concept
   const speedNextRef=useRef(null);
   const survivalNextRef=useRef(null);
   const seasonNextRef=useRef(null);
@@ -8181,7 +8198,22 @@ export default function App(){
     } else {
       // Unseen scenarios available — use handcrafted
       setAiMode(false);
-      const s=getRand(p,lastScId);setSc(s);setScreen("play");
+      // Concept targeting: if recommendation click set a target concept, prefer matching scenario
+      const cTarget=conceptTargetRef.current;
+      conceptTargetRef.current=null; // consume it
+      let s=null;
+      if(cTarget){
+        const conceptMatch=unseen.filter(sc=>sc.conceptTag===cTarget);
+        if(conceptMatch.length>0){
+          s=conceptMatch[Math.floor(Math.random()*conceptMatch.length)];
+        } else {
+          // Try seen scenarios with this concept (recycling)
+          const allMatch=src.filter(sc=>sc.conceptTag===cTarget);
+          if(allMatch.length>0)s=allMatch[Math.floor(Math.random()*allMatch.length)];
+        }
+      }
+      if(!s)s=getRand(p,lastScId);
+      setSc(s);setScreen("play");
       s.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80);});
     }
   },[getRand,getSmartRecycle,snd,atLimit,hist,stats,maxDiff]);
@@ -9314,13 +9346,13 @@ export default function App(){
               </div>
               {recs.slice(0,3).map((rec,i)=>(
                 <div key={i} style={{display:"flex",alignItems:"center",gap:8,padding:"6px 8px",background:i===0?"rgba(59,130,246,.06)":"transparent",borderRadius:8,marginBottom:i<2?4:0,cursor:rec.position?"pointer":"default"}}
-                  onClick={rec.position?()=>startGame(rec.position):undefined}>
+                  onClick={rec.position?()=>{if(rec.tag)conceptTargetRef.current=rec.tag;startGame(rec.position)}:undefined}>
                   <span style={{fontSize:16}}>{rec.emoji}</span>
                   <div style={{flex:1}}>
-                    <div style={{fontSize:11,fontWeight:700,color:i===0?"#93c5fd":"#d1d5db"}}>{rec.name}</div>
+                    <div style={{fontSize:11,fontWeight:700,color:i===0?"#93c5fd":"#d1d5db"}}>{rec.name}{rec.position&&<span style={{fontSize:9,color:"#6b7280",fontWeight:400,marginLeft:4}}>{POS_META[rec.position]?.emoji||""}</span>}</div>
                     <div style={{fontSize:9,color:"#6b7280"}}>{rec.reason}</div>
                   </div>
-                  {rec.position&&<span style={{fontSize:10,color:"#3b82f6"}}>Play →</span>}
+                  {rec.position&&<span style={{fontSize:10,color:"#3b82f6"}}>Play \u2192</span>}
                   {rec.type==="reinforce"&&<span style={{fontSize:8,background:"#ef444420",color:"#ef4444",padding:"1px 5px",borderRadius:4,fontWeight:700}}>Review</span>}
                   {rec.type==="new"&&<span style={{fontSize:8,background:"#22c55e20",color:"#22c55e",padding:"1px 5px",borderRadius:4,fontWeight:700}}>New</span>}
                 </div>
