@@ -1446,6 +1446,100 @@ async function handleDifficultyCalibration(request, env, cors) {
   }
 }
 
+// --- Level 2.1: Weekly Cron Trigger for AI Quality Aggregation ---
+// Runs every Monday at 6am UTC. Creates weekly_ai_report entries in D1.
+// Identifies: degraded concepts (<40% correct), too-easy concepts (>90%), high flag-rate positions (>5%).
+
+async function handleScheduled(event, env) {
+  const now = Date.now()
+  const weekAgo = now - 7 * 24 * 60 * 60 * 1000
+
+  try {
+    // 1. Aggregate difficulty data from last 7 days
+    const diffData = await env.DB.prepare(`
+      SELECT concept, position, difficulty,
+        COUNT(*) as attempts,
+        SUM(is_correct) as correct,
+        ROUND(100.0 * SUM(is_correct) / COUNT(*), 1) as correct_rate,
+        SUM(is_ai) as ai_count,
+        COUNT(*) - SUM(is_ai) as hc_count
+      FROM scenario_difficulty
+      WHERE created_at > ? AND concept != ''
+      GROUP BY concept, position, difficulty
+      HAVING attempts >= 5
+      ORDER BY correct_rate ASC
+    `).bind(weekAgo).all()
+
+    const allConcepts = diffData.results || []
+    const tooHard = allConcepts.filter(r => r.correct_rate < 40)
+    const tooEasy = allConcepts.filter(r => r.correct_rate > 90)
+
+    // 2. Aggregate flag data
+    const flagData = await env.DB.prepare(`
+      SELECT position, COUNT(*) as flagged_count, SUM(flag_count) as total_flags
+      FROM flagged_scenarios
+      WHERE flagged_at > ?
+      GROUP BY position
+      ORDER BY total_flags DESC
+    `).bind(weekAgo).all()
+
+    const highFlagPositions = (flagData.results || []).filter(r => {
+      const posTotal = allConcepts.filter(c => c.position === r.position).reduce((sum, c) => sum + c.attempts, 0)
+      return posTotal > 0 && (r.total_flags / posTotal) > 0.05
+    })
+
+    // 3. AI vs HC quality comparison
+    const aiQuality = await env.DB.prepare(`
+      SELECT source, COUNT(*) as count, ROUND(AVG(quality_score), 1) as avg_score
+      FROM scenario_grades
+      WHERE created_at > ?
+      GROUP BY source
+    `).bind(weekAgo).all()
+
+    // 4. Error trends
+    const errorTrend = await env.DB.prepare(`
+      SELECT error_type, COUNT(*) as count
+      FROM error_logs
+      WHERE error_type LIKE 'ai_%' AND created_at > ?
+      GROUP BY error_type
+      ORDER BY count DESC
+    `).bind(weekAgo).all()
+
+    // 5. Store weekly report
+    const report = {
+      period_start: weekAgo,
+      period_end: now,
+      total_concepts_tracked: allConcepts.length,
+      too_hard: tooHard.map(r => ({ concept: r.concept, position: r.position, rate: r.correct_rate, attempts: r.attempts })),
+      too_easy: tooEasy.map(r => ({ concept: r.concept, position: r.position, rate: r.correct_rate, attempts: r.attempts })),
+      high_flag_positions: highFlagPositions.map(r => ({ position: r.position, flags: r.total_flags })),
+      ai_quality: aiQuality.results || [],
+      error_summary: (errorTrend.results || []).slice(0, 10),
+      generated_at: now
+    }
+
+    // Ensure weekly_ai_report table exists (idempotent)
+    await env.DB.prepare(`
+      CREATE TABLE IF NOT EXISTS weekly_ai_report (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        period_start INTEGER NOT NULL,
+        period_end INTEGER NOT NULL,
+        report_json TEXT NOT NULL,
+        created_at INTEGER NOT NULL
+      )
+    `).run()
+
+    await env.DB.prepare(`
+      INSERT INTO weekly_ai_report (period_start, period_end, report_json, created_at)
+      VALUES (?, ?, ?, ?)
+    `).bind(weekAgo, now, JSON.stringify(report), now).run()
+
+    console.log(`[BSM Cron] Weekly report generated: ${allConcepts.length} concepts, ${tooHard.length} too hard, ${tooEasy.length} too easy, ${highFlagPositions.length} high-flag positions`)
+  } catch (e) {
+    console.error("[BSM Cron] Weekly aggregation failed:", e.message)
+  }
+}
+
 // --- Router ---
 
 export default {
@@ -1555,6 +1649,23 @@ export default {
         return await handleDifficultyCalibration(request, env, cors);
       } catch {
         return jsonResponse({ error: "Server error" }, 500, cors);
+      }
+    }
+
+    // Level 2.1: GET /analytics/weekly-report — fetch latest weekly AI quality reports
+    if (path === "/analytics/weekly-report" && request.method === "GET") {
+      const adminKey = request.headers.get("X-Admin-Key");
+      if (!adminKey || adminKey !== env.ADMIN_KEY) {
+        return jsonResponse({ error: "Unauthorized" }, 401, cors);
+      }
+      try {
+        const reports = await env.DB.prepare(
+          "SELECT id, period_start, period_end, report_json, created_at FROM weekly_ai_report ORDER BY created_at DESC LIMIT 5"
+        ).all();
+        const parsed = (reports.results || []).map(r => ({ ...r, report: JSON.parse(r.report_json || "{}") }));
+        return jsonResponse({ ok: true, reports: parsed }, 200, cors);
+      } catch (e) {
+        return jsonResponse({ ok: false, error: String(e) }, 500, cors);
       }
     }
 
@@ -1675,5 +1786,10 @@ export default {
     } catch (err) {
       return jsonResponse({ error: "Proxy error" }, 502, cors);
     }
+  },
+
+  // Level 2.1: Cron Trigger — runs weekly analytics aggregation
+  async scheduled(event, env, ctx) {
+    ctx.waitUntil(handleScheduled(event, env))
   },
 };

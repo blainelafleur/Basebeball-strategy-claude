@@ -6975,7 +6975,7 @@ function planScenario(position, stats, conceptsLearned = [], recentWrong = [], t
 // Level 3.4: Generator Agent — Builds focused prompt from Planner's output
 // ============================================================================
 function buildAgentPrompt(plan) {
-  const { position, difficulty, teachingGoal, targetConcept, playerContext, principles, brainData, exampleScenarios, avoidPatterns, avoidTitles } = plan
+  const { position, difficulty, teachingGoal, targetConcept, playerContext, principles, brainData, exampleScenarios, avoidPatterns, avoidTitles, flaggedAvoidText } = plan
 
   // Focused examples (condensed)
   const examplesText = exampleScenarios.slice(0, 2).map((s, i) =>
@@ -6997,7 +6997,7 @@ ${principles.detailed || principles.condensed}
 ${brainData}
 
 ${examplesText}
-${avoidText}${patternText}
+${avoidText}${patternText}${flaggedAvoidText || ""}
 
 THE QUESTION MUST ASK: "What should the ${position.replace(/([A-Z])/g,' $1').trim().toLowerCase()} do?" All 4 options must be physical actions or decisions that ONLY this position makes.
 
@@ -7083,7 +7083,7 @@ async function flushLearningBatch() {
   if (_learningBatch.length === 0) return
   const batch = _learningBatch.splice(0, 50)
   try {
-    await fetch(AI_PROXY_URL.replace(/\/$/, "") + "/analytics/population-difficulty", {
+    await fetch(WORKER_BASE + "/analytics/population-difficulty", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ events: batch })
@@ -7098,9 +7098,10 @@ async function flushLearningBatch() {
 // ============================================================================
 // Level 3.7: Agent Pipeline with Shadow Mode
 // ============================================================================
-async function generateWithAgentPipeline(position, stats, conceptsLearned, recentWrong, signal, targetConcept, aiHistory) {
+async function generateWithAgentPipeline(position, stats, conceptsLearned, recentWrong, signal, targetConcept, aiHistory, flaggedAvoidText = "") {
   // Stage 1: Plan
   const plan = planScenario(position, stats, conceptsLearned, recentWrong, targetConcept, aiHistory)
+  if (flaggedAvoidText) plan.flaggedAvoidText = flaggedAvoidText
   console.log("[BSM Agent] Plan:", plan.teachingGoal, "concept:", plan.targetConcept, "diff:", plan.difficulty)
 
   // Stage 2: Generate (using agent prompt)
@@ -7215,13 +7216,33 @@ function getActiveABConfigs(sessionHash) {
 }
 
 async function generateAIScenario(position, stats, conceptsLearned = [], recentWrong = [], signal = null, targetConcept = null, aiHistory = []) {
+  // Level 1.5: Fetch flagged scenario patterns to inject as "AVOID THESE PATTERNS"
+  let flaggedAvoidText = ""
+  try {
+    const flagRes = await Promise.race([
+      fetch(`${WORKER_BASE}/flagged-scenarios?position=${encodeURIComponent(position)}&limit=5`),
+      new Promise((_, rej) => setTimeout(() => rej(new Error("flag-timeout")), 3000))
+    ])
+    if (flagRes.ok) {
+      const flagData = await flagRes.json()
+      const flagged = flagData.flagged || []
+      if (flagged.length > 0) {
+        flaggedAvoidText = "\nAVOID THESE PATTERNS — players flagged these AI scenarios as confusing or incorrect:\n" +
+          flagged.map(f => `- "${f.scenario_id}" (flagged ${f.flag_count}x for ${f.position})`).join("\n") +
+          "\nDo NOT repeat similar scenarios, setups, or mistake patterns."
+      }
+    }
+  } catch (flagErr) {
+    console.warn("[BSM] Flagged scenarios fetch failed (non-blocking):", flagErr.message)
+  }
+
   // Level 3.7: Agent pipeline A/B test — shadow mode
   try {
     const abConfigs = getActiveABConfigs(stats.sessionHash || "")
     const agentConfig = abConfigs.agent_pipeline || {}
     if (agentConfig.useAgent) {
       console.log("[BSM] Trying agent pipeline (A/B variant: agent)")
-      const agentResult = await generateWithAgentPipeline(position, stats, conceptsLearned, recentWrong, signal, targetConcept, aiHistory)
+      const agentResult = await generateWithAgentPipeline(position, stats, conceptsLearned, recentWrong, signal, targetConcept, aiHistory, flaggedAvoidText)
       if (agentResult && agentResult.scenario) {
         return { scenario: agentResult.scenario, abVariants: { pipeline: "agent", grade: agentResult.agentGrade?.score } }
       }
@@ -7314,7 +7335,7 @@ ${bibleConfig.useBible !== false ? "DETAILED PRINCIPLES: " + (BIBLE_PRINCIPLES[p
 
 ${aiMapText}
 
-${brainConfig.brainLevel !== "minimal" ? formatBrainForAI(position, {count: scenario_count, inning: "", score: []}) : ""}
+${brainConfig.brainLevel !== "minimal" ? formatBrainForAI(position, {count: null, inning: "", score: []}) : ""}
 
 AUDIT: All 4 options must be actions THIS position performs at the SAME decision point. The scenario TITLE must describe something this position does (not another position's job). Best answer=coaching consensus backed by modern analytics. rates[best] MUST be highest. score=[HOME,AWAY].${errorReinforcement}
 POSITION-ACTION BOUNDARIES: ${(() => {
@@ -7336,6 +7357,7 @@ POSITION-ACTION BOUNDARIES: ${(() => {
 })()}
 NEVER give this position options that belong to another position. Fielders do NOT call IBBs, shift the defense, call for pitchouts, or make pitching changes. Baserunner CANNOT "yell at pitcher", "call a play", "signal the batter". If a game event removes all meaningful decisions from a position, do NOT create a scenario about that event.
 ${analyticsRules}
+${flaggedAvoidText}
 
 COMMON MISTAKES TO AVOID:
 - Do NOT make all 4 options just different pitches (for pitcher) or just different throws (for fielder) — options should represent meaningfully different strategic decisions.
@@ -7360,7 +7382,7 @@ SCORE PERSPECTIVE: If the scenario says "you're up 5-3" and it's "Bot 7" (home b
 
   try {
     // Sprint 4.3: Apply A/B test configs to AI generation
-    const abConfigs = getActiveABConfigs()
+    const abConfigs = getActiveABConfigs(stats.sessionHash || "")
     const tempConfig = abConfigs.ai_temperature || {}
     const promptConfig = abConfigs.ai_system_prompt || {}
     const aiTemp = tempConfig.temperature || 0.4
@@ -7481,7 +7503,7 @@ SCORE PERSPECTIVE: If the scenario says "you're up 5-3" and it's "Bot 7" (home b
       catcher: [
         /catcher.*cutoff/i,                               // Never the cutoff man
         /catcher.*goes?\s*out.*cutoff/i,                  // Never goes out as cutoff
-        /catcher.*relay/i,                                // Never the relay man
+        /catcher.*(is|as|acts?\s+as|becomes?)\s*(the\s*)?relay/i, // Never the relay man (narrowed to avoid false positives)
         /catcher.*looks.*runner.*before.*field/i,         // Must field ball first on WP/PB
       ],
       shortstop: [/SS\s*covers?\s*(1st|first)\b.*bunt/i, /shortstop\s*covers?\s*(1st|first)\b.*bunt/i],
@@ -7629,7 +7651,7 @@ SCORE PERSPECTIVE: If the scenario says "you're up 5-3" and it's "Bot 7" (home b
       const grade = gradeScenario(scenario, position);
       scenario.qualityGrade = grade.score;
       if (grade.score > 0) {
-        fetch(AI_PROXY_URL.replace(/\/$/, "") + "/analytics/scenario-grade", {
+        fetch(WORKER_BASE + "/analytics/scenario-grade", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ scenario_id: scenario.id, position, score: grade.score, pass: grade.pass, deductions: grade.deductions, source: "standard" })
@@ -8630,13 +8652,13 @@ export default function App(){
     generateAIScenario(posToGen,stats,stats.cl||[],stats.recentWrong||[],null,null,stats.aiHistory||[])
       .then(result=>{
         if(result?.scenario){
-          aiCacheRef.current.scenarios[posToGen]=result.scenario
+          aiCacheRef.current.scenarios[posToGen]=result // BUG 7: store full result (preserves abVariants)
           console.log("[BSM] Pre-cached AI scenario:", result.scenario.title, "for", posToGen)
         }
       })
       .catch(()=>{})
       .finally(()=>{aiCacheRef.current.generating=false})
-  },[screen,stats.isPro])
+  },[screen,stats.isPro,stats.cl?.length,stats.recentWrong?.length]) // ISSUE 2: include player context deps
 
   // Handle challenge links
   useEffect(()=>{
@@ -8903,8 +8925,9 @@ export default function App(){
   },[snd,stats.dailyDone,stats.dailyDate]);
 
   const startGame=useCallback(async(p,forceAI=false)=>{
+    if(aiLoading)return;
     if(atLimit){setPanel('limit');return;}
-    snd.play('tap');setPos(p);setChoice(null);setOd(null);setRi(-1);setFo(null);setShowC(false);setLvlUp(null);setShowExp(true);setDailyMode(false);
+    snd.play('tap');setPos(p);setChoice(null);setOd(null);setRi(-1);setFo(null);setShowC(false);setLvlUp(null);setShowExp(true);setDailyMode(false);setAiFallback(false);
 
     const raw=SCENARIOS[p]||[];const pool=raw.filter(s=>s.diff<=maxDiff);const seen=hist[p]||[];
     const src=pool.length>0?pool:raw;
@@ -8918,22 +8941,25 @@ export default function App(){
     // Local helper: AI generation with loading, abort, retry, cooldown, fallback
     const doAI=async()=>{
       // Sprint 2.3: Check pre-generation cache first
-      const cached=aiCacheRef.current.scenarios[p]
-      if(cached){
+      const cachedResult=aiCacheRef.current.scenarios[p]
+      if(cachedResult?.scenario){
         delete aiCacheRef.current.scenarios[p]
-        console.log("[BSM] Using pre-cached AI scenario:", cached.title)
+        const cachedSc=cachedResult.scenario
+        console.log("[BSM] Using pre-cached AI scenario:", cachedSc.title)
         setAiMode(true);setScreen("play")
         aiFailRef.current.consecutive=0;aiFailRef.current.cooldownUntil=0
+        // BUG 7: Track analytics with A/B variants from cached result
+        trackAnalyticsEvent("ai_scenario_generated",{pos:p,concept:cachedSc.conceptTag||"",diff:cachedSc.diff,ab:cachedResult.abVariants||{},cached:true},{ageGroup:stats.ageGroup,isPro:stats.isPro})
         // Persist to AI history
         setStats(prev=>{
-          const entry={id:cached.id,title:cached.title,position:p,diff:cached.diff,
-            concept:cached.concept,conceptTag:cached.conceptTag||null,
+          const entry={id:cachedSc.id,title:cachedSc.title,position:p,diff:cachedSc.diff,
+            concept:cachedSc.concept,conceptTag:cachedSc.conceptTag||null,
             generatedAt:Date.now(),answered:false,correct:null,chosenIdx:null}
           const hist=[...(prev.aiHistory||[]),entry].slice(-100)
           return{...prev,aiHistory:hist}
         })
-        setSc(cached)
-        cached.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80)})
+        setSc(cachedSc)
+        cachedSc.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80)})
         return
       }
       // Cooldown check — skip AI if recent repeated failures
@@ -8960,9 +8986,10 @@ export default function App(){
       const _aiStartMs=Date.now()
       const AI_BUDGET=35000
       // Sprint 5: Try pre-cached scenario first for instant load
+      let ctrl=null
       let result=consumeCachedAI(p)
       if(!result){
-        let ctrl=new AbortController();abortRef.current=ctrl;
+        ctrl=new AbortController();abortRef.current=ctrl;
         result=await generateAIScenario(p,stats,stats.cl||[],stats.recentWrong||[],ctrl.signal,concept,_aiHist);
         // Retry up to 2x on non-timeout/non-abort failures if time remains
         let retries=0
@@ -9003,6 +9030,7 @@ export default function App(){
           aiFailRef.current.cooldownUntil=Date.now()+5*60*1000;
           console.warn("[BSM] AI cooldown activated after",aiFailRef.current.consecutive,"consecutive failures");
         }
+        if(ctrl?.signal.aborted)return; // BUG 4: don't dirty state after cancel/goHome
         setAiMode(false);setAiFallback(true);
         const s=getSmartRecycle(p,src,lastScId);
         setHist(h=>({...h,[p]:[...(h[p]||[]),s.id].slice(-src.length)}));
@@ -9057,7 +9085,7 @@ export default function App(){
       setSc(s);setScreen("play");
       s.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80);});
     }
-  },[getRand,getSmartRecycle,snd,atLimit,hist,stats,maxDiff]);
+  },[getRand,getSmartRecycle,snd,atLimit,hist,stats,maxDiff,aiLoading]);
 
   const checkAch=useCallback((ns)=>{
     const earned=ns.achs||[];
@@ -9070,7 +9098,7 @@ export default function App(){
     const conceptTagForEffectiveness = findConceptTag(sc.concept);
     const isOpt=idx===sc.best;const rate=sc.rates[idx];const cat=isOpt?"success":rate>=55?"warning":"danger";
     // Sprint 4.2: Track scenario answer
-    trackAnalyticsEvent("scenario_answer",{pos:pos,correct:isOpt,diff:sc.diff||1,concept:conceptTagForEffectiveness||"",isAI:!!sc.aiGenerated},{ageGroup:stats.ageGroup,isPro:stats.isPro});
+    trackAnalyticsEvent("scenario_answer",{pos:pos,correct:isOpt,diff:sc.diff||1,concept:conceptTagForEffectiveness||"",isAI:!!sc.isAI},{ageGroup:stats.ageGroup,isPro:stats.isPro});
     let pts=isOpt?15:rate>=55?8:rate>=35?4:2;
     if(dailyMode)pts*=2; // 2x XP for Daily Diamond Play
     if(stats.isPro)pts*=2; // 2x XP for Pro
@@ -9107,7 +9135,7 @@ export default function App(){
     setOd(o);
     outcomeStartRef.current=Date.now();
     // Sprint 5: Pre-fetch next AI scenario while player reads explanation
-    if(stats.isPro&&aiMode&&!speedMode&&!survivalMode){
+    if(stats.isPro&&aiMode&&!speedMode&&!survivalMode&&!aiCacheRef.current.scenarios[pos]){
       prefetchAIScenario(pos,stats,stats.cl||[],stats.recentWrong||[],stats.aiHistory||[])
     }
     // Track speed round result
@@ -9231,6 +9259,7 @@ export default function App(){
       sessionRef.current={plays:0,correct:0,concepts:[]};
     }
     sessionConceptsRef.current=[] // Sprint 3.1: reset session concept diversity tracker
+    cancelPrefetch() // BUG 5: cancel in-flight prefetches on navigate away
     setScreen("home");setPos(null);setSc(null);setChoice(null);setOd(null);setFo(null);setPanel(null);setLvlUp(null);setCoachMsg(null);setDailyMode(false);setSpeedMode(false);setSpeedRound(null);setSurvivalMode(false);setSurvivalRun(null);setChallengeMode(false);setChallengePack(null);setSeasonMode(false);setSeasonStageIntro(null);setAiMode(false);setAiFallback(false);setExplainMore(null);setExplainLoading(false);setSitMode(false);setSitSet(null);setSitQ(0);setSitResults([]);if(timerRef.current)clearTimeout(timerRef.current)
   },[speedMode,survivalMode,seasonMode,dailyMode,sitMode,screen]);
   goHomeRef.current=goHome;

@@ -4,7 +4,11 @@
 
 A concrete, technical roadmap for transforming BSM's AI from a "prompt-and-pray" content generator into a specialized baseball strategy intelligence engine. Three levels, each building on the last. Level 1 can start today. Level 3 is the competitive moat.
 
-**Status:** ✅ ALL 3 LEVELS IMPLEMENTED (2026-03-03). See PROMPT_CHANGELOG.md for details. Pending: D1 migrations for new tables, deploy Worker, A/B test monitoring.
+**Status:** ✅ ALL 3 LEVELS FULLY IMPLEMENTED (2026-03-03). See PROMPT_CHANGELOG.md for details.
+- Level 1.5: Flagged scenario fetch + "AVOID THESE PATTERNS" prompt injection — complete
+- Level 2.1: Weekly Cron Trigger (Mondays 6am UTC) + weekly_ai_report table — complete
+- Migration file: `worker/migrations/ai_superpower.sql` — run to create D1 tables
+- Deploy Worker with `cd worker && npx wrangler deploy` to activate Cron + new endpoints
 
 ---
 
