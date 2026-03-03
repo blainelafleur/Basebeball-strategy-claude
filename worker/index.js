@@ -39,6 +39,35 @@ const PBKDF2_ITERATIONS = 100_000;
 // CREATE INDEX IF NOT EXISTS idx_subs_stripe_cust ON subscriptions(stripe_customer_id);
 // CREATE INDEX IF NOT EXISTS idx_subs_stripe_sub ON subscriptions(stripe_subscription_id);
 
+// Level 2 D1 migrations:
+// CREATE TABLE IF NOT EXISTS scenario_grades (
+//   id INTEGER PRIMARY KEY AUTOINCREMENT,
+//   scenario_id TEXT NOT NULL,
+//   position TEXT,
+//   source TEXT DEFAULT 'ai',
+//   quality_score REAL DEFAULT 0,
+//   correct_rate REAL DEFAULT 0,
+//   flag_rate REAL DEFAULT 0,
+//   grader_details TEXT,
+//   created_at INTEGER NOT NULL
+// );
+// CREATE INDEX IF NOT EXISTS idx_grades_scenario ON scenario_grades(scenario_id);
+// CREATE INDEX IF NOT EXISTS idx_grades_position ON scenario_grades(position);
+//
+// CREATE TABLE IF NOT EXISTS scenario_difficulty (
+//   id INTEGER PRIMARY KEY AUTOINCREMENT,
+//   scenario_id TEXT NOT NULL,
+//   position TEXT,
+//   concept TEXT,
+//   difficulty INTEGER DEFAULT 1,
+//   is_correct INTEGER DEFAULT 0,
+//   is_ai INTEGER DEFAULT 0,
+//   session_hash TEXT,
+//   created_at INTEGER NOT NULL
+// );
+// CREATE INDEX IF NOT EXISTS idx_diff_concept ON scenario_difficulty(concept);
+// CREATE INDEX IF NOT EXISTS idx_diff_position ON scenario_difficulty(position);
+
 const rateCounts = new Map();
 const loginAttempts = new Map();
 
@@ -1275,6 +1304,148 @@ async function handleFlagScenario(request, env, cors) {
   }
 }
 
+// Level 1.5: GET /flagged-scenarios — read back flagged patterns for AI prompt injection
+async function handleFlaggedScenarios(request, env, cors) {
+  const url = new URL(request.url);
+  const position = url.searchParams.get("position") || "";
+  const limit = Math.min(parseInt(url.searchParams.get("limit")) || 10, 50);
+  try {
+    let query, params;
+    if (position) {
+      query = "SELECT scenario_id, flag_count, position, flagged_at FROM flagged_scenarios WHERE position = ? ORDER BY flag_count DESC LIMIT ?";
+      params = [position, limit];
+    } else {
+      query = "SELECT scenario_id, flag_count, position, flagged_at FROM flagged_scenarios ORDER BY flag_count DESC LIMIT ?";
+      params = [limit];
+    }
+    const results = await env.DB.prepare(query).bind(...params).all();
+    return jsonResponse({ ok: true, flagged: results.results || [] }, 200, cors);
+  } catch (e) {
+    return jsonResponse({ ok: false, error: String(e) }, 500, cors);
+  }
+}
+
+// Level 2.1: GET /analytics/ai-quality — aggregated AI quality metrics
+async function handleAIQualityAnalytics(request, env, cors) {
+  const adminKey = request.headers.get("X-Admin-Key");
+  if (!adminKey || adminKey !== env.ADMIN_KEY) {
+    return jsonResponse({ error: "Unauthorized" }, 401, cors);
+  }
+  try {
+    // AI errors by type (last 30 days)
+    const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
+    const errorsByType = await env.DB.prepare(
+      "SELECT error_type, COUNT(*) as count FROM error_logs WHERE error_type LIKE 'ai_%' AND created_at > ? GROUP BY error_type ORDER BY count DESC"
+    ).bind(thirtyDaysAgo).all();
+
+    // Flagged scenarios by position
+    const flagsByPosition = await env.DB.prepare(
+      "SELECT position, COUNT(*) as count, SUM(flag_count) as total_flags FROM flagged_scenarios GROUP BY position ORDER BY total_flags DESC"
+    ).all();
+
+    // Most flagged individual scenarios
+    const topFlagged = await env.DB.prepare(
+      "SELECT scenario_id, flag_count, position FROM flagged_scenarios ORDER BY flag_count DESC LIMIT 20"
+    ).all();
+
+    // Error trend (daily for last 7 days)
+    const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+    const dailyErrors = await env.DB.prepare(
+      "SELECT DATE(created_at/1000, 'unixepoch') as day, COUNT(*) as count FROM error_logs WHERE error_type LIKE 'ai_%' AND created_at > ? GROUP BY day ORDER BY day"
+    ).bind(sevenDaysAgo).all();
+
+    return jsonResponse({
+      ok: true,
+      period: "30d",
+      errorsByType: errorsByType.results || [],
+      flagsByPosition: flagsByPosition.results || [],
+      topFlagged: topFlagged.results || [],
+      dailyErrors: dailyErrors.results || [],
+    }, 200, cors);
+  } catch (e) {
+    return jsonResponse({ ok: false, error: String(e) }, 500, cors);
+  }
+}
+
+// Level 2.2: POST /analytics/scenario-grade — store scenario quality grades
+async function handleScenarioGrade(request, env, cors) {
+  let body;
+  try { body = await request.json(); } catch {
+    return jsonResponse({ error: "Invalid JSON" }, 400, cors);
+  }
+  const { scenario_id, position, source, quality_score, correct_rate, flag_rate, grader_details } = body;
+  if (!scenario_id) return jsonResponse({ error: "missing scenario_id" }, 400, cors);
+  try {
+    await env.DB.prepare(`
+      INSERT INTO scenario_grades (scenario_id, position, source, quality_score, correct_rate, flag_rate, grader_details, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `).bind(
+      scenario_id, position || "unknown", source || "ai",
+      quality_score || 0, correct_rate || 0, flag_rate || 0,
+      grader_details ? JSON.stringify(grader_details) : null, Date.now()
+    ).run();
+    return jsonResponse({ ok: true }, 200, cors);
+  } catch (e) {
+    return jsonResponse({ ok: false, error: String(e) }, 500, cors);
+  }
+}
+
+// Level 2.4: POST /analytics/population-difficulty — store aggregated difficulty data
+async function handlePopulationDifficulty(request, env, cors) {
+  let body;
+  try { body = await request.json(); } catch {
+    return jsonResponse({ error: "Invalid JSON" }, 400, cors);
+  }
+  const { events } = body;
+  if (!Array.isArray(events)) return jsonResponse({ error: "missing events array" }, 400, cors);
+  try {
+    const stmts = events.slice(0, 50).map(e => env.DB.prepare(`
+      INSERT INTO scenario_difficulty (scenario_id, position, concept, difficulty, is_correct, is_ai, session_hash, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `).bind(
+      e.scenario_id || "unknown", e.position || "unknown", e.concept || "",
+      e.difficulty || 1, e.is_correct ? 1 : 0, e.is_ai ? 1 : 0,
+      (e.session_hash || "anon").slice(0, 32), Date.now()
+    ));
+    if (stmts.length > 0) await env.DB.batch(stmts);
+    return jsonResponse({ ok: true, count: stmts.length }, 200, cors);
+  } catch (e) {
+    return jsonResponse({ ok: false, error: String(e) }, 500, cors);
+  }
+}
+
+// Level 2.4: GET /analytics/difficulty-calibration — population difficulty stats
+async function handleDifficultyCalibration(request, env, cors) {
+  try {
+    const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
+    // Concepts with extreme correct rates
+    const calibration = await env.DB.prepare(`
+      SELECT concept, position, difficulty,
+        COUNT(*) as attempts,
+        SUM(is_correct) as correct,
+        ROUND(100.0 * SUM(is_correct) / COUNT(*), 1) as correct_rate,
+        SUM(is_ai) as ai_count
+      FROM scenario_difficulty
+      WHERE created_at > ? AND concept != ''
+      GROUP BY concept, position, difficulty
+      HAVING attempts >= 10
+      ORDER BY correct_rate ASC
+    `).bind(thirtyDaysAgo).all();
+
+    const tooHard = (calibration.results || []).filter(r => r.correct_rate < 40);
+    const tooEasy = (calibration.results || []).filter(r => r.correct_rate > 90);
+
+    return jsonResponse({
+      ok: true,
+      all: calibration.results || [],
+      tooHard,
+      tooEasy,
+    }, 200, cors);
+  } catch (e) {
+    return jsonResponse({ ok: false, error: String(e) }, 500, cors);
+  }
+}
+
 // --- Router ---
 
 export default {
@@ -1344,6 +1515,44 @@ export default {
     if (path === "/analytics/summary" && request.method === "GET") {
       try {
         return await handleAnalyticsSummary(request, env, cors);
+      } catch {
+        return jsonResponse({ error: "Server error" }, 500, cors);
+      }
+    }
+
+    if (path === "/analytics/ai-quality" && request.method === "GET") {
+      try {
+        return await handleAIQualityAnalytics(request, env, cors);
+      } catch {
+        return jsonResponse({ error: "Server error" }, 500, cors);
+      }
+    }
+
+    if (path === "/analytics/scenario-grade" && request.method === "POST") {
+      if (!checkRateLimit(`analytics:${ip}`, RATE_LIMIT_ANALYTICS)) {
+        return jsonResponse({ ok: false, error: "Rate limited" }, 429, cors);
+      }
+      try {
+        return await handleScenarioGrade(request, env, cors);
+      } catch {
+        return jsonResponse({ ok: false }, 500, cors);
+      }
+    }
+
+    if (path === "/analytics/population-difficulty" && request.method === "POST") {
+      if (!checkRateLimit(`analytics:${ip}`, RATE_LIMIT_ANALYTICS)) {
+        return jsonResponse({ ok: false, error: "Rate limited" }, 429, cors);
+      }
+      try {
+        return await handlePopulationDifficulty(request, env, cors);
+      } catch {
+        return jsonResponse({ ok: false }, 500, cors);
+      }
+    }
+
+    if (path === "/analytics/difficulty-calibration" && request.method === "GET") {
+      try {
+        return await handleDifficultyCalibration(request, env, cors);
       } catch {
         return jsonResponse({ error: "Server error" }, 500, cors);
       }
@@ -1422,6 +1631,13 @@ export default {
     }
 
     if (request.method === "GET") {
+      if (path === "/flagged-scenarios") {
+        try {
+          return await handleFlaggedScenarios(request, env, cors);
+        } catch {
+          return jsonResponse({ ok: false }, 500, cors);
+        }
+      }
       if (path === "/health") {
         return jsonResponse({ ok: true, ts: Date.now() }, 200, cors);
       }

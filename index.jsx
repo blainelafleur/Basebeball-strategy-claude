@@ -3127,122 +3127,122 @@ const SCENARIOS = {
       situation:{inning:"Bot 7",outs:1,count:"-",runners:[3],score:[1,0]},
       options:["Let the first baseman handle it — it's his side","Cut the throw off and relay home","Sprint to the first base line and shovel-flip to the catcher","Call for the ball and throw home yourself"],
       best:2,explanations:["The first baseman can't reach it in time. The runner scores easily.","A standard cutoff relay takes too long — the runner beats it home.","This is THE play! Jeter sprinted from shortstop to the first base line, grabbed the overthrow, and backhanded a shovel-flip to the catcher — nailing Jeremy Giambi. Baseball's greatest hustle play.","You're 150 feet away. By the time you field and throw, the run scores."],
-      rates:[10,35,85,25],concept:"Great plays happen when you anticipate — Jeter's hustle and instinct created the impossible",anim:"throwHome"},
+      rates:[10,35,85,25],concept:"Great plays happen when you anticipate — Jeter's hustle and instinct created the impossible",anim:"throwHome",historicalNote:"October 13, 2001 — Oakland Coliseum. The A's led the series 2-0 and were about to take the lead in Game 3. Jeremy Giambi rounded third and jogged home, not sliding. Jeter's impossible flip beat him by inches. The Yankees won the game and came back to win the series. Giambi later said he should have slid."},
     {id:"fp2", conceptTag:"force-vs-tag",title:"Merkle's Boner",diff:2,cat:"famous",ageMin:9,ageMax:99,
       description:"1908, Giants vs Cubs. Bottom 9th, tie game. Your teammate singles — the winning run appears to score from 3rd! But you were the runner on 1st. What must you do?",
       situation:{inning:"Bot 9",outs:1,count:"-",runners:[1,3],score:[1,1]},
       options:["Run toward 2nd base and touch the bag","Celebrate with your teammates — the game is over!","Run to the dugout — the fans are storming the field","Stay at 1st base — you didn't need to advance"],
       best:0,explanations:["Correct! You MUST touch 2nd base for the run to count. In 1908, Fred Merkle didn't — the Cubs got the ball, touched 2nd, and Merkle was a force out. The run was nullified.","Celebrating cost Fred Merkle his legacy. The run didn't count because he never touched 2nd.","Leaving the field is abandoning the play. The defense can appeal and you're out.","The force at second still existed because Merkle was forced to advance when the batter hit the ball. You MUST touch second base — without it, you can be forced out and the run doesn't count."],
-      rates:[85,10,10,20],concept:"Always touch the next base — Merkle's mistake in 1908 changed a pennant race",explSimple:["You MUST touch 2nd base for the run to count.","Celebrating cost Fred Merkle his legacy.","Leaving the field is abandoning the play.","The force at second still existed because Merkle was forced to advance when the batter hit the ball."],anim:"advance"},
+      rates:[85,10,10,20],concept:"Always touch the next base — Merkle's mistake in 1908 changed a pennant race",explSimple:["You MUST touch 2nd base for the run to count.","Celebrating cost Fred Merkle his legacy.","Leaving the field is abandoning the play.","The force at second still existed because Merkle was forced to advance when the batter hit the ball."],anim:"advance",historicalNote:"September 23, 1908 — Polo Grounds, New York. Fred Merkle was just 19 years old. When the winning run appeared to score, fans rushed the field. Merkle never touched second base. The game was declared a tie and replayed later. The Giants lost the replay and the pennant by one game."},
     {id:"fp3", conceptTag:"rundown-mechanics",title:"Baez's Rundown Magic",diff:3,cat:"famous",ageMin:12,ageMax:99,
       description:"2021 Cubs vs Pirates. You're Javy Baez on 1st. The batter grounds out but you get caught in a rundown between 1st and 2nd. What's your strategy?",
       situation:{inning:"Top 3",outs:1,count:"-",runners:[1],score:[2,1]},
       options:["Give up and get tagged — save energy","Run full speed toward 2nd to force a bad throw","Stay in the rundown as long as possible to let the other runner score","Make the fielders throw as many times as possible — force an error"],
       best:3,explanations:["Never give up! Rundowns create chaos. Think about what gives your team the best result here.","Running full speed at one fielder doesn't create enough confusion.","Good thinking — but the key is actively FORCING errors, not just surviving.","Baez made the Pirates throw 6 times, running back and forth, drawing TWO throwing errors. He ended up safe at 2nd AND a run scored. Chaos wins."],
-      rates:[10,30,50,85],concept:"In a rundown, make them throw — every throw is a chance for an error",anim:"advance"},
+      rates:[10,30,50,85],concept:"In a rundown, make them throw — every throw is a chance for an error",anim:"advance",historicalNote:"Game 5, 2016 NLCS. Baez got caught in a rundown between second and third but kept reversing direction, forcing 5 throws. The Dodgers finally made an error and Baez ended up safe at third. The Cubs won the World Series that year, ending a 108-year championship drought."},
     {id:"fp4", conceptTag:"balk-rule",title:"The Hidden Ball Trick",diff:2,cat:"famous",ageMin:9,ageMax:99,
       description:"You're the first baseman. The runner on 1st just took a lead. Your pitcher is on the rubber. How do you execute the hidden ball trick?",
       situation:{inning:"Top 5",outs:0,count:"-",runners:[1],score:[3,2]},
       options:["Keep the ball in your glove and tag the runner when he leads off","Ask the pitcher to pretend to have the ball while you keep it","Wait for the pitcher to step OFF the rubber, then tag the runner","Call time and tag the runner during the timeout"],
       best:2,explanations:["If the pitcher is on the rubber, this is a balk. The pitcher MUST have the ball when on the rubber.","This is a balk! The pitcher cannot be on the rubber without the ball.","The pitcher MUST step off the rubber for this to be legal. Once off, you can tag the unsuspecting runner. This is the only legal way to pull it off.","You can't tag a runner during a timeout — the ball is dead."],
-      rates:[25,15,85,10],concept:"The hidden ball trick only works if the pitcher is OFF the rubber — otherwise it's a balk",explSimple:["If the pitcher is on the rubber, this is a balk.","The pitcher cannot be on the rubber without the ball.","The pitcher MUST step off the rubber for this to be legal.","You can't tag a runner during a timeout — the ball is dead."],anim:"safe"},
+      rates:[25,15,85,10],concept:"The hidden ball trick only works if the pitcher is OFF the rubber — otherwise it's a balk",explSimple:["If the pitcher is on the rubber, this is a balk.","The pitcher cannot be on the rubber without the ball.","The pitcher MUST step off the rubber for this to be legal.","You can't tag a runner during a timeout — the ball is dead."],anim:"safe",historicalNote:"The hidden ball trick has been executed hundreds of times in MLB history. The key is always the same: the runner loses track of who has the ball and steps off the base. Modern rules require the pitcher to stay off the rubber — if the pitcher isn't on the mound, keep your foot on the bag."},
     {id:"fp5", conceptTag:"baserunning-rates",title:"Lonnie Smith Gets Deked",diff:3,cat:"famous",ageMin:12,ageMax:99,
       description:"1991 World Series, Game 7. You're Lonnie Smith on 1st. The batter drives a ball to deep left-center gap. You're running on contact. But as you round 2nd, the middle infielders fake a double play. What should you do?",
       situation:{inning:"Bot 8",outs:0,count:"-",runners:[1],score:[0,0]},
       options:["Stop and check if the ball was fielded","Keep running full speed — the ball was hit to the outfield","Hesitate briefly then continue to 3rd","Dive back to 2nd — it might be a line drive out"],
       best:1,explanations:["Stopping is exactly what happened — Lonnie Smith hesitated, and it cost the Braves the winning run in Game 7 of the World Series.","Never stop running on a gap hit! The ball is clearly in the outfield. Trust your eyes and ears, not the infielders. Smith should have scored easily.","Even a brief hesitation costs critical seconds. That hesitation kept Smith at 3rd instead of scoring.","You saw the ball hit — it was a gap shot. Don't fall for the fake."],
-      rates:[15,85,30,10],concept:"Watch the ball, not the fielders — dekes only work if you take your eyes off the play",anim:"score"},
+      rates:[15,85,30,10],concept:"Watch the ball, not the fielders — dekes only work if you take your eyes off the play",anim:"score",historicalNote:"Game 7, 1991 World Series. Lonnie Smith was on first when Terry Pendleton doubled to left-center. Smith hesitated because Chuck Knoblauch faked fielding a grounder near second base. Smith only made it to third instead of scoring. The Braves lost 1-0 in 10 innings."},
     {id:"fp6", conceptTag:"bunt-defense",title:"The Suicide Squeeze",diff:2,cat:"famous",ageMin:9,ageMax:99,
       description:"Runner on 3rd, 1 out, tie game in the 8th. You're the batter. The coach gives the squeeze sign. The runner will break for home as the pitcher starts his motion. What's your job?",
       situation:{inning:"Bot 8",outs:1,count:"1-1",runners:[3],score:[3,3]},
       options:["Bunt the ball ANYWHERE in fair territory — just get it down","Swing away — surprise the defense","Fake the bunt and let the runner steal home","Bunt only if the pitch is in the strike zone"],
       best:0,explanations:["On a suicide squeeze, the runner is COMMITTED. Your ONLY job is to get the bunt down — anywhere, any pitch, even in the dirt. The runner is dead if you don't bunt.","Swinging means the catcher has a clear throw to nail the runner at home.","A fake bunt leaves your runner hung out to dry — he's already sprinting.","On a suicide squeeze, you bunt EVERYTHING. The runner is already committed. If you take a pitch, he's out by 20 feet."],
-      rates:[85,5,10,25],concept:"On a suicide squeeze, bunt EVERYTHING — the runner is committed to scoring",explSimple:["On a suicide squeeze, the runner is COMMITTED.","Swinging means the catcher has a clear throw to nail the runner at home.","A fake bunt leaves your runner hung out to dry — he's already sprinting.","On a suicide squeeze, you bunt EVERYTHING."],anim:"bunt"},
+      rates:[85,5,10,25],concept:"On a suicide squeeze, bunt EVERYTHING — the runner is committed to scoring",explSimple:["On a suicide squeeze, the runner is COMMITTED.","Swinging means the catcher has a clear throw to nail the runner at home.","A fake bunt leaves your runner hung out to dry — he's already sprinting.","On a suicide squeeze, you bunt EVERYTHING."],anim:"bunt",historicalNote:"The suicide squeeze has decided countless big games. It's called 'suicide' because if the batter fails to bunt, the runner is dead at the plate. When executed perfectly, it's nearly impossible to defend — the run scores before the defense can react."},
     {id:"fp7", conceptTag:"balk-rule",title:"Walk-Off Balk",diff:3,cat:"famous",ageMin:12,ageMax:99,
       description:"Bottom 9th, tie game, bases loaded, 1 out. You're a runner on 3rd. The pitcher starts his windup, then stops mid-motion. What happens?",
       situation:{inning:"Bot 9",outs:1,count:"2-1",runners:[1,2,3],score:[5,5]},
       options:["Nothing — play continues","It's a balk — all runners advance one base, you score!","The pitch doesn't count — redo it","It depends on whether the batter swung"],
       best:1,explanations:["A pitcher cannot stop mid-motion — that's always a balk.","Correct! A balk awards every runner one free base. With the bases loaded and a runner on 3rd, the winning run scores on a walk-off balk! It's rare but it happens.","Balks are not do-overs. The runners advance immediately.","A balk is called regardless of what the batter does. It's about the pitcher's illegal motion."],
-      rates:[15,85,20,30],concept:"A balk advances all runners one base — with bases loaded, that's a run",anim:"score"},
+      rates:[15,85,20,30],concept:"A balk advances all runners one base — with bases loaded, that's a run",anim:"score",historicalNote:"Walk-off balks are rare but unforgettable. One of the most memorable happened on April 12, 1988, when the Twins beat the Royals on a balk. The pitcher's illegal motion sent the winning run home — perhaps the most anticlimactic way to end a baseball game."},
     {id:"fp8", conceptTag:"win-probability",title:"Bonds — Intentional Walk with Bases Loaded",diff:3,cat:"famous",ageMin:12,ageMax:99,
       description:"1998. Barry Bonds at the plate, bases loaded, 2 outs. You're the opposing manager. The Diamondbacks chose to intentionally walk Bonds, forcing in a run. When might this make sense?",
       situation:{inning:"Bot 9",outs:2,count:"0-0",runners:[1,2,3],score:[8,6]},
       options:["It never makes sense — you just gave them a free run","Only if you're up by more than 1 run AND the next batter is much weaker","Only in extra innings","Only if Bonds has already homered in the game"],
       best:1,explanations:["It's counterintuitive but sometimes the math works. Buck Showalter did it when up by 2.","Exactly! If you're up 8-6 with bases loaded, walking Bonds makes it 8-7 but you face a weaker hitter. A Bonds grand slam makes it 10-8 — game over. Sometimes the intentional walk is the right risk.","Extra innings have nothing to do with this decision — it's about run prevention math.","His earlier at-bats don't change the math. It's about expected runs."],
-      rates:[30,85,20,25],concept:"Sometimes giving up 1 run to avoid giving up 4 is the smart play — think expected value",anim:"walk"},
+      rates:[30,85,20,25],concept:"Sometimes giving up 1 run to avoid giving up 4 is the smart play — think expected value",anim:"walk",historicalNote:"May 28, 1998 — Buck Showalter managed the Diamondbacks and ordered an intentional walk to Barry Bonds with the bases loaded while up 8-6. It forced in a run but brought up a weaker hitter who struck out. The unconventional strategy worked perfectly."},
     {id:"fp9", conceptTag:"rundown-mechanics",title:"Three Men on Third",diff:2,cat:"famous",ageMin:9,ageMax:99,
       description:"1926 — Babe Ruth, Lou Gehrig, and a runner are all somehow near 3rd base at the same time. You're the third baseman with the ball. Who do you tag?",
       situation:{inning:"Bot 7",outs:1,count:"-",runners:[1,2,3],score:[3,3]},
       options:["Tag Babe Ruth first — he's the biggest star","Tag the runner closest to home plate","Tag the runner who was originally on 3rd — they have the right to the base","Tag all of them just to be safe"],
       best:2,explanations:["Star power doesn't matter in the rules. Tag the right runner.","The runner closest to home isn't necessarily the one you need. Think about who has the right to the base.","Correct! The lead runner (originally on 3rd) has the RIGHT to the base. The other two runners are trespassers. Tag the runners who don't belong — they're the outs.","Tagging all of them works, but you need to know WHY. Only the runners without the right to the base are out."],
-      rates:[20,35,85,50],concept:"The lead runner has the right to the base — tag the others, they're trespassing",explSimple:["Star power doesn't matter in the rules.","The runner closest to home isn't necessarily the one you need.","The lead runner (originally on 3rd) has the RIGHT to the base.","Tagging all of them works, but you need to know WHY."],anim:"safe"},
+      rates:[20,35,85,50],concept:"The lead runner has the right to the base — tag the others, they're trespassing",explSimple:["Star power doesn't matter in the rules.","The runner closest to home isn't necessarily the one you need.","The lead runner (originally on 3rd) has the RIGHT to the base.","Tagging all of them works, but you need to know WHY."],anim:"safe",historicalNote:"August 15, 1926 — This really happened between the Brooklyn Robins and Boston Braves. Babe Herman doubled, but confusion on the basepaths led to three runners ending up at or near third base. Two were tagged out, creating one of baseball's most famous and funniest plays."},
     {id:"fp10", conceptTag:"pitch-sequencing",title:"Maddux Pitch Sequencing",diff:3,cat:"famous",ageMin:12,ageMax:99,
       description:"You're Greg Maddux — the greatest pitch sequencer ever. Bottom of the 7th, facing a power hitter. He's seen mostly fastballs from you. Count is 2-1. What do you throw?",
       situation:{inning:"Bot 7",outs:1,count:"2-1",runners:[],score:[2,0]},
       options:["Fastball on the inside corner — your best pitch","Changeup — make him way out front","Cutter that looks like a fastball but moves","Two-seam sinker for a ground ball"],
       best:2,explanations:["He's timing your fastball now. Throwing it again is predictable.","Changeup on 2-1 when behind is risky — if you miss, it's 3-1.","Maddux mastered the cutter for exactly this reason. It looks like a fastball out of the hand, but cuts 3-4 inches at the last moment. The batter swings where the ball WAS. Pure genius.","A sinker could work, but the cutter's deception is what made Maddux legendary."],
-      rates:[40,45,85,55],concept:"Maddux's genius: throw pitches that LOOK like one thing but DO another — deception over velocity",anim:"groundout"},
+      rates:[40,45,85,55],concept:"Maddux's genius: throw pitches that LOOK like one thing but DO another — deception over velocity",anim:"groundout",historicalNote:"Greg Maddux won 355 games with a career ERA of 3.16, despite rarely throwing harder than 89 mph. He won four consecutive Cy Young Awards (1992-1995) by outsmarting hitters. Batters said facing Maddux was like playing chess — he was always two pitches ahead of you."},
 
     {id:"fp11", conceptTag:"of-depth-arm-value",title:"The Catch",diff:3,cat:"famous",ageMin:12,ageMax:99,
       description:"1954 World Series, Game 1. Vic Wertz crushes a deep drive to center field at the Polo Grounds. Willie Mays turns his back to home plate and sprints toward the wall, 460 feet away. The ball is sailing over his head.",
       situation:{inning:"Top 8",outs:0,count:"-",runners:[1,2],score:[2,2]},
       options:["Sprint full speed with your back turned and make an over-the-shoulder catch","Stop, turn around, and try to play the ball off the wall","Let it go \u2014 no one can catch a ball hit that far","Call for the left fielder to take it instead"],
       best:0,explanations:["This is exactly what Mays did \u2014 one of the greatest catches in baseball history. He ran full speed, caught it over his shoulder at the warning track, then spun and fired a throw back to the infield to hold the runners. Pure instinct and elite athleticism.","Playing it off the wall would likely score both runners and give Wertz extra bases. In a tie World Series game, you can't give up those runs if there's any chance of making the catch.","Giving up on the play would be a disaster. Mays had the speed and tracking ability to reach it, and great outfielders never quit on a ball. This drive was catchable for someone with Mays' talent.","The center fielder has priority on this ball, and Mays was already in full sprint. Calling off for the left fielder would cause confusion and almost certainly let the ball drop."],
-      rates:[88,30,10,15],concept:"Elite outfielders trust their speed and instincts to make plays that seem impossible \u2014 never give up on a fly ball.",anim:"catch"},
+      rates:[88,30,10,15],concept:"Elite outfielders trust their speed and instincts to make plays that seem impossible \u2014 never give up on a fly ball.",anim:"catch",historicalNote:"September 29, 1954 — Game 1 of the World Series at the Polo Grounds. Willie Mays made his legendary over-the-shoulder catch 460 feet from home plate, then spun and fired back to the infield to hold the runners. The Giants won the game and swept the heavily favored Cleveland Indians."},
     {id:"fp12", conceptTag:"force-vs-tag",title:"Buckner's Grounder",diff:2,cat:"famous",ageMin:9,ageMax:99,
       description:"1986 World Series, Game 6, bottom of the 10th. The Mets trail 5-3 but have rallied to tie it. Mookie Wilson hits a slow roller down the first base line. You're Bill Buckner at first base, hobbling on bad ankles. The ball is bouncing toward you.",
       situation:{inning:"Bot 10",outs:2,count:"3-2",runners:[1],score:[5,5]},
       options:["Stay down, keep your glove on the ground, and field it cleanly","Try to backhand it while moving toward the bag","Stand up tall to get a better view of the hop","Charge the ball aggressively to cut down the runner"],
       best:0,explanations:["Fundamentals save games. Stay low, keep your glove down, and smother the grounder. In the actual game, the ball went through Buckner's legs because he lifted his glove, and the winning run scored. This play haunted him for decades, though he was a great player who deserved better.","A backhand on a slow roller adds unnecessary risk. The ball is coming right at you \u2014 use two hands and stay square to it. Fancy plays in the World Series with the game on the line are a bad idea.","Standing up tall is exactly how balls go under your glove. The number one rule for grounders is stay low. Buckner's legs were hurting, which may have caused him to rise up, but the fundamental remains: glove on the dirt.","The ball is a slow roller already close to you. Charging aggressively could cause you to overrun it or field it off-balance. Set your feet and make the routine play."],
-      rates:[85,25,12,30],concept:"In pressure moments, trust the fundamentals \u2014 stay low, glove on the ground, field it clean. Routine plays win championships.",explSimple:["Fundamentals save games.","A backhand on a slow roller adds unnecessary risk.","Standing up tall is exactly how balls go under your glove.","The ball is a slow roller already close to you."],anim:"groundout"},
+      rates:[85,25,12,30],concept:"In pressure moments, trust the fundamentals \u2014 stay low, glove on the ground, field it clean. Routine plays win championships.",explSimple:["Fundamentals save games.","A backhand on a slow roller adds unnecessary risk.","Standing up tall is exactly how balls go under your glove.","The ball is a slow roller already close to you."],anim:"groundout",historicalNote:"September 29, 1986 — Game 6 of the World Series. The Red Sox were one out from winning their first title since 1918. Mookie Wilson's slow roller went through Bill Buckner's legs, and the Mets scored the winning run. Boston wouldn't win the World Series until 2004."},
     {id:"fp13", conceptTag:"situational-hitting",title:"Gibson's Moment",diff:2,cat:"famous",ageMin:9,ageMax:99,
       description:"1988 World Series, Game 1. The Dodgers trail 4-3 in the bottom of the 9th against Oakland's dominant closer Dennis Eckersley. Kirk Gibson can barely walk due to injuries in both legs. Manager Tommy Lasorda sends him up to pinch hit with a runner on base.",
       situation:{inning:"Bot 9",outs:2,count:"3-2",runners:[1],score:[3,4]},
       options:["Look for a backdoor slider and try to drive it the other way","Sit dead red fastball and swing as hard as possible","Take the pitch \u2014 try to draw a walk to extend the inning","Bunt for a base hit since you can barely run"],
       best:0,explanations:["Gibson studied Eckersley's tendencies and knew the backdoor slider was coming on a full count. He sat on it, got it, and launched one of the most iconic home runs in World Series history \u2014 limping around the bases with his famous fist pump. Preparation meets opportunity.","Eckersley's fastball was elite, but he loved his slider in full counts. Sitting fastball would have left Gibson vulnerable to the pitch Eckersley actually threw. Great hitters study the pitcher and anticipate.","With two outs and down a run in the World Series, taking a pitch to try for a walk is too passive. Gibson was sent up there to hit. You don't pinch hit an injured star to watch pitches.","Bunting when you can barely run makes no sense. Gibson could hardly move \u2014 a bunt would be a guaranteed out. Lasorda put him in to swing the bat, not bunt."],
-      rates:[87,35,20,10],concept:"Great hitters study the pitcher's tendencies. Kirk Gibson knew what pitch was coming and was ready for it \u2014 preparation is a superpower.",explSimple:["Gibson studied Eckersley's tendencies and knew the backdoor slider was coming on a full count.","Eckersley's fastball was really smart, but he loved his slider in full counts.","With two outs and down a run in the World Series, taking a pitch to try for a walk is too passive.","Bunting when you can barely run makes no sense."],anim:"hit"},
+      rates:[87,35,20,10],concept:"Great hitters study the pitcher's tendencies. Kirk Gibson knew what pitch was coming and was ready for it \u2014 preparation is a superpower.",explSimple:["Gibson studied Eckersley's tendencies and knew the backdoor slider was coming on a full count.","Eckersley's fastball was really smart, but he loved his slider in full counts.","With two outs and down a run in the World Series, taking a pitch to try for a walk is too passive.","Bunting when you can barely run makes no sense."],anim:"hit",historicalNote:"October 15, 1988 — Game 1 of the World Series. Kirk Gibson, barely able to walk, pinch-hit in the bottom of the 9th with two outs. He launched a two-run homer off Dennis Eckersley, limping around the bases with his iconic fist pump. It was his only at-bat of the entire World Series."},
     {id:"fp14", conceptTag:"pitch-count-mgmt",title:"Koufax's Decision",diff:3,cat:"famous",ageMin:12,ageMax:99,
       description:"October 6, 1965. Sandy Koufax, the best pitcher in baseball, is scheduled to start Game 1 of the World Series against the Minnesota Twins. But today is Yom Kippur, the holiest day in the Jewish faith. Koufax must make a deeply personal decision.",
       situation:{inning:"Mid 1",outs:0,count:"-",runners:[],score:[0,0]},
       options:["Sit out Game 1 to honor your faith, then dominate when you pitch later","Pitch Game 1 \u2014 the team needs you and you can observe next year","Ask the manager to move the game to a different day","Pitch but donate your game check to charity as a compromise"],
       best:0,explanations:["Koufax chose to honor Yom Kippur and sat out Game 1. Don Drysdale started instead and lost. But Koufax came back to pitch a shutout in Game 5 and a 3-hit shutout in Game 7 to win the Series. His decision showed that character and values matter more than any single game, and he became an even greater hero for it.","While the team wanted Koufax, he believed his faith came first. He showed that standing up for your beliefs \u2014 even under enormous pressure \u2014 is the right thing to do. The Dodgers still won the Series.","Players don't get to move World Series games. The schedule is set. But this option shows good instinct to look for a solution. In the real world, Koufax simply made his choice and trusted his teammates.","While generous, this misses the point. Yom Kippur is a day of complete rest and reflection, not partial observance. Koufax understood that honoring his values meant fully committing to them."],
-      rates:[90,15,20,25],concept:"Standing up for your beliefs takes courage. Sandy Koufax showed the world that character matters more than any game.",anim:"freeze"},
+      rates:[90,15,20,25],concept:"Standing up for your beliefs takes courage. Sandy Koufax showed the world that character matters more than any game.",anim:"freeze",historicalNote:"October 6, 1965. Sandy Koufax chose to honor Yom Kippur over starting Game 1 of the World Series. Don Drysdale started instead and lost. Koufax returned to pitch a shutout in Game 5 and a 3-hit shutout in Game 7 to win the Series MVP."},
     {id:"fp15", conceptTag:"steal-breakeven",title:"Jackie Steals Home",diff:2,cat:"famous",ageMin:9,ageMax:99,
       description:"1955 World Series, Game 1. Jackie Robinson is on third base against the Yankees. The great Whitey Ford is pitching, and Yogi Berra is catching. Robinson takes an aggressive lead, dancing off third, daring the Yankees to stop him.",
       situation:{inning:"Bot 8",outs:1,count:"1-0",runners:[3],score:[6,5]},
       options:["Break for home plate \u2014 steal it with pure speed and daring","Bluff a steal to distract the pitcher, then stay at third","Wait for the batter to drive you in with a hit","Take a big lead but retreat when the pitcher checks you"],
       best:0,explanations:["Jackie Robinson actually stole home in this game \u2014 one of the most daring plays in World Series history. Berra argued he was out (the call is still debated today), but Robinson was called safe. His fearless baserunning symbolized his entire career: bold, aggressive, and refusing to be intimidated.","Bluffing is a decent distraction, but Robinson was a man of action. He had stolen home 19 times in his career and wasn't afraid of the biggest stage. Sometimes you have to be bold to make history.","Waiting is the safe play, but Robinson didn't become a legend by playing it safe. He broke baseball's color barrier and played every game with fearless intensity. Sitting and waiting wasn't in his DNA.","Taking a big lead just to retreat is a half-measure. Robinson committed fully to everything he did. His aggressive style forced opponents into mistakes and changed how the game was played."],
-      rates:[82,45,30,20],concept:"Jackie Robinson played baseball with fearless courage \u2014 the same courage that made him a pioneer who changed the game forever.",explSimple:["Jackie Robinson actually stole home in this game \\u2014 one of the most daring plays in World Series history.","Bluffing is a decent distraction, but Robinson was a man of action.","Waiting is the safe play, but Robinson didn't become a legend by playing it safe.","Taking a big lead just to retreat is a half-measure."],anim:"steal"},
+      rates:[82,45,30,20],concept:"Jackie Robinson played baseball with fearless courage \u2014 the same courage that made him a pioneer who changed the game forever.",explSimple:["Jackie Robinson actually stole home in this game \\u2014 one of the most daring plays in World Series history.","Bluffing is a decent distraction, but Robinson was a man of action.","Waiting is the safe play, but Robinson didn't become a legend by playing it safe.","Taking a big lead just to retreat is a half-measure."],anim:"steal",historicalNote:"September 28, 1955 — Game 1 of the World Series. Jackie Robinson stole home against the Yankees' Whitey Ford, with Yogi Berra catching. Berra argued the call for years, insisting Robinson was out. The play remains one of the most debated and iconic moments in World Series history."},
     {id:"fp16", conceptTag:"force-vs-tag",title:"The Pine Tar Game",diff:1,cat:"famous",ageMin:6,ageMax:99,
       description:"July 24, 1983. George Brett of the Kansas City Royals hits a go-ahead two-run homer off Goose Gossage in the 9th inning at Yankee Stadium. But Yankees manager Billy Martin comes out arguing that Brett's bat has too much pine tar on the handle \u2014 more than 18 inches. What should the umpires rule?",
       situation:{inning:"Top 9",outs:2,count:"1-0",runners:[1],score:[4,3]},
       options:["The homer counts \u2014 pine tar doesn't help the ball travel farther","Call Brett out \u2014 the rules say pine tar can't go past 18 inches on the bat","Let Brett re-do the at bat with a legal bat","Eject Brett from the game and award the Yankees the win"],
       best:0,explanations:["This is what the American League president ultimately decided! The umpires originally called Brett out, and Brett charged out of the dugout in one of baseball's most famous arguments. But the league overturned it, ruling that pine tar is just for grip and doesn't make the ball go farther. The homer counted, and the Royals won when the game was resumed weeks later.","This is what the umpires originally called \u2014 and George Brett's furious reaction became one of baseball's most iconic moments. But the rule was about bat specifications, not cheating. Pine tar doesn't help the ball travel farther, so the AL president overturned the call.","You can't re-do an at bat in baseball. Once the pitch is thrown and hit, the result stands (unless there's interference). This isn't how baseball rules work.","Ejection and forfeiting a game over pine tar on a bat handle is wildly excessive. The rules violation was technical, not about cheating or sportsmanship."],
-      rates:[85,40,15,10],concept:"The Pine Tar Incident taught baseball that rules should focus on fair play, not technicalities. Pine tar helps grip \u2014 it doesn't help you hit farther.",explSimple:["Great choice! this is what the American League president ultimately decided! The umpires originally called Brett out,.","Not the best move. This is what the umpires originally called — and George Brett's furious reaction became one.","Not the best move. You can't re-do an at bat in baseball.","Not the best move. Ejection and forfeiting a game over pine tar on a bat handle is wildly excessive."], anim:"hit"},
+      rates:[85,40,15,10],concept:"The Pine Tar Incident taught baseball that rules should focus on fair play, not technicalities. Pine tar helps grip \u2014 it doesn't help you hit farther.",explSimple:["Great choice! this is what the American League president ultimately decided! The umpires originally called Brett out,.","Not the best move. This is what the umpires originally called — and George Brett's furious reaction became one.","Not the best move. You can't re-do an at bat in baseball.","Not the best move. Ejection and forfeiting a game over pine tar on a bat handle is wildly excessive."], anim:"hit",historicalNote:"July 24, 1983 — Yankee Stadium. George Brett hit a go-ahead homer, but Billy Martin argued about pine tar on the bat. The umpires called Brett out, and Brett stormed from the dugout in one of baseball's most famous arguments. The league later overruled the decision."},
     {id:"fp17", conceptTag:"situational-hitting",title:"Carter's Walk-Off",diff:2,cat:"famous",ageMin:9,ageMax:99,
       description:"1993 World Series, Game 6. The Toronto Blue Jays lead the series 3-2 but trail the Phillies 6-5 in the bottom of the 9th. Joe Carter steps up with two runners on base against closer Mitch Williams, who has been wild all series. One swing can end it all.",
       situation:{inning:"Bot 9",outs:1,count:"2-2",runners:[1,2],score:[5,6]},
       options:["Look for a fastball down and in \u2014 Williams has been overthrowing all night","Sit on the slider and try to go the other way","Take the next pitch to work the count full","Try to bunt the runners over for the next hitter"],
       best:0,explanations:["Carter knew Williams was overthrowing and struggling with command. He sat on a fastball down and in, got exactly that, and launched it over the left field wall for only the second walk-off homer to win a World Series in history (after Bill Mazeroski in 1960). Carter's leap around the bases is one of baseball's most joyous moments.","Williams was primarily a fastball pitcher who was struggling with his slider's command. Sitting slider against a struggling power pitcher in this count was the wrong read. Study the pitcher and play the percentages.","With two runners on, down one run, and the pitcher struggling with his control, being aggressive is the right approach. Taking a pitch hoping for a walk is too passive \u2014 Carter was looking to drive the ball.","Bunting with the chance to win the World Series? Absolutely not. Carter was a power hitter in a situation that called for a big swing. You don't sacrifice in the 9th inning of a World Series elimination game."],
-      rates:[85,30,25,10],concept:"In the biggest moments, study the pitcher's weaknesses and be ready to attack. Joe Carter's World Series walk-off was all about knowing what was coming.",explSimple:["Carter knew Williams was overthrowing and struggling with command.","Williams was primarily a fastball pitcher who was struggling with his slider's command.","With two runners on, down one run, and the pitcher struggling with his control, being aggressive is the right approach.","Bunting with the chance to win the World Series?"],anim:"hit"},
+      rates:[85,30,25,10],concept:"In the biggest moments, study the pitcher's weaknesses and be ready to attack. Joe Carter's World Series walk-off was all about knowing what was coming.",explSimple:["Carter knew Williams was overthrowing and struggling with command.","Williams was primarily a fastball pitcher who was struggling with his slider's command.","With two runners on, down one run, and the pitcher struggling with his control, being aggressive is the right approach.","Bunting with the chance to win the World Series?"],anim:"hit",historicalNote:"October 23, 1993 — SkyDome, Toronto. Joe Carter hit a walk-off three-run homer off Mitch Williams in the bottom of the 9th of Game 6 to win the World Series. It was only the second time in history a World Series ended on a walk-off homer (Bill Mazeroski was the first in 1960)."},
     {id:"fp18", conceptTag:"pitch-count-mgmt",title:"Ripken's Record",diff:1,cat:"famous",ageMin:6,ageMax:99,
       description:"September 6, 1995. Cal Ripken Jr. of the Baltimore Orioles is about to play in his 2,131st consecutive game, breaking Lou Gehrig's record that stood for 56 years. Ripken has played through injuries, slumps, and exhaustion. The game becomes official after the 5th inning. What makes this achievement so special?",
       situation:{inning:"Mid 5",outs:2,count:"-",runners:[],score:[3,1]},
       options:["Showing up every single day \u2014 consistency and dedication are the ultimate skills","Being the most talented player on the field","Hitting a home run in the record-breaking game","Playing despite having serious injuries that should have kept him out"],
       best:0,explanations:["Cal Ripken Jr. showed that the most important ability is availability. For over 13 straight years, he showed up to work every single day and gave his best. He did hit a homer in the record game, but the streak was about dedication, reliability, and loving the game enough to never take a day off. When the game became official, he took a victory lap around Camden Yards that is one of baseball's most emotional moments.","Ripken was very talented \u2014 a Hall of Famer \u2014 but the record wasn't about talent. Plenty of more talented players couldn't play every day. It was about his work ethic, preparation, and mental toughness to show up 2,131 times in a row.","Ripken actually did hit a homer that night, which was magical. But the record is about the streak itself \u2014 the daily commitment over more than a decade. The home run was the cherry on top, not the main achievement.","Playing hurt isn't something to celebrate \u2014 it can make injuries worse. Ripken's streak was about being prepared and healthy enough to play, not about ignoring injuries. He took care of his body to be available every day."],
-      rates:[90,25,35,20],concept:"Cal Ripken Jr. proved that showing up every day and giving your best is one of the greatest achievements in all of sports.",explSimple:["Great choice! cal Ripken Jr.","Not the best move. Ripken was very talented — a Hall of Famer — but the record wasn't about talent.","Not the best move. Ripken actually did hit a homer that night, which was magical.","Not the best move. Playing hurt isn't something to celebrate — it can make injuries worse."], anim:"safe"},
+      rates:[90,25,35,20],concept:"Cal Ripken Jr. proved that showing up every day and giving your best is one of the greatest achievements in all of sports.",explSimple:["Great choice! cal Ripken Jr.","Not the best move. Ripken was very talented — a Hall of Famer — but the record wasn't about talent.","Not the best move. Ripken actually did hit a homer that night, which was magical.","Not the best move. Playing hurt isn't something to celebrate — it can make injuries worse."], anim:"safe",historicalNote:"September 6, 1995 — Camden Yards, Baltimore. Cal Ripken Jr. played in his 2,131st consecutive game, breaking Lou Gehrig's record that had stood for 56 years. The game was stopped for a 22-minute standing ovation. Ripken went on to extend the streak to 2,632 games."},
     {id:"fp19", conceptTag:"situational-hitting",title:"Clemente's 3000th",diff:1,cat:"famous",ageMin:6,ageMax:99,
       description:"September 30, 1972. Roberto Clemente of the Pittsburgh Pirates doubles off the wall for his 3,000th career hit \u2014 only the 11th player in history to reach that milestone. Tragically, it would be his last regular season hit. Three months later, Clemente died in a plane crash while delivering earthquake relief supplies to Nicaragua.",
       situation:{inning:"Bot 4",outs:1,count:"0-1",runners:[],score:[3,1]},
       options:["Drive the ball hard into the gap \u2014 play your best until the very end","Try to bunt for a milestone hit to make sure you reach base","Wait for a perfect pitch \u2014 this moment is too important to waste","Swing for a home run to make the milestone extra special"],
       best:0,explanations:["Clemente ripped a line drive double into the left-center gap \u2014 playing hard and true, exactly how he played every game. He was one of baseball's greatest right fielders, a 15-time All-Star, and an even greater human being. His legacy of using his fame to help others makes him one of the most admired figures in baseball history.","Roberto Clemente would never bunt for a milestone hit. He was a proud, aggressive hitter who played the game the right way. His 3,000th hit came the same way as his first \u2014 swinging hard and making solid contact.","Clemente was always aggressive at the plate \u2014 he famously swung at pitches outside the zone and still hit them hard. Waiting for a perfect pitch wasn't his style. He attacked and let his incredible bat speed do the rest.","While a homer would have been exciting, Clemente wasn't about showing off. His double was pure Clemente \u2014 a hard line drive that showed his incredible bat control. The milestone was special enough on its own."],
-      rates:[88,15,25,30],concept:"Roberto Clemente played baseball with pride and purpose, and used his fame to help others. He showed that being a great person matters more than being a great player.",explSimple:["Great choice! clemente ripped a line drive double into the left-center gap — playing hard and true,.","Not the best move. Roberto Clemente would never bunt for a milestone hit.","Not the best move. Clemente was always aggressive at the plate — he famously swung at pitches outside.","Not the best move. While a homer would have been exciting, Clemente wasn't about showing off."], anim:"hit"},
+      rates:[88,15,25,30],concept:"Roberto Clemente played baseball with pride and purpose, and used his fame to help others. He showed that being a great person matters more than being a great player.",explSimple:["Great choice! clemente ripped a line drive double into the left-center gap — playing hard and true,.","Not the best move. Roberto Clemente would never bunt for a milestone hit.","Not the best move. Clemente was always aggressive at the plate — he famously swung at pitches outside.","Not the best move. While a homer would have been exciting, Clemente wasn't about showing off."], anim:"hit",historicalNote:"September 30, 1972 — Three Rivers Stadium, Pittsburgh. Roberto Clemente doubled off the left-center field wall for his 3,000th hit, becoming only the 11th player to reach the milestone. Tragically, it was his last regular season hit — he died in a plane crash on December 31, 1972."},
     {id:"fp20", conceptTag:"situational-hitting",title:"Shot Heard Round the World",diff:3,cat:"famous",ageMin:12,ageMax:99,
       description:"October 3, 1951. The Giants trail the Dodgers 4-2 in the bottom of the 9th of a winner-take-all playoff game at the Polo Grounds. Bobby Thomson steps up against reliever Ralph Branca with runners on second and third. The Dodgers could walk Thomson to load the bases and set up a double play, or pitch to him. Branca delivers a fastball up and in.",
       situation:{inning:"Bot 9",outs:1,count:"0-1",runners:[2,3],score:[2,4]},
       options:["Turn on the inside fastball and drive it \u2014 this is your moment","Take the pitch and look for something on the outer half","Bunt to squeeze the tying run home from third","Try to hit it on the ground to the right side to score a run"],
       best:0,explanations:["Bobby Thomson turned on Branca's fastball and launched it into the left field stands for a three-run homer that won the pennant. Radio announcer Russ Hodges screamed 'The Giants win the pennant!' four times in one of the most famous calls in sports history. It capped an incredible comeback \u2014 the Giants had trailed the Dodgers by 13.5 games in August.","With the game on the line, you can't afford to be passive looking for a specific location. Thomson knew he needed a big hit, and when he got a fastball he could handle, he jumped on it. Aggressive approach in big moments.","A squeeze bunt ties one run but doesn't win the game, and it's an extremely risky play with one out. If the bunt is popped up or missed, the rally dies. Thomson needed to swing the bat to make history.","A ground ball to the right side might score one run, but the Giants needed three. Playing for one run when you're down two is playing not to lose. Thomson's aggressive swing gave the Giants everything they needed."],
-      rates:[85,20,25,30],concept:"In baseball's biggest moments, the greatest players look to drive the ball. Bobby Thomson's homer is proof that aggressive confidence can produce miracles.",anim:"hit"},
+      rates:[85,20,25,30],concept:"In baseball's biggest moments, the greatest players look to drive the ball. Bobby Thomson's homer is proof that aggressive confidence can produce miracles.",anim:"hit",historicalNote:"October 3, 1951 — Polo Grounds, New York. Bobby Thomson hit a three-run homer off Ralph Branca in the bottom of the 9th of a tiebreaker playoff game, erasing a 13.5-game deficit the Giants had faced in August. Radio announcer Russ Hodges screamed the immortal call."},
     {id:"fp21",title:"Merkle's Boner — 1908",diff:3,cat:"famous",conceptTag:"appeal-play",ageMin:12,ageMax:99,
       description:"September 23, 1908. Giants vs Cubs, bottom of the 9th, tie game 1-1. Al Bridwell singles to center, apparently scoring the winning run from 3rd. The crowd pours onto the field in celebration. But Cubs second baseman Johnny Evers notices that 19-year-old Fred Merkle — the runner on 1st — never touched 2nd base. He turned and ran to the clubhouse instead. Evers is screaming for the ball. You're the Cubs manager. What do you do?",
       situation:{inning:"Bot 9",outs:1,count:"-",runners:[1,3],score:[1,1]},
@@ -4111,7 +4111,7 @@ const STADIUM_MILESTONES=[
   {games:200,label:"Fireworks",desc:"Fireworks on perfect answers!",icon:"🎆"},
   {games:330,label:"Legend Stadium",desc:"Golden border + Legend title!",icon:"👑"},
 ];
-const DEFAULT = {pts:0,str:0,bs:0,gp:0,co:0,ps:{},achs:[],cl:[],ds:0,lastDay:null,todayPlayed:0,todayDate:null,sp:0,isPro:false,onboarded:false,soundOn:true,recentWrong:[],dailyDone:false,dailyDate:null,weeklyDone:null,streakFreezes:0,survivalBest:0,ageGroup:"11-12",displayName:"",teamCode:"",teamName:"",seasonGame:0,seasonCorrect:0,seasonComplete:false,fieldTheme:"default",avatarJersey:0,avatarCap:0,avatarBat:0,season:1,proPlan:null,proPurchaseDate:null,proExpiry:null,lastStreakFreezeDate:null,wrongCounts:{},posGrad:{},funnel:[],hist:{},posPlayed:{},firstPlayDate:null,lastPlayDate:null,sessionCount:0,tutorialDone:false,promoCode:null,promoActivatedDate:null,masteryShown:[],masteryData:{concepts:{},errorPatterns:{},sessionHistory:[]},qualitySignals:{},flaggedScenarios:{},explanationLog:{},gapDetectionCache:null,lastWrongConceptTag:null,aiHistory:[]};
+const DEFAULT = {pts:0,str:0,bs:0,gp:0,co:0,ps:{},achs:[],cl:[],ds:0,lastDay:null,todayPlayed:0,todayDate:null,sp:0,isPro:false,onboarded:false,soundOn:true,recentWrong:[],dailyDone:false,dailyDate:null,weeklyDone:null,streakFreezes:0,survivalBest:0,ageGroup:"11-12",displayName:"",teamCode:"",teamName:"",seasonGame:0,seasonCorrect:0,seasonComplete:false,fieldTheme:"default",avatarJersey:0,avatarCap:0,avatarBat:0,season:1,proPlan:null,proPurchaseDate:null,proExpiry:null,lastStreakFreezeDate:null,wrongCounts:{},posGrad:{},funnel:[],hist:{},posPlayed:{},firstPlayDate:null,lastPlayDate:null,sessionCount:0,tutorialDone:false,promoCode:null,promoActivatedDate:null,masteryShown:[],masteryData:{concepts:{},errorPatterns:{},sessionHistory:[]},qualitySignals:{},flaggedScenarios:{},explanationLog:{},gapDetectionCache:null,lastWrongConceptTag:null,aiHistory:[],aiMetrics:{correct:0,total:0,flagged:0,scores:[]},hcMetrics:{correct:0,total:0,flagged:0}};
 
 // Streak flame visual — grows with daily streak length
 function getFlame(ds){
@@ -4189,6 +4189,118 @@ const AI_POS_PRINCIPLES = {
   counts:"Count-specific strategy from real batting averages. Hitter's counts (2-0,3-1): aggressive. Pitcher's counts (0-2,1-2): protect zone."
 }
 
+
+// Bible-enriched position principles — richer than AI_POS_PRINCIPLES, derived from SCENARIO_BIBLE.md
+const BIBLE_PRINCIPLES = {
+  pitcher: `KNOWLEDGE HIERARCHY: Tier 1 (MLB Rules) > Tier 2 (Data) > Tier 3 (Coaching) > Tier 4 (Judgment).
+PITCH SELECTION: First-pitch strikes critical (.340 BA vs .167 on 0-2). Work ahead. 0-2=expand zone. Sequence with eye-level changes + speed differentials — NEVER same pitch twice without a different look between.
+STRETCH vs WINDUP: ANY runner on base = SET POSITION (stretch). Windup with runners = balk (Rule 5.07). Step off rubber = no balk restrictions. Complete stop required in set position.
+PICKOFFS: Step directly toward base AND throw = legal. No step = balk. Fake-3rd-throw-1st = balk since 2013. Daylight play at 2nd: SS/2B breaks first, throw only when daylight shows. Vary looks — same look every pitch = zero deception.
+DEFENSIVE DUTIES: Field bunts near mound. Cover 1B on grounders to right side. Sprint to cover home on WP/PB — set up FIRST-BASE SIDE to give catcher a lane.
+BACKUP: Back up home on ALL throws home. Back up 3B on throws to third. These are ONLY backup duties. NEVER back up 1B (RF's job), NEVER back up 2B. NEVER be cutoff or relay man.
+PITCH CLOCK: 15sec bases empty, 20sec with runners. Vary tempo — quick pitch + longer hold disrupts timing. Never rush high-leverage pitch to beat clock.`,
+
+  catcher: `KNOWLEDGE HIERARCHY: Tier 1 (MLB Rules) > Tier 2 (Data) > Tier 3 (Coaching) > Tier 4 (Judgment).
+PITCH CALLING: Field general — call by count, batter weakness, situation. With R2 seeing signs: switch to multiple-sign sequences.
+FRAMING: Subtle glove pull on borderlines. High-leverage = stillness and presentation.
+BLOCKING: Smother dirt balls, keep them in front. Critical with runners on. Go to ball FIRST on WP/PB — NEVER look at runner before fielding.
+THROWING: Quick transfer, strong throw to bag side. Pop time matters on steal attempts.
+POP-UPS: Catcher has priority near home. Turn back to field (ball curves back toward field).
+DIRECTING: Direct cutoff man — "Cut!" (hold), "Cut two/three!" (redirect), silence = let it go.
+DROPPED 3RD STRIKE: Ball NOT caught cleanly on K3 → batter becomes runner IF 1B unoccupied OR 2 outs. Must throw to 1B. With R1 and <2 outs, batter is out (force rule).
+FOUL TIP vs FOUL BALL: Foul tip (grazes bat into glove, no bounce) = strike. On K3, batter IS out, runners CAN tag. Foul ball with 2 strikes ≠ strikeout EXCEPT bunted foul with 2 strikes = K3.
+FIRST-AND-THIRD: 4 options — throw through, cut by middle IF, fake-and-throw to 3B, hold ball. NEVER throw to 2B if R3 has big lead.
+PITCH CLOCK: Deliver signs under 9 seconds. 5 mound visits per 9 innings — use with purpose.`,
+
+  firstBase: `KNOWLEDGE HIERARCHY: Tier 1 > Tier 2 > Tier 3 > Tier 4.
+RECEIVING: Scoop low throws — stretch toward throw, keep foot on bag. This is your signature skill.
+HOLDING RUNNERS: Give pitcher a target, apply tag on pickoff throws.
+BUNT DEFENSE: Charge aggressively. 2B covers 1B when you charge. On runners 1st & 2nd, you crash hard.
+CUTOFF: You are CUTOFF on throws from CF and RF to home. Line up between OF and home plate. Listen for catcher's call ("Cut!", "Cut two!", silence). When you're cutoff, 2B covers 1B.
+ON SINGLES FROM RF TO HOME: YOU are the cutoff, NOT 2B.
+DOUBLE PLAY: 3-6-3 DP — catch, step on first, throw to SS covering second.
+FORCE vs TAG: Know when force is removed — runner out ahead of you = tag play, not force. Bases loaded = force at every base.`,
+
+  secondBase: `KNOWLEDGE HIERARCHY: Tier 1 > Tier 2 > Tier 3 > Tier 4.
+DP PIVOT: Receive feed, touch second, get off bag quickly to avoid runner. This is your signature play.
+RELAY: You are RELAY (double-cut) on extra-base hits to the RIGHT side (RF line, RF-CF gap). Lead relay, line up between OF and home plate.
+COVERAGE: Cover 1B when 1B is the cutoff. Cover 1B on bunts when 1B charges. On SINGLES from RF to home, 1B is cutoff, NOT you.
+FLY BALL PRIORITY: OF coming in ALWAYS has priority over you going back. Going back = hardest catch. Let OF take tweeners.
+STEAL COVERAGE: Cover 2B on steals vs LHB (SS covers vs RHB).
+DP POSITIONING: DP depth = 3-4 steps toward 2B + step in. NEVER DP depth with 2 outs.`,
+
+  shortstop: `KNOWLEDGE HIERARCHY: Tier 1 > Tier 2 > Tier 3 > Tier 4.
+COMMUNICATION: Captain of the infield. Call flies, direct relays, organize positioning.
+DP FEED: Firm, chest-high throw to 2B. Signature play = deep-hole plant + strong throw across diamond.
+RELAY: You are RELAY on extra-base hits to the LEFT side (LF line, LF-CF gap, deep CF). Lead relay between OF and home.
+CUTOFF: You are CUTOFF on ALL throws to 3B (runner advancing 1B→3B). On singles from LF to home, 3B is cutoff — you cover 3B.
+STEAL COVERAGE: Cover 2B on steals vs RHB. Straddle bag, sweep tag down.
+FLY BALL PRIORITY: OF coming in ALWAYS has priority over you going back. Never call off an OF on shallow fly.`,
+
+  thirdBase: `KNOWLEDGE HIERARCHY: Tier 1 > Tier 2 > Tier 3 > Tier 4.
+HOT CORNER: Quick reactions, ready position, expect hard-hit balls.
+BUNT DEFENSE: Crash hard, bare-hand if needed, strong throw to 1B. On 1st & 2nd, crash to get lead runner at 3B.
+SLOW ROLLERS: Charge aggressively, bare-hand scoop-and-throw in one motion.
+GUARD THE LINE: Late in close games, shade toward line to prevent extra-base hits. Against RH pull hitters, shade line.
+CUTOFF: You are CUTOFF on singles from LF to home. Line up between LF and home plate. SS covers 3B when you're cutoff.
+FLY BALL PRIORITY: OF coming in has priority on tweeners behind you.`,
+
+  leftField: `KNOWLEDGE HIERARCHY: Tier 1 > Tier 2 > Tier 3 > Tier 4.
+FLY BALL PRIORITY: You have priority over ALL infielders. Coming in is easier than going back.
+THROWS: Hit cutoff man — 3B is your cutoff on throws home. Don't throw all the way home unless play is there. On doubles, relay man = SS.
+BACKUP: Back up 3B on ALL infield grounders and throws to third. Sprint, don't jog.
+WALL PLAY: Round the ball so momentum carries toward infield.
+COMMUNICATION: Call it loud and early on any ball you can reach.`,
+
+  centerField: `KNOWLEDGE HIERARCHY: Tier 1 > Tier 2 > Tier 3 > Tier 4.
+PRIORITY: You are the PRIORITY fielder on ALL fly balls you can reach — over corner OFs AND all infielders. Call loud and early.
+ROUTES: Take angle routes on gap balls, not straight-back. Charge ground singles for do-or-die throws — crow-hop through cutoff.
+THROWS: Your cutoff on throws home = 1B. On doubles, relay = SS.
+BACKUP: Back up 2B on all steal attempts and throws to second.
+COMMUNICATION: You see the whole field — you are responsible for directing traffic on fly balls.`,
+
+  rightField: `KNOWLEDGE HIERARCHY: Tier 1 > Tier 2 > Tier 3 > Tier 4.
+ARM: Strong arm is your biggest weapon — throw out runners at 3B and home.
+BACKUP 1B: Back up 1B on EVERY infield grounder. This is your most important routine job.
+FLY BALL PRIORITY: You have priority over infielders (1B, 2B) on flies you can reach.
+THROWS: Your cutoff on throws home = 1B. On doubles, relay = 2B. Hit the cutoff unless you have a clear play.
+WALL PLAY: Learn caroms off your wall. Round balls so momentum carries to infield.`,
+
+  batter: `KNOWLEDGE HIERARCHY: Tier 1 > Tier 2 > Tier 3 > Tier 4.
+COUNT LEVERAGE: Hitter's counts (1-0, 2-0, 2-1, 3-1) = be aggressive on YOUR pitch. Pitcher's counts (0-1, 0-2, 1-2) = protect zone, shorten up.
+TWO-STRIKE APPROACH: "Protect the zone" and "expand the zone" mean the SAME thing — widen coverage to include pitches slightly off plate, shorten swing, prioritize contact. Use "protect the plate" as canonical phrase. NEVER present expand/protect as different options.
+SITUATIONAL: R3 with <2 outs = fly ball scores him (sac fly). Hit behind runner to advance from 2nd to 3rd.
+ANALYTICS: RE24 data shows sac bunts usually LOWER run expectancy except with weak hitter (<.220 BA), late game, need exactly 1 run.
+HIT-AND-RUN: MUST swing — protect the runner. Ground ball through vacated hole > power swing.`,
+
+  baserunner: `KNOWLEDGE HIERARCHY: Tier 1 > Tier 2 > Tier 3 > Tier 4.
+STEAL BREAK-EVEN: ~72% success rate per RE24. Below that, you hurt your team.
+READS: Watch pitcher's first-move pickoff tells. Time delivery. Tag-ups: watch fielder's feet, leave on catch. Line drives: FREEZE — never get doubled off.
+ADVANCING: Never make 1st or 3rd out at 3B. Respect coach's signs. Exception: tying/winning run in final inning.
+SECONDARY LEADS: Key for WP/PB advancement.
+DOUBLE STEAL: R1+R2 — runner at 2B reads CATCHER, goes when C commits throw to 2B. Green light: 0-1 outs, slow catcher.
+DELAYED STEAL: Break when pitcher's hand closes on return throw AND both middle IF off the bag.
+FIRST-TO-THIRD: Round 2B at full speed, read OF route — OF turns body away = go.
+SCORING FROM 2ND: Go on OF single 0-1 outs (62% MLB rate). Always go with 2 outs.
+RUNDOWN: Run toward fielder to force throws. Never toward occupied base. Get tagged near forward base.
+IBB RULE: Under 2023+ rules, IBB is automatic — runner advances with no decision. NEVER create baserunner scenarios about IBBs.
+SCOPE: Runner controls leads, jumps, reads, tags, slides, secondary leads, go/hold. NEVER options like yelling at teammates or calling plays.`,
+
+  manager: `KNOWLEDGE HIERARCHY: Tier 1 > Tier 2 > Tier 3 > Tier 4.
+RE24 GUIDES BUNTS: Sac bunts usually bad. EXCEPTION: weak hitter (<.220), late game, need exactly 1 run. Win Probability CAN justify bunt trailing 1, inn 7+, R2, weak hitter — WP gain ~+0.02-0.04 despite RE24 cost.
+STEALS: Need ~72% success to break even.
+TTO EFFECT: Batters hit ~+30 BA points 3rd time through order — pull starter before damage compounds.
+IBB: Always increases RE24. Only justified if: (1) 1B open, (2) clear skill gap to next hitter, (3) large platoon advantage, (4) setting up force/DP with ground ball hitter. NEVER IBB bases loaded. NEVER with 2 outs unless extreme matchup gap. Under 2023+ rules, IBB = dugout signal, no pitches.
+CUTOFF ASSIGNMENTS: 3B cuts LF throws home, 1B cuts CF/RF throws home. SS cuts throws to 3B. Double cuts: SS relays left side, 2B relays right side. Pitcher ALWAYS backs up target base, never cutoff.
+DEFENSIVE POSITIONING: Guard lines late/close. DP depth early. Infield in with R3 and run matters. NEVER DP depth with 2 outs. Post-2023: 2 IF on each side of 2B, all on dirt.
+SCOPE: Manager decides pitching changes, positioning, steal signals, IBB, sac signals, pinch hitters, lineup decisions. NEVER pitch selection or mechanics — those are pitcher/catcher scenarios.`,
+
+  famous: `KNOWLEDGE HIERARCHY: Historical accuracy = Tier 1. Cite actual year, teams, players. Every scenario teaches a strategic lesson the play illustrates. All 4 options must be decisions the real player/manager could have made in that actual moment.`,
+
+  rules: `KNOWLEDGE HIERARCHY: MLB Official Rules = Tier 1, always canonical. Include 2023+ changes: pitch clock (15s/20s), shift ban (2 IF each side of 2B), universal DH, larger bases (18"). Focus on force vs tag, infield fly (R1+R2 or loaded, <2 outs, fair fly, ordinary effort), balk (13 types), obstruction (Type A blocking runner's path, Type B without play), interference (batter, runner, spectator).`,
+
+  counts: `KNOWLEDGE HIERARCHY: Tier 2 (Data) drives count strategy. Use real batting averages: 0-0 (.330), 1-0 (.339), 2-0 (.351), 3-0 (.360), 0-1 (.285), 0-2 (.167), 1-1 (.313), 1-2 (.190), 2-1 (.345), 2-2 (.210), 3-1 (.355), 3-2 (.270). Hitter's counts (2-0, 3-1) = aggressive, look fastball. Pitcher's counts (0-2, 1-2) = protect zone, shorten swing. Full count = protect the plate.`
+}
 // Position-specific scenario topic guidance \u2014 tells AI WHAT to create scenarios about
 // Few-shot examples for AI scenario generation — one per position category
 const AI_FEW_SHOT_EXAMPLES = {
@@ -4198,12 +4310,49 @@ const AI_FEW_SHOT_EXAMPLES = {
   baserunner: '{"title":"Secondary Lead Read","diff":2,"description":"Top of the 5th, you are on 1st base with 0 outs. The batter swings and hits a sharp ground ball toward the shortstop. What should the baserunner do?","situation":{"inning":"Top 5","outs":0,"count":"-","runners":[1],"score":[1,2]},"options":["Run hard to 2nd — you must go on a ground ball with 0 outs","Stop and retreat to 1st to avoid the double play","Freeze and watch the play develop before committing","Run halfway and decide based on whether the shortstop fields it cleanly"],"best":0,"explanations":["With 0 outs and a force at 2nd, you MUST run on a ground ball. You are forced — there is no option to stay. Running hard gives you the best chance to beat the throw to 2nd and break up the double play, or at least make the relay to 1st difficult.","You cannot retreat to 1st on a ground ball when you are forced. The fielder can simply throw to 2nd for the force out. Going back guarantees the out and possibly sets up an easier double play.","Freezing as a forced runner on a ground ball is a baserunning error. You lose valuable time and make the double play easy for the defense. On ground balls with a force, you go immediately.","Running halfway is for fly balls, not ground balls. On a grounder with a force play, hesitation lets the defense turn a routine double play. Commit to running hard the moment the ball hits the ground."],"rates":[85,10,20,40],"concept":"Forced runner reads: on ground balls with a force in effect, run immediately — there is no hold or retreat option.","anim":"advance"}',
   manager: '{"title":"Third Time Through the Order","diff":3,"description":"Top of the 7th, your team leads 4-2. Your starter has 95 pitches and is facing the 3-hole hitter for the 3rd time. He gave up a double to this batter last time. The bullpen has a fresh reliever with a plus slider. What should the manager do?","situation":{"inning":"Top 7","outs":0,"count":"-","runners":[],"score":[4,2]},"options":["Pull the starter and bring in the reliever","Let the starter face this batter, then go to the pen","Leave the starter in — he has earned the chance to finish","Call for an intentional walk to set up the double play"],"best":0,"explanations":["Data shows batters hit roughly .030 higher the third time through the order. Your starter already gave up a double to this hitter, and at 95 pitches fatigue compounds the TTO penalty. A fresh reliever with a plus slider gives you the best chance to protect a 2-run lead in the 7th.","Letting the starter face one more batter sounds like a compromise, but you already know the matchup is bad — he gave up a double last time. Why risk a lead-off baserunner in a 2-run game? The reliever is fresh and has the better weapon.","Loyalty to the starter ignores the analytics. The TTO effect is real and well-documented. With a 2-run lead in the 7th, protecting the lead takes priority over rewarding effort. Your bullpen is rested.","An intentional walk with nobody on and 0 outs is almost never correct. You would be putting the leadoff runner on base for free, raising run expectancy from 0.50 to 0.88. That is giving away nearly half a run with no strategic benefit."],"rates":[82,50,30,15],"concept":"TTO effect and bullpen management: batters improve the third time through, making a fresh reliever the higher-percentage play in close games.","anim":"freeze"}'
 }
-function getAIFewShot(position) {
-  if (["pitcher","catcher"].includes(position)) return AI_FEW_SHOT_EXAMPLES.pitcher
-  if (["firstBase","secondBase","shortstop","thirdBase","leftField","centerField","rightField"].includes(position)) return AI_FEW_SHOT_EXAMPLES.fielder
-  if (position === "batter" || position === "counts") return AI_FEW_SHOT_EXAMPLES.batter
-  if (position === "baserunner") return AI_FEW_SHOT_EXAMPLES.baserunner
-  return AI_FEW_SHOT_EXAMPLES.manager
+function getAIFewShot(position, targetConcept = null, difficulty = 2) {
+  // Primary: position-matched few-shot
+  const primary = ["pitcher","catcher"].includes(position) ? AI_FEW_SHOT_EXAMPLES.pitcher
+    : ["firstBase","secondBase","shortstop","thirdBase","leftField","centerField","rightField"].includes(position) ? AI_FEW_SHOT_EXAMPLES.fielder
+    : position === "batter" || position === "counts" ? AI_FEW_SHOT_EXAMPLES.batter
+    : position === "baserunner" ? AI_FEW_SHOT_EXAMPLES.baserunner
+    : AI_FEW_SHOT_EXAMPLES.manager
+
+  // Secondary: pick from handcrafted scenarios for this position (condensed)
+  const pool = (SCENARIOS[position] || []).filter(s => s.diff === difficulty || !targetConcept)
+  let secondary = null
+  if (targetConcept && pool.length > 0) {
+    // Find a scenario matching the target concept
+    const conceptMatch = pool.find(s => s.concept && s.concept.toLowerCase().includes(targetConcept.toLowerCase()))
+    if (conceptMatch) {
+      secondary = JSON.stringify({
+        title: conceptMatch.title, diff: conceptMatch.diff,
+        description: conceptMatch.description?.slice(0, 200) + (conceptMatch.description?.length > 200 ? "..." : ""),
+        options: conceptMatch.options, best: conceptMatch.best,
+        explanations: conceptMatch.explanations.map(e => e.split(". ").slice(0, 2).join(". ") + "."),
+        rates: conceptMatch.rates, concept: conceptMatch.concept, anim: conceptMatch.anim || "strike"
+      })
+    }
+  }
+  // Tertiary: a different difficulty example from the pool
+  let tertiary = null
+  if (pool.length > 3) {
+    const diffMatch = pool.find(s => s.diff !== difficulty && s.id !== (secondary ? JSON.parse(secondary).title : ""))
+    if (diffMatch) {
+      tertiary = JSON.stringify({
+        title: diffMatch.title, diff: diffMatch.diff,
+        description: diffMatch.description?.slice(0, 150) + "...",
+        options: diffMatch.options, best: diffMatch.best,
+        explanations: diffMatch.explanations.map(e => e.split(". ")[0] + "."),
+        rates: diffMatch.rates, concept: diffMatch.concept, anim: diffMatch.anim || "strike"
+      })
+    }
+  }
+
+  let result = primary
+  if (secondary) result += "\n\nADDITIONAL EXAMPLE (concept-matched):\n" + secondary
+  if (tertiary) result += "\n\nADDITIONAL EXAMPLE (different difficulty):\n" + tertiary
+  return result
 }
 
 const AI_SCENARIO_TOPICS = {
@@ -5541,6 +5690,20 @@ function detectErrorPatterns(masteryData, sessionHistory) {
     patterns.push({ key:'late-game-blindness', label:'Late-Game Blindness', conceptGap:'win-probability', aiInstruction:'Late-game scenario where RE24 and WP diverge. Correct answer uses WP logic, not RE24.' });
   return patterns;
 }
+// Level 1.4: Track AI vs handcrafted scenario quality separately
+function trackSourceQuality(stats, isCorrect, wasAIGenerated) {
+  const metrics = wasAIGenerated ? stats.aiMetrics : stats.hcMetrics;
+  if (!metrics) return stats;
+  const updated = {
+    ...metrics,
+    total: metrics.total + 1,
+    correct: metrics.correct + (isCorrect ? 1 : 0),
+    scores: [...(metrics.scores || []).slice(-99), isCorrect ? 1 : 0]
+  };
+  const key = wasAIGenerated ? "aiMetrics" : "hcMetrics";
+  return { ...stats, [key]: updated };
+}
+
 function trackScenarioQuality(stats, scenarioId, correct, wasAIGenerated) {
   if (!scenarioId) return stats;
   const prev = stats.qualitySignals?.[scenarioId] || {
@@ -6120,6 +6283,57 @@ function formatBrainStats(position, age, stats) {
   if (stats) { const gapText = getGapInjection(stats); if (gapText) lines.push(gapText); }
   return lines.join("\n- ");
 }
+
+// Level 1.2: Format Brain analytical data for AI prompt injection
+function formatBrainForAI(position, situation) {
+  const parts = []
+  // RE24 top states
+  const re = BRAIN.re24
+  parts.push("RE24 (runs expected): " + ["000","100","010","001","110","101","011","111"].map(key => {
+    const row = re[key]
+    if (!row) return null
+    const label = key === "000" ? "empty" : (key[0]==="1"?"R1 ":"")+(key[1]==="1"?"R2 ":"")+(key[2]==="1"?"R3":"")
+    return `${label.trim()}: 0out=${row[0]}, 1out=${row[1]}, 2out=${row[2]}`
+  }).filter(Boolean).join("; "))
+  // Count data if relevant
+  if (["pitcher","catcher","batter","counts"].includes(position) && situation?.count && situation.count !== "-") {
+    const cd = BRAIN.countData?.[situation.count]
+    if (cd) parts.push(`Count ${situation.count}: BA=${cd.ba}, pitchFreq=${JSON.stringify(cd.pitchFreq||{})}`)
+  }
+  // Steal data for baserunner/manager/catcher
+  if (["baserunner","manager","catcher","pitcher"].includes(position)) {
+    const s = BRAIN.stealBreakEven
+    if (s) parts.push(`Steal break-even: 2B=${s["2B"]}%, 3B=${s["3B"]}%`)
+  }
+  // Bunt data for batter/manager
+  if (["batter","manager","pitcher"].includes(position)) {
+    const bd = BRAIN.buntDelta
+    if (bd) parts.push("Bunt delta (RE change): " + Object.entries(bd).map(([k,v]) => `${k}=${v>0?"+":""}${v}`).join(", "))
+  }
+  // TTO for manager/pitcher/catcher
+  if (["manager","pitcher","catcher"].includes(position) && BRAIN.ttoEffect) {
+    parts.push(`TTO effect: 1st=${BRAIN.ttoEffect["1st"]}, 2nd=${BRAIN.ttoEffect["2nd"]}, 3rd=${BRAIN.ttoEffect["3rd"]}`)
+  }
+  // Scoring probability
+  if (BRAIN.scoringProb) {
+    const sp = BRAIN.scoringProb
+    parts.push("Scoring prob: " + Object.entries(sp).map(([k,v]) => `${k}: 0out=${v[0]}%, 1out=${v[1]}%, 2out=${v[2]}%`).join("; "))
+  }
+  // Win probability for manager
+  if (position === "manager" && BRAIN.winProbability && situation?.inning) {
+    const inn = parseInt(situation.inning.replace(/\D/g,"")) || 5
+    const diff = (situation.score?.[0]||0) - (situation.score?.[1]||0)
+    const diffKey = diff > 3 ? "+3" : diff < -3 ? "-3" : (diff >= 0 ? "+" : "") + diff
+    const wp = BRAIN.winProbability?.[inn]?.[diffKey]
+    if (wp) parts.push(`Win prob (inn ${inn}, diff ${diffKey}): ${wp}%`)
+  }
+  // Pitch type data for pitcher/catcher/batter
+  if (["pitcher","catcher","batter","counts"].includes(position) && BRAIN.pitchTypeData) {
+    const ptd = BRAIN.pitchTypeData
+    parts.push("Pitch types: " + Object.entries(ptd).slice(0,5).map(([k,v]) => `${k}: avg=${v.avgSpeed||"?"}mph, whiff=${v.whiffRate||"?"}%`).join("; "))
+  }
+  return parts.length > 0 ? "REFERENCE DATA (real MLB numbers — cite these in explanations):\n" + parts.join("\n") : ""
+}
 function getTeachingContext(position, mastered, ageGroup) {
   // Filter concepts by position-relevant domains to prevent cross-position leakage
   const allowedDomains = POS_CONCEPT_DOMAINS[position]
@@ -6426,6 +6640,70 @@ const ANNUAL_UPDATE_CHECKLIST = {
 }
 
 // ============================================================================
+// Level 2.2: SCENARIO GRADER — Benchmark system (grades any scenario)
+// ============================================================================
+function gradeScenario(scenario, position) {
+  let score = 100
+  const deductions = []
+
+  // 1. Role boundary (does every option describe an action this position performs?)
+  const FIELDER_POS = ["firstBase","secondBase","shortstop","thirdBase","leftField","centerField","rightField"]
+  if (FIELDER_POS.includes(position) || position === "baserunner" || position === "batter") {
+    const optsText = (scenario.options || []).join(" ")
+    if (/\bintentional\s*walk/i.test(optsText) || /\bIBB\b/.test(optsText) || /\bpitch(ing)?\s*change/i.test(optsText)) {
+      score -= 30; deductions.push("role_violation: manager action in " + position + " options")
+    }
+  }
+
+  // 2. Explanation quality (>= 2 sentences each, mentions game situation)
+  const expls = scenario.explanations || []
+  expls.forEach((e, i) => {
+    if (!e || e.length < 30) { score -= 10; deductions.push(`explanation_${i}_too_short`) }
+    const sentences = (e.match(/[.!?]+/g) || []).length
+    if (sentences < 2) { score -= 5; deductions.push(`explanation_${i}_few_sentences`) }
+  })
+
+  // 3. Best answer alignment (rates[best] should be highest)
+  if (scenario.rates && typeof scenario.best === "number") {
+    const maxRate = Math.max(...scenario.rates)
+    if (scenario.rates[scenario.best] !== maxRate) { score -= 15; deductions.push("rate_best_misalignment") }
+  }
+
+  // 4. Option distinctness (no near-duplicates)
+  const opts = (scenario.options || []).map(o => o.toLowerCase().replace(/[^a-z\s]/g, ""))
+  for (let i = 0; i < opts.length; i++) {
+    for (let j = i + 1; j < opts.length; j++) {
+      const words1 = new Set(opts[i].split(/\s+/).filter(w => w.length > 3))
+      const words2 = new Set(opts[j].split(/\s+/).filter(w => w.length > 3))
+      const shared = [...words1].filter(w => words2.has(w)).length
+      const overlap = shared / Math.max(Math.min(words1.size, words2.size), 1)
+      if (overlap > 0.7) { score -= 10; deductions.push(`options_${i}_${j}_too_similar`) }
+    }
+  }
+
+  // 5. Situation consistency
+  if (scenario.situation) {
+    const s = scenario.situation
+    if (s.outs !== undefined && (s.outs < 0 || s.outs > 2)) { score -= 20; deductions.push("invalid_outs") }
+    if (s.count && s.count !== "-" && !/^[0-3]-[0-2]$/.test(s.count)) { score -= 15; deductions.push("invalid_count") }
+  }
+
+  // 6. Concept presence
+  if (!scenario.concept || scenario.concept.length < 10) { score -= 10; deductions.push("weak_concept") }
+
+  // 7. Description quality (sets up a clear decision moment)
+  if (!scenario.description || scenario.description.length < 50) { score -= 10; deductions.push("description_too_short") }
+
+  // 8. Rate spread (rates should span a reasonable range)
+  if (scenario.rates) {
+    const range = Math.max(...scenario.rates) - Math.min(...scenario.rates)
+    if (range < 20) { score -= 10; deductions.push("rates_too_narrow") }
+  }
+
+  return { score: Math.max(0, score), deductions, pass: score >= 60 }
+}
+
+// ============================================================================
 // CONSISTENCY_RULES \u2014 Cross-Position Contradiction Detector
 // 10 rules that verify multi-position scenarios agree on shared plays.
 // Used by QUALITY_FIREWALL and for manual audits.
@@ -6497,6 +6775,66 @@ const CONSISTENCY_RULES = {
   }
 }
 
+// ============================================================================
+// Level 3.1-3.2: Knowledge Base for the Agent Pipeline
+// ============================================================================
+const KNOWLEDGE_BASE = {
+  version: "1.0.0",
+
+  // Index handcrafted scenarios by concept for retrieval
+  getScenariosByConceptAndPosition(position, concept, limit = 5) {
+    const pool = SCENARIOS[position] || []
+    if (!concept) return pool.slice(0, limit)
+    const exact = pool.filter(s => s.concept && s.concept.toLowerCase().includes(concept.toLowerCase()))
+    if (exact.length >= limit) return exact.slice(0, limit)
+    return [...exact, ...pool.filter(s => !exact.includes(s))].slice(0, limit)
+  },
+
+  // Get relevant knowledge maps for a position
+  getKnowledgeMapsForPosition(position) {
+    const mapNames = MAP_RELEVANCE[position] || []
+    const maps = {}
+    const allMaps = { CUTOFF_RELAY_MAP, BUNT_DEFENSE_MAP, FIRST_THIRD_MAP, BACKUP_MAP, RUNDOWN_MAP, DP_POSITIONING_MAP, HIT_RUN_MAP, BALK_MAP, APPEAL_PLAY_MAP, PITCH_CLOCK_MAP, WP_PB_MAP, SQUEEZE_MAP, INFIELD_FLY_MAP, OF_COMMUNICATION_MAP, PICKOFF_MAP, DROPPED_3RD_MAP, FOUL_TIP_MAP, TAG_UP_MAP, DEFENSIVE_POSITIONING_MAP, OBSTRUCTION_MAP, FORCE_VS_TAG_MAP, BASERUNNER_READS_MAP }
+    mapNames.forEach(name => { if (allMaps[name]) maps[name] = allMaps[name] })
+    return maps
+  },
+
+  // Get Brain data relevant to a situation
+  getBrainDataForSituation(position, situation) {
+    return formatBrainForAI(position, situation || {})
+  },
+
+  // Get position principles (all tiers)
+  getPrinciplesForPosition(position) {
+    return {
+      condensed: AI_POS_PRINCIPLES[position] || POS_PRINCIPLES[position] || "",
+      detailed: BIBLE_PRINCIPLES[position] || "",
+      full: POS_PRINCIPLES[position] || ""
+    }
+  },
+
+  // Get concepts for a position with prerequisite info
+  getConceptsForPosition(position) {
+    const domains = POS_CONCEPT_DOMAINS[position]
+    if (!domains) return Object.keys(BRAIN.concepts)
+    return Object.entries(BRAIN.concepts)
+      .filter(([, c]) => !c.domain || domains.includes(c.domain))
+      .map(([tag, c]) => ({ tag, ...c }))
+  },
+
+  // Get quality patterns (what to avoid)
+  getAvoidPatterns(position) {
+    const patterns = []
+    // From consistency rules
+    CONSISTENCY_RULES.rules.forEach(rule => {
+      if (!rule.positions || rule.positions.includes(position)) {
+        patterns.push(rule.description || rule.id)
+      }
+    })
+    return patterns
+  }
+}
+
 // Sprint 4.3: A/B testing framework for AI prompts
 const AB_TESTS = {
   // Each test: { id, variants: [{id, weight, config}], startDate, endDate }
@@ -6513,6 +6851,334 @@ const AB_TESTS = {
       { id: "control", weight: 50, config: { systemSuffix: "" } },
       { id: "encouraging", weight: 50, config: { systemSuffix: " Make explanations encouraging and highlight what the player can learn from mistakes." } }
     ]
+  },
+  // Level 2.5: A/B tests for Bible injection, Brain data, and few-shot count
+  bible_injection: {
+    id: "bible_injection_v1",
+    variants: [
+      { id: "control", weight: 50, config: { useBible: false } },
+      { id: "bible_on", weight: 50, config: { useBible: true } }
+    ]
+  },
+  brain_data_level: {
+    id: "brain_data_level_v1",
+    variants: [
+      { id: "control", weight: 50, config: { brainLevel: "minimal" } },
+      { id: "full_brain", weight: 50, config: { brainLevel: "full" } }
+    ]
+  },
+  few_shot_count: {
+    id: "few_shot_count_v1",
+    variants: [
+      { id: "control", weight: 50, config: { fewShotCount: 1 } },
+      { id: "multi_shot", weight: 50, config: { fewShotCount: 3 } }
+    ]
+  },
+  // Level 3.7: Agent pipeline A/B test
+  agent_pipeline: {
+    id: "agent_pipeline_v1",
+    variants: [
+      { id: "control", weight: 80, config: { useAgent: false } },
+      { id: "agent", weight: 20, config: { useAgent: true } }
+    ]
+  }
+}
+
+// ============================================================================
+// Level 3.3: Planner Agent — Decides what to teach and selects context
+// ============================================================================
+function planScenario(position, stats, conceptsLearned = [], recentWrong = [], targetConcept = null, aiHistory = []) {
+  const playerMasteryData = stats.masteryData || { concepts: {} }
+  const posStats = stats.ps?.[position] || { p: 0, c: 0 }
+  const posAcc = posStats.p > 0 ? Math.round((posStats.c / posStats.p) * 100) : 50
+
+  // 1. Determine teaching goal
+  let teachingGoal = "introduce"
+  let selectedConcept = targetConcept
+
+  // Check for prereq gaps
+  const lastWrongTag = recentWrong.length > 0 ? recentWrong[recentWrong.length - 1] : null
+  const prereqGap = lastWrongTag ? getPrereqGap(lastWrongTag, playerMasteryData) : null
+  if (prereqGap) {
+    teachingGoal = "prerequisite"
+    selectedConcept = prereqGap.gap
+  }
+
+  // Check for degraded concepts
+  const dueReview = getDueForReview(playerMasteryData)
+  const degraded = dueReview.filter(c => c.state === 'degraded')
+  const learning = dueReview.filter(c => c.state === 'learning')
+
+  if (!selectedConcept && degraded.length > 0) {
+    teachingGoal = "reinforce"
+    selectedConcept = degraded[0].tag
+  } else if (!selectedConcept && learning.length > 0) {
+    teachingGoal = "review"
+    selectedConcept = learning[0].tag
+  } else if (!selectedConcept) {
+    // Introduce something new
+    const available = KNOWLEDGE_BASE.getConceptsForPosition(position)
+    const mastered = new Set(Object.entries(playerMasteryData.concepts || {}).filter(([,d]) => d.state === 'mastered').map(([t]) => t))
+    const unseen = available.filter(c => !mastered.has(c.tag) && !(playerMasteryData.concepts?.[c.tag]))
+    if (unseen.length > 0) {
+      selectedConcept = unseen[0].tag
+      teachingGoal = "introduce"
+    }
+  }
+
+  // 2. Select difficulty
+  const difficulty = posAcc > 75 ? 3 : posAcc > 50 ? 2 : 1
+
+  // 3. Select reference scenarios
+  const exampleScenarios = KNOWLEDGE_BASE.getScenariosByConceptAndPosition(position, selectedConcept, 3)
+
+  // 4. Select relevant knowledge maps
+  const knowledgeMaps = KNOWLEDGE_BASE.getKnowledgeMapsForPosition(position)
+
+  // 5. Get Brain data
+  const brainData = KNOWLEDGE_BASE.getBrainDataForSituation(position, {})
+
+  // 6. Get avoid patterns from deduplication
+  const recentAI = aiHistory.filter(h => h.position === position).slice(-10)
+  const avoidTitles = recentAI.map(h => h.title)
+  const avoidPatterns = KNOWLEDGE_BASE.getAvoidPatterns(position)
+
+  // 7. Build player context string
+  const playerContext = [
+    `Level ${getLvl(stats.pts).n}, ${posStats.p} games at ${posAcc}% accuracy`,
+    degraded.length > 0 ? `Degraded concepts: ${degraded.map(c=>c.tag).join(", ")}` : null,
+    learning.length > 0 ? `Learning: ${learning.slice(0,3).map(c=>c.tag).join(", ")}` : null,
+    recentWrong.length > 0 ? `Recent wrong: ${recentWrong.slice(-3).join("; ")}` : null,
+  ].filter(Boolean).join(". ")
+
+  return {
+    teachingGoal,
+    targetConcept: selectedConcept,
+    difficulty,
+    knowledgeMaps: Object.keys(knowledgeMaps),
+    brainData,
+    exampleScenarios: exampleScenarios.map(s => ({
+      title: s.title, diff: s.diff, concept: s.concept,
+      description: (s.description || "").slice(0, 150),
+      options: s.options, best: s.best,
+      rates: s.rates
+    })),
+    avoidPatterns,
+    avoidTitles,
+    playerContext,
+    position,
+    principles: KNOWLEDGE_BASE.getPrinciplesForPosition(position)
+  }
+}
+
+// ============================================================================
+// Level 3.4: Generator Agent — Builds focused prompt from Planner's output
+// ============================================================================
+function buildAgentPrompt(plan) {
+  const { position, difficulty, teachingGoal, targetConcept, playerContext, principles, brainData, exampleScenarios, avoidPatterns, avoidTitles } = plan
+
+  // Focused examples (condensed)
+  const examplesText = exampleScenarios.slice(0, 2).map((s, i) =>
+    `EXAMPLE ${i+1}: "${s.title}" (diff:${s.diff}) — ${s.concept}. Options: ${s.options.map((o,j) => `${j===s.best?"[BEST]":""}${o}`).join(" | ")}`
+  ).join("\n")
+
+  // Avoid patterns
+  const avoidText = avoidTitles.length > 0 ? `\nAVOID THESE TITLES (already generated): ${avoidTitles.join(", ")}` : ""
+  const patternText = avoidPatterns.length > 0 ? `\nAVOID THESE PATTERNS: ${avoidPatterns.slice(0,5).join("; ")}` : ""
+
+  return `Create a baseball strategy scenario for position: ${position}.
+TEACHING GOAL: ${teachingGoal} concept "${targetConcept || "general " + position + " strategy"}".
+PLAYER: ${playerContext}
+DIFFICULTY: ${difficulty}/3
+
+POSITION PRINCIPLES:
+${principles.detailed || principles.condensed}
+
+${brainData}
+
+${examplesText}
+${avoidText}${patternText}
+
+THE QUESTION MUST ASK: "What should the ${position.replace(/([A-Z])/g,' $1').trim().toLowerCase()} do?" All 4 options must be physical actions or decisions that ONLY this position makes.
+
+Each explanation must be 2-4 sentences. BEST explanation: state WHY correct + WHAT HAPPENS + reference game situation. WRONG explanations: state WHY this fails.
+
+Respond with ONLY valid JSON:
+{"title":"Short Title","diff":${difficulty},"description":"2-3 sentence scenario","situation":{"inning":"Bot 7","outs":1,"count":"2-1","runners":[1,3],"score":[3,2]},"options":["A","B","C","D"],"best":0,"explanations":["Why A","Why B","Why C","Why D"],"rates":[85,55,30,20],"concept":"One-sentence lesson","anim":"strike|strikeout|hit|groundout|flyout|steal|score|advance|catch|throwHome|doubleplay|bunt|walk|safe|freeze"}
+count format: "B-S" (0-3 balls, 0-2 strikes) or "-". runners: [] empty, [1]=1st, [1,3]=1st+3rd. rates: optimal 75-90, decent 45-65, poor 10-40. score=[HOME,AWAY]. outs must be 0-2.`
+}
+
+// ============================================================================
+// Level 3.5: Grader Agent — Validates generated scenario against quality checklist
+// ============================================================================
+function gradeAgentScenario(scenario, plan) {
+  const grade = gradeScenario(scenario, plan.position)
+
+  // Additional agent-specific checks
+  const agentDeductions = []
+
+  // Check if concept matches plan
+  if (plan.targetConcept && scenario.concept) {
+    const conceptLower = scenario.concept.toLowerCase()
+    const targetLower = plan.targetConcept.toLowerCase()
+    if (!conceptLower.includes(targetLower) && !targetLower.includes(conceptLower)) {
+      // Relaxed match — check for keyword overlap
+      const targetWords = targetLower.split(/[\s-]+/).filter(w => w.length > 3)
+      const conceptWords = conceptLower.split(/[\s-]+/).filter(w => w.length > 3)
+      const overlap = targetWords.filter(w => conceptWords.some(cw => cw.includes(w) || w.includes(cw))).length
+      if (overlap === 0) {
+        grade.score -= 10
+        agentDeductions.push("concept_mismatch: plan targeted '" + plan.targetConcept + "' but got '" + scenario.concept + "'")
+      }
+    }
+  }
+
+  // Check difficulty matches plan
+  if (scenario.diff !== plan.difficulty) {
+    grade.score -= 5
+    agentDeductions.push("difficulty_mismatch: plan=" + plan.difficulty + " got=" + scenario.diff)
+  }
+
+  // Check for avoided titles
+  if (plan.avoidTitles && plan.avoidTitles.length > 0) {
+    const titleLower = (scenario.title || "").toLowerCase()
+    const dup = plan.avoidTitles.find(t => t.toLowerCase() === titleLower)
+    if (dup) {
+      grade.score -= 25
+      agentDeductions.push("title_duplicate: " + dup)
+    }
+  }
+
+  grade.agentDeductions = agentDeductions
+  grade.score = Math.max(0, grade.score)
+  grade.pass = grade.score >= 60
+  return grade
+}
+
+// ============================================================================
+// Level 3.6: Cross-Player Learning Loop
+// ============================================================================
+function buildLearningContribution(stats, position, scenarioId, concept, isCorrect, isAI, difficulty) {
+  return {
+    scenario_id: scenarioId,
+    position,
+    concept: concept || "",
+    difficulty: difficulty || 1,
+    is_correct: isCorrect,
+    is_ai: isAI,
+    session_hash: (stats.sessionHash || "anon").slice(0, 32),
+    age_group: stats.ageGroup || "11-12",
+    level: getLvl(stats.pts).n,
+    timestamp: Date.now()
+  }
+}
+
+// Batch send learning contributions to server
+let _learningBatch = []
+function queueLearningContribution(contribution) {
+  _learningBatch.push(contribution)
+  if (_learningBatch.length >= 10) flushLearningBatch()
+}
+async function flushLearningBatch() {
+  if (_learningBatch.length === 0) return
+  const batch = _learningBatch.splice(0, 50)
+  try {
+    await fetch(AI_PROXY_URL.replace(/\/$/, "") + "/analytics/population-difficulty", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ events: batch })
+    })
+  } catch (e) {
+    console.warn("[BSM] Learning batch send failed:", e.message)
+    // Re-queue failed items (up to limit)
+    if (_learningBatch.length < 100) _learningBatch.push(...batch)
+  }
+}
+
+// ============================================================================
+// Level 3.7: Agent Pipeline with Shadow Mode
+// ============================================================================
+async function generateWithAgentPipeline(position, stats, conceptsLearned, recentWrong, signal, targetConcept, aiHistory) {
+  // Stage 1: Plan
+  const plan = planScenario(position, stats, conceptsLearned, recentWrong, targetConcept, aiHistory)
+  console.log("[BSM Agent] Plan:", plan.teachingGoal, "concept:", plan.targetConcept, "diff:", plan.difficulty)
+
+  // Stage 2: Generate (using agent prompt)
+  const agentPrompt = buildAgentPrompt(plan)
+
+  // Use the existing AI infrastructure but with the agent's focused prompt
+  const lvl = getLvl(stats.pts)
+  const posStats = stats.ps?.[position] || { p: 0, c: 0 }
+
+  try {
+    const abConfigs = getActiveABConfigs(stats.sessionHash || "")
+    const tempConfig = abConfigs.ai_temperature || {}
+    const aiTemp = tempConfig.temperature || 0.4
+
+    const fetchOpts = {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "grok-4-1-fast-non-reasoning",
+        max_tokens: 1200,
+        temperature: aiTemp,
+        messages: [
+          { role: "system", content: "You are an expert baseball coach creating personalized training scenarios. Respond with ONLY valid JSON — no markdown, no code fences." },
+          { role: "user", content: agentPrompt }
+        ]
+      })
+    }
+    if (signal) fetchOpts.signal = signal
+
+    const response = await Promise.race([
+      fetch(AI_PROXY_URL, fetchOpts),
+      new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 35000))
+    ])
+
+    if (!response.ok) throw new Error(`API ${response.status}`)
+    const data = await response.json()
+    const text = data.choices?.[0]?.message?.content || ""
+    if (!text) throw new Error("Empty response")
+
+    const sanitized = sanitizeAIResponse(text)
+    const scenario = JSON.parse(sanitized)
+
+    // Stage 3: Grade
+    const grade = gradeAgentScenario(scenario, plan)
+    console.log("[BSM Agent] Grade:", grade.score, "pass:", grade.pass, "deductions:", grade.deductions.length)
+
+    if (!grade.pass) {
+      console.warn("[BSM Agent] Scenario failed grading, falling back to standard pipeline")
+      return null // Caller falls back to standard generateAIScenario
+    }
+
+    // Normalize the scenario (same normalization as standard pipeline)
+    scenario.id = `agent_${Date.now()}_${Math.random().toString(36).slice(2,8)}`
+    scenario.isAI = true
+    scenario.cat = "ai-generated"
+    scenario.scenarioSource = "agent"
+    scenario.agentGrade = grade.score
+    scenario.agentPlan = { goal: plan.teachingGoal, concept: plan.targetConcept, difficulty: plan.difficulty }
+
+    // Auto-fix rates alignment
+    const maxRate = Math.max(...scenario.rates)
+    if (scenario.rates[scenario.best] !== maxRate) {
+      scenario.best = scenario.rates.indexOf(maxRate)
+    }
+    if (!ANIMS.includes(scenario.anim)) scenario.anim = "strike"
+    if (![1,2,3].includes(scenario.diff)) scenario.diff = plan.difficulty
+    if (!scenario.situation) scenario.situation = {}
+    if (!Array.isArray(scenario.situation.runners)) scenario.situation.runners = []
+    scenario.situation.runners = [...new Set(scenario.situation.runners.filter(r => [1,2,3].includes(Number(r))).map(Number))]
+    if (!Array.isArray(scenario.situation.score)) scenario.situation.score = [0, 0]
+    scenario.situation.outs = Math.max(0, Math.min(2, Number(scenario.situation.outs) || 0))
+    if (!scenario.situation.inning) scenario.situation.inning = "Mid"
+    if (!scenario.situation.count) scenario.situation.count = "-"
+
+    return { scenario, agentGrade: grade, plan }
+  } catch (err) {
+    console.warn("[BSM Agent] Pipeline failed:", err.message)
+    return null
   }
 }
 
@@ -6549,6 +7215,22 @@ function getActiveABConfigs(sessionHash) {
 }
 
 async function generateAIScenario(position, stats, conceptsLearned = [], recentWrong = [], signal = null, targetConcept = null, aiHistory = []) {
+  // Level 3.7: Agent pipeline A/B test — shadow mode
+  try {
+    const abConfigs = getActiveABConfigs(stats.sessionHash || "")
+    const agentConfig = abConfigs.agent_pipeline || {}
+    if (agentConfig.useAgent) {
+      console.log("[BSM] Trying agent pipeline (A/B variant: agent)")
+      const agentResult = await generateWithAgentPipeline(position, stats, conceptsLearned, recentWrong, signal, targetConcept, aiHistory)
+      if (agentResult && agentResult.scenario) {
+        return { scenario: agentResult.scenario, abVariants: { pipeline: "agent", grade: agentResult.agentGrade?.score } }
+      }
+      console.log("[BSM] Agent pipeline returned null, falling back to standard")
+    }
+  } catch (agentErr) {
+    console.warn("[BSM] Agent pipeline error, falling back:", agentErr.message)
+  }
+
   const lvl = getLvl(stats.pts);
   const posStats = stats.ps[position] || { p: 0, c: 0 };
   const posAcc = posStats.p > 0 ? Math.round((posStats.c / posStats.p) * 100) : 50;
@@ -6564,6 +7246,12 @@ async function generateAIScenario(position, stats, conceptsLearned = [], recentW
   if (recentAI.length > 0) weakAreas.push(`AVOID REPEATS \u2014 these AI scenarios were already generated for this position: ${recentAI.map(h => h.title).join(", ")}. Create something DIFFERENT.`)
 
   const diffTarget = posAcc > 75 ? 3 : posAcc > 50 ? 2 : 1;
+
+  // Level 2.5: Extract A/B configs for conditional injection
+  const abConfigs = getActiveABConfigs(stats.sessionHash || "")
+  const bibleConfig = abConfigs.bible_injection || {}
+  const brainConfig = abConfigs.brain_data_level || {}
+  const fewShotConfig = abConfigs.few_shot_count || {}
 
   // MASTERY CONTEXT INJECTION
   const playerMasteryData = stats.masteryData || { concepts: {} };
@@ -6622,7 +7310,11 @@ ${weakAreas.length > 0 ? weakAreas.join(" ") : ""}${masteryPrompt}${teachCtx}
 
 POSITION RULES: ${AI_POS_PRINCIPLES[position] || POS_PRINCIPLES[position] || "Use general baseball knowledge."}
 
+${bibleConfig.useBible !== false ? "DETAILED PRINCIPLES: " + (BIBLE_PRINCIPLES[position] || "") : ""}
+
 ${aiMapText}
+
+${brainConfig.brainLevel !== "minimal" ? formatBrainForAI(position, {count: scenario_count, inning: "", score: []}) : ""}
 
 AUDIT: All 4 options must be actions THIS position performs at the SAME decision point. The scenario TITLE must describe something this position does (not another position's job). Best answer=coaching consensus backed by modern analytics. rates[best] MUST be highest. score=[HOME,AWAY].${errorReinforcement}
 POSITION-ACTION BOUNDARIES: ${(() => {
@@ -6657,7 +7349,7 @@ The LAST sentence of your description MUST set up the exact moment when the deci
 Each explanation must be 2-4 sentences. BEST explanation: state WHY this is correct + WHAT HAPPENS as a result + reference the specific game situation. WRONG explanations: state WHY this fails in THIS specific situation.
 
 EXAMPLE of a high-quality scenario (match this quality level):
-${getAIFewShot(position)}
+${getAIFewShot(position, targetConcept, diffTarget)}
 
 Respond with ONLY valid JSON:
 {"title":"Short Title","diff":${diffTarget},"description":"2-3 sentence scenario","situation":{"inning":"Bot 7","outs":1,"count":"2-1","runners":[1,3],"score":[3,2]},"options":["A","B","C","D"],"best":0,"explanations":["Why A","Why B","Why C","Why D"],"rates":[85,55,30,20],"concept":"One-sentence lesson","anim":"strike|strikeout|hit|groundout|flyout|steal|score|advance|catch|throwHome|doubleplay|bunt|walk|safe|freeze"}
@@ -6930,6 +7622,20 @@ SCORE PERSPECTIVE: If the scenario says "you're up 5-3" and it's "Bot 7" (home b
     scenario.id = `ai_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
     scenario.isAI = true;
     scenario.cat = "ai-generated";
+    scenario.scenarioSource = "ai";
+
+    // Level 2.2: Grade scenario quality and optionally report to server
+    try {
+      const grade = gradeScenario(scenario, position);
+      scenario.qualityGrade = grade.score;
+      if (grade.score > 0) {
+        fetch(AI_PROXY_URL.replace(/\/$/, "") + "/analytics/scenario-grade", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ scenario_id: scenario.id, position, score: grade.score, pass: grade.pass, deductions: grade.deductions, source: "standard" })
+        }).catch(() => {});
+      }
+    } catch (e) { /* non-critical */ }
 
     return { scenario, abVariants };
   } catch (err) {
@@ -7618,6 +8324,7 @@ export default function App(){
   const[lastSeasonStage,setLastSeasonStage]=useState(-1); // track which stage we've shown intro for
   // Speed Round state
   const[speedMode,setSpeedMode]=useState(false);
+  const[speedFilter,setSpeedFilter]=useState(null); // null = show picker, string[] = filtered positions
   const[speedRound,setSpeedRound]=useState(null); // {round,total,results:[],startTime}
   const[timer,setTimer]=useState(15);
   const[timerActive,setTimerActive]=useState(false);
@@ -8433,7 +9140,13 @@ export default function App(){
       updMastery.sessionHistory = sh;
       // Improvement Engine: quality signal, explanation effectiveness, gap cache
       const _qsResult = trackScenarioQuality(p, sc.id, isOpt, sc.isAI || false);
-      const _exResult = trackExplanationEffectiveness(p, conceptTagForEffectiveness, isOpt);
+      const _srcResult = trackSourceQuality(_qsResult, isOpt, sc.isAI || false);
+      const _exResult = trackExplanationEffectiveness(_srcResult, conceptTagForEffectiveness, isOpt);
+      // Level 3.6: Cross-player learning contribution
+      try {
+        const contrib = buildLearningContribution(p, pos, sc.id, conceptTag, isOpt, sc.isAI || false, sc.diff || 1);
+        queueLearningContribution(contrib);
+      } catch (e) { /* non-critical */ }
       const _newLastWrong = !isOpt ? (conceptTagForEffectiveness || null) : null;
       const _newGapCache = ((p.gp + 1) % IMPROVEMENT_ENGINE.gapRules.cacheRefreshInterval === 0) ? null : (p.gapDetectionCache || null);
       // Difficulty graduation for ages 6-8
@@ -8476,7 +9189,7 @@ export default function App(){
         firstPlayDate:p.firstPlayDate||now,lastPlayDate:now,
         seasonCorrect:seasonMode&&isOpt?(p.seasonCorrect||0)+1:(p.seasonCorrect||0),
         wrongCounts:wc,posGrad,posPlayed:posP,masteryData:updMastery,aiHistory:aiHist,scenarioCalibration:scenCal,
-        qualitySignals:_qsResult.qualitySignals,explanationLog:_exResult.explanationLog,
+        qualitySignals:_qsResult.qualitySignals,aiMetrics:_srcResult.aiMetrics||p.aiMetrics,hcMetrics:_srcResult.hcMetrics||p.hcMetrics,explanationLog:_exResult.explanationLog,
         lastWrongConceptTag:_newLastWrong,gapDetectionCache:_newGapCache,
         flaggedScenarios:p.flaggedScenarios||{}};
       ns.achs=checkAch(ns);
@@ -8615,16 +9328,17 @@ export default function App(){
       setOd(o);
       setSpeedRound(sr=>sr?{...sr,results:[...sr.results,{isOpt:false,pts,speedBonus:0,timeLeft:0,concept:sc.concept,pos,timedOut:true}]}:sr);
       setStats(p=>{const today=new Date().toDateString();return{...p,pts:p.pts+pts,str:0,gp:p.gp+1,ps:{...p.ps,[pos]:{p:(p.ps[pos]?.p||0)+1,c:p.ps[pos]?.c||0}},todayPlayed:(p.todayDate===today?p.todayPlayed:0)+1,todayDate:today,sp:0,recentWrong:[...(p.recentWrong||[]),sc.concept].slice(-5)}});
-      setTimeout(()=>{setScreen("outcome");setTimeout(()=>{setShowC(true);setTimeout(()=>speedNextRef.current?.(),2000)},200)},1800);
+      setTimeout(()=>{setScreen("outcome");setTimeout(()=>{setShowC(true);setTimeout(()=>speedNextRef.current?.(),3500)},200)},1800);
     }
   },[speedMode,screen,choice,aiLoading,timerActive,timer,sc,snd,pos]);
 
   // Speed Round flow
-  const startSpeedRound=useCallback(()=>{
+  const startSpeedRound=useCallback((filterPositions)=>{
     if(atLimit){setPanel('limit');return;}
     snd.play('tap');
-    setSpeedMode(true);setDailyMode(false);setAiMode(false);
-    const positions=[...ALL_POS].sort(()=>Math.random()-.5);
+    setSpeedMode(true);setDailyMode(false);setAiMode(false);setSpeedFilter(null);
+    const pool=filterPositions&&filterPositions.length>0?filterPositions:[...ALL_POS];
+    const positions=[];for(let i=0;i<5;i++)positions.push(pool[Math.floor(Math.random()*pool.length)]);
     setSpeedRound({round:0,total:5,results:[],startTime:Date.now(),positions});
     // Start first round
     const p=positions[0];setPos(p);
@@ -8983,10 +9697,12 @@ export default function App(){
                     <div style={{height:"100%",width:`${(stats.ds/nextMile)*100}%`,background:`linear-gradient(90deg,${fl.color},${getFlame(nextMile).color})`,borderRadius:2,transition:"width .5s"}}/>
                   </div>
                 </div>}
-                {stats.streakFreezes>0?<div style={{textAlign:"center",marginTop:4,fontSize:9,color:"#6b7280"}}>
-                  🧊 {stats.streakFreezes} streak freeze{stats.streakFreezes>1?"s":""} available
-                </div>:!stats.isPro&&stats.ds>=3?<div style={{textAlign:"center",marginTop:4,fontSize:9,color:"#6b7280"}}>
-                  🧊 Streak freezes with All-Star Pass
+                {stats.streakFreezes>0?<div style={{textAlign:"center",marginTop:6,padding:"6px 10px",background:"linear-gradient(135deg,rgba(56,189,248,.06),rgba(14,165,233,.04))",border:"1px solid rgba(56,189,248,.15)",borderRadius:10,display:"inline-flex",alignItems:"center",gap:6,justifyContent:"center",width:"100%"}}>
+                  <div style={{display:"flex",gap:3}}>{Array.from({length:3}).map((_,i)=><span key={i} style={{fontSize:14,opacity:i<stats.streakFreezes?1:.2,filter:i<stats.streakFreezes?"none":"grayscale(1)"}}>{i<stats.streakFreezes?"🧊":"⬜"}</span>)}</div>
+                  <div style={{fontSize:10,fontWeight:700,color:"#38bdf8"}}>{stats.streakFreezes} Freeze{stats.streakFreezes>1?"s":""}</div>
+                  <div style={{fontSize:8,color:"#6b7280"}}>Miss a day? Auto-saves your streak</div>
+                </div>:!stats.isPro&&stats.ds>=3?<div style={{textAlign:"center",marginTop:6,padding:"5px 10px",background:"rgba(245,158,11,.03)",border:"1px solid rgba(245,158,11,.1)",borderRadius:8}}>
+                  <span style={{fontSize:10,color:"#92400e"}}>🧊 Streak freezes with All-Star Pass</span>
                 </div>:null}
               </div>
             )})()}
@@ -9099,11 +9815,16 @@ export default function App(){
                         const color=stateColors[c.state]
                         const acc=c.data?Math.round((c.data.totalCorrect||0)/Math.max(1,c.data.totalAttempts||1)*100):null
                         const streak=c.data?.correctStreak||0
-                        return <div key={c.tag} title={`${c.name}\nState: ${stateLabels[c.state]}\n${acc!==null?`Accuracy: ${acc}%`:"Not attempted"}\nDifficulty: ${c.diff}\nAge: ${c.ageMin}+`} style={{
+                        return <div key={c.tag} title={`${c.name}\nState: ${stateLabels[c.state]}\n${acc!==null?`Accuracy: ${acc}%`:"Not attempted"}\nDifficulty: ${c.diff}\nAge: ${c.ageMin}+\nTap to practice`} onClick={()=>{
+                          // Find the position that has scenarios for this concept
+                          const targetPos=Object.entries(SCENARIOS).find(([p,arr])=>arr.some(s=>s.conceptTag===c.tag));
+                          if(targetPos){conceptTargetRef.current=c.tag;setPanel(null);startGame(targetPos[0])}
+                        }} style={{
                           background:c.state==="unseen"?"rgba(255,255,255,.015)":`${color}10`,
                           border:`1px solid ${c.state==="unseen"?"rgba(255,255,255,.04)":`${color}30`}`,
-                          borderRadius:6,padding:"4px 6px",cursor:"default",position:"relative",overflow:"hidden"
-                        }}>
+                          borderRadius:6,padding:"4px 6px",cursor:"pointer",position:"relative",overflow:"hidden",
+                          transition:"transform .1s,box-shadow .1s"
+                        }} onMouseEnter={e=>{e.currentTarget.style.transform="scale(1.03)";e.currentTarget.style.boxShadow=`0 0 8px ${color}30`}} onMouseLeave={e=>{e.currentTarget.style.transform="scale(1)";e.currentTarget.style.boxShadow="none"}}>
                           <div style={{fontSize:9,fontWeight:700,color:c.state==="unseen"?"#6b7280":color,lineHeight:1.2,marginBottom:2}}>{c.name}</div>
                           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
                             <span style={{fontSize:7,color:"#6b7280"}}>Diff {c.diff}</span>
@@ -9280,6 +10001,28 @@ export default function App(){
             <div style={{textAlign:"center",marginTop:8,fontSize:9,color:"#6b7280"}}>{stats.isPro?"All themes unlocked!":"3 free themes. Earn more through milestones or go Pro!"}</div>
           </div>}
 
+          {/* Speed Round Position Picker */}
+          {Array.isArray(speedFilter)&&<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.85)",zIndex:200,display:"flex",alignItems:"center",justifyContent:"center",animation:"fi .3s ease-out"}} onClick={()=>setSpeedFilter(null)}>
+            <div onClick={e=>e.stopPropagation()} style={{background:"#0f172a",border:"1px solid rgba(239,68,68,.2)",borderRadius:16,padding:"20px 16px",width:"90%",maxWidth:360,maxHeight:"80vh",overflow:"auto"}}>
+              <div style={{textAlign:"center",marginBottom:12}}>
+                <div style={{fontSize:28,marginBottom:4}}>⚡</div>
+                <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:20,color:"#ef4444",letterSpacing:1}}>SPEED ROUND</div>
+                <div style={{fontSize:11,color:"#9ca3af",marginTop:4}}>Pick positions to practice, or go random!</div>
+              </div>
+              <button onClick={()=>startSpeedRound(null)} style={{width:"100%",background:"linear-gradient(135deg,#ef4444,#dc2626)",border:"none",borderRadius:10,padding:"10px 16px",color:"white",fontSize:13,fontWeight:800,cursor:"pointer",marginBottom:10,letterSpacing:.5}}>🎲 ALL POSITIONS (Random)</button>
+              <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:6,marginBottom:10}}>
+                {ALL_POS.map(p=>{const m=POS_META[p];const sel=speedFilter.includes(p);return(
+                  <div key={p} onClick={()=>setSpeedFilter(sf=>sel?sf.filter(x=>x!==p):[...sf,p])} style={{background:sel?`${m.color}15`:"rgba(255,255,255,.02)",border:`1px solid ${sel?m.color+"40":"rgba(255,255,255,.06)"}`,borderRadius:8,padding:"8px 4px",textAlign:"center",cursor:"pointer",transition:"all .15s"}}>
+                    <div style={{fontSize:18}}>{m.emoji}</div>
+                    <div style={{fontSize:8,fontWeight:700,color:sel?m.color:"#6b7280",marginTop:2}}>{m.label}</div>
+                  </div>
+                )})}
+              </div>
+              {speedFilter.length>0&&<button onClick={()=>startSpeedRound(speedFilter)} style={{width:"100%",background:"linear-gradient(135deg,#ef4444,#dc2626)",border:"none",borderRadius:10,padding:"10px 16px",color:"white",fontSize:13,fontWeight:800,cursor:"pointer",letterSpacing:.5}}>⚡ GO! ({speedFilter.length} position{speedFilter.length>1?"s":""})</button>}
+              <button onClick={()=>setSpeedFilter(null)} style={{width:"100%",background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.08)",borderRadius:8,padding:"8px",color:"#6b7280",fontSize:11,cursor:"pointer",marginTop:6}}>Cancel</button>
+            </div>
+          </div>}
+
           {panel==='limit'&&<div style={{...card,marginBottom:12,textAlign:"center",borderColor:"rgba(34,197,94,.2)"}}>
             <div style={{fontSize:36,marginBottom:4}}>&#127881;</div>
             <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:20,color:"#22c55e",letterSpacing:1}}>GREAT SESSION TODAY!</div>
@@ -9438,9 +10181,12 @@ export default function App(){
               <div style={{height:4,background:"rgba(255,255,255,.03)",borderRadius:2,overflow:"hidden"}}>
                 <div style={{height:"100%",width:`${pct}%`,background:`linear-gradient(90deg,#22c55e,${stage.color})`,borderRadius:2,transition:"width .5s"}}/>
               </div>
-              <div style={{display:"flex",gap:4,marginTop:6,overflow:"hidden"}}>
-                {SEASON_STAGES.map((st,i)=>{let before=0;for(let j=0;j<i;j++)before+=SEASON_STAGES[j].games*3;const active=stats.seasonGame>=before;return(
-                  <div key={i} style={{flex:st.games,height:3,borderRadius:2,background:active?st.color:"rgba(255,255,255,.04)",transition:"all .3s"}} title={st.name}/>
+              <div style={{display:"flex",gap:2,marginTop:6,overflow:"hidden"}}>
+                {SEASON_STAGES.map((st,i)=>{let before=0;for(let j=0;j<i;j++)before+=SEASON_STAGES[j].games*3;const active=stats.seasonGame>=before;const current=stats.seasonGame>=before&&(i===SEASON_STAGES.length-1||stats.seasonGame<before+st.games*3);return(
+                  <div key={i} style={{flex:st.games,display:"flex",flexDirection:"column",alignItems:"center",gap:2}}>
+                    <div style={{width:"100%",height:4,borderRadius:2,background:active?st.color:"rgba(255,255,255,.04)",transition:"all .3s",boxShadow:current?`0 0 6px ${st.color}60`:"none"}}/>
+                    <span style={{fontSize:current?11:9,opacity:active?1:.4,transition:"all .3s",lineHeight:1}} title={st.name}>{st.emoji}</span>
+                  </div>
                 )})}
               </div>
             </div>
@@ -9448,7 +10194,7 @@ export default function App(){
 
           {/* Game Modes */}
           {stats.gp>=3&&<div style={{display:"flex",gap:8,marginBottom:12,flexWrap:"wrap"}}>
-            <div onClick={startSpeedRound} style={{flex:"1 1 45%",background:"linear-gradient(135deg,rgba(239,68,68,.08),rgba(220,38,38,.04))",border:"1px solid rgba(239,68,68,.2)",borderRadius:14,padding:"16px 12px",textAlign:"center",cursor:"pointer",minHeight:48}}>
+            <div onClick={()=>setSpeedFilter([])} style={{flex:"1 1 45%",background:"linear-gradient(135deg,rgba(239,68,68,.08),rgba(220,38,38,.04))",border:"1px solid rgba(239,68,68,.2)",borderRadius:14,padding:"16px 12px",textAlign:"center",cursor:"pointer",minHeight:48}}>
               <div style={{fontSize:22,marginBottom:3}}>⚡</div>
               <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:14,color:"#ef4444",letterSpacing:1}}>SPEED ROUND</div>
               <div style={{fontSize:10,color:"#9ca3af",marginTop:3}}>5 scenarios · 15s timer</div>
@@ -9481,7 +10227,7 @@ export default function App(){
                 <div style={{fontSize:22,marginBottom:3}}>{sm.emoji}</div>
                 <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:12,color:sm.color,letterSpacing:1}}>{sm.label}</div>
                 <div style={{fontSize:9,color:"#9ca3af",marginTop:2}}>{SCENARIOS[sm.key]?.length||0} {sm.unit}</div>
-                {a!==null&&<div style={{fontSize:8,color:"rgba(255,255,255,.6)",marginTop:1}}>{a}% · {ps.p} played</div>}
+                {ps&&ps.p>0&&<div style={{fontSize:8,color:"rgba(255,255,255,.6)",marginTop:1}}>{ps.p>=5?`${a}% · `:""}{ps.p} played</div>}
               </div>)})}
           </div>}
 
@@ -9531,7 +10277,7 @@ export default function App(){
                       <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:group.positions.length>=3?12:17,letterSpacing:1}}>{m.label.toUpperCase()}</div>
                       <div style={{fontSize:group.positions.length>=3?8:10,color:"rgba(255,255,255,.55)",marginTop:1}}>{m.desc}</div>
                       <div style={{fontSize:8,color:"rgba(255,255,255,.35)",marginTop:2}}>{SCENARIOS[p]?.length||0} scenarios</div>
-                      {a!==null&&<div style={{fontSize:8,color:"rgba(255,255,255,.6)",marginTop:1}}>{a}% · {ps.p} played</div>}
+                      {ps&&ps.p>0&&<div style={{fontSize:8,color:"rgba(255,255,255,.6)",marginTop:1}}>{ps.p>=5?`${a}% · `:""}{ps.p} played</div>}
                       {(()=>{const seen=(hist[p]||[]);const total=(SCENARIOS[p]||[]).length;if(seen.length>=total&&total>0)return<div style={{fontSize:7,color:"#22c55e",fontWeight:700,marginTop:1}}>All {total} mastered{!stats.isPro?" · Go Pro for AI":""}</div>;return null})()}
                     </div>
                   </div>
@@ -9847,6 +10593,13 @@ export default function App(){
             <p style={{fontSize:14,fontWeight:600,color:"white",lineHeight:1.45}}>{od.concept}</p>
           </div>}
 
+          {/* Famous Plays: What Really Happened epilogue */}
+          {showC&&sc?.historicalNote&&<div style={{background:"linear-gradient(135deg,rgba(234,179,8,.04),rgba(202,138,4,.02))",border:"1px solid rgba(234,179,8,.12)",borderRadius:12,padding:12,marginTop:8}}>
+            <div style={{fontSize:14,marginBottom:2,textAlign:"center"}}>📜</div>
+            <div style={{fontSize:9,color:"#eab308",textTransform:"uppercase",letterSpacing:1,fontWeight:700,marginBottom:4,textAlign:"center"}}>What Really Happened</div>
+            <p style={{fontSize:13,color:"#d1d5db",lineHeight:1.55,margin:0}}>{sc.historicalNote}</p>
+          </div>}
+
           {/* Explain More — AI deep dive (Pro) */}
           {showC&&od?.concept&&<div style={{textAlign:"center",marginTop:6}}>
             {stats.isPro?<>{!explainMore&&!explainLoading&&<button onClick={async()=>{
@@ -10082,6 +10835,28 @@ export default function App(){
             {pct===100&&<div style={{background:"rgba(34,197,94,.08)",border:"1px solid rgba(34,197,94,.2)",borderRadius:10,padding:"8px 16px",display:"inline-block",marginBottom:12}}>
               <span style={{fontSize:13,fontWeight:800,color:"#22c55e"}}>🏆 PERFECT! You nailed every position!</span>
             </div>}
+            {/* Team Debrief — How the Play Unfolded */}
+            <div style={{...card,textAlign:"left",marginBottom:16}}>
+              <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:11,color:sitSet.color,letterSpacing:1,marginBottom:8}}>🎬 HOW THE PLAY UNFOLDED</div>
+              <p style={{fontSize:12,color:"#9ca3af",lineHeight:1.5,marginBottom:10}}>{sitSet.description||sitSet.title}</p>
+              <div style={{display:"flex",flexDirection:"column",gap:8}}>
+                {sitResults.map((r,i)=>{const q=sitSet.questions[i];const pm=POS_META[r.pos];const bestExp=q?.explanations?.[q?.best]||"";return(
+                  <div key={i} style={{borderLeft:`3px solid ${r.correct?"#22c55e":"#ef4444"}`,paddingLeft:10}}>
+                    <div style={{fontSize:11,fontWeight:700,color:pm?.color||"#d1d5db",marginBottom:2}}>{pm?.emoji} {pm?.label}'s Role</div>
+                    <div style={{fontSize:11,color:r.correct?"#22c55e":"#ef4444",fontWeight:600,marginBottom:2}}>{r.correct?"✅ Optimal":"❌ Missed"}: "{q?.options?.[r.correct?q?.best:r.choice]||""}"</div>
+                    <div style={{fontSize:11,color:"#d1d5db",lineHeight:1.45}}>{bestExp.length>150?bestExp.substring(0,150)+"...":bestExp}</div>
+                  </div>
+                )})}
+              </div>
+              <div style={{marginTop:10,padding:"8px 10px",background:"rgba(168,85,247,.04)",border:"1px solid rgba(168,85,247,.1)",borderRadius:8}}>
+                <div style={{fontSize:10,color:"#a855f7",fontWeight:700,marginBottom:3}}>💡 Teamwork Takeaway</div>
+                <div style={{fontSize:11,color:"#d1d5db",lineHeight:1.45}}>
+                  {pct===100?"Every position executed perfectly — that's championship-level teamwork! Each player read the situation and made the optimal play.":
+                   pct>=50?"Good team effort! Most positions made the right call. Review the missed plays above — in real games, one wrong decision from any position can change the outcome.":
+                   "This situation exposed some gaps. In real games, every position must think together — the outfielder's throw, the infielder's relay, the catcher's block all connect. Study each role above!"}
+                </div>
+              </div>
+            </div>
             <button onClick={()=>setScreen("sitPicker")} style={{...btn(`linear-gradient(135deg,${sitSet.color},${sitSet.color}cc)`),...{marginBottom:6,boxShadow:`0 4px 12px ${sitSet.color}40`}}}>🏟️ Play Another</button>
             <button onClick={goHome} style={{...btn("rgba(255,255,255,.06)"),...{fontSize:12}}}>← Back to Home</button>
           </div>);
