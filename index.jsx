@@ -6288,49 +6288,50 @@ function formatBrainStats(position, age, stats) {
 function formatBrainForAI(position, situation) {
   const parts = []
   // RE24 top states
-  const re = BRAIN.re24
-  parts.push("RE24 (runs expected): " + ["000","100","010","001","110","101","011","111"].map(key => {
+  const re = BRAIN.stats.RE24
+  if (re) parts.push("RE24 (runs expected): " + ["---","1--","-2-","--3","12-","1-3","-23","123"].map(key => {
     const row = re[key]
     if (!row) return null
-    const label = key === "000" ? "empty" : (key[0]==="1"?"R1 ":"")+(key[1]==="1"?"R2 ":"")+(key[2]==="1"?"R3":"")
+    const label = key === "---" ? "empty" : (key[0]==="1"?"R1 ":"")+(key[1]==="2"?"R2 ":"")+(key[2]==="3"?"R3":"")
     return `${label.trim()}: 0out=${row[0]}, 1out=${row[1]}, 2out=${row[2]}`
   }).filter(Boolean).join("; "))
   // Count data if relevant
   if (["pitcher","catcher","batter","counts"].includes(position) && situation?.count && situation.count !== "-") {
-    const cd = BRAIN.countData?.[situation.count]
-    if (cd) parts.push(`Count ${situation.count}: BA=${cd.ba}, pitchFreq=${JSON.stringify(cd.pitchFreq||{})}`)
+    const cd = BRAIN.stats.countData?.[situation.count]
+    if (cd) parts.push(`Count ${situation.count}: BA=${cd.ba}, edge=${cd.edge}, label="${cd.label}"`)
   }
   // Steal data for baserunner/manager/catcher
   if (["baserunner","manager","catcher","pitcher"].includes(position)) {
-    const s = BRAIN.stealBreakEven
-    if (s) parts.push(`Steal break-even: 2B=${s["2B"]}%, 3B=${s["3B"]}%`)
+    const s = BRAIN.stats.stealBreakEven
+    if (s) parts.push(`Steal break-even by outs: 0out=${s[0]*100}%, 1out=${s[1]*100}%, 2out=${s[2]*100}%`)
   }
   // Bunt data for batter/manager
   if (["batter","manager","pitcher"].includes(position)) {
-    const bd = BRAIN.buntDelta
+    const bd = BRAIN.stats.buntDelta
     if (bd) parts.push("Bunt delta (RE change): " + Object.entries(bd).map(([k,v]) => `${k}=${v>0?"+":""}${v}`).join(", "))
   }
   // TTO for manager/pitcher/catcher
-  if (["manager","pitcher","catcher"].includes(position) && BRAIN.ttoEffect) {
-    parts.push(`TTO effect: 1st=${BRAIN.ttoEffect["1st"]}, 2nd=${BRAIN.ttoEffect["2nd"]}, 3rd=${BRAIN.ttoEffect["3rd"]}`)
+  if (["manager","pitcher","catcher"].includes(position) && BRAIN.stats.ttoEffect) {
+    const tto = BRAIN.stats.ttoEffect
+    parts.push(`TTO effect (BA penalty): 1st=${tto[0]}pts, 2nd=${tto[1]}pts, 3rd=${tto[2]}pts`)
   }
   // Scoring probability
-  if (BRAIN.scoringProb) {
-    const sp = BRAIN.scoringProb
+  if (BRAIN.stats.scoringProb) {
+    const sp = BRAIN.stats.scoringProb
     parts.push("Scoring prob: " + Object.entries(sp).map(([k,v]) => `${k}: 0out=${v[0]}%, 1out=${v[1]}%, 2out=${v[2]}%`).join("; "))
   }
   // Win probability for manager
-  if (position === "manager" && BRAIN.winProbability && situation?.inning) {
+  if (position === "manager" && BRAIN.stats.winProbability?.byInningScore && situation?.inning) {
     const inn = parseInt(situation.inning.replace(/\D/g,"")) || 5
     const diff = (situation.score?.[0]||0) - (situation.score?.[1]||0)
     const diffKey = diff > 3 ? "+3" : diff < -3 ? "-3" : (diff >= 0 ? "+" : "") + diff
-    const wp = BRAIN.winProbability?.[inn]?.[diffKey]
+    const wp = BRAIN.stats.winProbability.byInningScore?.[inn]?.[diffKey]
     if (wp) parts.push(`Win prob (inn ${inn}, diff ${diffKey}): ${wp}%`)
   }
   // Pitch type data for pitcher/catcher/batter
-  if (["pitcher","catcher","batter","counts"].includes(position) && BRAIN.pitchTypeData) {
-    const ptd = BRAIN.pitchTypeData
-    parts.push("Pitch types: " + Object.entries(ptd).slice(0,5).map(([k,v]) => `${k}: avg=${v.avgSpeed||"?"}mph, whiff=${v.whiffRate||"?"}%`).join("; "))
+  if (["pitcher","catcher","batter","counts"].includes(position) && BRAIN.stats.pitchTypeData?.types) {
+    const ptd = BRAIN.stats.pitchTypeData.types
+    parts.push("Pitch types: " + Object.entries(ptd).slice(0,5).map(([k,v]) => `${k}: velo=${v.velo||"?"}mph, wOBA=${v.woba||"?"}, rv/100=${v.rv100||"?"}`).join("; "))
   }
   return parts.length > 0 ? "REFERENCE DATA (real MLB numbers — cite these in explanations):\n" + parts.join("\n") : ""
 }
@@ -6794,8 +6795,7 @@ const KNOWLEDGE_BASE = {
   getKnowledgeMapsForPosition(position) {
     const mapNames = MAP_RELEVANCE[position] || []
     const maps = {}
-    const allMaps = { CUTOFF_RELAY_MAP, BUNT_DEFENSE_MAP, FIRST_THIRD_MAP, BACKUP_MAP, RUNDOWN_MAP, DP_POSITIONING_MAP, HIT_RUN_MAP, BALK_MAP, APPEAL_PLAY_MAP, PITCH_CLOCK_MAP, WP_PB_MAP, SQUEEZE_MAP, INFIELD_FLY_MAP, OF_COMMUNICATION_MAP, PICKOFF_MAP, DROPPED_3RD_MAP, FOUL_TIP_MAP, TAG_UP_MAP, DEFENSIVE_POSITIONING_MAP, OBSTRUCTION_MAP, FORCE_VS_TAG_MAP, BASERUNNER_READS_MAP }
-    mapNames.forEach(name => { if (allMaps[name]) maps[name] = allMaps[name] })
+    mapNames.forEach(name => { if (KNOWLEDGE_MAPS[name]) maps[name] = KNOWLEDGE_MAPS[name] })
     return maps
   },
 
@@ -7613,11 +7613,14 @@ SCORE PERSPECTIVE: If the scenario says "you're up 5-3" and it's "Bot 7" (home b
       console.warn("[BSM] AI scenario rejected: title duplicate with", titleMatch.id)
       throw new Error("Duplicate: title matches " + titleMatch.id)
     }
-    // Check against recent AI history for this position
-    const recentAI = aiHistory.filter(h => h.position === position).slice(-20)
+    // Check against recent AI history for this position (exact or near-exact titles only)
+    const recentAI = aiHistory.filter(h => h.position === position).slice(-10)
     const aiTitleDup = recentAI.find(h => {
       const t = (h.title || "").toLowerCase()
-      return t === aiTitle || (t.length > 8 && aiTitle.includes(t))
+      if (t === aiTitle) return true
+      // Only flag substring match if titles are nearly the same length (within 30%)
+      const lenRatio = Math.min(t.length, aiTitle.length) / Math.max(t.length, aiTitle.length)
+      return lenRatio > 0.7 && t.length > 10 && (aiTitle.includes(t) || t.includes(aiTitle))
     })
     if (aiTitleDup) {
       console.warn("[BSM] AI scenario rejected: duplicate of recent AI scenario", aiTitleDup.id)
