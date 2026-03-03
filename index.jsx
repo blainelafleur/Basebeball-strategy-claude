@@ -7540,9 +7540,9 @@ SCORE PERSPECTIVE: If the scenario says "you're up 5-3" and it's "Bot 7" (home b
       secondBase: [/2B\s*covers?\s*(3rd|third)\b.*bunt/i, /second\s*base.*covers?\s*(3rd|third)\b.*bunt/i],
       thirdBase: [/third.*base.*stays.*at.*third.*wild.*pitch.*runner.*third/i, /third.*base.*cutoff.*right.*field/i, /third.*base.*relay.*right/i, /third\s*base(man)?\s*(is|as)\s*(the)?\s*cutoff.*cf/i, /third\s*base(man)?\s*(is|as)\s*(the)?\s*cutoff.*rf/i],
       firstBase: [/first\s*base(man)?\s*(is|as)\s*(the)?\s*cutoff.*lf/i],
-      leftField: [/left.*field.*cutoff.*center/i, /left.*field.*relay.*second/i, /left\s*field(er)?\s*(back(s)?\s*up|cover(s)?)\s*(second|2nd|2b)\b/i],
+      leftField: [/left.*field.*cutoff.*center/i, /left\s*field(er)?\s*(is|as|acts?\s+as|becomes?)\s*(the\s*)?relay.*(second|2nd)/i, /left\s*field(er)?\s*(back(s)?\s*up|cover(s)?)\s*(second|2nd|2b)\b/i],
       centerField: [/center\s*field(er)?\s*(back(s)?\s*up|cover(s)?)\s*(third|3rd|3b)\b/i, /center\s*field(er)?.*cutoff.*3b/i, /center\s*field(er)?.*cutoff.*third/i, /cf.*cutoff.*3b/i],
-      rightField: [/right.*field.*cutoff.*left/i, /right.*field.*relay.*third/i, /right\s*field(er)?\s*(back(s)?\s*up|cover(s)?)\s*(third|3rd|3b)\b/i],
+      rightField: [/right.*field.*cutoff.*left/i, /right\s*field(er)?\s*(is|as|acts?\s+as|becomes?)\s*(the\s*)?relay.*(third|3rd)/i, /right\s*field(er)?\s*(back(s)?\s*up|cover(s)?)\s*(third|3rd|3b)\b/i],
     };
     const violations = ROLE_VIOLATIONS[position] || [];
     const allText = [scenario.description, ...scenario.options, ...scenario.explanations].join(" ");
