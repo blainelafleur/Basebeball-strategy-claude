@@ -1207,6 +1207,10 @@ async function handleValidateCode(request, env, cors) {
 
 // POST /v1/chat/completions — xAI proxy (with timeout + streaming passthrough)
 async function handleAIProxy(request, env, cors) {
+  if (!env.XAI_API_KEY) {
+    console.error("[BSM Worker] XAI_API_KEY secret not configured");
+    return jsonResponse({ error: { message: "AI service not configured — XAI_API_KEY missing", type: "auth_error", status: 503 } }, 503, cors);
+  }
   const body = await request.text();
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 30000);
@@ -1226,10 +1230,12 @@ async function handleAIProxy(request, env, cors) {
     if (!xaiResponse.ok) {
       const errBody = await xaiResponse.text();
       console.error(`[BSM Worker] xAI error ${xaiResponse.status} (${elapsed}ms):`, errBody.slice(0, 500));
-      return new Response(errBody, {
-        status: xaiResponse.status,
-        headers: { ...cors, "Content-Type": "application/json", "X-XAI-Elapsed": String(elapsed) },
-      });
+      const errType = xaiResponse.status === 401 || xaiResponse.status === 403 ? "auth_error"
+        : xaiResponse.status === 429 ? "rate_limit"
+        : "xai_server_error";
+      return jsonResponse({
+        error: { message: `xAI API error: ${xaiResponse.status}`, type: errType, status: xaiResponse.status, detail: errBody.slice(0, 300) }
+      }, xaiResponse.status, { ...cors, "X-XAI-Elapsed": String(elapsed) });
     }
     console.log(`[BSM Worker] xAI responded ${xaiResponse.status} in ${elapsed}ms`);
     // Stream response through directly — no buffering

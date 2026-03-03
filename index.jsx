@@ -4190,6 +4190,22 @@ const AI_POS_PRINCIPLES = {
 }
 
 // Position-specific scenario topic guidance \u2014 tells AI WHAT to create scenarios about
+// Few-shot examples for AI scenario generation — one per position category
+const AI_FEW_SHOT_EXAMPLES = {
+  pitcher: '{"title":"Full Count Jam","diff":2,"description":"Bottom of the 6th, runner on 2nd with 1 out. The count is full on a .280 hitter who likes to chase low. Your catcher sets up low and away. What should the pitcher do?","situation":{"inning":"Bot 6","outs":1,"count":"3-2","runners":[2],"score":[4,3]},"options":["Throw a slider low and away to get the chase","Come inside with a fastball to change his eye level","Throw a changeup to keep him off-balance","Throw a fastball right down the middle to challenge him"],"best":0,"explanations":["With a full count and a hitter who chases low, the slider low and away plays to your advantage. If he chases, it is a strikeout. If he takes, it is close enough that you might get the call. The runner on 2nd means a hit scores a run, so getting this out is critical.","Coming inside with a fastball can work, but this hitter has been sitting on inside pitches all game. You are giving him something in his power zone with the game on the line.","A changeup on a full count is risky because if you miss your spot, it hangs in the zone. The margin for error is too thin with a runner in scoring position and a 1-run lead.","Throwing a fastball down the middle on a full count to a decent hitter is asking for trouble. He is locked in and looking for something to drive, especially with a runner on 2nd."],"rates":[82,50,35,15],"concept":"Full count pitch selection with RISP: exploit the batter\'s weakness while minimizing damage.","anim":"strike"}',
+  fielder: '{"title":"Gap Ball Communication","diff":2,"description":"Top of the 4th, runner on 1st with 1 out. The batter lines a sinking drive into the left-center gap. Both you and the left fielder are converging on the ball. What should the center fielder do?","situation":{"inning":"Top 4","outs":1,"count":"-","runners":[1],"score":[2,1]},"options":["Call off the left fielder and take charge of the ball","Let the left fielder take it since he is closer","Stay silent and sprint for the ball","Pull up and cover behind the left fielder in case he misses"],"best":0,"explanations":["Center fielder has priority on all fly balls and line drives in the gap. By calling off the left fielder early and loudly, you prevent a collision and get the better angle on the sinking liner. This limits the runner to staying at 1st.","Deferring to the left fielder breaks the priority rule. CF always has priority because you are coming in on the ball with better momentum and angle. Letting LF take it increases collision risk and often leads to a worse catch attempt.","Never stay silent on a converging play. Without communication, both fielders may pull up or both may dive, leading to the ball dropping for extra bases. The runner on 1st would score easily.","Pulling up leaves the left fielder alone on a tough sinking liner. If this were a ball clearly in his zone, backing up makes sense, but on a gap ball, CF takes charge first and LF backs up."],"rates":[85,40,15,45],"concept":"Center field priority: CF calls off corner outfielders on gap balls to prevent collisions and make the cleanest play.","anim":"catch"}',
+  batter: '{"title":"Runner on Third, One Out","diff":1,"description":"Bottom of the 8th, tied game. Runner on 3rd with 1 out and the infield is playing in. The pitcher throws a fastball up in the zone. What should the batter do?","situation":{"inning":"Bot 8","outs":1,"count":"1-0","runners":[3],"score":[3,3]},"options":["Hit a fly ball deep enough to score the runner on a sacrifice fly","Try to hit a ground ball through the drawn-in infield","Swing for the fences to win it with a home run","Take the pitch and wait for a better one"],"best":0,"explanations":["With a runner on 3rd and 1 out in a tied game, your job is to get that run home. A fly ball to the outfield scores the runner on a tag-up. The infield is drawn in, so they cannot cut off the run at home on a grounder. A sac fly is the highest-percentage play here.","A ground ball through a drawn-in infield sounds good in theory, but ground balls can turn into double plays. With 1 out and the go-ahead run on 3rd, the risk of a DP ending the inning is too high compared to the reliable sac fly.","Swinging for the fences is low-percentage hitting. You only need one run to take the lead, and a strikeout or pop-up wastes the opportunity. Play for the run you need, not the run that looks impressive.","Taking the pitch is not terrible on 1-0, but this fastball is hittable and you have a clear mission: get the ball in the air. Waiting risks falling behind in the count and losing your chance at a sacrifice fly."],"rates":[88,45,20,35],"concept":"Situational hitting with runner on 3rd: elevate the ball for a sacrifice fly to score the tying or go-ahead run.","anim":"hit"}',
+  baserunner: '{"title":"Secondary Lead Read","diff":2,"description":"Top of the 5th, you are on 1st base with 0 outs. The batter swings and hits a sharp ground ball toward the shortstop. What should the baserunner do?","situation":{"inning":"Top 5","outs":0,"count":"-","runners":[1],"score":[1,2]},"options":["Run hard to 2nd — you must go on a ground ball with 0 outs","Stop and retreat to 1st to avoid the double play","Freeze and watch the play develop before committing","Run halfway and decide based on whether the shortstop fields it cleanly"],"best":0,"explanations":["With 0 outs and a force at 2nd, you MUST run on a ground ball. You are forced — there is no option to stay. Running hard gives you the best chance to beat the throw to 2nd and break up the double play, or at least make the relay to 1st difficult.","You cannot retreat to 1st on a ground ball when you are forced. The fielder can simply throw to 2nd for the force out. Going back guarantees the out and possibly sets up an easier double play.","Freezing as a forced runner on a ground ball is a baserunning error. You lose valuable time and make the double play easy for the defense. On ground balls with a force, you go immediately.","Running halfway is for fly balls, not ground balls. On a grounder with a force play, hesitation lets the defense turn a routine double play. Commit to running hard the moment the ball hits the ground."],"rates":[85,10,20,40],"concept":"Forced runner reads: on ground balls with a force in effect, run immediately — there is no hold or retreat option.","anim":"advance"}',
+  manager: '{"title":"Third Time Through the Order","diff":3,"description":"Top of the 7th, your team leads 4-2. Your starter has 95 pitches and is facing the 3-hole hitter for the 3rd time. He gave up a double to this batter last time. The bullpen has a fresh reliever with a plus slider. What should the manager do?","situation":{"inning":"Top 7","outs":0,"count":"-","runners":[],"score":[4,2]},"options":["Pull the starter and bring in the reliever","Let the starter face this batter, then go to the pen","Leave the starter in — he has earned the chance to finish","Call for an intentional walk to set up the double play"],"best":0,"explanations":["Data shows batters hit roughly .030 higher the third time through the order. Your starter already gave up a double to this hitter, and at 95 pitches fatigue compounds the TTO penalty. A fresh reliever with a plus slider gives you the best chance to protect a 2-run lead in the 7th.","Letting the starter face one more batter sounds like a compromise, but you already know the matchup is bad — he gave up a double last time. Why risk a lead-off baserunner in a 2-run game? The reliever is fresh and has the better weapon.","Loyalty to the starter ignores the analytics. The TTO effect is real and well-documented. With a 2-run lead in the 7th, protecting the lead takes priority over rewarding effort. Your bullpen is rested.","An intentional walk with nobody on and 0 outs is almost never correct. You would be putting the leadoff runner on base for free, raising run expectancy from 0.50 to 0.88. That is giving away nearly half a run with no strategic benefit."],"rates":[82,50,30,15],"concept":"TTO effect and bullpen management: batters improve the third time through, making a fresh reliever the higher-percentage play in close games.","anim":"freeze"}'
+}
+function getAIFewShot(position) {
+  if (["pitcher","catcher"].includes(position)) return AI_FEW_SHOT_EXAMPLES.pitcher
+  if (["firstBase","secondBase","shortstop","thirdBase","leftField","centerField","rightField"].includes(position)) return AI_FEW_SHOT_EXAMPLES.fielder
+  if (position === "batter" || position === "counts") return AI_FEW_SHOT_EXAMPLES.batter
+  if (position === "baserunner") return AI_FEW_SHOT_EXAMPLES.baserunner
+  return AI_FEW_SHOT_EXAMPLES.manager
+}
+
 const AI_SCENARIO_TOPICS = {
   pitcher:"GOOD TOPICS: pitch selection by count/situation, pitching from stretch vs windup, pickoff moves, fielding a comebacker, covering 1B on grounder to right side, backing up home on OF throw, wild pitch coverage, pitch sequencing, working ahead in the count, varying hold times.",
   catcher:"GOOD TOPICS: calling pitches by count/batter, framing a borderline pitch, blocking a ball in the dirt, throwing out a runner stealing 2B, pop-up near home (turn back to field), directing the cutoff man, mound visit strategy, dropped third strike, first-and-third defense, pitch clock management.",
@@ -5635,6 +5651,13 @@ function scoreAIScenario(aiEntry, stats) {
     if (cState === "learning" || cState === "introduced") score += 10 // relevant concept
     else if (cState === "mastered") score -= 5 // redundant
   }
+  // Signal 5: Explanation engagement — long reads = engaged, Explain More = high engagement
+  if (aiEntry.explanationReadTimeMs) {
+    if (aiEntry.explanationReadTimeMs > 8000) score += 15 // deeply engaged with explanation
+    else if (aiEntry.explanationReadTimeMs > 4000) score += 8 // moderate read
+    else if (aiEntry.explanationReadTimeMs < 1500) score -= 5 // skipped explanation
+  }
+  if (aiEntry.usedExplainMore) score += 20 // highest engagement signal
   return Math.max(0, Math.min(100, score))
 }
 
@@ -6183,7 +6206,32 @@ const QUALITY_FIREWALL = {
       }
       return null
     },
-    // Check 4: Success rate sanity — best answer must be highest, worst must be <50%
+    // Check 4a: Explanation minimum length — reject stub explanations
+    explanationLength(scenario) {
+      const exps = scenario.explanations || []
+      const best = scenario.best
+      if (exps.length !== 4 || typeof best !== "number") return null
+      if (typeof exps[best] === "string" && exps[best].length < 30) return "Explanation too short: best explanation is only " + exps[best].length + " chars (min 30)"
+      const stubIdx = exps.findIndex(e => typeof e === "string" && e.length < 15)
+      if (stubIdx >= 0) return "Explanation too short: option " + (stubIdx+1) + " is only " + exps[stubIdx].length + " chars (min 15)"
+      return null
+    },
+    // Check 4b: Option distinctness — reject exact duplicates and negation-only variants
+    optionDistinctness(scenario) {
+      const opts = (scenario.options || []).map(o => typeof o === "string" ? o : "")
+      if (opts.length !== 4) return null
+      const norm = opts.map(o => o.toLowerCase().replace(/[^a-z\s]/g, "").trim())
+      for (let i = 0; i < 4; i++) {
+        for (let j = i + 1; j < 4; j++) {
+          if (norm[i] === norm[j]) return "Duplicate options: " + (i+1) + " and " + (j+1) + " are identical"
+          // Negation-only variant: "Do X" vs "Don't do X"
+          const stripped = [norm[i].replace(/\b(not|dont|do not|never|no)\b/g, "").replace(/\s+/g," ").trim(), norm[j].replace(/\b(not|dont|do not|never|no)\b/g, "").replace(/\s+/g," ").trim()]
+          if (stripped[0].length > 5 && stripped[0] === stripped[1]) return "Negation-only variants: options " + (i+1) + " and " + (j+1) + " differ only by negation"
+        }
+      }
+      return null
+    },
+    // Check 4c: Success rate sanity — best answer must be highest, worst must be <50%
     rateSanity(scenario) {
       const rates = scenario.rates || []
       const best = scenario.best
@@ -6228,7 +6276,25 @@ const QUALITY_FIREWALL = {
       }
       return null
     },
-    // Check 8: Age-inappropriate vocabulary in easy scenarios
+    // Check 8a: Situation-description consistency — verify description matches situation object
+    situationConsistency(scenario) {
+      const desc = (scenario.description || "").toLowerCase()
+      const sit = scenario.situation || {}
+      const warnings = []
+      // Check outs mention
+      if (typeof sit.outs === "number" && desc.length > 20) {
+        const outsWords = {"0": /no\s*outs|nobody\s*out|none\s*out|0\s*out/i, "1": /one\s*out|1\s*out/i, "2": /two\s*outs?|2\s*outs?/i}
+        const outsText = outsWords[String(sit.outs)]
+        const wrongOuts = Object.entries(outsWords).filter(([k]) => k !== String(sit.outs)).some(([,rx]) => rx.test(desc))
+        if (wrongOuts) warnings.push("description mentions different out count than situation.outs=" + sit.outs)
+      }
+      // Check runner mention contradictions
+      const runners = sit.runners || []
+      if (runners.length === 0 && /bases?\s*loaded|runner(s)?\s*(on|at)/i.test(desc)) warnings.push("description mentions runners but situation.runners is empty")
+      if (runners.length === 3 && /bases?\s*empty|no(body)?\s*on/i.test(desc)) warnings.push("description says bases empty but situation has bases loaded")
+      return warnings.length > 0 ? "Situation mismatch: " + warnings.join("; ") : null
+    },
+    // Check 8b: Age-inappropriate vocabulary in easy scenarios
     ageVocab(scenario) {
       if (scenario.diff !== 1) return null
       const advancedTerms = /\b(RE24|run expectancy|leverage index|win probability added|WPA|WAR|OPS\+|xBA|barrel rate|launch angle|platoon split|TTO|times through order)\b/i
@@ -6519,6 +6585,18 @@ async function generateAIScenario(position, stats, conceptsLearned = [], recentW
     masteryPrompt += `\nACTIVE ERROR PATTERN: "${p.label}" — ${p.aiInstruction}`;
   }
 
+  // Dynamic prompt reinforcement from error history
+  let errorReinforcement = "";
+  try {
+    const errStore = JSON.parse(localStorage.getItem("bsm_ai_errors") || "{}");
+    const roleViolations = errStore[position + ":role-violation"] || 0;
+    const parseErrors = errStore[position + ":parse"] || 0;
+    const qualityErrors = errStore[position + ":quality-firewall"] || 0;
+    if (roleViolations >= 2) errorReinforcement += "\nCRITICAL: Previous scenarios for this position had role violations. Double-check EVERY option is an action this specific position performs — not another position's job.";
+    if (parseErrors >= 2) errorReinforcement += "\nCRITICAL: Previous responses had JSON errors. Respond with ONLY valid JSON — no markdown, no text before or after.";
+    if (qualityErrors >= 2) errorReinforcement += "\nCRITICAL: Previous scenarios failed quality checks. Ensure explanations are detailed (3+ sentences), all options are distinct, and success rates are realistic.";
+  } catch {}
+
   // Sprint 5: Condensed AI prompt for speed + Sprint 6: Scoped context for quality
   const aiMapText = getAIMap(position)
   const teachCtx = getTeachingContext(position, conceptsLearned, stats.ageGroup||"11-12")
@@ -6546,7 +6624,7 @@ POSITION RULES: ${AI_POS_PRINCIPLES[position] || POS_PRINCIPLES[position] || "Us
 
 ${aiMapText}
 
-AUDIT: All 4 options must be actions THIS position performs at the SAME decision point. The scenario TITLE must describe something this position does (not another position's job). Best answer=coaching consensus backed by modern analytics. rates[best] MUST be highest. score=[HOME,AWAY].
+AUDIT: All 4 options must be actions THIS position performs at the SAME decision point. The scenario TITLE must describe something this position does (not another position's job). Best answer=coaching consensus backed by modern analytics. rates[best] MUST be highest. score=[HOME,AWAY].${errorReinforcement}
 POSITION-ACTION BOUNDARIES: ${(() => {
   const POS_ACTIONS = {
     pitcher: "Pitcher=pitch selection, pitch location, pickoff attempts, fielding batted balls, covering 1B on grounders right side, backing up bases.",
@@ -6566,6 +6644,20 @@ POSITION-ACTION BOUNDARIES: ${(() => {
 })()}
 NEVER give this position options that belong to another position. Fielders do NOT call IBBs, shift the defense, call for pitchouts, or make pitching changes. Baserunner CANNOT "yell at pitcher", "call a play", "signal the batter". If a game event removes all meaningful decisions from a position, do NOT create a scenario about that event.
 ${analyticsRules}
+
+COMMON MISTAKES TO AVOID:
+- Do NOT make all 4 options just different pitches (for pitcher) or just different throws (for fielder) — options should represent meaningfully different strategic decisions.
+- All 4 options must happen at the SAME decision moment — do NOT mix "before the pitch" actions with "after the ball is hit" actions.
+- No vague options like "Make the right play" or "Do the smart thing" — every option must be a specific, concrete action.
+- No near-duplicate options (e.g. "Throw to second" vs "Toss it to second base") — each option must be strategically distinct.
+- Every explanation must reference the SPECIFIC game situation (score, inning, runners, count) — never write generic explanations like "Good choice" or "This is wrong."
+
+The LAST sentence of your description MUST set up the exact moment when the decision happens. All 4 options are what the player does RIGHT NOW at that moment.
+
+Each explanation must be 2-4 sentences. BEST explanation: state WHY this is correct + WHAT HAPPENS as a result + reference the specific game situation. WRONG explanations: state WHY this fails in THIS specific situation.
+
+EXAMPLE of a high-quality scenario (match this quality level):
+${getAIFewShot(position)}
 
 Respond with ONLY valid JSON:
 {"title":"Short Title","diff":${diffTarget},"description":"2-3 sentence scenario","situation":{"inning":"Bot 7","outs":1,"count":"2-1","runners":[1,3],"score":[3,2]},"options":["A","B","C","D"],"best":0,"explanations":["Why A","Why B","Why C","Why D"],"rates":[85,55,30,20],"concept":"One-sentence lesson","anim":"strike|strikeout|hit|groundout|flyout|steal|score|advance|catch|throwHome|doubleplay|bunt|walk|safe|freeze"}
@@ -6588,7 +6680,7 @@ SCORE PERSPECTIVE: If the scenario says "you're up 5-3" and it's "Bot 7" (home b
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         model: "grok-4-1-fast-non-reasoning",
-        max_tokens: 1000,
+        max_tokens: 1200,
         temperature: aiTemp,
         messages: [
           { role: "system", content: "You are an expert baseball coach creating personalized training scenarios for the Baseball Strategy Master app. You always respond with ONLY a valid JSON object — no markdown, no code fences, no explanation text. Just the raw JSON." + systemSuffix },
@@ -6609,7 +6701,10 @@ SCORE PERSPECTIVE: If the scenario says "you're up 5-3" and it's "Bot 7" (home b
       const errBody = await response.text().catch(() => "");
       console.error("[BSM] AI API error:", response.status, "(" + _aiFetchMs + "ms)", errBody.slice(0, 300));
       reportError("ai_api", `HTTP ${response.status}`, { position, body: errBody.slice(0, 200), ms: _aiFetchMs });
-      throw new Error(`API ${response.status}`);
+      // Parse structured error from worker for smarter retry decisions
+      let errType = "api";
+      try { const errJson = JSON.parse(errBody); if (errJson?.error?.type === "auth_error") errType = "auth"; } catch {}
+      throw new Error(`API ${response.status}${errType === "auth" ? " auth" : ""}`);
     }
     const data = await response.json();
     const text = data.choices?.[0]?.message?.content || "";
@@ -6617,7 +6712,10 @@ SCORE PERSPECTIVE: If the scenario says "you're up 5-3" and it's "Bot 7" (home b
     console.log("[BSM] AI response received in " + _aiFetchMs + "ms, length:", text.length, "finish:", finishReason);
     if (text.length > 0) console.log("[BSM] AI raw (first 300):", text.slice(0, 300));
     if (!text) throw new Error("API returned empty content");
-    if (finishReason === "length") console.warn("[BSM] AI response truncated (hit max_tokens)");
+    if (finishReason === "length") {
+      console.warn("[BSM] AI response truncated (hit max_tokens)");
+      throw new Error("Parse: truncated response");
+    }
 
     // Sanitize AI response before parsing
     const sanitized = sanitizeAIResponse(text);
@@ -6636,6 +6734,8 @@ SCORE PERSPECTIVE: If the scenario says "you're up 5-3" and it's "Bot 7" (home b
     if (typeof scenario.best !== "number" || scenario.best < 0 || scenario.best > 3) missing.push("best");
     if (!scenario.concept) missing.push("concept");
     if (!scenario.rates || scenario.rates.length !== 4) missing.push("rates");
+    if (scenario.options && scenario.options.length === 4 && scenario.options.some(o => typeof o !== "string" || o.length < 3)) missing.push("options(type)");
+    if (scenario.explanations && scenario.explanations.length === 4 && scenario.explanations.some(e => typeof e !== "string" || e.length < 10)) missing.push("explanations(type)");
     if (missing.length > 0) {
       console.error("[BSM] Invalid structure, missing:", missing.join(", "));
       throw new Error("Parse: missing " + missing.join(", "));
@@ -6655,6 +6755,7 @@ SCORE PERSPECTIVE: If the scenario says "you're up 5-3" and it's "Bot 7" (home b
     // Normalize situation
     if (!scenario.situation) scenario.situation = {};
     if (!Array.isArray(scenario.situation.runners)) scenario.situation.runners = [];
+    scenario.situation.runners = [...new Set(scenario.situation.runners.filter(r => [1,2,3].includes(Number(r))).map(Number))];
     // Normalize score — handle {home:X,away:Y} or missing
     const sc_score = scenario.situation.score;
     if (!Array.isArray(sc_score)) {
@@ -6664,9 +6765,13 @@ SCORE PERSPECTIVE: If the scenario says "you're up 5-3" and it's "Bot 7" (home b
         scenario.situation.score = [0, 0];
       }
     }
-    if (!scenario.situation.outs && scenario.situation.outs !== 0) scenario.situation.outs = 0;
+    scenario.situation.outs = Math.max(0, Math.min(2, Number(scenario.situation.outs) || 0));
     if (!scenario.situation.inning) scenario.situation.inning = "Mid";
     if (!scenario.situation.count) scenario.situation.count = "-";
+    if (scenario.situation.count !== "-" && !/^[0-3]-[0-2]$/.test(scenario.situation.count)) {
+      console.warn("[BSM] AI invalid count format:", scenario.situation.count, "→ defaulting to '-'");
+      scenario.situation.count = "-";
+    }
     
     // Role violation regexes — reject only ACTUALLY wrong baseball.
     // Pitcher covering/sprinting to 1B is CORRECT (grounders right side, D3S, bunt backup).
@@ -6804,8 +6909,25 @@ SCORE PERSPECTIVE: If the scenario says "you're up 5-3" and it's "Bot 7" (home b
       console.warn("[BSM] AI scenario rejected: duplicate of recent AI scenario", aiTitleDup.id)
       throw new Error("Duplicate: matches recent AI " + aiTitleDup.id)
     }
+    // Topic staleness detection — reject if 3+ recent scenarios share >50% keywords
+    if (recentAI.length >= 3) {
+      const stopWords = new Set(["the","a","an","in","on","at","to","and","or","of","for","with","is","it","by","as","from","this","that","be","are","was","not","but","do","has","had","he","she","his","her","you","your","we","our","they","their","my","its","no","if","up","out"])
+      const getKeywords = (title) => (title || "").toLowerCase().replace(/[^a-z\s]/g, "").split(/\s+/).filter(w => w.length > 2 && !stopWords.has(w))
+      const newKw = getKeywords(scenario.title)
+      if (newKw.length >= 3) {
+        const recentKws = recentAI.slice(-5).map(h => getKeywords(h.title))
+        const overlapCount = recentKws.filter(rKw => {
+          const shared = newKw.filter(w => rKw.includes(w)).length
+          return shared / Math.min(newKw.length, Math.max(rKw.length, 1)) > 0.5
+        }).length
+        if (overlapCount >= 3) {
+          console.warn("[BSM] AI scenario rejected: topic staleness — title keywords overlap with", overlapCount, "recent scenarios")
+          throw new Error("Duplicate: topic staleness (" + overlapCount + " keyword overlaps)")
+        }
+      }
+    }
 
-    scenario.id = `ai_${Date.now()}`;
+    scenario.id = `ai_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
     scenario.isAI = true;
     scenario.cat = "ai-generated";
 
@@ -6814,6 +6936,7 @@ SCORE PERSPECTIVE: If the scenario says "you're up 5-3" and it's "Bot 7" (home b
     const msg = err.message || "";
     const errType = err.name === "AbortError" ? "aborted"
       : msg === "Timeout" ? "timeout"
+      : msg.includes("auth") ? "auth"
       : msg.startsWith("API") ? "api"
       : msg.startsWith("Role violation") ? "role-violation"
       : msg.startsWith("Quality firewall") ? "quality-firewall"
@@ -6824,6 +6947,14 @@ SCORE PERSPECTIVE: If the scenario says "you're up 5-3" and it's "Bot 7" (home b
     console.error("[BSM] AI generation failed:", errType, detail);
     // Sprint 4.4: Report AI errors for monitoring
     reportError("ai_" + errType, detail || errType, { position });
+    // Track AI error types per position in localStorage for learning
+    try {
+      const errStore = JSON.parse(localStorage.getItem("bsm_ai_errors") || "{}");
+      const errKey = position + ":" + errType;
+      errStore[errKey] = (errStore[errKey] || 0) + 1;
+      errStore._lastUpdated = Date.now();
+      localStorage.setItem("bsm_ai_errors", JSON.stringify(errStore));
+    } catch {}
     return { scenario: null, error: errType, detail };
   }
 }
@@ -7507,6 +7638,7 @@ export default function App(){
   const sessionRef=useRef({plays:0,correct:0,concepts:[]});
   const abortRef=useRef(null);
   const aiFailRef=useRef({consecutive:0,cooldownUntil:0});
+  const outcomeStartRef=useRef(0);
   // Sprint 2.3: AI pre-generation cache
   const aiCacheRef=useRef({scenarios:{},generating:false,lastGenTime:0});
   const lastScRef=useRef(null);
@@ -8084,7 +8216,7 @@ export default function App(){
         delete aiCacheRef.current.scenarios[p]
         console.log("[BSM] Using pre-cached AI scenario:", cached.title)
         setAiMode(true);setScreen("play")
-        aiFailRef.current.consecutive=0
+        aiFailRef.current.consecutive=0;aiFailRef.current.cooldownUntil=0
         // Persist to AI history
         setStats(prev=>{
           const entry={id:cached.id,title:cached.title,position:p,diff:cached.diff,
@@ -8109,7 +8241,6 @@ export default function App(){
         return;
       }
       setAiLoading(true);setAiMode(true);setScreen("play")
-      const ctrl=new AbortController();abortRef.current=ctrl;
       let concept=null;
       const wc=stats.wrongCounts||{};
       const wrongIds=Object.keys(wc).filter(id=>wc[id]>0);
@@ -8124,14 +8255,17 @@ export default function App(){
       // Sprint 5: Try pre-cached scenario first for instant load
       let result=consumeCachedAI(p)
       if(!result){
+        let ctrl=new AbortController();abortRef.current=ctrl;
         result=await generateAIScenario(p,stats,stats.cl||[],stats.recentWrong||[],ctrl.signal,concept,_aiHist);
         // Retry up to 2x on non-timeout/non-abort failures if time remains
         let retries=0
         while(!result?.scenario&&retries<2){
-          const retryable=result?.error&&result.error!=="timeout"&&result.error!=="aborted"
+          const retryable=result?.error&&result.error!=="timeout"&&result.error!=="aborted"&&result.error!=="auth"
           const remaining=AI_BUDGET-(Date.now()-_aiStartMs)
           if(!retryable||remaining<8000)break
           retries++
+          // Fresh AbortController for each retry — previous may be aborted
+          ctrl=new AbortController();abortRef.current=ctrl;
           console.log("[BSM] AI retry #" + retries + " (" + result.error + "), " + Math.round(remaining/1000) + "s remaining...");
           result=await generateAIScenario(p,stats,stats.cl||[],stats.recentWrong||[],ctrl.signal,null,_aiHist);
         }
@@ -8140,7 +8274,7 @@ export default function App(){
       abortRef.current=null;
       setAiLoading(false);
       if(result?.scenario){
-        aiFailRef.current.consecutive=0;
+        aiFailRef.current.consecutive=0;aiFailRef.current.cooldownUntil=0;
         console.log("[BSM] AI scenario accepted:", result.scenario.title);
         // Sprint 4.2+4.3: Track AI scenario generation success with A/B variants
         trackAnalyticsEvent("ai_scenario_generated",{pos:p,concept:result.scenario.conceptTag||"",diff:result.scenario.diff,ab:result.abVariants||{}},{ageGroup:stats.ageGroup,isPro:stats.isPro});
@@ -8264,6 +8398,7 @@ export default function App(){
     const expArr=useSimple?sc.explSimple:sc.explanations;
     const o={cat,isOpt,exp:expArr[idx],bestExp:expArr[sc.best],bestOpt:sc.options[sc.best],concept:sc.concept,pts,chosen:sc.options[idx],rate,anim:sc.anim,speedBonus,timeLeft:timer};
     setOd(o);
+    outcomeStartRef.current=Date.now();
     // Sprint 5: Pre-fetch next AI scenario while player reads explanation
     if(stats.isPro&&aiMode&&!speedMode&&!survivalMode){
       prefetchAIScenario(pos,stats,stats.cl||[],stats.recentWrong||[],stats.aiHistory||[])
@@ -8386,7 +8521,23 @@ export default function App(){
     setScreen("home");setPos(null);setSc(null);setChoice(null);setOd(null);setFo(null);setPanel(null);setLvlUp(null);setCoachMsg(null);setDailyMode(false);setSpeedMode(false);setSpeedRound(null);setSurvivalMode(false);setSurvivalRun(null);setChallengeMode(false);setChallengePack(null);setSeasonMode(false);setSeasonStageIntro(null);setAiMode(false);setAiFallback(false);setExplainMore(null);setExplainLoading(false);setSitMode(false);setSitSet(null);setSitQ(0);setSitResults([]);if(timerRef.current)clearTimeout(timerRef.current)
   },[speedMode,survivalMode,seasonMode,dailyMode,sitMode,screen]);
   goHomeRef.current=goHome;
-  const next=useCallback(()=>{setLvlUp(null);setExplainMore(null);setExplainLoading(false);if(speedMode){speedNextRef.current?.()}else if(survivalMode){survivalNextRef.current?.()}else if(seasonMode){seasonNextRef.current?.()}else if(sitMode&&sitSet){const nq=sitQ+1;if(nq<sitSet.questions.length){setSitQ(nq);const q=sitSet.questions[nq];const s={...q,_pos:q.pos,situation:sitSet.situation};setPos(q.pos);setSc(s);setChoice(null);setOd(null);setRi(-1);setFo(null);setShowC(false);setShowExp(true);setScreen("play");s.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80)})}else{setScreen("sitResults")}}else if(dailyMode){goHomeRef.current?.()}else if(atLimit){setScreen("home");setTimeout(()=>setPanel('limit'),100)}else{startGame(pos,aiMode)}},[pos,startGame,dailyMode,speedMode,survivalMode,seasonMode,sitMode,sitSet,sitQ,atLimit,aiMode]);
+  const next=useCallback(()=>{
+    // Track explanation engagement for AI scenarios
+    if(sc?.isAI&&sc?.id&&outcomeStartRef.current>0){
+      const readTime=Date.now()-outcomeStartRef.current;
+      setStats(prev=>{
+        const aiHist=[...(prev.aiHistory||[])];
+        const idx=aiHist.findIndex(h=>h.id===sc.id);
+        if(idx>=0){
+          aiHist[idx]={...aiHist[idx],explanationReadTimeMs:readTime,usedExplainMore:!!explainMore};
+          // Re-score with engagement data
+          aiHist[idx].qualityScore=scoreAIScenario(aiHist[idx],{...prev,aiHistory:aiHist});
+        }
+        return{...prev,aiHistory:aiHist};
+      });
+      outcomeStartRef.current=0;
+    }
+    setLvlUp(null);setExplainMore(null);setExplainLoading(false);if(speedMode){speedNextRef.current?.()}else if(survivalMode){survivalNextRef.current?.()}else if(seasonMode){seasonNextRef.current?.()}else if(sitMode&&sitSet){const nq=sitQ+1;if(nq<sitSet.questions.length){setSitQ(nq);const q=sitSet.questions[nq];const s={...q,_pos:q.pos,situation:sitSet.situation};setPos(q.pos);setSc(s);setChoice(null);setOd(null);setRi(-1);setFo(null);setShowC(false);setShowExp(true);setScreen("play");s.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80)})}else{setScreen("sitResults")}}else if(dailyMode){goHomeRef.current?.()}else if(atLimit){setScreen("home");setTimeout(()=>setPanel('limit'),100)}else{startGame(pos,aiMode)}},[pos,startGame,dailyMode,speedMode,survivalMode,seasonMode,sitMode,sitSet,sitQ,atLimit,aiMode,sc,explainMore]);
   const finishOnboard=useCallback(()=>{setStats(p=>({...p,onboarded:true,todayDate:new Date().toDateString()}));setScreen("home");trackAnalyticsEvent("onboard_complete",null,{ageGroup:stats.ageGroup,isPro:stats.isPro})},[stats.ageGroup,stats.isPro]);
 
   // Auth: signup
