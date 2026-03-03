@@ -7195,7 +7195,7 @@ async function generateWithAgentPipeline(position, stats, conceptsLearned, recen
     shuffleAnswers(scenario)
 
     // Track title for module-level dedup
-    _recentAITitles.push((scenario.title || "").toLowerCase())
+    _recentAITitles.push({ title: (scenario.title || "").toLowerCase(), position })
     if (_recentAITitles.length > 20) _recentAITitles.shift()
 
     return { scenario, agentGrade: grade, plan }
@@ -7656,14 +7656,10 @@ SCORE PERSPECTIVE: If the scenario says "you're up 5-3" and it's "Bot 7" (home b
       console.warn("[BSM] AI scenario rejected: duplicate of recent AI scenario", aiTitleDup.id)
       throw new Error("Duplicate: matches recent AI " + aiTitleDup.id)
     }
-    // Module-level dedup — catches repeats from stale aiHistory in prefetch/cache
-    const moduleTitleDup = _recentAITitles.find(t => {
-      if (t === aiTitle) return true
-      const lenRatio = Math.min(t.length, aiTitle.length) / Math.max(t.length, aiTitle.length)
-      return lenRatio > 0.7 && t.length > 10 && (aiTitle.includes(t) || t.includes(aiTitle))
-    })
+    // Module-level dedup — catches exact repeats from stale aiHistory in prefetch/cache
+    const moduleTitleDup = _recentAITitles.find(t => t.position === position && t.title === aiTitle)
     if (moduleTitleDup) {
-      console.warn("[BSM] AI scenario rejected: duplicate of recent generation", moduleTitleDup)
+      console.warn("[BSM] AI scenario rejected: exact duplicate of recent generation", moduleTitleDup.title)
       throw new Error("Duplicate: matches recent generation")
     }
     // Topic staleness detection — reject if 3+ recent scenarios share >50% keywords
@@ -7706,7 +7702,7 @@ SCORE PERSPECTIVE: If the scenario says "you're up 5-3" and it's "Bot 7" (home b
     shuffleAnswers(scenario)
 
     // Track title for module-level dedup (survives across React renders)
-    _recentAITitles.push((scenario.title || "").toLowerCase())
+    _recentAITitles.push({ title: (scenario.title || "").toLowerCase(), position })
     if (_recentAITitles.length > 20) _recentAITitles.shift()
 
     return { scenario, abVariants };
