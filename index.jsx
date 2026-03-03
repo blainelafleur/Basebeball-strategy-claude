@@ -4306,9 +4306,9 @@ SCOPE: Manager decides pitching changes, positioning, steal signals, IBB, sac si
 const AI_FEW_SHOT_EXAMPLES = {
   pitcher: '{"title":"Full Count Jam","diff":2,"description":"Bottom of the 6th, runner on 2nd with 1 out. The count is full on a .280 hitter who likes to chase low. Your catcher sets up low and away. What should the pitcher do?","situation":{"inning":"Bot 6","outs":1,"count":"3-2","runners":[2],"score":[4,3]},"options":["Throw a slider low and away to get the chase","Come inside with a fastball to change his eye level","Throw a changeup to keep him off-balance","Throw a fastball right down the middle to challenge him"],"best":0,"explanations":["With a full count and a hitter who chases low, the slider low and away plays to your advantage. If he chases, it is a strikeout. If he takes, it is close enough that you might get the call. The runner on 2nd means a hit scores a run, so getting this out is critical.","Coming inside with a fastball can work, but this hitter has been sitting on inside pitches all game. You are giving him something in his power zone with the game on the line.","A changeup on a full count is risky because if you miss your spot, it hangs in the zone. The margin for error is too thin with a runner in scoring position and a 1-run lead.","Throwing a fastball down the middle on a full count to a decent hitter is asking for trouble. He is locked in and looking for something to drive, especially with a runner on 2nd."],"rates":[82,50,35,15],"concept":"Full count pitch selection with RISP: exploit the batter\'s weakness while minimizing damage.","anim":"strike"}',
   fielder: '{"title":"Gap Ball Communication","diff":2,"description":"Top of the 4th, runner on 1st with 1 out. The batter lines a sinking drive into the left-center gap. Both you and the left fielder are converging on the ball. What should the center fielder do?","situation":{"inning":"Top 4","outs":1,"count":"-","runners":[1],"score":[2,1]},"options":["Call off the left fielder and take charge of the ball","Let the left fielder take it since he is closer","Stay silent and sprint for the ball","Pull up and cover behind the left fielder in case he misses"],"best":0,"explanations":["Center fielder has priority on all fly balls and line drives in the gap. By calling off the left fielder early and loudly, you prevent a collision and get the better angle on the sinking liner. This limits the runner to staying at 1st.","Deferring to the left fielder breaks the priority rule. CF always has priority because you are coming in on the ball with better momentum and angle. Letting LF take it increases collision risk and often leads to a worse catch attempt.","Never stay silent on a converging play. Without communication, both fielders may pull up or both may dive, leading to the ball dropping for extra bases. The runner on 1st would score easily.","Pulling up leaves the left fielder alone on a tough sinking liner. If this were a ball clearly in his zone, backing up makes sense, but on a gap ball, CF takes charge first and LF backs up."],"rates":[85,40,15,45],"concept":"Center field priority: CF calls off corner outfielders on gap balls to prevent collisions and make the cleanest play.","anim":"catch"}',
-  batter: '{"title":"Runner on Third, One Out","diff":1,"description":"Bottom of the 8th, tied game. Runner on 3rd with 1 out and the infield is playing in. The pitcher throws a fastball up in the zone. What should the batter do?","situation":{"inning":"Bot 8","outs":1,"count":"1-0","runners":[3],"score":[3,3]},"options":["Hit a fly ball deep enough to score the runner on a sacrifice fly","Try to hit a ground ball through the drawn-in infield","Swing for the fences to win it with a home run","Take the pitch and wait for a better one"],"best":0,"explanations":["With a runner on 3rd and 1 out in a tied game, your job is to get that run home. A fly ball to the outfield scores the runner on a tag-up. The infield is drawn in, so they cannot cut off the run at home on a grounder. A sac fly is the highest-percentage play here.","A ground ball through a drawn-in infield sounds good in theory, but ground balls can turn into double plays. With 1 out and the go-ahead run on 3rd, the risk of a DP ending the inning is too high compared to the reliable sac fly.","Swinging for the fences is low-percentage hitting. You only need one run to take the lead, and a strikeout or pop-up wastes the opportunity. Play for the run you need, not the run that looks impressive.","Taking the pitch is not terrible on 1-0, but this fastball is hittable and you have a clear mission: get the ball in the air. Waiting risks falling behind in the count and losing your chance at a sacrifice fly."],"rates":[88,45,20,35],"concept":"Situational hitting with runner on 3rd: elevate the ball for a sacrifice fly to score the tying or go-ahead run.","anim":"hit"}',
+  batter: '{"title":"Runner on Third, One Out","diff":1,"description":"Bottom of the 8th, tied game. Runner on 3rd with 1 out and the infield is playing in. The pitcher throws a fastball up in the zone. What should the batter do?","situation":{"inning":"Bot 8","outs":1,"count":"1-0","runners":[3],"score":[3,3]},"options":["Try to hit a ground ball through the drawn-in infield","Swing for the fences to win it with a home run","Hit a fly ball deep enough to score the runner on a sacrifice fly","Take the pitch and wait for a better one"],"best":2,"explanations":["A ground ball through a drawn-in infield sounds good in theory, but ground balls can turn into double plays. With 1 out and the go-ahead run on 3rd, the risk of a DP ending the inning is too high compared to the reliable sac fly.","Swinging for the fences is low-percentage hitting. You only need one run to take the lead, and a strikeout or pop-up wastes the opportunity. Play for the run you need, not the run that looks impressive.","With a runner on 3rd and 1 out in a tied game, your job is to get that run home. A fly ball to the outfield scores the runner on a tag-up. The infield is drawn in, so they cannot cut off the run at home on a grounder. A sac fly is the highest-percentage play here.","Taking the pitch is not terrible on 1-0, but this fastball is hittable and you have a clear mission: get the ball in the air. Waiting risks falling behind in the count and losing your chance at a sacrifice fly."],"rates":[45,20,88,35],"concept":"Situational hitting with runner on 3rd: elevate the ball for a sacrifice fly to score the tying or go-ahead run.","anim":"hit"}',
   baserunner: '{"title":"Secondary Lead Read","diff":2,"description":"Top of the 5th, you are on 1st base with 0 outs. The batter swings and hits a sharp ground ball toward the shortstop. What should the baserunner do?","situation":{"inning":"Top 5","outs":0,"count":"-","runners":[1],"score":[1,2]},"options":["Run hard to 2nd — you must go on a ground ball with 0 outs","Stop and retreat to 1st to avoid the double play","Freeze and watch the play develop before committing","Run halfway and decide based on whether the shortstop fields it cleanly"],"best":0,"explanations":["With 0 outs and a force at 2nd, you MUST run on a ground ball. You are forced — there is no option to stay. Running hard gives you the best chance to beat the throw to 2nd and break up the double play, or at least make the relay to 1st difficult.","You cannot retreat to 1st on a ground ball when you are forced. The fielder can simply throw to 2nd for the force out. Going back guarantees the out and possibly sets up an easier double play.","Freezing as a forced runner on a ground ball is a baserunning error. You lose valuable time and make the double play easy for the defense. On ground balls with a force, you go immediately.","Running halfway is for fly balls, not ground balls. On a grounder with a force play, hesitation lets the defense turn a routine double play. Commit to running hard the moment the ball hits the ground."],"rates":[85,10,20,40],"concept":"Forced runner reads: on ground balls with a force in effect, run immediately — there is no hold or retreat option.","anim":"advance"}',
-  manager: '{"title":"Third Time Through the Order","diff":3,"description":"Top of the 7th, your team leads 4-2. Your starter has 95 pitches and is facing the 3-hole hitter for the 3rd time. He gave up a double to this batter last time. The bullpen has a fresh reliever with a plus slider. What should the manager do?","situation":{"inning":"Top 7","outs":0,"count":"-","runners":[],"score":[4,2]},"options":["Pull the starter and bring in the reliever","Let the starter face this batter, then go to the pen","Leave the starter in — he has earned the chance to finish","Call for an intentional walk to set up the double play"],"best":0,"explanations":["Data shows batters hit roughly .030 higher the third time through the order. Your starter already gave up a double to this hitter, and at 95 pitches fatigue compounds the TTO penalty. A fresh reliever with a plus slider gives you the best chance to protect a 2-run lead in the 7th.","Letting the starter face one more batter sounds like a compromise, but you already know the matchup is bad — he gave up a double last time. Why risk a lead-off baserunner in a 2-run game? The reliever is fresh and has the better weapon.","Loyalty to the starter ignores the analytics. The TTO effect is real and well-documented. With a 2-run lead in the 7th, protecting the lead takes priority over rewarding effort. Your bullpen is rested.","An intentional walk with nobody on and 0 outs is almost never correct. You would be putting the leadoff runner on base for free, raising run expectancy from 0.50 to 0.88. That is giving away nearly half a run with no strategic benefit."],"rates":[82,50,30,15],"concept":"TTO effect and bullpen management: batters improve the third time through, making a fresh reliever the higher-percentage play in close games.","anim":"freeze"}'
+  manager: '{"title":"Third Time Through the Order","diff":3,"description":"Top of the 7th, your team leads 4-2. Your starter has 95 pitches and is facing the 3-hole hitter for the 3rd time. He gave up a double to this batter last time. The bullpen has a fresh reliever with a plus slider. What should the manager do?","situation":{"inning":"Top 7","outs":0,"count":"-","runners":[],"score":[4,2]},"options":["Let the starter face this batter, then go to the pen","Pull the starter and bring in the reliever","Leave the starter in — he has earned the chance to finish","Call for an intentional walk to set up the double play"],"best":1,"explanations":["Letting the starter face one more batter sounds like a compromise, but you already know the matchup is bad — he gave up a double last time. Why risk a lead-off baserunner in a 2-run game? The reliever is fresh and has the better weapon.","Data shows batters hit roughly .030 higher the third time through the order. Your starter already gave up a double to this hitter, and at 95 pitches fatigue compounds the TTO penalty. A fresh reliever with a plus slider gives you the best chance to protect a 2-run lead in the 7th.","Loyalty to the starter ignores the analytics. The TTO effect is real and well-documented. With a 2-run lead in the 7th, protecting the lead takes priority over rewarding effort. Your bullpen is rested.","An intentional walk with nobody on and 0 outs is almost never correct. You would be putting the leadoff runner on base for free, raising run expectancy from 0.50 to 0.88. That is giving away nearly half a run with no strategic benefit."],"rates":[50,82,30,15],"concept":"TTO effect and bullpen management: batters improve the third time through, making a fresh reliever the higher-percentage play in close games.","anim":"freeze"}'
 }
 function getAIFewShot(position, targetConcept = null, difficulty = 2) {
   // Primary: position-matched few-shot
@@ -6918,17 +6918,17 @@ function planScenario(position, stats, conceptsLearned = [], recentWrong = [], t
 
   if (!selectedConcept && degraded.length > 0) {
     teachingGoal = "reinforce"
-    selectedConcept = degraded[0].tag
+    selectedConcept = degraded[Math.floor(Math.random() * degraded.length)].tag
   } else if (!selectedConcept && learning.length > 0) {
     teachingGoal = "review"
-    selectedConcept = learning[0].tag
+    selectedConcept = learning[Math.floor(Math.random() * learning.length)].tag
   } else if (!selectedConcept) {
     // Introduce something new
     const available = KNOWLEDGE_BASE.getConceptsForPosition(position)
     const mastered = new Set(Object.entries(playerMasteryData.concepts || {}).filter(([,d]) => d.state === 'mastered').map(([t]) => t))
     const unseen = available.filter(c => !mastered.has(c.tag) && !(playerMasteryData.concepts?.[c.tag]))
     if (unseen.length > 0) {
-      selectedConcept = unseen[0].tag
+      selectedConcept = unseen[Math.floor(Math.random() * unseen.length)].tag
       teachingGoal = "introduce"
     }
   }
@@ -6993,6 +6993,7 @@ function buildAgentPrompt(plan) {
   const avoidText = avoidTitles.length > 0 ? `\nAVOID THESE TITLES (already generated): ${avoidTitles.join(", ")}` : ""
   const patternText = avoidPatterns.length > 0 ? `\nAVOID THESE PATTERNS: ${avoidPatterns.slice(0,5).join("; ")}` : ""
 
+  const tv = getRandomTemplateValues()
   return `Create a baseball strategy scenario for position: ${position}.
 TEACHING GOAL: ${teachingGoal} concept "${targetConcept || "general " + position + " strategy"}".
 PLAYER: ${playerContext}
@@ -7012,8 +7013,10 @@ DESCRIPTION STYLE: Write descriptions as if explaining a game situation to a you
 
 Each explanation must be 2-4 sentences. BEST explanation: state WHY correct + WHAT HAPPENS + reference game situation. WRONG explanations: state WHY this fails.
 
+VARY EVERYTHING: Each scenario must have a DIFFERENT count, runner configuration, inning, and score than previous ones. Do NOT default to count "2-1" or runners [2]. Mix counts across the full range (0-0, 1-0, 0-2, 3-1, 2-2, 3-2, etc.). Use empty bases, single runners, multiple runners, and loaded bases. Vary innings from early (1-3) through late (7-9). The best answer should NOT always be option 1 — distribute across all 4 positions.
+
 Respond with ONLY valid JSON:
-{"title":"Short Title","diff":${difficulty},"description":"2-3 sentence scenario","situation":{"inning":"Bot 7","outs":1,"count":"2-1","runners":[2],"score":[3,2]},"options":["A","B","C","D"],"best":0,"explanations":["Why A","Why B","Why C","Why D"],"rates":[85,55,30,20],"concept":"One-sentence lesson","anim":"strike|strikeout|hit|groundout|flyout|steal|score|advance|catch|throwHome|doubleplay|bunt|walk|safe|freeze"}
+{"title":"Short Title","diff":${difficulty},"description":"2-3 sentence scenario","situation":{"inning":"${tv.inning}","outs":${tv.outs},"count":"${tv.count}","runners":${tv.runners},"score":${tv.score}},"options":["A","B","C","D"],"best":${tv.best},"explanations":["Why A","Why B","Why C","Why D"],"rates":${tv.rates},"concept":"One-sentence lesson","anim":"strike|strikeout|hit|groundout|flyout|steal|score|advance|catch|throwHome|doubleplay|bunt|walk|safe|freeze"}
 count format: "B-S" (0-3 balls, 0-2 strikes) or "-". runners: [] empty, [1]=1st, [2]=2nd, [1,2]=1st+2nd, [1,2,3]=loaded. VARY the runner state — do not default to [1,3]. Choose runners that fit the scenario concept. Empty bases, single runner, and loaded situations should appear regularly. rates: optimal 75-90, decent 45-65, poor 10-40. score=[HOME,AWAY]. outs must be 0-2.`
 }
 
@@ -7188,6 +7191,13 @@ async function generateWithAgentPipeline(position, stats, conceptsLearned, recen
     if (!scenario.situation.inning) scenario.situation.inning = "Mid"
     if (!scenario.situation.count) scenario.situation.count = "-"
 
+    // Shuffle answer positions so best isn't always index 0
+    shuffleAnswers(scenario)
+
+    // Track title for module-level dedup
+    _recentAITitles.push((scenario.title || "").toLowerCase())
+    if (_recentAITitles.length > 20) _recentAITitles.shift()
+
     return { scenario, agentGrade: grade, plan }
   } catch (err) {
     console.warn("[BSM Agent] Pipeline failed:", err.message)
@@ -7333,6 +7343,7 @@ async function generateAIScenario(position, stats, conceptsLearned = [], recentW
     : position === "batter"
     ? "ANALYTICS: Bunting with 0 outs usually lowers RE24. Sac bunt only justified with weak hitter, late game, need 1 run. Two-strike approach = protect the plate. IBBs and pitching changes are not batter decisions. Always align with sabermetric consensus."
     : "ANALYTICS: Intentional walks almost always wrong per The Book (Tango). NEVER make IBB the best answer unless runners on 2nd+3rd with 1 out (force at home + DP). Never put go-ahead/winning run on base via IBB. IBB REQUIRES 1B open. Under 2023+ rules IBB is a dugout signal, no pitches. Bunting with 0 outs usually bad. Sac bunt only justified with weak hitter, late game, need 1 run. TTO: batters hit +30 pts 3rd time through. Always align with modern sabermetric consensus."
+  const tv2 = getRandomTemplateValues()
   const prompt = `Create a baseball strategy scenario for position: ${position}.
 THE QUESTION MUST ASK: "What should the ${position.replace(/([A-Z])/g,' $1').trim().toLowerCase()} do?" All 4 options must be physical actions or decisions that ONLY this position makes.
 
@@ -7387,8 +7398,10 @@ Each explanation must be 2-4 sentences. BEST explanation: state WHY this is corr
 EXAMPLE of a high-quality scenario (match this quality level):
 ${getAIFewShot(position, targetConcept, diffTarget)}
 
+VARY EVERYTHING: Each scenario must have a DIFFERENT count, runner configuration, inning, and score than previous ones. Do NOT default to count "2-1" or runners [2]. Mix counts across the full range (0-0, 1-0, 0-2, 3-1, 2-2, 3-2, etc.). Use empty bases, single runners, multiple runners, and loaded bases. Vary innings from early (1-3) through late (7-9). The best answer should NOT always be option 1 — distribute across all 4 positions.
+
 Respond with ONLY valid JSON:
-{"title":"Short Title","diff":${diffTarget},"description":"2-3 sentence scenario","situation":{"inning":"Bot 7","outs":1,"count":"2-1","runners":[2],"score":[3,2]},"options":["A","B","C","D"],"best":0,"explanations":["Why A","Why B","Why C","Why D"],"rates":[85,55,30,20],"concept":"One-sentence lesson","anim":"strike|strikeout|hit|groundout|flyout|steal|score|advance|catch|throwHome|doubleplay|bunt|walk|safe|freeze"}
+{"title":"Short Title","diff":${diffTarget},"description":"2-3 sentence scenario","situation":{"inning":"${tv2.inning}","outs":${tv2.outs},"count":"${tv2.count}","runners":${tv2.runners},"score":${tv2.score}},"options":["A","B","C","D"],"best":${tv2.best},"explanations":["Why A","Why B","Why C","Why D"],"rates":${tv2.rates},"concept":"One-sentence lesson","anim":"strike|strikeout|hit|groundout|flyout|steal|score|advance|catch|throwHome|doubleplay|bunt|walk|safe|freeze"}
 
 count format: "B-S" (0-3 balls, 0-2 strikes) or "-". runners: [] empty, [1]=1st, [2]=2nd, [1,2]=1st+2nd, [1,2,3]=loaded. VARY the runner state — do not default to [1,3]. Choose runners that fit the scenario concept. Empty bases, single runner, and loaded situations should appear regularly. rates: optimal 75-90, decent 45-65, poor 10-40.
 SITUATION CONSISTENCY: outs must be 0-2 (never 3). count must be valid (0-3 balls, 0-2 strikes). runners array must not conflict with the scenario premise. score=[HOME,AWAY] where HOME bats in "Bot" half. The scenario description must match the situation object exactly.
@@ -7643,6 +7656,16 @@ SCORE PERSPECTIVE: If the scenario says "you're up 5-3" and it's "Bot 7" (home b
       console.warn("[BSM] AI scenario rejected: duplicate of recent AI scenario", aiTitleDup.id)
       throw new Error("Duplicate: matches recent AI " + aiTitleDup.id)
     }
+    // Module-level dedup — catches repeats from stale aiHistory in prefetch/cache
+    const moduleTitleDup = _recentAITitles.find(t => {
+      if (t === aiTitle) return true
+      const lenRatio = Math.min(t.length, aiTitle.length) / Math.max(t.length, aiTitle.length)
+      return lenRatio > 0.7 && t.length > 10 && (aiTitle.includes(t) || t.includes(aiTitle))
+    })
+    if (moduleTitleDup) {
+      console.warn("[BSM] AI scenario rejected: duplicate of recent generation", moduleTitleDup)
+      throw new Error("Duplicate: matches recent generation")
+    }
     // Topic staleness detection — reject if 3+ recent scenarios share >50% keywords
     if (recentAI.length >= 3) {
       const stopWords = new Set(["the","a","an","in","on","at","to","and","or","of","for","with","is","it","by","as","from","this","that","be","are","was","not","but","do","has","had","he","she","his","her","you","your","we","our","they","their","my","its","no","if","up","out"])
@@ -7679,6 +7702,13 @@ SCORE PERSPECTIVE: If the scenario says "you're up 5-3" and it's "Bot 7" (home b
       }
     } catch (e) { /* non-critical */ }
 
+    // Shuffle answer positions so best isn't always index 0
+    shuffleAnswers(scenario)
+
+    // Track title for module-level dedup (survives across React renders)
+    _recentAITitles.push((scenario.title || "").toLowerCase())
+    if (_recentAITitles.length > 20) _recentAITitles.shift()
+
     return { scenario, abVariants };
   } catch (err) {
     const msg = err.message || "";
@@ -7706,6 +7736,44 @@ SCORE PERSPECTIVE: If the scenario says "you're up 5-3" and it's "Bot 7" (home b
     return { scenario: null, error: errType, detail };
   }
 }
+
+// Shuffle answer positions so best isn't always index 0 (Fisher-Yates)
+function shuffleAnswers(scenario) {
+  const indices = [0, 1, 2, 3]
+  for (let i = 3; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [indices[i], indices[j]] = [indices[j], indices[i]]
+  }
+  const origBest = scenario.best
+  scenario.options = indices.map(i => scenario.options[i])
+  scenario.explanations = indices.map(i => scenario.explanations[i])
+  scenario.rates = indices.map(i => scenario.rates[i])
+  scenario.best = indices.indexOf(origBest)
+  return scenario
+}
+
+// Randomize JSON template values so AI doesn't copy hardcoded examples
+function getRandomTemplateValues() {
+  const counts = ["0-0","1-0","0-1","1-1","2-1","0-2","3-1","2-2","3-2","-"]
+  const runnerStates = [[],[1],[2],[3],[1,2],[1,3],[2,3],[1,2,3]]
+  const innings = ["Top 3","Bot 4","Top 6","Bot 7","Top 2","Bot 9","Top 5","Bot 8"]
+  const bestIdx = Math.floor(Math.random() * 4)
+  const rates = [0,0,0,0]
+  rates[bestIdx] = 75 + Math.floor(Math.random() * 15)
+  for (let i = 0; i < 4; i++) if (i !== bestIdx) rates[i] = 15 + Math.floor(Math.random() * 40)
+  return {
+    count: counts[Math.floor(Math.random() * counts.length)],
+    runners: JSON.stringify(runnerStates[Math.floor(Math.random() * runnerStates.length)]),
+    inning: innings[Math.floor(Math.random() * innings.length)],
+    score: `[${Math.floor(Math.random()*6)},${Math.floor(Math.random()*6)}]`,
+    outs: Math.floor(Math.random() * 3),
+    best: bestIdx,
+    rates: JSON.stringify(rates)
+  }
+}
+
+// Module-level recent title tracking (survives across React renders, unlike aiHistory)
+const _recentAITitles = []
 
 // Sprint 5: AI pre-generation cache \u2014 fetch next scenario in background
 const _aiCache = { scenario: null, position: null, fetching: false, controller: null }
@@ -8654,32 +8722,6 @@ export default function App(){
     setStats(p=>({...p,todayPlayed:0,todayDate:today,ds:newDs,streakFreezes:newFreezes,lastStreakFreezeDate:newLastFreeze,lastDay:p.todayDate,dailyDone:p.dailyDate===today?p.dailyDone:false,dailyDate:today}));
   }},[stats.todayDate]);
 
-  // Sprint 2.3: Pre-generate AI scenarios when Pro user is on home screen
-  useEffect(()=>{
-    if(screen!=="home"||!stats.isPro||aiCacheRef.current.generating)return
-    // Don't pre-generate too frequently (once per 60s min)
-    if(Date.now()-aiCacheRef.current.lastGenTime<60000)return
-    // Pre-generate for the player's top 3 positions by play count
-    const topPos=Object.entries(stats.ps||{}).sort((a,b)=>(b[1].p||0)-(a[1].p||0)).slice(0,3).map(([p])=>p)
-    if(topPos.length===0)return
-    // Only generate if cache is empty or stale for these positions
-    const needGen=topPos.filter(p=>!aiCacheRef.current.scenarios[p])
-    if(needGen.length===0)return
-    const posToGen=needGen[0] // generate one at a time
-    aiCacheRef.current.generating=true
-    aiCacheRef.current.lastGenTime=Date.now()
-    console.log("[BSM] Pre-generating AI scenario for", posToGen)
-    generateAIScenario(posToGen,stats,stats.cl||[],stats.recentWrong||[],null,null,stats.aiHistory||[])
-      .then(result=>{
-        if(result?.scenario){
-          aiCacheRef.current.scenarios[posToGen]=result // BUG 7: store full result (preserves abVariants)
-          console.log("[BSM] Pre-cached AI scenario:", result.scenario.title, "for", posToGen)
-        }
-      })
-      .catch(()=>{})
-      .finally(()=>{aiCacheRef.current.generating=false})
-  },[screen,stats.isPro,stats.cl?.length,stats.recentWrong?.length]) // ISSUE 2: include player context deps
-
   // Handle challenge links
   useEffect(()=>{
     if(!challengeId||screen!=="home")return;
@@ -9080,6 +9122,14 @@ export default function App(){
       setHist(h=>({...h,[p]:[...(h[p]||[]),s.id].slice(-src.length)}));
       setSc(s);setScreen("play");
       s.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80);});
+      // Just-in-time: while playing recycled, precache an AI scenario for this position
+      if(stats.isPro&&!aiCacheRef.current.scenarios[p]&&!aiCacheRef.current.generating){
+        aiCacheRef.current.generating=true;aiCacheRef.current.lastGenTime=Date.now();
+        console.log("[BSM] Just-in-time AI precache for",p);
+        generateAIScenario(p,stats,stats.cl||[],stats.recentWrong||[],null,null,stats.aiHistory||[])
+          .then(result=>{if(result?.scenario){aiCacheRef.current.scenarios[p]=result;console.log("[BSM] Pre-cached AI scenario:",result.scenario.title,"for",p)}})
+          .catch(()=>{}).finally(()=>{aiCacheRef.current.generating=false})
+      }
       setTimeout(()=>{setToast({e:"🔄",n:"Review Mode",d:"Revisiting scenarios to sharpen your skills!"});setTimeout(()=>setToast(null),3000)},300);
     } else if(allExhausted){
       // Pro user natural pool exhaustion — try AI
@@ -9104,6 +9154,14 @@ export default function App(){
       if(!s)s=getRand(p,lastScId);
       setSc(s);setScreen("play");
       s.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80);});
+      // Just-in-time: while playing handcrafted, precache an AI scenario for this position
+      if(stats.isPro&&!aiCacheRef.current.scenarios[p]&&!aiCacheRef.current.generating){
+        aiCacheRef.current.generating=true;aiCacheRef.current.lastGenTime=Date.now();
+        console.log("[BSM] Just-in-time AI precache for",p);
+        generateAIScenario(p,stats,stats.cl||[],stats.recentWrong||[],null,null,stats.aiHistory||[])
+          .then(result=>{if(result?.scenario){aiCacheRef.current.scenarios[p]=result;console.log("[BSM] Pre-cached AI scenario:",result.scenario.title,"for",p)}})
+          .catch(()=>{}).finally(()=>{aiCacheRef.current.generating=false})
+      }
     }
   },[getRand,getSmartRecycle,snd,atLimit,hist,stats,maxDiff,aiLoading]);
 
