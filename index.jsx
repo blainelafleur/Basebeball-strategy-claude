@@ -4391,6 +4391,11 @@ const AI_MAP_PRIORITY = {
   batter:"HIT_RUN_MAP", baserunner:"RUNDOWN_MAP", manager:"FIRST_THIRD_MAP",
   famous:null, rules:null, counts:null
 }
+// Rotation pools to avoid always injecting the same map (reduces runner/topic bias)
+const AI_MAP_ROTATION = {
+  catcher:["FIRST_THIRD_MAP","SQUEEZE_MAP","WP_PB_MAP","PICKOFF_MAP"],
+  manager:["FIRST_THIRD_MAP","PITCHING_CHANGE_MAP","DP_POSITIONING_MAP","INTENTIONAL_WALK_MAP"]
+}
 // Position-scoped map excerpts \u2014 only include lines relevant to THIS position
 const AI_SCOPED_MAPS = {
   rightField:`RF CUTOFF/RELAY (your role):
@@ -4426,7 +4431,9 @@ Cover 3B when 3B goes out as cutoff. Cover 2B on steals (vs RHB).`,
 }
 function getAIMap(position) {
   if (AI_SCOPED_MAPS[position]) return `KEY REFERENCE:\n${AI_SCOPED_MAPS[position]}`
-  const key = AI_MAP_PRIORITY[position]
+  // Rotate among relevant maps for positions with bias risk
+  const pool = AI_MAP_ROTATION[position]
+  const key = pool ? pool[Math.floor(Math.random() * pool.length)] : AI_MAP_PRIORITY[position]
   return key && KNOWLEDGE_MAPS[key] ? `KEY REFERENCE:\n${KNOWLEDGE_MAPS[key]}` : ""
 }
 
@@ -6333,7 +6340,7 @@ function formatBrainForAI(position, situation) {
     const ptd = BRAIN.stats.pitchTypeData.types
     parts.push("Pitch types: " + Object.entries(ptd).slice(0,5).map(([k,v]) => `${k}: velo=${v.velo||"?"}mph, wOBA=${v.woba||"?"}, rv/100=${v.rv100||"?"}`).join("; "))
   }
-  return parts.length > 0 ? "REFERENCE DATA (real MLB numbers — cite these in explanations):\n" + parts.join("\n") : ""
+  return parts.length > 0 ? "REFERENCE DATA (use to inform correct answer — do NOT put raw numbers in description or options, only in explanations for ages 12+):\n" + parts.join("\n") : ""
 }
 function getTeachingContext(position, mastered, ageGroup) {
   // Filter concepts by position-relevant domains to prevent cross-position leakage
@@ -6979,7 +6986,7 @@ function buildAgentPrompt(plan) {
 
   // Focused examples (condensed)
   const examplesText = exampleScenarios.slice(0, 2).map((s, i) =>
-    `EXAMPLE ${i+1}: "${s.title}" (diff:${s.diff}) — ${s.concept}. Options: ${s.options.map((o,j) => `${j===s.best?"[BEST]":""}${o}`).join(" | ")}`
+    `EXAMPLE ${i+1}: "${s.title}" (diff:${s.diff}) — ${s.concept}. Options: ${s.options.join(" | ")} (best=${s.best})`
   ).join("\n")
 
   // Avoid patterns
@@ -7001,11 +7008,13 @@ ${avoidText}${patternText}${flaggedAvoidText || ""}
 
 THE QUESTION MUST ASK: "What should the ${position.replace(/([A-Z])/g,' $1').trim().toLowerCase()} do?" All 4 options must be physical actions or decisions that ONLY this position makes.
 
+DESCRIPTION STYLE: Write descriptions as if explaining a game situation to a young baseball player. Use simple, everyday language. Do NOT include statistics, RE24 values, batting averages, or advanced analytics in the description or options. Save numbers for explanations only, and only for older players.
+
 Each explanation must be 2-4 sentences. BEST explanation: state WHY correct + WHAT HAPPENS + reference game situation. WRONG explanations: state WHY this fails.
 
 Respond with ONLY valid JSON:
-{"title":"Short Title","diff":${difficulty},"description":"2-3 sentence scenario","situation":{"inning":"Bot 7","outs":1,"count":"2-1","runners":[1,3],"score":[3,2]},"options":["A","B","C","D"],"best":0,"explanations":["Why A","Why B","Why C","Why D"],"rates":[85,55,30,20],"concept":"One-sentence lesson","anim":"strike|strikeout|hit|groundout|flyout|steal|score|advance|catch|throwHome|doubleplay|bunt|walk|safe|freeze"}
-count format: "B-S" (0-3 balls, 0-2 strikes) or "-". runners: [] empty, [1]=1st, [1,3]=1st+3rd. rates: optimal 75-90, decent 45-65, poor 10-40. score=[HOME,AWAY]. outs must be 0-2.`
+{"title":"Short Title","diff":${difficulty},"description":"2-3 sentence scenario","situation":{"inning":"Bot 7","outs":1,"count":"2-1","runners":[2],"score":[3,2]},"options":["A","B","C","D"],"best":0,"explanations":["Why A","Why B","Why C","Why D"],"rates":[85,55,30,20],"concept":"One-sentence lesson","anim":"strike|strikeout|hit|groundout|flyout|steal|score|advance|catch|throwHome|doubleplay|bunt|walk|safe|freeze"}
+count format: "B-S" (0-3 balls, 0-2 strikes) or "-". runners: [] empty, [1]=1st, [2]=2nd, [1,2]=1st+2nd, [1,2,3]=loaded. VARY the runner state — do not default to [1,3]. Choose runners that fit the scenario concept. Empty bases, single runner, and loaded situations should appear regularly. rates: optimal 75-90, decent 45-65, poor 10-40. score=[HOME,AWAY]. outs must be 0-2.`
 }
 
 // ============================================================================
@@ -7143,6 +7152,9 @@ async function generateWithAgentPipeline(position, stats, conceptsLearned, recen
 
     const sanitized = sanitizeAIResponse(text)
     const scenario = JSON.parse(sanitized)
+
+    // Strip [BEST] prefix if AI copied it from examples
+    if (scenario.options) scenario.options = scenario.options.map(o => o.replace(/^\[BEST\]\s*/i, ''))
 
     // Stage 3: Grade
     const grade = gradeAgentScenario(scenario, plan)
@@ -7324,6 +7336,8 @@ async function generateAIScenario(position, stats, conceptsLearned = [], recentW
   const prompt = `Create a baseball strategy scenario for position: ${position}.
 THE QUESTION MUST ASK: "What should the ${position.replace(/([A-Z])/g,' $1').trim().toLowerCase()} do?" All 4 options must be physical actions or decisions that ONLY this position makes.
 
+DESCRIPTION STYLE: Write descriptions as if explaining a game situation to a young baseball player. Use simple, everyday language. Do NOT include statistics, RE24 values, batting averages, or advanced analytics in the description or options. Save numbers for explanations only, and only for older players.
+
 ${topicsText}
 
 PLAYER: Level ${lvl.n}, ${posStats.p} games at ${posAcc}% accuracy, difficulty ${diffTarget}/3.${masteredStr}
@@ -7374,9 +7388,9 @@ EXAMPLE of a high-quality scenario (match this quality level):
 ${getAIFewShot(position, targetConcept, diffTarget)}
 
 Respond with ONLY valid JSON:
-{"title":"Short Title","diff":${diffTarget},"description":"2-3 sentence scenario","situation":{"inning":"Bot 7","outs":1,"count":"2-1","runners":[1,3],"score":[3,2]},"options":["A","B","C","D"],"best":0,"explanations":["Why A","Why B","Why C","Why D"],"rates":[85,55,30,20],"concept":"One-sentence lesson","anim":"strike|strikeout|hit|groundout|flyout|steal|score|advance|catch|throwHome|doubleplay|bunt|walk|safe|freeze"}
+{"title":"Short Title","diff":${diffTarget},"description":"2-3 sentence scenario","situation":{"inning":"Bot 7","outs":1,"count":"2-1","runners":[2],"score":[3,2]},"options":["A","B","C","D"],"best":0,"explanations":["Why A","Why B","Why C","Why D"],"rates":[85,55,30,20],"concept":"One-sentence lesson","anim":"strike|strikeout|hit|groundout|flyout|steal|score|advance|catch|throwHome|doubleplay|bunt|walk|safe|freeze"}
 
-count format: "B-S" (0-3 balls, 0-2 strikes) or "-". runners: [] empty, [1]=1st, [1,3]=1st+3rd. rates: optimal 75-90, decent 45-65, poor 10-40.
+count format: "B-S" (0-3 balls, 0-2 strikes) or "-". runners: [] empty, [1]=1st, [2]=2nd, [1,2]=1st+2nd, [1,2,3]=loaded. VARY the runner state — do not default to [1,3]. Choose runners that fit the scenario concept. Empty bases, single runner, and loaded situations should appear regularly. rates: optimal 75-90, decent 45-65, poor 10-40.
 SITUATION CONSISTENCY: outs must be 0-2 (never 3). count must be valid (0-3 balls, 0-2 strikes). runners array must not conflict with the scenario premise. score=[HOME,AWAY] where HOME bats in "Bot" half. The scenario description must match the situation object exactly.
 SCORE PERSPECTIVE: If the scenario says "you're up 5-3" and it's "Bot 7" (home batting), and the player is fielding (pitcher/catcher/fielder), the player is on the AWAY team. "You're up 5-3" means AWAY=5, HOME=3, so score=[3,5]. If the player is batting/baserunning in "Bot", they're HOME. Double-check that score=[HOME,AWAY] matches the description's perspective.`;
 
@@ -7439,6 +7453,9 @@ SCORE PERSPECTIVE: If the scenario says "you're up 5-3" and it's "Bot 7" (home b
       console.error("[BSM] JSON parse failed:", parseErr.message, "sanitized (first 300):", sanitized.slice(0, 300));
       throw new Error("Parse: " + (finishReason === "length" ? "truncated response" : "invalid JSON"));
     }
+
+    // Strip [BEST] prefix if AI copied it from examples
+    if (scenario.options) scenario.options = scenario.options.map(o => o.replace(/^\[BEST\]\s*/i, ''))
 
     // Validate structure
     const missing = [];
