@@ -6342,6 +6342,11 @@ function getSmartCoachLine(cat, situation, position, streak, isPro, stats, curre
     if (Math.random() < 0.4) {
       const innNum = parseInt((inning||"").replace(/\D/g,"")) || 1;
       const diff = Math.abs((score[0]||0) - (score[1]||0));
+      // Fix 6: Coach line perspective filtering — skip lines that don't match position context
+      const _isOffPos = ["batter","baserunner"].includes(position);
+      const _isDefPos = ["pitcher","catcher","firstBase","secondBase","shortstop","thirdBase","leftField","centerField","rightField"].includes(position);
+      const COACH_PERSPECTIVE = {"dp-situation":"defense","pitchers-count":"defense","fatigue-warning":"defense","first-pitch-value":"defense","framing-window":"defense","wp-pb-alert":"defense","pickoff-window":"defense","lead-protect":"defense","squeeze-alert":"defense","line-guard-moment":"defense","hitters-count":"offense","three-oh-take":"offense","two-strike-danger":"offense","comeback":"offense","risp":"offense","scoring-chance":"offense","steal-risky":"offense","two-out-steal":"offense","steal-window":"offense","tag-up-math":"offense","advance-rate":"offense","squeeze-moment":"offense"};
+      const _okPerspective = (k) => { const p=COACH_PERSPECTIVE[k]; return !p || p==="both" || (p==="offense"&&!_isDefPos) || (p==="defense"&&!_isOffPos) || position==="manager"; };
       // Pick the most relevant situational line
       let key = null, vars = {};
       if (runners.length === 3) { key = "bases-loaded"; vars = {re24: re24.toFixed(2)}; }
@@ -6372,6 +6377,8 @@ function getSmartCoachLine(cat, situation, position, streak, isPro, stats, curre
       else if (re24 < 0.30) { key = "low-re24"; vars = {re24: re24.toFixed(2)}; }
       else if (innNum <= 1 && ["pitcher","manager"].includes(position)) { key = "first-pitch-value"; }
       else if (innNum <= 1) { key = "first-inning"; }
+      // Fix 6: Skip if perspective doesn't match position
+      if (key && !_okPerspective(key)) { key = null; }
       if (key && BRAIN.coaching.situational[key]) {
         let line = BRAIN.coaching.situational[key];
         for (const [k, v] of Object.entries(vars)) line = line.replace(`{${k}}`, v);
@@ -7898,9 +7905,19 @@ async function generateAIScenario(position, stats, conceptsLearned = [], recentW
   const ageGate = CONCEPT_GATES[ageGroup]
   const ageAdaptiveText = ageGate?.adjustments ? `\nPLAYER AGE GROUP: ${ageGroup}\nSTRATEGIC ADJUSTMENTS FOR THIS AGE:\n${Object.entries(ageGate.adjustments).map(([k,v]) => `- ${k}: ${v}`).join("\n")}${ageGate.forbidden?.length > 0 ? `\nFORBIDDEN CONCEPTS (do NOT use): ${ageGate.forbidden.join(", ")}` : ""}` : ""
 
+  const isOffensive = ["batter","baserunner"].includes(position);
+  const isDefensive = ["pitcher","catcher","firstBase","secondBase","shortstop","thirdBase","leftField","centerField","rightField"].includes(position);
   const tv2 = getRandomTemplateValues()
   const prompt = `Create a baseball strategy scenario for position: ${position}.
 THE QUESTION MUST ASK: "What should the ${position.replace(/([A-Z])/g,' $1').trim().toLowerCase()} do?" All 4 options must be physical actions or decisions that ONLY this position makes.
+
+SCORE RULES (READ FIRST — score errors are the #1 quality issue):
+- score=[HOME, AWAY]. Home team bats in "Bot" half, away team bats in "Top" half.
+- ${isOffensive ? "This is an OFFENSIVE position. If the inning is 'Bot X', the player is on the HOME team (score[0]). If 'Top X', the player is on the AWAY team (score[1])." : isDefensive ? "This is a DEFENSIVE position. If the inning is 'Bot X', the player is on the AWAY team (score[1]). If 'Top X', the player is on the HOME team (score[0])." : "Manager can be either team. Pick one and be consistent."}
+- If you say "trailing 4-3" the player's team score MUST be 3, opponent MUST be 4.
+- If you say "up by 2" the player's team score MUST be exactly 2 more than the opponent.
+- "Tying run" = the run that ties the game. "Go-ahead run" = the run that takes the lead. Do NOT confuse these.
+- Double-check: read your description, find every score reference, and verify it matches the score array.
 
 DESCRIPTION STYLE: Write descriptions as if explaining a game situation to a young baseball player. Use simple, everyday language. Do NOT include statistics, RE24 values, batting averages, or advanced analytics in the description or options. Save numbers for explanations only, and only for older players.
 
@@ -7939,29 +7956,13 @@ NEVER give this position options that belong to another position. Fielders do NO
 ${analyticsRules}
 ${flaggedAvoidText}
 
-COMMON MISTAKES TO AVOID:
-- Do NOT make all 4 options just different pitches (for pitcher) or just different throws (for fielder) — options should represent meaningfully different strategic decisions.
-- All 4 options must happen at the SAME decision moment — do NOT mix "before the pitch" actions with "after the ball is hit" actions.
-- No vague options like "Make the right play" or "Do the smart thing" — every option must be a specific, concrete action.
-- No near-duplicate options (e.g. "Throw to second" vs "Toss it to second base") — each option must be strategically distinct.
-- Every explanation must reference the SPECIFIC game situation (score, inning, runners, count) — never write generic explanations like "Good choice" or "This is wrong."
-
-The LAST sentence of your description MUST set up the exact moment when the decision happens. All 4 options are what the player does RIGHT NOW at that moment.
-
-Each explanation must be 2-4 sentences. BEST explanation: state WHY this is correct + WHAT HAPPENS as a result + reference the specific game situation. WRONG explanations: state WHY this fails in THIS specific situation.
-
 EXAMPLE of a high-quality scenario (match this quality level):
 ${getAIFewShot(position, targetConcept, diffTarget)}
 
-VARY EVERYTHING: Each scenario must have a DIFFERENT count, runner configuration, inning, and score than previous ones. Do NOT default to count "2-1" or runners [2]. Mix counts across the full range (0-0, 1-0, 0-2, 3-1, 2-2, 3-2, etc.). Use empty bases, single runners, multiple runners, and loaded bases. Vary innings from early (1-3) through late (7-9). The best answer should NOT always be option 1 — distribute across all 4 positions.
-
 Respond with ONLY valid JSON:
 {"title":"Short Title","diff":${diffTarget},"description":"2-3 sentence scenario","situation":{"inning":"${tv2.inning}","outs":${tv2.outs},"count":"${tv2.count}","runners":${tv2.runners},"score":${tv2.score}},"options":["A","B","C","D"],"best":${tv2.best},"explanations":["Why A","Why B","Why C","Why D"],"explDepth":[{"simple":"1 sentence kid version","why":"2-3 sentence strategic reasoning","data":"RE24/stat reference"},{"simple":"...","why":"...","data":"..."},{"simple":"...","why":"...","data":"..."},{"simple":"...","why":"...","data":"..."}],"rates":${tv2.rates},"concept":"One-sentence lesson","anim":"strike|strikeout|hit|groundout|flyout|steal|score|advance|catch|throwHome|doubleplay|bunt|walk|safe|freeze"}
-explDepth: array of 4 objects (one per option). "simple"=1 sentence a 6-year-old understands. "why"=2-3 sentences of strategic reasoning (why this works or fails). "data"=1 sentence referencing a real stat (RE24, batting avg, steal %, etc.) — write "n/a" if no stat applies.
-
-count format: "B-S" (0-3 balls, 0-2 strikes) or "-". runners: [] empty, [1]=1st, [2]=2nd, [1,2]=1st+2nd, [1,2,3]=loaded. VARY the runner state — do not default to [1,3]. Choose runners that fit the scenario concept. Empty bases, single runner, and loaded situations should appear regularly. rates: optimal 75-90, decent 45-65, poor 10-40.
-SITUATION CONSISTENCY: outs must be 0-2 (never 3). count must be valid (0-3 balls, 0-2 strikes). runners array must not conflict with the scenario premise. score=[HOME,AWAY] where HOME bats in "Bot" half. The scenario description must match the situation object exactly.
-SCORE PERSPECTIVE: If the scenario says "you're up 5-3" and it's "Bot 7" (home batting), and the player is fielding (pitcher/catcher/fielder), the player is on the AWAY team. "You're up 5-3" means AWAY=5, HOME=3, so score=[3,5]. If the player is batting/baserunning in "Bot", they're HOME. Double-check that score=[HOME,AWAY] matches the description's perspective.`;
+explDepth: array of 4 objects (one per option). "simple"=1 sentence a 6-year-old understands. "why"=2-3 sentences of strategic reasoning. "data"=1 sentence referencing a real stat — write "n/a" if no stat applies.
+count format: "B-S" (0-3 balls, 0-2 strikes) or "-". runners: [] empty, [1]=1st, [2]=2nd, [1,2]=1st+2nd, [1,2,3]=loaded. rates: optimal 75-90, decent 45-65, poor 10-40.`;
 
   try {
     // Sprint 4.3: Apply A/B test configs to AI generation
@@ -7982,7 +7983,33 @@ SCORE PERSPECTIVE: If the scenario says "you're up 5-3" and it's "Bot 7" (home b
         max_tokens: 1800,
         temperature: aiTemp,
         messages: [
-          { role: "system", content: coachSystem + " You are creating personalized training scenarios for the Baseball Strategy Master app. You always respond with ONLY a valid JSON object — no markdown, no code fences, no explanation text. Just the raw JSON." + systemSuffix },
+          { role: "system", content: coachSystem + ` You are creating personalized training scenarios for the Baseball Strategy Master app. You always respond with ONLY a valid JSON object — no markdown, no code fences, no explanation text. Just the raw JSON.
+
+EXPLANATION RULES (most important — players learn from explanations):
+- Each explanation must be 2-4 sentences.
+- BEST explanation: Start by naming the action ("Holding the runner is smart because..."). Then state WHY this is correct in THIS game situation (reference score, inning, outs, runners). Then state WHAT HAPPENS as a positive result.
+- WRONG explanations: Start by naming the action ("Stealing here is risky because..."). Then state WHY this specific action fails in THIS specific situation. Reference concrete consequences.
+- CRITICAL: The best explanation MUST argue FOR the best option's action. It must NOT describe why another option is good.
+- Use the player's team perspective: "your team", "you", "your runner" — not "the offense" or "the batting team."
+- Do NOT use jargon like "R3", "RE24", "OBP", "wOBA" in descriptions or options. Save stats for explDepth.data only.
+
+COMMON MISTAKES TO AVOID:
+- Do NOT make all 4 options just different pitches (for pitcher) or just different throws (for fielder) — options should represent meaningfully different strategic decisions.
+- All 4 options must happen at the SAME decision moment — do NOT mix "before the pitch" actions with "after the ball is hit" actions.
+- No vague options like "Make the right play" or "Do the smart thing" — every option must be a specific, concrete action.
+- No near-duplicate options (e.g. "Throw to second" vs "Toss it to second base") — each option must be strategically distinct.
+- Every explanation must reference the SPECIFIC game situation (score, inning, runners, count) — never write generic explanations.
+
+COMMON AI MISTAKES (do NOT make these):
+- WRONG: Best answer is "Hold the runner" but explanation says "Stealing gives you the edge" — explanation must match the answer.
+- WRONG: Score is 4-2 but explanation says "one-run game" — count the runs correctly.
+- WRONG: Description says "trailing 4-3" but score=[4,3] with player as home team — that means LEADING, not trailing.
+- WRONG: Option says "Call time" during a live rundown — you CANNOT call time during active play.
+- WRONG: Combining two actions: "Wave off the CF but stay as backup" — pick ONE action per option.
+
+VARY EVERYTHING: Each scenario must have a DIFFERENT count, runner config, inning, and score than previous ones. Do NOT default to count "2-1" or runners [2]. Mix counts, use empty/single/multiple/loaded bases. Vary innings 1-9. The best answer should NOT always be option 1.
+The LAST sentence of your description MUST set up the exact moment when the decision happens. All 4 options are what the player does RIGHT NOW at that moment.
+SITUATION CONSISTENCY: outs must be 0-2 (never 3). count must be valid (0-3 balls, 0-2 strikes). runners array must not conflict with the scenario premise. score=[HOME,AWAY] where HOME bats in "Bot" half. Description must match situation object exactly.` + systemSuffix },
           { role: "user", content: prompt }
         ]
       })
@@ -8074,7 +8101,25 @@ SCORE PERSPECTIVE: If the scenario says "you're up 5-3" and it's "Bot 7" (home b
       console.warn("[BSM] AI invalid count format:", scenario.situation.count, "→ defaulting to '-'");
       scenario.situation.count = "-";
     }
-    
+
+    // SCORE-DESCRIPTION CONSISTENCY CHECK (Fix 2)
+    const descLower = (scenario.description || "").toLowerCase();
+    const [_homeScore, _awayScore] = scenario.situation.score || [0, 0];
+    const _innHalf = (scenario.situation.inning || "").toLowerCase();
+    const _isPlayerHome = (isOffensive && _innHalf.startsWith("bot")) || (isDefensive && _innHalf.startsWith("top"));
+    const _playerScore = _isPlayerHome ? _homeScore : _awayScore;
+    const _oppScore = _isPlayerHome ? _awayScore : _homeScore;
+    if ((descLower.includes("trailing") || descLower.includes("behind") || descLower.includes("down by")) && _playerScore > _oppScore) {
+      console.warn("[BSM] AI score mismatch: description says trailing but player leads " + _playerScore + "-" + _oppScore);
+      scenario.situation.score = [_awayScore, _homeScore];
+      console.warn("[BSM] Auto-fixed score to", scenario.situation.score);
+    }
+    if ((descLower.includes("leading") || /up by \d/.test(descLower) || /up \d+-\d+/.test(descLower)) && _playerScore < _oppScore) {
+      console.warn("[BSM] AI score mismatch: description says leading but player trails " + _playerScore + "-" + _oppScore);
+      scenario.situation.score = [_awayScore, _homeScore];
+      console.warn("[BSM] Auto-fixed score to", scenario.situation.score);
+    }
+
     // Role violation regexes — reject only ACTUALLY wrong baseball.
     // Pitcher covering/sprinting to 1B is CORRECT (grounders right side, D3S, bunt backup).
     const ROLE_VIOLATIONS = {
@@ -8167,6 +8212,49 @@ SCORE PERSPECTIVE: If the scenario says "you're up 5-3" and it's "Bot 7" (home b
       }
     }
 
+    // PREMISE COHERENCE (Fix 3) — reject physically impossible scenarios
+    const IMPOSSIBLE_PREMISES = [
+      [/tagged.*(?:but|and).*(?:slipped|got away|escaped|safe)/i, "Can't tag a runner and have them escape"],
+      [/caught.*(?:but|and).*(?:dropped|missed|safe)/i, "Contradictory: caught but dropped"],
+      [/call(?:s|ed)?\s*time.*(?:during|while|in the middle of).*(?:play|rundown|throw|tag)/i, "Cannot call time during a live play"],
+      [/(?:3|three)\s*outs?.*(?:still|continue|keep)\s*(?:batting|hitting|running)/i, "Three outs ends the half-inning"],
+      [/(?:strike(?:out)?|struck out).*(?:reaches|safe|on base)/i, "Strikeout means out (unless dropped third strike specified)"],
+    ];
+    const _premText = scenario.description + " " + scenario.options.join(" ");
+    const _impossibleMatch = IMPOSSIBLE_PREMISES.find(([rx]) => rx.test(_premText));
+    if (_impossibleMatch) {
+      console.warn("[BSM] AI scenario rejected: impossible premise —", _impossibleMatch[1]);
+      throw new Error("Quality firewall: impossible premise — " + _impossibleMatch[1]);
+    }
+
+    // OPTION QUALITY (Fix 4) — detect absurd, compound, or contradictory options
+    const ABSURD_OPTIONS = [
+      [/call\s*time.*(?:rundown|live|play)/i, "Cannot call time during live play"],
+      [/run\s*(?:hard\s*)?halfway.*(?:stop|look|pause)/i, "Running halfway creates a rundown"],
+      [/yell\s*at\s*(?:the\s*)?(?:pitcher|catcher|umpire)/i, "Yelling is not a strategic option"],
+      [/do\s*nothing/i, "Do nothing is not a strategic decision"],
+      [/(?:give|throw)\s*up/i, "Giving up is not a strategic option"],
+    ];
+    for (let _oi = 0; _oi < scenario.options.length; _oi++) {
+      const _opt = scenario.options[_oi];
+      if (/\bbut\s+(stay|hold|wait|don't|keep)\b/i.test(_opt) || /\band\s+then\s+(stop|hold|wait|freeze)\b/i.test(_opt)) {
+        console.warn("[BSM] AI option " + _oi + " may be compound:", _opt);
+      }
+      const _absurdMatch = ABSURD_OPTIONS.find(([rx]) => rx.test(_opt));
+      if (_absurdMatch) {
+        console.warn("[BSM] AI option " + _oi + " is absurd:", _absurdMatch[1]);
+        throw new Error("Quality firewall: absurd option " + _oi + " — " + _absurdMatch[1]);
+      }
+    }
+    // Terminology fix for baserunner scenarios
+    if (position === "baserunner") {
+      const _allOptText = scenario.options.join(" ");
+      if (/secondary\s*lead.*steal/i.test(_allOptText) || /steal.*secondary\s*lead/i.test(_allOptText)) {
+        console.warn("[BSM] Auto-fixing terminology: 'secondary lead' -> 'aggressive lead'");
+        scenario.options = scenario.options.map(o => o.replace(/secondary\s*lead/gi, "aggressive lead"));
+      }
+    }
+
     // QUALITY_FIREWALL \u2014 run all automated checks
     const fwResult = QUALITY_FIREWALL.validate(scenario)
     if (!fwResult.pass) {
@@ -8189,7 +8277,47 @@ SCORE PERSPECTIVE: If the scenario says "you're up 5-3" and it's "Bot 7" (home b
       throw new Error("Consistency violation: " + crMsg.slice(0, 120))
     }
 
-    // Sprint 2.5: Deduplication \u2014 reject if too similar to existing scenarios or AI history
+    // EXPLANATION COHERENCE CHECK (Fix 1) — best explanation must argue for the best option
+    const _bestExpl = (scenario.explanations[scenario.best] || "").toLowerCase();
+    const _optActions = scenario.options.map(opt => {
+      const words = opt.toLowerCase().replace(/[^a-z\s]/g, "").split(/\s+/);
+      return words.filter(w => w.length > 3);
+    });
+    const _bestOverlap = _optActions[scenario.best].filter(w => _bestExpl.includes(w)).length;
+    for (let _i = 0; _i < 4; _i++) {
+      if (_i === scenario.best) continue;
+      const _otherOverlap = _optActions[_i].filter(w => _bestExpl.includes(w)).length;
+      if (_otherOverlap > _bestOverlap + 2 && _otherOverlap >= 3) {
+        console.warn("[BSM] AI explanation coherence fail: best=" + scenario.best + " but explanation matches option " + _i + " better (" + _otherOverlap + " vs " + _bestOverlap + " action words)");
+        throw new Error("Quality firewall: best explanation argues for option " + _i + " instead of option " + scenario.best);
+      }
+    }
+
+    // EXPLANATION QUALITY SCORING (Fix 9) — score each explanation, reject if avg < 5/10
+    let _eqTotal = 0;
+    const _eqIssues = [];
+    for (let _ei = 0; _ei < 4; _ei++) {
+      let _eqScore = 10;
+      const _eqExpl = (scenario.explanations[_ei] || "");
+      const _eqOpt = (scenario.options[_ei] || "");
+      const _eqSentences = _eqExpl.split(/[.!?]+/).filter(s => s.trim().length > 10);
+      if (_eqSentences.length < 2) { _eqScore -= 3; _eqIssues.push("Opt " + _ei + ": too short (" + _eqSentences.length + " sentences)"); }
+      const _sitWords = ["inning", "out", "score", "runner", "count", "base", "lead", "trailing", "tied"];
+      if (!_sitWords.some(w => _eqExpl.toLowerCase().includes(w))) { _eqScore -= 2; _eqIssues.push("Opt " + _ei + ": no situation ref"); }
+      const _genPhrases = ["good choice", "bad idea", "smart play", "not ideal", "better option", "this is wrong", "this is right"];
+      if (_genPhrases.some(gp => _eqExpl.toLowerCase().includes(gp))) { _eqScore -= 2; _eqIssues.push("Opt " + _ei + ": generic language"); }
+      const _eqOptWords = _eqOpt.toLowerCase().split(/\s+/).filter(w => w.length > 4);
+      if (_eqOptWords.filter(w => _eqExpl.toLowerCase().includes(w)).length < 1) { _eqScore -= 2; _eqIssues.push("Opt " + _ei + ": no action ref"); }
+      _eqTotal += Math.max(0, _eqScore);
+    }
+    const _eqAvg = _eqTotal / 4;
+    if (_eqAvg < 5) {
+      console.warn("[BSM] AI explanation quality too low:", _eqAvg.toFixed(1) + "/10", _eqIssues.join("; "));
+      throw new Error("Quality firewall: low explanation quality (" + _eqAvg.toFixed(1) + "/10) — " + _eqIssues.slice(0, 3).join("; "));
+    }
+    console.log("[BSM] AI explanation quality score:", _eqAvg.toFixed(1) + "/10");
+
+    // Sprint 2.5: Deduplication — reject if too similar to existing scenarios or AI history
     const aiTitle = (scenario.title || "").toLowerCase()
     const aiDesc = (scenario.description || "").toLowerCase()
     const allHandcrafted = (SCENARIOS[position] || [])
@@ -8271,6 +8399,7 @@ SCORE PERSPECTIVE: If the scenario says "you're up 5-3" and it's "Bot 7" (home b
       : msg.includes("auth") ? "auth"
       : msg.startsWith("API") ? "api"
       : msg.startsWith("Role violation") ? "role-violation"
+      : msg.startsWith("Premise violation") ? "quality-firewall"
       : msg.startsWith("Quality firewall") ? "quality-firewall"
       : msg.startsWith("Consistency violation") ? "consistency-violation"
       : msg.startsWith("Rate-best") ? "rate-mismatch"
@@ -9641,17 +9770,18 @@ export default function App(){
       if(!result){
         ctrl=new AbortController();abortRef.current=ctrl;
         result=await generateAIScenario(p,stats,stats.cl||[],stats.recentWrong||[],ctrl.signal,concept,_aiHist,lastAiScenarioRef.current);
-        // Retry up to 2x on non-timeout/non-abort failures if time remains
+        // Retry up to 2x on quality/parse failures if time remains (Fix 8)
+        const RETRYABLE_ERRORS=["parse","role-violation","rate-mismatch","quality-firewall","consistency-violation","api"]
         let retries=0
         while(!result?.scenario&&retries<2){
-          const retryable=result?.error&&result.error!=="timeout"&&result.error!=="aborted"&&result.error!=="auth"
+          const retryable=result?.error&&RETRYABLE_ERRORS.includes(result.error)
           const remaining=AI_BUDGET-(Date.now()-_aiStartMs)
           if(!retryable||remaining<8000)break
           retries++
-          // Fresh AbortController for each retry — previous may be aborted
           ctrl=new AbortController();abortRef.current=ctrl;
           console.log("[BSM] AI retry #" + retries + " (" + result.error + "), " + Math.round(remaining/1000) + "s remaining...");
-          result=await generateAIScenario(p,stats,stats.cl||[],stats.recentWrong||[],ctrl.signal,null,_aiHist,lastAiScenarioRef.current);
+          // Pass concept on retry so pedagogical targeting isn't lost
+          result=await generateAIScenario(p,stats,stats.cl||[],stats.recentWrong||[],ctrl.signal,concept,_aiHist,lastAiScenarioRef.current);
         }
       }
       console.log("[BSM] AI total flow took " + (Date.now()-_aiStartMs) + "ms")
