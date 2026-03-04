@@ -7359,8 +7359,11 @@ function planScenario(position, stats, conceptsLearned = [], recentWrong = [], t
 // ============================================================================
 // Level 3.4: Generator Agent — Builds focused prompt from Planner's output
 // ============================================================================
-function buildAgentPrompt(plan) {
+function buildAgentPrompt(plan, previousScenario = null) {
   const { position, difficulty, teachingGoal, targetConcept, playerContext, principles, brainData, exampleScenarios, avoidPatterns, avoidTitles, flaggedAvoidText, ageGate, ageGroup, situationHint, coachVoice } = plan
+
+  // Connected scenario arc — build on previous game context (Pillar 3C)
+  const arcText = previousScenario && teachingGoal !== "prerequisite" ? `\nCONTINUING THE SAME GAME from the previous play. The previous scenario was: "${previousScenario.title}" — ${(previousScenario.description || "").slice(0, 120)}... Build on this game context. It's now a few batters later. The situation has evolved.${previousScenario.situation?.score ? ` Previous score was approximately ${JSON.stringify(previousScenario.situation.score)} — keep it close or adjust slightly.` : ""}` : ""
 
   // Focused examples (condensed)
   const examplesText = exampleScenarios.slice(0, 2).map((s, i) =>
@@ -7392,7 +7395,7 @@ ${principles.detailed || principles.condensed}
 ${brainData}
 
 ${examplesText}
-${avoidText}${patternText}${flaggedAvoidText || ""}${sitText}
+${avoidText}${patternText}${flaggedAvoidText || ""}${sitText}${arcText}
 
 THE QUESTION MUST ASK: "What should the ${position.replace(/([A-Z])/g,' $1').trim().toLowerCase()} do?" All 4 options must be physical actions or decisions that ONLY this position makes.
 
@@ -7513,14 +7516,14 @@ async function flushLearningBatch() {
 // ============================================================================
 // Level 3.7: Agent Pipeline with Shadow Mode
 // ============================================================================
-async function generateWithAgentPipeline(position, stats, conceptsLearned, recentWrong, signal, targetConcept, aiHistory, flaggedAvoidText = "") {
+async function generateWithAgentPipeline(position, stats, conceptsLearned, recentWrong, signal, targetConcept, aiHistory, flaggedAvoidText = "", previousScenario = null) {
   // Stage 1: Plan
   const plan = planScenario(position, stats, conceptsLearned, recentWrong, targetConcept, aiHistory)
   if (flaggedAvoidText) plan.flaggedAvoidText = flaggedAvoidText
   console.log("[BSM Agent] Plan:", plan.teachingGoal, "concept:", plan.targetConcept, "diff:", plan.difficulty, plan.situationHint ? "situationHint:" + JSON.stringify(plan.situationHint) : "")
 
   // Stage 2: Generate (using agent prompt)
-  const agentPrompt = buildAgentPrompt(plan)
+  const agentPrompt = buildAgentPrompt(plan, previousScenario)
 
   // Use the existing AI infrastructure but with the agent's focused prompt
   const lvl = getLvl(stats.pts)
@@ -7640,7 +7643,7 @@ function getActiveABConfigs(sessionHash) {
   return configs
 }
 
-async function generateAIScenario(position, stats, conceptsLearned = [], recentWrong = [], signal = null, targetConcept = null, aiHistory = []) {
+async function generateAIScenario(position, stats, conceptsLearned = [], recentWrong = [], signal = null, targetConcept = null, aiHistory = [], previousScenario = null) {
   // Level 1.5: Fetch flagged scenario patterns to inject as "AVOID THESE PATTERNS"
   let flaggedAvoidText = ""
   try {
@@ -7667,7 +7670,7 @@ async function generateAIScenario(position, stats, conceptsLearned = [], recentW
     const agentConfig = abConfigs.agent_pipeline || {}
     if (agentConfig.useAgent) {
       console.log("[BSM] Trying agent pipeline (A/B variant: agent)")
-      const agentResult = await generateWithAgentPipeline(position, stats, conceptsLearned, recentWrong, signal, targetConcept, aiHistory, flaggedAvoidText)
+      const agentResult = await generateWithAgentPipeline(position, stats, conceptsLearned, recentWrong, signal, targetConcept, aiHistory, flaggedAvoidText, previousScenario)
       if (agentResult && agentResult.scenario) {
         return { scenario: agentResult.scenario, abVariants: { pipeline: "agent", grade: agentResult.agentGrade?.score } }
       }
@@ -8867,6 +8870,7 @@ export default function App(){
   const lastScRef=useRef(null);
   lastScRef.current=sc?.id||null;
   const conceptTargetRef=useRef(null); // Set by "Recommended for You" click to target a specific concept
+  const lastAiScenarioRef=useRef(null); // Track last AI scenario for connected arcs (Pillar 3C)
   const speedNextRef=useRef(null);
   const survivalNextRef=useRef(null);
   const seasonNextRef=useRef(null);
@@ -9475,7 +9479,7 @@ export default function App(){
       let result=consumeCachedAI(p)
       if(!result){
         ctrl=new AbortController();abortRef.current=ctrl;
-        result=await generateAIScenario(p,stats,stats.cl||[],stats.recentWrong||[],ctrl.signal,concept,_aiHist);
+        result=await generateAIScenario(p,stats,stats.cl||[],stats.recentWrong||[],ctrl.signal,concept,_aiHist,lastAiScenarioRef.current);
         // Retry up to 2x on non-timeout/non-abort failures if time remains
         let retries=0
         while(!result?.scenario&&retries<2){
@@ -9486,7 +9490,7 @@ export default function App(){
           // Fresh AbortController for each retry — previous may be aborted
           ctrl=new AbortController();abortRef.current=ctrl;
           console.log("[BSM] AI retry #" + retries + " (" + result.error + "), " + Math.round(remaining/1000) + "s remaining...");
-          result=await generateAIScenario(p,stats,stats.cl||[],stats.recentWrong||[],ctrl.signal,null,_aiHist);
+          result=await generateAIScenario(p,stats,stats.cl||[],stats.recentWrong||[],ctrl.signal,null,_aiHist,lastAiScenarioRef.current);
         }
       }
       console.log("[BSM] AI total flow took " + (Date.now()-_aiStartMs) + "ms")
@@ -9494,6 +9498,7 @@ export default function App(){
       setAiLoading(false);
       if(result?.scenario){
         aiFailRef.current.consecutive=0;aiFailRef.current.cooldownUntil=0;
+        lastAiScenarioRef.current=result.scenario; // Track for connected arcs
         console.log("[BSM] AI scenario accepted:", result.scenario.title);
         // Sprint 4.2+4.3: Track AI scenario generation success with A/B variants
         trackAnalyticsEvent("ai_scenario_generated",{pos:p,concept:result.scenario.conceptTag||"",diff:result.scenario.diff,ab:result.abVariants||{}},{ageGroup:stats.ageGroup,isPro:stats.isPro});
