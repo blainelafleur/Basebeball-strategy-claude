@@ -8974,6 +8974,10 @@ export default function App(){
   // Survival Mode state
   const[survivalMode,setSurvivalMode]=useState(false);
   const[survivalRun,setSurvivalRun]=useState(null); // {count,pts,concepts[]}
+  // Real Game mode state (Pillar 7D)
+  const[realGameMode,setRealGameMode]=useState(false);
+  const[realGame,setRealGame]=useState(null); // {inning,playerScore,opponentScore,results:[],isComplete}
+  const realGameNextRef=useRef(null);
   // Situation Room state
   const[sitMode,setSitMode]=useState(false);
   const[sitSet,setSitSet]=useState(null); // current SITUATION_SETS entry
@@ -9791,6 +9795,15 @@ export default function App(){
     // Track survival run result
     if(survivalMode)setSurvivalRun(sr=>sr?{...sr,count:sr.count+1,pts:sr.pts+pts,concepts:[...sr.concepts,sc.concept],history:[...(sr.history||[]),{isOpt,concept:sc.concept,chosen:sc.options[idx],bestOpt:sc.options[sc.best],pos}]}:sr);
     if(sitMode)setSitResults(sr=>[...sr,{pos,correct:isOpt,xp:pts,choice:idx,best:sc.best}]);
+    // Real Game score tracking (Pillar 7D)
+    if(realGameMode&&realGame){
+      const rand=Math.random();
+      let pDelta=0,oDelta=0;
+      if(isOpt){pDelta=rand<0.4?1:0;}
+      else if(cat==="warning"){pDelta=rand<0.1?1:0;oDelta=rand>0.7?1:0;}
+      else{oDelta=rand<0.6?1:0;}
+      setRealGame(rg=>rg?{...rg,playerScore:rg.playerScore+pDelta,opponentScore:rg.opponentScore+oDelta,results:[...rg.results,{inning:rg.inning,cat,isOpt,pos,concept:sc.concept,chosen:sc.options[idx],bestOpt:sc.options[sc.best],pDelta,oDelta}]}:rg);
+    }
     const prevLvl=getLvl(stats.pts);
     setStats(p=>{
       const today=new Date().toDateString();
@@ -9892,6 +9905,9 @@ export default function App(){
         // Correct — brief feedback then next
         setTimeout(()=>{setScreen("outcome");setTimeout(()=>{setShowC(true);setTimeout(()=>survivalNextRef.current?.(),1200)},200)},1400);
       }
+    }else if(realGameMode){
+      // Real Game — show outcome, user clicks Next to advance innings
+      setTimeout(()=>{setScreen("outcome");setTimeout(()=>setShowC(true),400);},1800);
     }else if(sitMode){
       // Situation Room — brief feedback then auto-advance to next question or results
       setTimeout(()=>{setScreen("outcome");setTimeout(()=>{setShowC(true)},400)},1800);
@@ -9902,19 +9918,19 @@ export default function App(){
     }else{
       setTimeout(()=>{setScreen("outcome");setTimeout(()=>setShowC(true),400);},1800);
     }
-  },[choice,sc,pos,snd,checkAch,stats.pts,dailyMode,speedMode,timer,survivalMode,survivalRun,seasonMode,sitMode,challengePack,advanceChallengePack]);
+  },[choice,sc,pos,snd,checkAch,stats.pts,dailyMode,speedMode,timer,survivalMode,survivalRun,seasonMode,realGameMode,realGame,sitMode,challengePack,advanceChallengePack]);
 
   const goHome=useCallback(()=>{
     // Show session recap for normal play with 3+ plays
     const sr=sessionRef.current;
-    if(sr.plays>=3&&!speedMode&&!survivalMode&&!seasonMode&&!dailyMode&&!sitMode&&screen!=="home"){
+    if(sr.plays>=3&&!speedMode&&!survivalMode&&!seasonMode&&!realGameMode&&!dailyMode&&!sitMode&&screen!=="home"){
       setSessionRecap({plays:sr.plays,correct:sr.correct,concepts:[...sr.concepts]});
       sessionRef.current={plays:0,correct:0,concepts:[]};
     }
     sessionConceptsRef.current=[] // Sprint 3.1: reset session concept diversity tracker
     cancelPrefetch() // BUG 5: cancel in-flight prefetches on navigate away
-    setScreen("home");setPos(null);setSc(null);setChoice(null);setOd(null);setFo(null);setPanel(null);setLvlUp(null);setCoachMsg(null);setDailyMode(false);setSpeedMode(false);setSpeedRound(null);setSurvivalMode(false);setSurvivalRun(null);setChallengeMode(false);setChallengePack(null);setSeasonMode(false);setSeasonStageIntro(null);setAiMode(false);setAiFallback(false);setExplainMore(null);setExplainLoading(false);setSitMode(false);setSitSet(null);setSitQ(0);setSitResults([]);if(timerRef.current)clearTimeout(timerRef.current)
-  },[speedMode,survivalMode,seasonMode,dailyMode,sitMode,screen]);
+    setScreen("home");setPos(null);setSc(null);setChoice(null);setOd(null);setFo(null);setPanel(null);setLvlUp(null);setCoachMsg(null);setDailyMode(false);setSpeedMode(false);setSpeedRound(null);setSurvivalMode(false);setSurvivalRun(null);setRealGameMode(false);setRealGame(null);setChallengeMode(false);setChallengePack(null);setSeasonMode(false);setSeasonStageIntro(null);setAiMode(false);setAiFallback(false);setExplainMore(null);setExplainLoading(false);setSitMode(false);setSitSet(null);setSitQ(0);setSitResults([]);if(timerRef.current)clearTimeout(timerRef.current)
+  },[speedMode,survivalMode,seasonMode,realGameMode,dailyMode,sitMode,screen]);
   goHomeRef.current=goHome;
   const next=useCallback(()=>{
     // Track explanation engagement for AI scenarios
@@ -9932,7 +9948,7 @@ export default function App(){
       });
       outcomeStartRef.current=0;
     }
-    setLvlUp(null);setExplainMore(null);setExplainLoading(false);if(speedMode){speedNextRef.current?.()}else if(survivalMode){survivalNextRef.current?.()}else if(seasonMode){seasonNextRef.current?.()}else if(sitMode&&sitSet){const nq=sitQ+1;if(nq<sitSet.questions.length){setSitQ(nq);const q=sitSet.questions[nq];const s={...q,_pos:q.pos,situation:sitSet.situation};setPos(q.pos);setSc(s);setChoice(null);setOd(null);setRi(-1);setFo(null);setShowC(false);setShowExp(true);setScreen("play");s.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80)})}else{setScreen("sitResults")}}else if(dailyMode){goHomeRef.current?.()}else if(atLimit){setScreen("home");setTimeout(()=>setPanel('limit'),100)}else{startGame(pos,aiMode)}},[pos,startGame,dailyMode,speedMode,survivalMode,seasonMode,sitMode,sitSet,sitQ,atLimit,aiMode,sc,explainMore]);
+    setLvlUp(null);setExplainMore(null);setExplainLoading(false);if(speedMode){speedNextRef.current?.()}else if(survivalMode){survivalNextRef.current?.()}else if(realGameMode){realGameNextRef.current?.()}else if(seasonMode){seasonNextRef.current?.()}else if(sitMode&&sitSet){const nq=sitQ+1;if(nq<sitSet.questions.length){setSitQ(nq);const q=sitSet.questions[nq];const s={...q,_pos:q.pos,situation:sitSet.situation};setPos(q.pos);setSc(s);setChoice(null);setOd(null);setRi(-1);setFo(null);setShowC(false);setShowExp(true);setScreen("play");s.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80)})}else{setScreen("sitResults")}}else if(dailyMode){goHomeRef.current?.()}else if(atLimit){setScreen("home");setTimeout(()=>setPanel('limit'),100)}else{startGame(pos,aiMode)}},[pos,startGame,dailyMode,speedMode,survivalMode,realGameMode,seasonMode,sitMode,sitSet,sitQ,atLimit,aiMode,sc,explainMore]);
   const finishOnboard=useCallback(()=>{setStats(p=>({...p,onboarded:true,todayDate:new Date().toDateString()}));setScreen("home");trackAnalyticsEvent("onboard_complete",null,{ageGroup:stats.ageGroup,isPro:stats.isPro})},[stats.ageGroup,stats.isPro]);
 
   // Auth: signup
@@ -10089,6 +10105,61 @@ export default function App(){
     s.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80);});
   },[survivalRun,getRand]);
   survivalNextRef.current=survivalNext;
+
+  // Real Game mode (Pillar 7D)
+  const startRealGame=useCallback(()=>{
+    if(atLimit){setPanel('limit');return;}
+    if(!stats.isPro){setPanel('upgrade');return;}
+    snd.play('tap');
+    setRealGameMode(true);setSpeedMode(false);setSurvivalMode(false);setDailyMode(false);setSeasonMode(false);setSitMode(false);setAiMode(true);setAiFallback(false);
+    setRealGame({inning:1,playerScore:0,opponentScore:0,results:[],isComplete:false});
+    // Pick a random position for inning 1
+    const p=ALL_POS[Math.floor(Math.random()*ALL_POS.length)];setPos(p);
+    setAiLoading(true);setScreen("play");
+    const _aiHist=stats.aiHistory||[];
+    generateAIScenario(p,stats,stats.cl||[],stats.recentWrong||[],null,null,_aiHist).then(result=>{
+      setAiLoading(false);
+      if(result?.scenario){
+        // Force inning 1 context
+        result.scenario.situation={...result.scenario.situation,inning:"Top 1",score:[0,0]};
+        setSc(result.scenario);result.scenario.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80)});
+      }else{
+        setAiMode(false);setAiFallback(true);
+        const s=getRand(p);setSc(s);s.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80)});
+      }
+    });
+  },[snd,atLimit,stats,getRand]);
+
+  const realGameNext=useCallback(()=>{
+    if(!realGame)return;
+    const nextInn=realGame.inning+1;
+    if(nextInn>9){
+      // Game over — award win bonus XP
+      const won=realGame.playerScore>realGame.opponentScore;
+      if(won){setStats(p=>({...p,pts:(p.pts||0)+50,realGameWins:(p.realGameWins||0)+1}));}
+      setStats(p=>({...p,realGamesPlayed:(p.realGamesPlayed||0)+1}));
+      setRealGame(rg=>rg?{...rg,isComplete:true}:rg);
+      setScreen("realGameOver");return;
+    }
+    setRealGame(rg=>rg?{...rg,inning:nextInn}:rg);
+    const p=ALL_POS[(nextInn-1)%ALL_POS.length];setPos(p);
+    setChoice(null);setOd(null);setRi(-1);setFo(null);setShowC(false);setShowExp(true);
+    setAiLoading(true);setScreen("play");
+    const _aiHist=stats.aiHistory||[];
+    const pScore=realGame.playerScore;const oScore=realGame.opponentScore;
+    generateAIScenario(p,stats,stats.cl||[],stats.recentWrong||[],null,null,_aiHist).then(result=>{
+      setAiLoading(false);
+      if(result?.scenario){
+        const half=nextInn<=5?"Top":"Bot";
+        result.scenario.situation={...result.scenario.situation,inning:`${half} ${nextInn}`,score:[pScore,oScore]};
+        setSc(result.scenario);result.scenario.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80)});
+      }else{
+        setAiMode(false);setAiFallback(true);
+        const s=getRand(p);setSc(s);s.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80)});
+      }
+    });
+  },[realGame,stats,getRand]);
+  realGameNextRef.current=realGameNext;
 
   // Season Mode helpers
   const getSeasonStage=useCallback((gameNum)=>{
@@ -10910,6 +10981,12 @@ export default function App(){
               <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:14,color:"#10b981",letterSpacing:1}}>SITUATION ROOM</div>
               <div style={{fontSize:10,color:"#9ca3af",marginTop:3}}>One situation · Multiple positions · Think like a team</div>
             </div>
+            <div onClick={startRealGame} style={{flex:"1 1 100%",background:stats.isPro?"linear-gradient(135deg,rgba(245,158,11,.1),rgba(234,179,8,.04))":"linear-gradient(135deg,rgba(107,114,128,.06),rgba(75,85,99,.03))",border:`1px solid ${stats.isPro?"rgba(245,158,11,.25)":"rgba(107,114,128,.15)"}`,borderRadius:14,padding:"14px 12px",textAlign:"center",cursor:"pointer",minHeight:48,position:"relative"}}>
+              <div style={{fontSize:22,marginBottom:3}}>⚾</div>
+              <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:14,color:stats.isPro?"#f59e0b":"#6b7280",letterSpacing:1}}>REAL GAME</div>
+              <div style={{fontSize:10,color:"#9ca3af",marginTop:3}}>9 innings · Score tracking · AI-powered</div>
+              {!stats.isPro&&<div style={{position:"absolute",top:6,right:8,fontSize:8,background:"rgba(245,158,11,.15)",color:"#f59e0b",padding:"1px 6px",borderRadius:8,fontWeight:700}}>PRO</div>}
+            </div>
           </div>}
 
           {/* Special Modes — Famous Plays, Rule IQ, Count IQ */}
@@ -11192,6 +11269,15 @@ export default function App(){
             </div>
           </div>
 
+          {/* Real Game mini scoreboard */}
+          {realGameMode&&realGame&&<div style={{display:"flex",justifyContent:"center",gap:12,alignItems:"center",background:"rgba(0,0,0,.3)",borderRadius:10,padding:"6px 14px",marginBottom:8,border:"1px solid rgba(245,158,11,.15)"}}>
+            <span style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:13,color:"#f59e0b",letterSpacing:1}}>INN {realGame.inning}</span>
+            <span style={{color:"rgba(255,255,255,.15)"}}>|</span>
+            <span style={{fontSize:13,fontWeight:800,color:"#3b82f6"}}>YOU {realGame.playerScore}</span>
+            <span style={{color:"rgba(255,255,255,.15)"}}>-</span>
+            <span style={{fontSize:13,fontWeight:800,color:"#ef4444"}}>OPP {realGame.opponentScore}</span>
+          </div>}
+
           {/* Speed Round timer bar */}
           {speedMode&&choice===null&&<div style={{marginBottom:8}}>
             {timerGo&&<div style={{textAlign:"center",marginBottom:4}}><span style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:28,color:"#22c55e",letterSpacing:2,animation:"pulse .5s ease",textShadow:"0 0 12px rgba(34,197,94,.5)"}}>GO!</span></div>}
@@ -11414,6 +11500,76 @@ export default function App(){
         })()}
 
         {/* SURVIVAL GAME OVER */}
+        {/* REAL GAME OVER — Box Score Summary */}
+        {screen==="realGameOver"&&realGame&&(()=>{
+          const won=realGame.playerScore>realGame.opponentScore;const tied=realGame.playerScore===realGame.opponentScore;
+          const gameIQ=computeBaseballIQ({...stats,gp:realGame.results.length,ps:Object.fromEntries(realGame.results.map(r=>[r.pos,{p:1,c:r.isOpt?1:0}]))});
+          const greens=realGame.results.filter(r=>r.cat==="success").length;
+          const yellows=realGame.results.filter(r=>r.cat==="warning").length;
+          const reds=realGame.results.filter(r=>r.cat==="danger").length;
+          const shareText=`⚾ I ${won?"won":"lost"} ${realGame.playerScore}-${realGame.opponentScore} with a Baseball IQ of ${gameIQ} in Baseball Strategy Master!`;
+          return(<div style={{textAlign:"center",padding:"20px 0"}}>
+            <div style={{fontSize:56,marginBottom:6}}>{won?"🏆":tied?"🤝":"📉"}</div>
+            <h2 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:32,letterSpacing:2,color:won?"#f59e0b":tied?"#60a5fa":"#ef4444",marginBottom:2}}>
+              {won?"YOU WIN!":tied?"TIE GAME":"TOUGH LOSS"}
+            </h2>
+            <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:48,letterSpacing:3,color:"white",marginBottom:4}}>
+              {realGame.playerScore} — {realGame.opponentScore}
+            </div>
+            <p style={{color:"#9ca3af",fontSize:12,marginBottom:16}}>Final Score · 9 Innings</p>
+
+            <div style={{display:"flex",justifyContent:"space-around",maxWidth:320,margin:"0 auto 16px"}}>
+              {[{v:gameIQ,l:"Game IQ",c:getIQColor(gameIQ)},{v:greens,l:"Perfect",c:"#22c55e"},{v:yellows,l:"OK",c:"#f59e0b"},{v:reds,l:"Missed",c:"#ef4444"}].map((s,i)=>(
+                <div key={i}><div style={{fontSize:22,fontWeight:800,color:s.c}}>{s.v}</div><div style={{fontSize:9,color:"#6b7280",marginTop:1}}>{s.l}</div></div>
+              ))}
+            </div>
+
+            {/* Inning-by-inning breakdown */}
+            <div style={{marginBottom:16}}>
+              <div style={{fontSize:9,color:"#f59e0b",fontWeight:700,textTransform:"uppercase",letterSpacing:1,marginBottom:8}}>Box Score</div>
+              <div style={{display:"flex",justifyContent:"center",gap:2,marginBottom:4}}>
+                {realGame.results.map((r,i)=>(
+                  <div key={i} style={{width:28,textAlign:"center"}}>
+                    <div style={{fontSize:8,color:"#6b7280",marginBottom:2}}>{i+1}</div>
+                    <div style={{width:28,height:28,borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:800,background:r.cat==="success"?"rgba(34,197,94,.12)":r.cat==="warning"?"rgba(245,158,11,.12)":"rgba(239,68,68,.12)",color:r.cat==="success"?"#22c55e":r.cat==="warning"?"#f59e0b":"#ef4444",border:`1px solid ${r.cat==="success"?"rgba(34,197,94,.2)":r.cat==="warning"?"rgba(245,158,11,.2)":"rgba(239,68,68,.2)"}`}}>
+                      {r.cat==="success"?"✓":r.cat==="warning"?"~":"✗"}
+                    </div>
+                    <div style={{fontSize:7,color:"#6b7280",marginTop:1}}>{r.pDelta>0?`+${r.pDelta}`:r.oDelta>0?`-${r.oDelta}`:"·"}</div>
+                  </div>
+                ))}
+              </div>
+              <div style={{display:"flex",justifyContent:"center",gap:12,fontSize:10,color:"#6b7280",marginTop:4}}>
+                <span style={{color:"#3b82f6"}}>YOU: {realGame.results.map((_,i)=>{let s=0;for(let j=0;j<=i;j++)s+=realGame.results[j].pDelta;return s}).pop()||0}</span>
+                <span style={{color:"#ef4444"}}>OPP: {realGame.results.map((_,i)=>{let s=0;for(let j=0;j<=i;j++)s+=realGame.results[j].oDelta;return s}).pop()||0}</span>
+              </div>
+            </div>
+
+            {/* Play-by-play */}
+            <div style={{marginBottom:16}}>
+              <div style={{fontSize:9,color:"#9ca3af",fontWeight:700,textTransform:"uppercase",letterSpacing:1,marginBottom:6}}>Play-by-Play</div>
+              <div style={{display:"flex",flexDirection:"column",gap:3}}>
+                {realGame.results.map((r,i)=>(
+                  <div key={i} style={{display:"flex",alignItems:"center",gap:8,background:r.cat==="success"?"rgba(34,197,94,.04)":r.cat==="warning"?"rgba(245,158,11,.04)":"rgba(239,68,68,.04)",border:`1px solid ${r.cat==="success"?"rgba(34,197,94,.1)":r.cat==="warning"?"rgba(245,158,11,.1)":"rgba(239,68,68,.1)"}`,borderRadius:8,padding:"5px 10px",textAlign:"left"}}>
+                    <span style={{fontSize:11,fontWeight:800,color:"#6b7280",width:20,flexShrink:0}}>#{i+1}</span>
+                    <span style={{fontSize:13,flexShrink:0}}>{r.cat==="success"?"✅":r.cat==="warning"?"🟡":"❌"}</span>
+                    <div style={{flex:1,minWidth:0}}>
+                      <div style={{fontSize:11,color:"#d1d5db",lineHeight:1.3}}>{POS_META[r.pos]?.emoji} {r.concept}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {won&&<div style={{background:"rgba(245,158,11,.08)",border:"1px solid rgba(245,158,11,.2)",borderRadius:10,padding:"8px 16px",display:"inline-block",marginBottom:12}}>
+              <span style={{fontSize:13,fontWeight:800,color:"#f59e0b"}}>🏆 2x XP Bonus for the Win!</span>
+            </div>}
+
+            {navigator.share&&<button onClick={()=>{try{navigator.share({text:shareText})}catch{}}} style={{...btn("linear-gradient(135deg,#2563eb,#3b82f6)"),...{marginBottom:6}}}>📤 Share Result</button>}
+            <button onClick={startRealGame} style={{...btn("linear-gradient(135deg,#d97706,#f59e0b)"),...{marginBottom:6,boxShadow:"0 4px 12px rgba(245,158,11,.25)"}}}>⚾ Play Again</button>
+            <button onClick={goHome} style={{...btn("rgba(255,255,255,.06)"),...{fontSize:12}}}>← Back to Home</button>
+          </div>);
+        })()}
+
         {screen==="survivalOver"&&survivalRun&&(()=>{
           const count=survivalRun.count;const best=Math.max(stats.survivalBest||0,count);const isNewBest=count>=(stats.survivalBest||0)&&count>0;
           const hist=survivalRun.history||[];
