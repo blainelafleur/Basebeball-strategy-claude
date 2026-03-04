@@ -7647,6 +7647,11 @@ async function generateAIScenario(position, stats, conceptsLearned = [], recentW
     : position === "batter"
     ? "ANALYTICS: Bunting with 0 outs usually lowers RE24. Sac bunt only justified with weak hitter, late game, need 1 run. Two-strike approach = protect the plate. IBBs and pitching changes are not batter decisions. Always align with sabermetric consensus."
     : "ANALYTICS: Intentional walks almost always wrong per The Book (Tango). NEVER make IBB the best answer unless runners on 2nd+3rd with 1 out (force at home + DP). Never put go-ahead/winning run on base via IBB. IBB REQUIRES 1B open. Under 2023+ rules IBB is a dugout signal, no pitches. Bunting with 0 outs usually bad. Sac bunt only justified with weak hitter, late game, need 1 run. TTO: batters hit +30 pts 3rd time through. Always align with modern sabermetric consensus."
+  // Age-adaptive prompt injection (Pillar 4B)
+  const ageGroup = stats.ageGroup || "11-12"
+  const ageGate = CONCEPT_GATES[ageGroup]
+  const ageAdaptiveText = ageGate?.adjustments ? `\nPLAYER AGE GROUP: ${ageGroup}\nSTRATEGIC ADJUSTMENTS FOR THIS AGE:\n${Object.entries(ageGate.adjustments).map(([k,v]) => `- ${k}: ${v}`).join("\n")}${ageGate.forbidden?.length > 0 ? `\nFORBIDDEN CONCEPTS (do NOT use): ${ageGate.forbidden.join(", ")}` : ""}` : ""
+
   const tv2 = getRandomTemplateValues()
   const prompt = `Create a baseball strategy scenario for position: ${position}.
 THE QUESTION MUST ASK: "What should the ${position.replace(/([A-Z])/g,' $1').trim().toLowerCase()} do?" All 4 options must be physical actions or decisions that ONLY this position makes.
@@ -7655,7 +7660,7 @@ DESCRIPTION STYLE: Write descriptions as if explaining a game situation to a you
 
 ${topicsText}
 
-PLAYER: Level ${lvl.n}, ${posStats.p} games at ${posAcc}% accuracy, difficulty ${diffTarget}/3.${masteredStr}
+PLAYER: Level ${lvl.n}, ${posStats.p} games at ${posAcc}% accuracy, difficulty ${diffTarget}/3.${masteredStr}${ageAdaptiveText}
 ${weakAreas.length > 0 ? weakAreas.join(" ") : ""}${masteryPrompt}${teachCtx}
 
 POSITION RULES: ${AI_POS_PRINCIPLES[position] || POS_PRINCIPLES[position] || "Use general baseball knowledge."}
