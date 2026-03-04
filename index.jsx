@@ -8121,7 +8121,7 @@ async function generateWithAgentPipeline(position, stats, conceptsLearned, recen
         max_tokens: 2500,
         temperature: aiTemp,
         messages: [
-          { role: "system", content: "You are an expert baseball coach creating personalized training scenarios. Respond with ONLY valid JSON — no markdown, no code fences." },
+          { role: "system", content: "You are the smartest, most experienced baseball coach in the world. You have coached at every level from tee-ball to MLB. You create training scenarios for Baseball Strategy Master, a strategy-teaching app for kids 6-18. Respond with ONLY valid JSON — no markdown, no code fences.\n\nGOLDEN RULE: Every scenario teaches ONE baseball concept. The concept drives the situation, options, correct answer, and all explanations.\n\nEXPLANATION RULES:\n- Each explanation: 2-4 sentences.\n- BEST explanation: Name the action, state WHY correct in this game situation (reference score/inning/outs/runners/count), state the positive result.\n- WRONG explanations: Name the action, state WHY it fails with concrete consequences.\n- Use player perspective: \"you\", \"your team\" — never \"the offense\".\n- Every explanation must reference the SPECIFIC game situation.\n\nOPTION RULES:\n- All 4 options at the SAME decision moment.\n- Each option is a specific, concrete action.\n- Options must be strategically distinct — not 4 variations of the same action.\n- Include at least one common mistake a young player would actually make.\n- No near-duplicates.\n\nSITUATION RULES:\n- outs: 0-2 only. count: valid B-S format. runners: array of [1,2,3]. score: [HOME,AWAY].\n- Last sentence of description sets up the decision moment.\n\nPOSITION BOUNDARIES: Only include actions the selected position actually performs." },
           { role: "user", content: agentPrompt }
         ]
       })
@@ -8130,7 +8130,7 @@ async function generateWithAgentPipeline(position, stats, conceptsLearned, recen
 
     const response = await Promise.race([
       fetch(AI_PROXY_URL, fetchOpts),
-      new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 35000))
+      new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 65000))
     ])
 
     if (!response.ok) throw new Error(`API ${response.status}`)
@@ -8518,7 +8518,7 @@ COMMON MISTAKES TO AVOID:
     const _aiT0 = Date.now()
     const response = await Promise.race([
       fetch(AI_PROXY_URL, fetchOpts),
-      new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 35000))
+      new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 65000))
     ]);
     const _aiFetchMs = Date.now() - _aiT0
 
@@ -10352,7 +10352,7 @@ export default function App(){
       }
       const _aiHist=stats.aiHistory||[]
       const _aiStartMs=Date.now()
-      const AI_BUDGET=35000
+      const AI_BUDGET=65000
       // Sprint 5: Try pre-cached scenario first for instant load
       let ctrl=null
       let result=consumeCachedAI(p)
