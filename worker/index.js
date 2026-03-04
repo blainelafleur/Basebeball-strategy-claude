@@ -68,6 +68,25 @@ const PBKDF2_ITERATIONS = 100_000;
 // CREATE INDEX IF NOT EXISTS idx_diff_concept ON scenario_difficulty(concept);
 // CREATE INDEX IF NOT EXISTS idx_diff_position ON scenario_difficulty(position);
 
+// Level 3: learning_events table (richer than scenario_difficulty — includes age_group, level)
+// CREATE TABLE IF NOT EXISTS learning_events (
+//   id INTEGER PRIMARY KEY AUTOINCREMENT,
+//   scenario_id TEXT,
+//   position TEXT NOT NULL,
+//   concept TEXT NOT NULL,
+//   difficulty INTEGER DEFAULT 1,
+//   is_correct INTEGER DEFAULT 0,
+//   is_ai INTEGER DEFAULT 0,
+//   session_hash TEXT,
+//   age_group TEXT DEFAULT '11-12',
+//   level INTEGER DEFAULT 1,
+//   timestamp INTEGER NOT NULL,
+//   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+// );
+// CREATE INDEX IF NOT EXISTS idx_le_concept_ts ON learning_events(concept, timestamp);
+// CREATE INDEX IF NOT EXISTS idx_le_position_ts ON learning_events(position, timestamp);
+// CREATE INDEX IF NOT EXISTS idx_le_age ON learning_events(age_group);
+
 const rateCounts = new Map();
 const loginAttempts = new Map();
 
@@ -1399,16 +1418,28 @@ async function handlePopulationDifficulty(request, env, cors) {
   const { events } = body;
   if (!Array.isArray(events)) return jsonResponse({ error: "missing events array" }, 400, cors);
   try {
-    const stmts = events.slice(0, 50).map(e => env.DB.prepare(`
-      INSERT INTO scenario_difficulty (scenario_id, position, concept, difficulty, is_correct, is_ai, session_hash, created_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `).bind(
-      e.scenario_id || "unknown", e.position || "unknown", e.concept || "",
-      e.difficulty || 1, e.is_correct ? 1 : 0, e.is_ai ? 1 : 0,
-      (e.session_hash || "anon").slice(0, 32), Date.now()
-    ));
+    const now = Date.now();
+    const stmts = events.slice(0, 50).flatMap(e => {
+      const base = [
+        e.scenario_id || "unknown", e.position || "unknown", e.concept || "",
+        e.difficulty || 1, e.is_correct ? 1 : 0, e.is_ai ? 1 : 0,
+        (e.session_hash || "anon").slice(0, 32)
+      ];
+      const s = [env.DB.prepare(`
+        INSERT INTO scenario_difficulty (scenario_id, position, concept, difficulty, is_correct, is_ai, session_hash, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `).bind(...base, now)];
+      // Also insert into learning_events with age_group and level
+      try {
+        s.push(env.DB.prepare(`
+          INSERT INTO learning_events (scenario_id, position, concept, difficulty, is_correct, is_ai, session_hash, age_group, level, timestamp)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `).bind(...base, e.age_group || "11-12", e.level || 1, e.timestamp || now));
+      } catch { /* learning_events table may not exist yet */ }
+      return s;
+    });
     if (stmts.length > 0) await env.DB.batch(stmts);
-    return jsonResponse({ ok: true, count: stmts.length }, 200, cors);
+    return jsonResponse({ ok: true, count: events.slice(0, 50).length }, 200, cors);
   } catch (e) {
     return jsonResponse({ ok: false, error: String(e) }, 500, cors);
   }
@@ -1442,6 +1473,49 @@ async function handleDifficultyCalibration(request, env, cors) {
       tooEasy,
     }, 200, cors);
   } catch (e) {
+    return jsonResponse({ ok: false, error: String(e) }, 500, cors);
+  }
+}
+
+// Level 3: GET /analytics/learning-calibration — age-aware difficulty calibration from learning_events
+async function handleLearningCalibration(request, env, cors) {
+  try {
+    const url = new URL(request.url);
+    const ageGroup = url.searchParams.get("age_group") || null;
+    const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
+    const query = ageGroup
+      ? `SELECT concept, position, age_group,
+           COUNT(*) as attempts,
+           SUM(is_correct) as correct,
+           ROUND(100.0 * SUM(is_correct) / COUNT(*), 1) as correct_rate,
+           ROUND(AVG(level), 1) as avg_level
+         FROM learning_events
+         WHERE timestamp > ? AND concept != '' AND age_group = ?
+         GROUP BY concept, position, age_group
+         HAVING attempts >= 10
+         ORDER BY correct_rate ASC`
+      : `SELECT concept, position, age_group,
+           COUNT(*) as attempts,
+           SUM(is_correct) as correct,
+           ROUND(100.0 * SUM(is_correct) / COUNT(*), 1) as correct_rate,
+           ROUND(AVG(level), 1) as avg_level
+         FROM learning_events
+         WHERE timestamp > ? AND concept != ''
+         GROUP BY concept, position, age_group
+         HAVING attempts >= 10
+         ORDER BY correct_rate ASC`;
+    const results = ageGroup
+      ? await env.DB.prepare(query).bind(thirtyDaysAgo, ageGroup).all()
+      : await env.DB.prepare(query).bind(thirtyDaysAgo).all();
+    const rows = results.results || [];
+    return jsonResponse({
+      ok: true,
+      all: rows,
+      tooHard: rows.filter(r => r.correct_rate < 40),
+      tooEasy: rows.filter(r => r.correct_rate > 90),
+    }, 200, cors);
+  } catch (e) {
+    // Fallback if learning_events table doesn't exist yet
     return jsonResponse({ ok: false, error: String(e) }, 500, cors);
   }
 }
@@ -1647,6 +1721,14 @@ export default {
     if (path === "/analytics/difficulty-calibration" && request.method === "GET") {
       try {
         return await handleDifficultyCalibration(request, env, cors);
+      } catch {
+        return jsonResponse({ error: "Server error" }, 500, cors);
+      }
+    }
+
+    if (path === "/analytics/learning-calibration" && request.method === "GET") {
+      try {
+        return await handleLearningCalibration(request, env, cors);
       } catch {
         return jsonResponse({ error: "Server error" }, 500, cors);
       }
