@@ -6463,6 +6463,44 @@ const QUALITY_FIREWALL = {
       if (rates[best] < 65) return "Rate sanity: best answer only has " + rates[best] + "% — should be at least 65%"
       return null
     },
+    // Check 5: Brain-data contradiction — best answer conflicts with BRAIN computed data
+    brainContradiction(scenario) {
+      const sit = scenario.situation || {}
+      const runners = sit.runners || []
+      const outs = sit.outs ?? 0
+      const bestOption = (scenario.options?.[scenario.best] || "").toLowerCase()
+      const bestExpl = (scenario.explanations?.[scenario.best] || "").toLowerCase()
+
+      // Check: Does best answer recommend bunting against the numbers?
+      if (runners.length > 0 && outs < 2) {
+        const rKey = runnersKey(runners)
+        const buntDelta = BRAIN.stats.buntDelta?.[`${rKey}_${outs}`]
+        if (buntDelta && buntDelta < -0.15 && /bunt|sacrifice/i.test(bestOption)) {
+          return `Brain contradiction: best answer recommends bunt but bunt delta is ${buntDelta} (costs ${Math.abs(buntDelta).toFixed(2)} expected runs)`
+        }
+      }
+
+      // Check: Does best answer recommend stealing without acknowledging break-even?
+      if (runners.includes(1) || runners.includes(2)) {
+        if (/\bsteal\b|go on first/i.test(bestOption)) {
+          if (!/risk|gamble|aggressive|break.even|percentage|success rate/i.test(bestExpl)) {
+            return "Brain contradiction: steal recommended without acknowledging break-even threshold"
+          }
+        }
+      }
+
+      // Check: Does best answer recommend IBB when it raises RE24 significantly?
+      if (/intentional.*walk|\bIBB\b/i.test(bestOption)) {
+        const re24Before = getRunExpectancy(runners, outs)
+        const newRunners = [...new Set([...runners, 1])].sort()
+        const re24After = getRunExpectancy(newRunners, outs)
+        if (re24After - re24Before > 0.30) {
+          return `Brain contradiction: IBB raises RE24 from ${re24Before.toFixed(2)} to ${re24After.toFixed(2)} (+${(re24After-re24Before).toFixed(2)})`
+        }
+      }
+
+      return null
+    },
   },
 
   // --- TIER 2: Warnings (flag for review but don't reject) ---
