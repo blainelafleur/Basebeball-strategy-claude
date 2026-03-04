@@ -10457,10 +10457,21 @@ export default function App(){
 
           {/* Stats card */}
           {stats.gp>0&&<div style={{...card,marginBottom:12}}>
-            {stats.gp>=5&&(()=>{const iq=computeBaseballIQ(stats);const iqC=getIQColor(iq);return(
-              <div style={{textAlign:"center",marginBottom:10,padding:"8px 12px",background:`${iqC}08`,border:`1px solid ${iqC}18`,borderRadius:12}}>
-                <div style={{fontSize:9,color:"#6b7280",textTransform:"uppercase",letterSpacing:1.5,fontWeight:700,marginBottom:3}}>Baseball IQ</div>
-                <div style={{fontSize:28,fontWeight:900,color:iqC,letterSpacing:1}}>{iq}</div>
+            {stats.gp>=5&&(()=>{const iq=computeBaseballIQ(stats);const iqC=getIQColor(iq);const iqLabel=iq>=140?"Elite":iq>=120?"Advanced":iq>=100?"Solid":iq>=80?"Developing":"Rookie";const iqPct=Math.min(100,Math.round(((iq-50)/110)*100));const topPos=Object.entries(stats.ps||{}).filter(([,v])=>v.p>=3).sort((a,b)=>(b[1].c/b[1].p)-(a[1].c/a[1].p))[0];return(
+              <div style={{textAlign:"center",marginBottom:10,padding:"14px 16px",background:"linear-gradient(135deg,rgba(0,0,0,.4),rgba(0,0,0,.25))",border:`1.5px solid ${iqC}30`,borderRadius:16,boxShadow:`0 4px 20px ${iqC}15`}}>
+                <div style={{fontSize:9,color:"#6b7280",textTransform:"uppercase",letterSpacing:2,fontWeight:700,marginBottom:4}}>Baseball IQ</div>
+                <div style={{fontSize:40,fontWeight:900,color:iqC,letterSpacing:2,textShadow:`0 0 20px ${iqC}40`}}>{iq}</div>
+                <div style={{fontSize:10,color:iqC,fontWeight:700,marginBottom:8,letterSpacing:1}}>{iqLabel}</div>
+                <div style={{height:6,background:"rgba(255,255,255,.06)",borderRadius:3,overflow:"hidden",marginBottom:8}}>
+                  <div style={{height:"100%",width:`${iqPct}%`,background:`linear-gradient(90deg,${iqC}60,${iqC})`,borderRadius:3,transition:"width .5s ease"}}/>
+                </div>
+                <div style={{display:"flex",justifyContent:"center",gap:8,fontSize:10,color:"#9ca3af"}}>
+                  <span>Level {getLvl(stats.pts).n}</span>
+                  <span style={{color:"rgba(255,255,255,.12)"}}>·</span>
+                  <span>{topPos?POS_META[topPos[0]]?.label||topPos[0]:"All Positions"}</span>
+                  {(stats.season||1)>1&&<><span style={{color:"rgba(255,255,255,.12)"}}>·</span><span>Season {stats.season}</span></>}
+                </div>
+                <div style={{fontSize:8,color:"#4b5563",marginTop:6,letterSpacing:1}}>⚾ Baseball Strategy Master</div>
               </div>
             )})()}
             <div style={{display:"flex",justifyContent:"space-around",textAlign:"center",marginBottom:8}}>
@@ -10539,11 +10550,21 @@ export default function App(){
           </div>}
 
           {panel==='stats'&&<div style={{...card,marginBottom:12}}>
-            {(()=>{const iq=computeBaseballIQ(stats);const iqC=getIQColor(iq);return(
-              <div style={{textAlign:"center",marginBottom:10,padding:"10px 12px",background:`${iqC}08`,border:`1px solid ${iqC}18`,borderRadius:12}}>
-                <div style={{fontSize:9,color:"#6b7280",textTransform:"uppercase",letterSpacing:1.5,fontWeight:700,marginBottom:3}}>Baseball IQ</div>
-                <div style={{fontSize:32,fontWeight:900,color:iqC,letterSpacing:1}}>{iq}</div>
-                <div style={{fontSize:9,color:"#6b7280",marginTop:2}}>{iq>=140?"Elite":iq>=120?"Advanced":iq>=100?"Solid":iq>=80?"Developing":"Rookie"}</div>
+            {(()=>{const iq=computeBaseballIQ(stats);const iqC=getIQColor(iq);const iqLabel=iq>=140?"Elite":iq>=120?"Advanced":iq>=100?"Solid":iq>=80?"Developing":"Rookie";const iqPct=Math.min(100,Math.round(((iq-50)/110)*100));return(
+              <div style={{textAlign:"center",marginBottom:10,padding:"14px 16px",background:"linear-gradient(135deg,rgba(0,0,0,.4),rgba(0,0,0,.25))",border:`1.5px solid ${iqC}30`,borderRadius:16,boxShadow:`0 4px 20px ${iqC}15`}}>
+                <div style={{fontSize:9,color:"#6b7280",textTransform:"uppercase",letterSpacing:2,fontWeight:700,marginBottom:4}}>Baseball IQ</div>
+                <div style={{fontSize:40,fontWeight:900,color:iqC,letterSpacing:2,textShadow:`0 0 20px ${iqC}40`}}>{iq}</div>
+                <div style={{fontSize:10,color:iqC,fontWeight:700,marginBottom:8,letterSpacing:1}}>{iqLabel}</div>
+                <div style={{height:6,background:"rgba(255,255,255,.06)",borderRadius:3,overflow:"hidden",marginBottom:6}}>
+                  <div style={{height:"100%",width:`${iqPct}%`,background:`linear-gradient(90deg,${iqC}60,${iqC})`,borderRadius:3}}/>
+                </div>
+                <div style={{display:"flex",justifyContent:"center",gap:10,fontSize:10,color:"#9ca3af"}}>
+                  <span>Level {getLvl(stats.pts).n}</span>
+                  <span style={{color:"rgba(255,255,255,.12)"}}>·</span>
+                  <span>{acc}% accuracy</span>
+                  {(stats.season||1)>1&&<><span style={{color:"rgba(255,255,255,.12)"}}>·</span><span>Season {stats.season}</span></>}
+                </div>
+                <div style={{fontSize:8,color:"#4b5563",marginTop:6,letterSpacing:1}}>⚾ Baseball Strategy Master</div>
               </div>
             )})()}
             <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:14,color:"#22c55e",letterSpacing:1,marginBottom:6}}>POSITION STATS</div>
@@ -11553,11 +11574,23 @@ export default function App(){
             </div>
             <p style={{color:"#9ca3af",fontSize:12,marginBottom:16}}>Final Score · 9 Innings</p>
 
-            <div style={{display:"flex",justifyContent:"space-around",maxWidth:320,margin:"0 auto 16px"}}>
-              {[{v:gameIQ,l:"Game IQ",c:getIQColor(gameIQ)},{v:greens,l:"Perfect",c:"#22c55e"},{v:yellows,l:"OK",c:"#f59e0b"},{v:reds,l:"Missed",c:"#ef4444"}].map((s,i)=>(
-                <div key={i}><div style={{fontSize:22,fontWeight:800,color:s.c}}>{s.v}</div><div style={{fontSize:9,color:"#6b7280",marginTop:1}}>{s.l}</div></div>
-              ))}
-            </div>
+            {/* Game IQ Card */}
+            {(()=>{const careerIQ=computeBaseballIQ(stats);const gC=getIQColor(gameIQ);const cC=getIQColor(careerIQ);const gLabel=gameIQ>=140?"Elite":gameIQ>=120?"Advanced":gameIQ>=100?"Solid":gameIQ>=80?"Developing":"Rookie";const gPct=Math.min(100,Math.round(((gameIQ-50)/110)*100));return(
+              <div style={{margin:"0 auto 16px",maxWidth:300,padding:"14px 16px",background:"linear-gradient(135deg,rgba(0,0,0,.4),rgba(0,0,0,.25))",border:`1.5px solid ${gC}30`,borderRadius:16,boxShadow:`0 4px 20px ${gC}15`}}>
+                <div style={{fontSize:9,color:"#6b7280",textTransform:"uppercase",letterSpacing:2,fontWeight:700,marginBottom:4,textAlign:"center"}}>Game IQ</div>
+                <div style={{fontSize:40,fontWeight:900,color:gC,letterSpacing:2,textShadow:`0 0 20px ${gC}40`,textAlign:"center"}}>{gameIQ}</div>
+                <div style={{fontSize:10,color:gC,fontWeight:700,marginBottom:8,letterSpacing:1,textAlign:"center"}}>{gLabel}</div>
+                <div style={{height:6,background:"rgba(255,255,255,.06)",borderRadius:3,overflow:"hidden",marginBottom:8}}>
+                  <div style={{height:"100%",width:`${gPct}%`,background:`linear-gradient(90deg,${gC}60,${gC})`,borderRadius:3}}/>
+                </div>
+                <div style={{display:"flex",justifyContent:"space-around",textAlign:"center"}}>
+                  {[{v:greens,l:"Perfect",c:"#22c55e"},{v:yellows,l:"OK",c:"#f59e0b"},{v:reds,l:"Missed",c:"#ef4444"},{v:careerIQ,l:"Career IQ",c:cC}].map((s,i)=>(
+                    <div key={i}><div style={{fontSize:16,fontWeight:800,color:s.c}}>{s.v}</div><div style={{fontSize:8,color:"#6b7280",marginTop:1}}>{s.l}</div></div>
+                  ))}
+                </div>
+                <div style={{fontSize:8,color:"#4b5563",marginTop:8,letterSpacing:1,textAlign:"center"}}>⚾ Baseball Strategy Master</div>
+              </div>
+            )})()}
 
             {/* Inning-by-inning breakdown */}
             <div style={{marginBottom:16}}>
