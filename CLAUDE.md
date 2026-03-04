@@ -4,7 +4,7 @@
 An educational web app that teaches baseball strategy to kids (ages 6-18) through interactive decision-making scenarios. Players pick a position (pitcher, catcher, infielder, outfielder, batter, baserunner, manager — 15 categories total), face a realistic game situation, choose from 4 options, and get immediate color-coded feedback explaining WHY their choice was good or bad. Includes season mode, survival mode, speed round, daily diamond, and AI-generated scenarios.
 
 ## Tech Stack
-- **Single-file React app** (`index.jsx`, ~5,890 lines)
+- **Single-file React app** (`index.jsx`, ~12,000 lines)
 - Renders via `preview.html` with CDN React + Babel, or as a Claude.ai artifact
 - No build tools, no bundler — just one file with everything
 - Uses React hooks (useState, useEffect, useCallback, useRef)
@@ -15,7 +15,7 @@ An educational web app that teaches baseball strategy to kids (ages 6-18) throug
 
 ## File Structure
 ```
-index.jsx          — The entire app (~5,890 lines)
+index.jsx          — The entire app (~12,000 lines)
 preview.html       — Loads index.jsx with CDN React + Babel
 worker/
   index.js         — Cloudflare Worker proxy for xAI API
@@ -28,7 +28,7 @@ CLAUDE.md          — This file
 ### index.jsx layout (approximate ranges)
 ```
 Lines 1-10:         Imports and header
-Lines 11-2800:      SCENARIOS object (460 handcrafted scenarios across 15 categories)
+Lines 11-2800:      SCENARIOS object (584 handcrafted scenarios across 15 categories)
 Lines 2800-2870:    Position metadata, field themes, achievements
 Lines 2870-2920:    DEFAULT state object, position suggestions, difficulty graduation
 Lines 2920-3050:    Helper functions: sound system, spaced repetition
@@ -43,7 +43,7 @@ Lines 3910-5890:    Main App() component (game state, UI, all screens)
 
 ## Key Architecture Decisions
 1. **Single file** — Intentional. Designed for easy iteration. Don't split into multiple files.
-2. **Handcrafted scenarios first** — 460 scenarios with carefully tuned difficulty, explanations, and success rates. AI scenarios supplement these, they don't replace them.
+2. **Handcrafted scenarios first** — 584 scenarios with carefully tuned difficulty, explanations, and success rates. AI scenarios supplement these, they don't replace them.
 3. **Cloudflare Worker as AI proxy** — API key stored as Worker secret, never exposed to browser. Free tier covers 100K requests/day.
 4. **localStorage persistence** — Player progress, achievements, settings, and stats persist in the browser (key: `bsm_v5`).
 5. **Pro gating client-side** — `stats.isPro` in localStorage. Known spoofable; acceptable at current scale. Server-side verification planned for Phase 3.
@@ -76,12 +76,12 @@ Lines 3910-5890:    Main App() component (game state, UI, all screens)
 - Key coordinates: Home(200,290) 1B(290,210) 2B(200,135) 3B(110,210) Mound(200,218)
 - 15 animation types: steal, score, hit, throwHome, doubleplay, strike, strikeout, groundout, flyout, catch, advance, walk, bunt, safe, freeze
 
-## Scenario Counts (460 total)
+## Scenario Counts (584 total)
 ```
-pitcher:59  batter:58  baserunner:57  manager:58  catcher:30
-firstBase:20  secondBase:21  shortstop:22  thirdBase:21
-leftField:21  centerField:22  rightField:21
-famous:20  rules:18  counts:18
+pitcher:62  catcher:40  firstBase:31  secondBase:26  shortstop:27  thirdBase:26
+leftField:25  centerField:27  rightField:25
+batter:59  baserunner:68  manager:79
+famous:21  rules:40  counts:28
 ```
 
 ## Key State Fields (DEFAULT object)

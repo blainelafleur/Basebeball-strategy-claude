@@ -8809,7 +8809,7 @@ function PromoCodeInput({setStats,setToast,snd,setPanel,email}){
           setStats(p=>({...p,isPro:true,proPlan:"promo-"+d.type,proExpiry:expiry,promoCode:code,promoActivatedDate:Date.now(),funnel:[...(p.funnel||[]).slice(-99),{event:"promo_redeemed",ts:Date.now()}]}));
           setErr("!"+(d.type==="lifetime"?"Lifetime Pro activated!":"30-day Pro activated!"));
           snd.play('ach');
-          setTimeout(()=>{setToast({e:"🎟️",n:"Promo Code Activated!",d:d.type==="lifetime"?"Lifetime Pro access unlocked!":"30-day Pro access unlocked!"});setTimeout(()=>setToast(null),4000)},300);
+          setTimeout(()=>{setToast({e:"🎟️",n:"Promo Code Activated!",d:d.type==="lifetime"?"Lifetime All-Star Pass unlocked!":"30-day All-Star Pass unlocked!"});setTimeout(()=>setToast(null),4000)},300);
           setTimeout(()=>setPanel(null),2000);
         } else {
           setErr(d.reason==="already_used"?"This code has already been used.":"Invalid promo code.");
@@ -9042,8 +9042,20 @@ function LoginScreen({onLogin,onSignup,onSkip,authError,authLoading,btn,ghost}){
 
 function SignupScreen({onSignup,onLogin,onSkip,authError,authLoading,stats,btn,ghost}){
   const[fn,setFn]=useState("");const[ln,setLn]=useState("");const[email,setEmail]=useState("");const[pw,setPw]=useState("");
+  const[fieldErrors,setFieldErrors]=useState({});
   const isUnder13=stats.ageGroup==="6-8"||stats.ageGroup==="9-10";
   const canSubmit=fn&&ln&&email&&pw.length>=8&&!authLoading;
+  const validateAndSubmit=()=>{
+    const errs={};
+    if(!fn.trim())errs.fn="First name is required";
+    if(!ln.trim())errs.ln="Last name is required";
+    if(!email.trim()||!/\S+@\S+\.\S+/.test(email))errs.email="Please enter a valid email";
+    if(pw.length<8)errs.pw="Password must be at least 8 characters";
+    setFieldErrors(errs);
+    if(Object.keys(errs).length>0)return;
+    onSignup({email,password:pw,firstName:fn,lastName:ln,displayName:stats.displayName||fn,ageGroup:stats.ageGroup,existingStats:stats.gp>0?stats:undefined});
+  };
+  const errStyle={fontSize:11,color:"#ef4444",textAlign:"left",marginTop:2};
   return(<div style={{textAlign:"center",padding:"30px 20px"}}>
     <div style={{fontSize:48,marginBottom:8}}>⚾</div>
     <h2 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:28,letterSpacing:2,color:"#f59e0b",marginBottom:4}}>CREATE ACCOUNT</h2>
@@ -9059,13 +9071,25 @@ function SignupScreen({onSignup,onLogin,onSkip,authError,authLoading,stats,btn,g
       {authError&&<div style={{background:"rgba(239,68,68,.08)",border:"1px solid rgba(239,68,68,.2)",borderRadius:10,padding:"8px 12px",maxWidth:300,margin:"0 auto 12px"}}><span style={{fontSize:12,color:"#ef4444"}}>{authError}</span></div>}
       <div style={{maxWidth:300,margin:"0 auto",display:"flex",flexDirection:"column",gap:10}}>
         <div style={{display:"flex",gap:8}}>
-          <input value={fn} onChange={e=>setFn(e.target.value)} placeholder="First Name" autoComplete="given-name" style={{flex:1,background:"rgba(255,255,255,.04)",border:"1.5px solid rgba(255,255,255,.1)",borderRadius:10,padding:"12px",color:"white",fontSize:14,outline:"none"}}/>
-          <input value={ln} onChange={e=>setLn(e.target.value)} placeholder="Last Name" autoComplete="family-name" style={{flex:1,background:"rgba(255,255,255,.04)",border:"1.5px solid rgba(255,255,255,.1)",borderRadius:10,padding:"12px",color:"white",fontSize:14,outline:"none"}}/>
+          <div style={{flex:1}}>
+            <input value={fn} onChange={e=>{setFn(e.target.value);setFieldErrors(fe=>({...fe,fn:undefined}))}} placeholder="First Name" autoComplete="given-name" style={{width:"100%",background:"rgba(255,255,255,.04)",border:`1.5px solid ${fieldErrors.fn?"rgba(239,68,68,.5)":"rgba(255,255,255,.1)"}`,borderRadius:10,padding:"12px",color:"white",fontSize:14,outline:"none"}}/>
+            {fieldErrors.fn&&<div style={errStyle}>{fieldErrors.fn}</div>}
+          </div>
+          <div style={{flex:1}}>
+            <input value={ln} onChange={e=>{setLn(e.target.value);setFieldErrors(fe=>({...fe,ln:undefined}))}} placeholder="Last Name" autoComplete="family-name" style={{width:"100%",background:"rgba(255,255,255,.04)",border:`1.5px solid ${fieldErrors.ln?"rgba(239,68,68,.5)":"rgba(255,255,255,.1)"}`,borderRadius:10,padding:"12px",color:"white",fontSize:14,outline:"none"}}/>
+            {fieldErrors.ln&&<div style={errStyle}>{fieldErrors.ln}</div>}
+          </div>
         </div>
-        <input value={email} onChange={e=>setEmail(e.target.value)} placeholder="Email" type="email" autoComplete="email" style={{width:"100%",background:"rgba(255,255,255,.04)",border:"1.5px solid rgba(255,255,255,.1)",borderRadius:10,padding:"12px",color:"white",fontSize:14,outline:"none"}}/>
-        <input value={pw} onChange={e=>setPw(e.target.value)} placeholder="Password (8+ characters)" type="password" autoComplete="new-password" style={{width:"100%",background:"rgba(255,255,255,.04)",border:"1.5px solid rgba(255,255,255,.1)",borderRadius:10,padding:"12px",color:"white",fontSize:14,outline:"none"}}
-          onKeyDown={e=>{if(e.key==="Enter"&&canSubmit)onSignup({email,password:pw,firstName:fn,lastName:ln,displayName:stats.displayName||fn,ageGroup:stats.ageGroup,existingStats:stats.gp>0?stats:undefined})}}/>
-        <button onClick={()=>onSignup({email,password:pw,firstName:fn,lastName:ln,displayName:stats.displayName||fn,ageGroup:stats.ageGroup,existingStats:stats.gp>0?stats:undefined})} disabled={!canSubmit} style={{...btn("linear-gradient(135deg,#059669,#22c55e)"),opacity:canSubmit?1:.5}}>
+        <div>
+          <input value={email} onChange={e=>{setEmail(e.target.value);setFieldErrors(fe=>({...fe,email:undefined}))}} placeholder="Email" type="email" autoComplete="email" style={{width:"100%",background:"rgba(255,255,255,.04)",border:`1.5px solid ${fieldErrors.email?"rgba(239,68,68,.5)":"rgba(255,255,255,.1)"}`,borderRadius:10,padding:"12px",color:"white",fontSize:14,outline:"none"}}/>
+          {fieldErrors.email&&<div style={errStyle}>{fieldErrors.email}</div>}
+        </div>
+        <div>
+          <input value={pw} onChange={e=>{setPw(e.target.value);setFieldErrors(fe=>({...fe,pw:undefined}))}} placeholder="Password (8+ characters)" type="password" autoComplete="new-password" style={{width:"100%",background:"rgba(255,255,255,.04)",border:`1.5px solid ${fieldErrors.pw?"rgba(239,68,68,.5)":"rgba(255,255,255,.1)"}`,borderRadius:10,padding:"12px",color:"white",fontSize:14,outline:"none"}}
+            onKeyDown={e=>{if(e.key==="Enter")validateAndSubmit()}}/>
+          {fieldErrors.pw&&<div style={errStyle}>{fieldErrors.pw}</div>}
+        </div>
+        <button onClick={validateAndSubmit} disabled={authLoading} style={{...btn("linear-gradient(135deg,#059669,#22c55e)"),opacity:authLoading?.5:1}}>
           {authLoading?"Creating Account...":"Create Account"}
         </button>
         {stats.gp>0&&<div style={{background:"rgba(59,130,246,.06)",border:"1px solid rgba(59,130,246,.12)",borderRadius:8,padding:"6px 10px"}}>
@@ -9262,8 +9286,14 @@ export default function App(){
               setToast({e:"⚔️",n:"Challenge Accepted!",d:`Beat ${d.creatorName}'s score of ${d.creatorScore} pts!`});
               setTimeout(()=>setToast(null),3500);
             }
+          } else {
+            setToast({e:"⚠️",n:"Challenge Not Found",d:"This challenge link may have expired."});
+            setTimeout(()=>setToast(null),4000);
           }
-        }).catch(()=>{});
+        }).catch(()=>{
+          setToast({e:"⚠️",n:"Couldn't Load Challenge",d:"Check your connection and try again."});
+          setTimeout(()=>setToast(null),4000);
+        });
     }
     // Check for Stripe return
     if(params.get("pro")==="success"){
@@ -9277,7 +9307,7 @@ export default function App(){
         }
         return {...p,isPro:true,proPlan:plan,proPurchaseDate:Date.now(),proExpiry:expiry,funnel:[...(p.funnel||[]).slice(-99),{event:"pro_activated",ts:Date.now()}]};
       });
-      setTimeout(()=>{setToast({e:"⭐",n:"Welcome to All-Star Pass!",d:"Unlimited play, AI coaching, and more!"});snd.play('ach');setTimeout(()=>setToast(null),4000)},500);
+      setTimeout(()=>{setToast({e:"⭐",n:"Welcome to All-Star Pass!",d:"Unlimited play, AI coaching, and more!"});try{snd.play('ach')}catch(e){}setTimeout(()=>setToast(null),4000)},800);
       window.history.replaceState({},"",window.location.pathname+window.location.hash);
     }
     // Check for promo code in URL (?code=BSM-XXXXXX)
@@ -9291,7 +9321,7 @@ export default function App(){
           if(d.valid){
             const expiry=d.type==="30day"?Date.now()+30*86400000:null;
             setStats(p=>({...p,isPro:true,proPlan:"promo-"+d.type,proExpiry:expiry,promoCode:urlCode.trim().toUpperCase(),promoActivatedDate:Date.now(),funnel:[...(p.funnel||[]).slice(-99),{event:"promo_redeemed",ts:Date.now()}]}));
-            setTimeout(()=>{setToast({e:"🎟️",n:"Promo Code Activated!",d:d.type==="lifetime"?"Lifetime Pro access unlocked!":"30-day Pro access unlocked!"});snd.play('ach');setTimeout(()=>setToast(null),4000)},500);
+            setTimeout(()=>{setToast({e:"🎟️",n:"Promo Code Activated!",d:d.type==="lifetime"?"Lifetime All-Star Pass unlocked!":"30-day All-Star Pass unlocked!"});snd.play('ach');setTimeout(()=>setToast(null),4000)},500);
           } else {
             setTimeout(()=>{setToast({e:"❌",n:"Invalid Code",d:d.reason==="already_used"?"This code has already been used.":"That promo code is not valid."});setTimeout(()=>setToast(null),4000)},500);
           }
@@ -9357,7 +9387,7 @@ export default function App(){
       if(d.isPro&&!stats.isPro){
         // Server says Pro but client doesn't know — restore Pro
         setStats(p=>({...p,isPro:true,proExpiry:d.proExpiry||p.proExpiry,proPlan:d.proPlan||p.proPlan}));
-        setTimeout(()=>{setToast({e:"⭐",n:"Pro Restored!",d:"Your All-Star Pass is active."});setTimeout(()=>setToast(null),3000)},500);
+        setTimeout(()=>{setToast({e:"⭐",n:"All-Star Pass Restored!",d:"Your All-Star Pass is active."});setTimeout(()=>setToast(null),3000)},500);
       } else if(!d.isPro&&stats.isPro&&d.source!=="client_trusted"&&d.source!=="server_error"){
         // Server says NOT Pro but client thinks Pro — revoke (unless graceful degradation)
         setStats(p=>({...p,isPro:false,proExpiry:null}));
@@ -10112,7 +10142,7 @@ export default function App(){
       });
       outcomeStartRef.current=0;
     }
-    setLvlUp(null);setExplainMore(null);setExplainLoading(false);if(speedMode){speedNextRef.current?.()}else if(survivalMode){survivalNextRef.current?.()}else if(realGameMode){realGameNextRef.current?.()}else if(seasonMode){seasonNextRef.current?.()}else if(sitMode&&sitSet){const nq=sitQ+1;if(nq<sitSet.questions.length){setSitQ(nq);const q=sitSet.questions[nq];const s={...q,_pos:q.pos,situation:sitSet.situation};setPos(q.pos);setSc(s);setChoice(null);setOd(null);setRi(-1);setFo(null);setShowC(false);setShowExp(true);setScreen("play");s.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80)})}else{setScreen("sitResults")}}else if(dailyMode){goHomeRef.current?.()}else if(atLimit){setScreen("home");setTimeout(()=>setPanel('limit'),100)}else{startGame(pos,aiMode)}},[pos,startGame,dailyMode,speedMode,survivalMode,realGameMode,seasonMode,sitMode,sitSet,sitQ,atLimit,aiMode,sc,explainMore]);
+    setLvlUp(null);setExplainMore(null);setExplainLoading(false);if(speedMode){speedNextRef.current?.()}else if(survivalMode){survivalNextRef.current?.()}else if(realGameMode){realGameNextRef.current?.()}else if(seasonMode){seasonNextRef.current?.()}else if(challengePack&&challengePack.done){setScreen("play")/* shows challenge results overlay */}else if(sitMode&&sitSet){const nq=sitQ+1;if(nq<sitSet.questions.length){setSitQ(nq);const q=sitSet.questions[nq];const s={...q,_pos:q.pos,situation:sitSet.situation};setPos(q.pos);setSc(s);setChoice(null);setOd(null);setRi(-1);setFo(null);setShowC(false);setShowExp(true);setScreen("play");s.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80)})}else{setScreen("sitResults")}}else if(dailyMode){goHomeRef.current?.()}else if(atLimit){setScreen("home");setTimeout(()=>setPanel('limit'),100)}else{startGame(pos,aiMode)}},[pos,startGame,dailyMode,speedMode,survivalMode,realGameMode,seasonMode,challengePack,sitMode,sitSet,sitQ,atLimit,aiMode,sc,explainMore]);
   const finishOnboard=useCallback(()=>{setStats(p=>({...p,onboarded:true,todayDate:new Date().toDateString()}));setScreen("home");trackAnalyticsEvent("onboard_complete",null,{ageGroup:stats.ageGroup,isPro:stats.isPro})},[stats.ageGroup,stats.isPro]);
 
   // Auth: signup
@@ -10195,16 +10225,23 @@ export default function App(){
   },[speedMode,screen,choice,aiLoading,timerActive,timer,sc,snd,pos]);
 
   // Speed Round flow
+  const speedUsedIdsRef=useRef(new Set());
   const startSpeedRound=useCallback((filterPositions)=>{
     if(atLimit){setPanel('limit');return;}
     snd.play('tap');
     setSpeedMode(true);setDailyMode(false);setAiMode(false);setSpeedFilter(null);
     const pool=filterPositions&&filterPositions.length>0?filterPositions:[...ALL_POS];
-    const positions=[];for(let i=0;i<5;i++)positions.push(pool[Math.floor(Math.random()*pool.length)]);
+    // Shuffle and pick 5 positions (dedup via shuffle-slice instead of random-with-replacement)
+    const shuffled=[...pool].sort(()=>Math.random()-.5);
+    const positions=[];for(let i=0;i<5;i++)positions.push(shuffled[i%shuffled.length]);
+    speedUsedIdsRef.current=new Set();
     setSpeedRound({round:0,total:5,results:[],startTime:Date.now(),positions});
-    // Start first round
     const p=positions[0];setPos(p);
-    const s=getRand(p);setSc(s);
+    let s=getRand(p);
+    // Avoid duplicates across speed round
+    let tries=0;while(speedUsedIdsRef.current.has(s.id)&&tries<10){s=getRand(p);tries++;}
+    speedUsedIdsRef.current.add(s.id);
+    setSc(s);
     setChoice(null);setOd(null);setRi(-1);setFo(null);setShowC(false);setLvlUp(null);setShowExp(true);
     setTimer(15);setTimerActive(false);setTimerGo(false);setScreen("play");
     s.options.forEach((_,i)=>{setTimeout(()=>setRi(i),80+i*60);});
@@ -10219,7 +10256,10 @@ export default function App(){
     }
     const p=speedRound.positions[nextRound%speedRound.positions.length];
     setPos(p);
-    const s=getRand(p);setSc(s);
+    let s=getRand(p);
+    let _tries=0;while(speedUsedIdsRef.current.has(s.id)&&_tries<10){s=getRand(p);_tries++;}
+    speedUsedIdsRef.current.add(s.id);
+    setSc(s);
     setChoice(null);setOd(null);setRi(-1);setFo(null);setShowC(false);
     setSpeedRound(sr=>({...sr,round:nextRound}));
     setTimer(15);setTimerActive(false);setTimerGo(false);setScreen("play");
@@ -10708,10 +10748,21 @@ export default function App(){
                 </div>
               )})}
             </div>
+            <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:12,color:"#a855f7",letterSpacing:1,marginTop:10,marginBottom:4}}>BONUS CATEGORIES</div>
+            <div style={{display:"flex",flexDirection:"column",gap:4}}>
+              {["famous","rules","counts"].map(p=>{const s=stats.ps[p];const m=POS_META[p];if(!m)return null;const a=s&&s.p>0?Math.round((s.c/s.p)*100):null;return(
+                <div key={p} style={{display:"flex",alignItems:"center",justifyContent:"space-between",background:"rgba(168,85,247,.03)",borderRadius:8,padding:"6px 10px"}}>
+                  <div style={{display:"flex",alignItems:"center",gap:6}}><span style={{fontSize:14}}>{m.emoji}</span><span style={{fontSize:12,fontWeight:600}}>{m.label}</span></div>
+                  <div style={{display:"flex",gap:8,fontSize:11,color:"#6b7280"}}>
+                    {s?<><span>{s.p} played</span><span style={{color:a>=70?"#22c55e":a>=50?"#f59e0b":"#ef4444",fontWeight:700}}>{a}%</span></>:<span>Not played</span>}
+                  </div>
+                </div>
+              )})}
+            </div>
             <button onClick={()=>{
               generatePlayerCard(stats,(blob,dataUrl)=>{
-                if(navigator.share&&blob){navigator.share({files:[new File([blob],"bsm-card.png",{type:"image/png"})],title:"My Baseball Strategy Master Card"}).catch(()=>{})}
-                else if(dataUrl){const a=document.createElement("a");a.href=dataUrl;a.download="bsm-card.png";a.click()}
+                if(navigator.share&&blob){navigator.share({files:[new File([blob],"bsm-card.png",{type:"image/png"})],title:"My Baseball Strategy Master Card"}).then(()=>{setToast({e:"📸",n:"Player Card Shared!",d:"Shared successfully"});setTimeout(()=>setToast(null),3000)}).catch(()=>{})}
+                else if(dataUrl){const a=document.createElement("a");a.href=dataUrl;a.download="bsm-card.png";a.click();setToast({e:"📸",n:"Player Card Saved!",d:"Downloaded to your device"});setTimeout(()=>setToast(null),3000)}
               })
             }} style={{...btn("linear-gradient(135deg,#06b6d4,#0891b2)"),...{fontSize:11,padding:"6px 14px",width:"100%",marginTop:8}}}>📸 Share My Player Card</button>
           </div>}
@@ -10730,10 +10781,11 @@ export default function App(){
                 const state=cm[tag]?.state||"unseen"
                 domains[d].concepts.push({tag,name:c.name,state,data:cm[tag]||null,diff:c.diff||1,ageMin:c.ageMin||6})
                 domains[d].total++
-                if(state==="mastered")domains[d].mastered++
+                const _cd=cm[tag]||{}
+                if(state==="mastered"||( state==="learning"&&_cd.totalAttempts>=3&&_cd.totalCorrect/_cd.totalAttempts>=0.8))domains[d].mastered++
               })
               const domainMeta={rules:{label:"Rules",emoji:"\u2696\ufe0f"},defense:{label:"Defense",emoji:"\ud83d\udee1\ufe0f"},baserunning:{label:"Baserunning",emoji:"\ud83c\udfc3"},batting:{label:"Batting",emoji:"\u26be"},pitching:{label:"Pitching",emoji:"\ud83e\udd4e"},management:{label:"Strategy",emoji:"\ud83e\udde0"},other:{label:"Other",emoji:"\ud83d\udcda"}}
-              const totalMastered=Object.values(cm).filter(c=>c.state==="mastered").length
+              const totalMastered=Object.values(cm).filter(c=>c.state==="mastered"||(c.state==="learning"&&c.totalAttempts>=3&&c.totalCorrect/c.totalAttempts>=0.8)).length
               const totalConcepts=Object.keys(BRAIN.concepts).length
               return <>
                 {/* Legend */}
@@ -11041,7 +11093,7 @@ export default function App(){
                 </div>
               </div>
               <div style={{textAlign:"left",background:"rgba(255,255,255,.02)",border:"1px solid rgba(255,255,255,.04)",borderRadius:10,padding:"10px 12px",marginBottom:10}}>
-                {[["Unlimited plays every day","No daily limit"],["AI Coach personalized scenarios","Targets your weak spots"],["All 10 field themes","Classic, Night, Dome, and more"],["Full avatar customization","6 jerseys, 6 caps, 3 bats"],["Streak freezes (1/week)","Never lose your streak"],["2x XP on every play","Level up twice as fast"],["Pro badge","Show off your commitment"]].map(([t,d],i)=>(
+                {[["Unlimited plays every day","No daily limit"],["AI Coach personalized scenarios","Targets your weak spots"],["All 10 field themes","Classic, Night, Dome, and more"],["Full avatar customization","6 jerseys, 6 caps, 3 bats"],["Streak freezes (1/week)","Never lose your streak"],["2x XP on every play","Level up twice as fast"],["All-Star badge","Show off your commitment"]].map(([t,d],i)=>(
                   <div key={i} style={{display:"flex",alignItems:"center",gap:8,padding:"4px 0"}}>
                     <span style={{color:"#22c55e",fontSize:12,flexShrink:0}}>✓</span>
                     <span style={{fontSize:12,color:"#d1d5db",fontWeight:600}}>{t}</span>
@@ -11207,7 +11259,7 @@ export default function App(){
                     <div style={{fontSize:11,fontWeight:700,color:i===0?"#93c5fd":"#d1d5db"}}>{rec.name}{rec.position&&<span style={{fontSize:9,color:"#6b7280",fontWeight:400,marginLeft:4}}>{POS_META[rec.position]?.emoji||""}</span>}</div>
                     <div style={{fontSize:9,color:"#6b7280"}}>{rec.reason}</div>
                   </div>
-                  {rec.position&&<span style={{fontSize:10,color:"#3b82f6"}}>Play \u2192</span>}
+                  {rec.position&&<span style={{fontSize:10,color:"#3b82f6"}}>Play {"\u2192"}</span>}
                   {rec.type==="reinforce"&&<span style={{fontSize:8,background:"#ef444420",color:"#ef4444",padding:"1px 5px",borderRadius:4,fontWeight:700}}>Review</span>}
                   {rec.type==="new"&&<span style={{fontSize:8,background:"#22c55e20",color:"#22c55e",padding:"1px 5px",borderRadius:4,fontWeight:700}}>New</span>}
                 </div>
