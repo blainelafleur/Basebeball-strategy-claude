@@ -6340,6 +6340,47 @@ function formatBrainForAI(position, situation) {
     const ptd = BRAIN.stats.pitchTypeData.types
     parts.push("Pitch types: " + Object.entries(ptd).slice(0,5).map(([k,v]) => `${k}: velo=${v.velo||"?"}mph, wOBA=${v.woba||"?"}, rv/100=${v.rv100||"?"}`).join("; "))
   }
+
+  // PRE-CALCULATED CONCLUSIONS — "so what" interpretations the AI must use
+  const conclusions = []
+  const runners = situation?.runners || []
+  const outs = situation?.outs ?? null
+
+  // Situation-specific: RE24 and scoring probability for current state
+  if (runners.length > 0 && outs !== null) {
+    const rKey = runnersKey(runners)
+    const re24 = BRAIN.stats.RE24?.[rKey]?.[outs]
+    if (re24 !== undefined) conclusions.push(`Current RE24: ${re24} expected runs (${re24 > 1.2 ? "HIGH — protect the lead runner" : re24 > 0.6 ? "MODERATE — smart risks OK" : "LOW — must manufacture runs"})`)
+    const sp = BRAIN.stats.scoringProb
+    if (sp) {
+      const probs = runners.map(b => {
+        const bk = b === 1 ? "first" : b === 2 ? "second" : "third"
+        const p = sp[bk]?.[outs]
+        return p !== undefined ? `R${b}: ${Math.round(p * 100)}% chance to score` : null
+      }).filter(Boolean)
+      if (probs.length > 0) conclusions.push(`Scoring chances: ${probs.join(", ")}`)
+    }
+  }
+
+  // Situation-specific: steal viability
+  if ((runners.includes(1) || runners.includes(2)) && outs !== null) {
+    const sbe = BRAIN.stats.stealBreakEven?.[outs]
+    if (sbe) conclusions.push(`Steal viability: need ${Math.round(sbe * 100)}% success rate to break even with ${outs} out${outs !== 1 ? "s" : ""}`)
+  }
+
+  // Situation-specific: bunt value
+  if (runners.length > 0 && outs !== null && outs < 2 && ["batter","manager","pitcher"].includes(position)) {
+    const rKey = runnersKey(runners)
+    const bd = BRAIN.stats.buntDelta?.[`${rKey}_${outs}`]
+    if (bd !== undefined) conclusions.push(`Bunt value: ${bd > 0 ? "GAINS" : "COSTS"} ${Math.abs(bd).toFixed(2)} expected runs — ${bd > 0 ? "bunt is justified" : bd > -0.10 ? "close call, situational" : "bunt hurts here"}`)
+  }
+
+  // General tactical guidelines (always included — helps AI even pre-situation)
+  conclusions.push("TACTICAL RULES: Bunting with R1 only (0 out) costs ~0.23 runs — usually wrong. Steal attempts need 72% success to break even. Runner on 3rd with <2 outs scores 67-85% of the time — don't risk outs to advance them. Bases loaded 0 out = 2.29 expected runs — protect this.")
+  conclusions.push("USE THESE CONCLUSIONS to validate your best answer. If the best answer contradicts the math, choose a different best answer.")
+
+  if (conclusions.length > 0) parts.push("CALCULATED ANALYSIS:\n" + conclusions.join("\n"))
+
   return parts.length > 0 ? "REFERENCE DATA (use to inform correct answer — do NOT put raw numbers in description or options, only in explanations for ages 12+):\n" + parts.join("\n") : ""
 }
 function getTeachingContext(position, mastered, ageGroup) {
