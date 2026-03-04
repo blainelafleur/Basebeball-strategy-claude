@@ -6283,9 +6283,39 @@ function enrichFeedback(scenario, choiceIdx, situation, playerAge, masteryData) 
   }
   return insights.slice(0, 3);
 }
-function getSmartCoachLine(cat, situation, position, streak, isPro, stats) {
+function getSmartCoachLine(cat, situation, position, streak, isPro, stats, currentWrongStreak) {
   // Coach voice style for line adaptation
   const voiceStyle = stats ? getCoachVoice(stats)?.lineStyle : null
+  const ws = currentWrongStreak || 0
+
+  // Streak-aware coaching (Pillar 7B) — hot streak
+  if (cat === "success" && streak >= 5) {
+    const hotLines = {
+      excited: ["You're on FIRE! Five in a row! Let's see if you can handle a tougher one!",
+                "WOW! You're crushing it! Time to level up, superstar!"],
+      teaching: ["Five straight — you're locked in. Let me challenge you with something harder.",
+                 "You're seeing the game clearly. Time to test that at the next level."],
+      analytical: ["Five consecutive correct reads. Increasing complexity.",
+                   "Strong streak. Moving to a higher-difficulty concept."]
+    }
+    const lines = hotLines[voiceStyle] || hotLines.teaching
+    return lines[Math.floor(Math.random() * lines.length)]
+  }
+
+  // Streak-aware coaching — cold streak
+  if (ws >= 3 && cat !== "success") {
+    const coldLines = {
+      excited: ["Hey, even All-Stars strike out sometimes! Let's try something a little easier.",
+                "Baseball is about bouncing back. Let's slow down and nail the basics!"],
+      teaching: ["Baseball is a game of adjustments. Let's go back to fundamentals for a sec.",
+                 "Three tough ones — even Trout goes 0-for-3. Let's rebuild from the basics."],
+      analytical: ["Pattern suggests a concept gap. Dropping to prerequisite level for recalibration.",
+                   "Adjusting difficulty. Let's solidify the foundation before advancing."]
+    }
+    const lines = coldLines[voiceStyle] || coldLines.teaching
+    return lines[Math.floor(Math.random() * lines.length)]
+  }
+
   // Pro users get situation-aware lines from the brain
   if (isPro && situation) {
     const {runners=[], outs=0, count, score=[0,0], inning=""} = situation;
@@ -8878,6 +8908,7 @@ export default function App(){
   const[explainMore,setExplainMore]=useState(null); // string result from AI
   const[explainLoading,setExplainLoading]=useState(false);
   const[aiMode,setAiMode]=useState(false); // true when playing AI-generated scenario
+  const[wrongStreak,setWrongStreak]=useState(0); // consecutive wrong answers (reset on correct or position change)
   const[aiFallback,setAiFallback]=useState(false); // true when AI failed and we're showing handcrafted
   const[dailyMode,setDailyMode]=useState(false); // true when playing daily diamond challenge
   const[seasonMode,setSeasonMode]=useState(false);
@@ -9445,7 +9476,7 @@ export default function App(){
   const startGame=useCallback(async(p,forceAI=false)=>{
     if(aiLoading)return;
     if(atLimit){setPanel('limit');return;}
-    snd.play('tap');setPos(p);setChoice(null);setOd(null);setRi(-1);setFo(null);setShowC(false);setLvlUp(null);setShowExp(true);setDailyMode(false);setAiFallback(false);
+    snd.play('tap');setPos(p);setChoice(null);setOd(null);setRi(-1);setFo(null);setShowC(false);setLvlUp(null);setShowExp(true);setDailyMode(false);setAiFallback(false);setWrongStreak(0);
 
     const raw=SCENARIOS[p]||[];const pool=raw.filter(s=>s.diff<=maxDiff);const seen=hist[p]||[];
     const src=pool.length>0?pool:raw;
@@ -9507,6 +9538,11 @@ export default function App(){
       if(nextPlanItem){
         console.log("[BSM Session] Consuming plan item:",nextPlanItem.type,nextPlanItem.concept||nextPlanItem.note||"")
         if(nextPlanItem.concept)concept=nextPlanItem.concept
+        // Cold streak auto-drop: swap progression for remediation (Pillar 7B)
+        if(wrongStreak>=3&&nextPlanItem.type==="progression"){
+          const lastWrong=(stats.recentWrong||[]).slice(-1)[0]
+          if(lastWrong){concept=lastWrong;console.log("[BSM Session] Cold streak — dropped to remediation:",lastWrong)}
+        }
       }else{
         // Fallback: original random wrong-concept targeting
         const wc=stats.wrongCounts||{};
@@ -9659,7 +9695,10 @@ export default function App(){
     // Speed Round bonus: +1 pt per second remaining
     let speedBonus=0;
     if(speedMode&&isOpt&&timer>0){speedBonus=timer;pts+=speedBonus;}
-    setFo(cat);setAk(k=>k+1);snd.play(isOpt?'correct':rate>=55?'near':'wrong');setCoachMsg(getSmartCoachLine(cat,sc.situation,pos,isOpt?stats.str+1:0,stats.isPro,stats));
+    // Track wrong streak for adaptive coaching
+    const newWrongStreak=isOpt?0:wrongStreak+1;
+    setWrongStreak(newWrongStreak);
+    setFo(cat);setAk(k=>k+1);snd.play(isOpt?'correct':rate>=55?'near':'wrong');setCoachMsg(getSmartCoachLine(cat,sc.situation,pos,isOpt?stats.str+1:0,stats.isPro,stats,newWrongStreak));
     // Crowd cheer on perfect answers, jackpot on every 5th streak
     if(isOpt){setTimeout(()=>snd.play('cheer'),300);const newStr=stats.str+1;if(newStr>0&&newStr%5===0)setTimeout(()=>snd.play('jackpot'),500);}
     // Streak break toast when losing 3+ streak
