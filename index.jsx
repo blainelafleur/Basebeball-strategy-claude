@@ -7136,6 +7136,30 @@ const AB_TESTS = {
       { id: "control", weight: 50, config: { useAgent: false } },
       { id: "agent", weight: 50, config: { useAgent: true } }
     ]
+  },
+  // Phase E: Coach persona A/B test
+  coach_persona: {
+    id: "coach_persona_v1",
+    variants: [
+      { id: "control", weight: 50, config: { usePersona: false } },
+      { id: "persona_on", weight: 50, config: { usePersona: true } }
+    ]
+  },
+  // Phase E: Session planner A/B test
+  session_planner: {
+    id: "session_planner_v1",
+    variants: [
+      { id: "control", weight: 30, config: { useSessionPlan: false } },
+      { id: "planned", weight: 70, config: { useSessionPlan: true } }
+    ]
+  },
+  // Phase E: 3-layer explanation depth A/B test
+  explanation_depth: {
+    id: "explanation_depth_v1",
+    variants: [
+      { id: "control", weight: 50, config: { useExplDepth: false } },
+      { id: "layered", weight: 50, config: { useExplDepth: true } }
+    ]
   }
 }
 
@@ -7946,7 +7970,9 @@ SCORE PERSPECTIVE: If the scenario says "you're up 5-3" and it's "Bot 7" (home b
     const promptConfig = abConfigs.ai_system_prompt || {}
     const aiTemp = tempConfig.temperature || 0.4
     const systemSuffix = promptConfig.systemSuffix || ""
-    const abVariants = { temp: tempConfig.variant || "control", prompt: promptConfig.variant || "control" }
+    const personaConfig = abConfigs.coach_persona || {}
+    const abVariants = { temp: tempConfig.variant || "control", prompt: promptConfig.variant || "control", persona: personaConfig.variant || "control" }
+    const coachSystem = personaConfig.usePersona !== false ? (getCoachVoice(stats)?.system || "You are an expert baseball coach") : "You are an expert baseball coach"
 
     const fetchOpts = {
       method: "POST",
@@ -7956,7 +7982,7 @@ SCORE PERSPECTIVE: If the scenario says "you're up 5-3" and it's "Bot 7" (home b
         max_tokens: 1800,
         temperature: aiTemp,
         messages: [
-          { role: "system", content: (getCoachVoice(stats)?.system || "You are an expert baseball coach") + " You are creating personalized training scenarios for the Baseball Strategy Master app. You always respond with ONLY a valid JSON object — no markdown, no code fences, no explanation text. Just the raw JSON." + systemSuffix },
+          { role: "system", content: coachSystem + " You are creating personalized training scenarios for the Baseball Strategy Master app. You always respond with ONLY a valid JSON object — no markdown, no code fences, no explanation text. Just the raw JSON." + systemSuffix },
           { role: "user", content: prompt }
         ]
       })
@@ -9576,7 +9602,8 @@ export default function App(){
       }
       setAiLoading(true);setAiMode(true);setScreen("play")
       // Session planner: build plan on first AI call for this position, consume items
-      if(!sessionPlanRef.current||sessionPlanPosRef.current!==p){
+      const _spAB = getActiveABConfigs(stats.sessionHash || "").session_planner || {}
+      if(_spAB.useSessionPlan!==false&&(!sessionPlanRef.current||sessionPlanPosRef.current!==p)){
         sessionPlanRef.current=planSession(stats,p)
         sessionPlanPosRef.current=p
         // Store active learning path in state
@@ -9642,6 +9669,7 @@ export default function App(){
           if(ab.pipeline)reportABResult("agent_pipeline_v2",ab.pipeline,"scenario_generated",ab.grade||0)
           if(ab.temp)reportABResult("ai_temperature_v1",ab.temp,"scenario_generated",1)
           if(ab.prompt)reportABResult("ai_system_prompt_v1",ab.prompt,"scenario_generated",1)
+          if(ab.persona)reportABResult("coach_persona_v1",ab.persona,"scenario_generated",1)
         }
         // Persist AI scenario to history (Sprint 1.5)
         setStats(prev=>{
@@ -9782,7 +9810,8 @@ export default function App(){
     // Use simplified explanations for young players when available
     const useSimple=sc.explSimple&&(stats.ageGroup==="6-8"||stats.ageGroup==="9-10");
     const expArr=useSimple?sc.explSimple:sc.explanations;
-    const _ed=sc.explDepth||null; // AI 3-layer explanations (Pillar 1C)
+    const _edAB=(getActiveABConfigs(stats.sessionHash||"").explanation_depth||{});
+    const _ed=_edAB.useExplDepth!==false?(sc.explDepth||null):null; // AI 3-layer explanations (Pillar 1C, A/B gated)
     const o={cat,isOpt,exp:expArr[idx],bestExp:expArr[sc.best],bestOpt:sc.options[sc.best],concept:sc.concept,pts,chosen:sc.options[idx],rate,anim:sc.anim,speedBonus,timeLeft:timer,explDepth:_ed,chosenIdx:idx,bestIdx:sc.best};
     setOd(o);setExplDepthLayer(0);
     outcomeStartRef.current=Date.now();
@@ -9840,7 +9869,12 @@ export default function App(){
       if(sc.isAI&&sc._abVariants){
         const ab=sc._abVariants
         if(ab.pipeline)reportABResult("agent_pipeline_v2",ab.pipeline,isOpt?"correct":"incorrect",1)
+        if(ab.persona)reportABResult("coach_persona_v1",ab.persona,isOpt?"correct":"incorrect",1)
       }
+      // Phase E: Report session planner + explanation depth A/B on every answer
+      const _answerAB=getActiveABConfigs(p.sessionHash||"")
+      reportABResult("session_planner_v1",(_answerAB.session_planner||{}).variant||"control",isOpt?"correct":"incorrect",1)
+      reportABResult("explanation_depth_v1",(_answerAB.explanation_depth||{}).variant||"control",isOpt?"correct":"incorrect",1)
       const _newLastWrong = !isOpt ? (conceptTagForEffectiveness || null) : null;
       const _newGapCache = ((p.gp + 1) % IMPROVEMENT_ENGINE.gapRules.cacheRefreshInterval === 0) ? null : (p.gapDetectionCache || null);
       // Difficulty graduation for ages 6-8
