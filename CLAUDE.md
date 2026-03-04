@@ -4,7 +4,7 @@
 An educational web app that teaches baseball strategy to kids (ages 6-18) through interactive decision-making scenarios. Players pick a position (pitcher, catcher, infielder, outfielder, batter, baserunner, manager — 15 categories total), face a realistic game situation, choose from 4 options, and get immediate color-coded feedback explaining WHY their choice was good or bad. Includes season mode, survival mode, speed round, daily diamond, and AI-generated scenarios.
 
 ## Tech Stack
-- **Single-file React app** (`index.jsx`, ~12,000 lines)
+- **Single-file React app** (`index.jsx`, ~12,200 lines)
 - Renders via `preview.html` with CDN React + Babel, or as a Claude.ai artifact
 - No build tools, no bundler — just one file with everything
 - Uses React hooks (useState, useEffect, useCallback, useRef)
@@ -15,7 +15,7 @@ An educational web app that teaches baseball strategy to kids (ages 6-18) throug
 
 ## File Structure
 ```
-index.jsx          — The entire app (~12,000 lines)
+index.jsx          — The entire app (~12,200 lines)
 preview.html       — Loads index.jsx with CDN React + Babel
 worker/
   index.js         — Cloudflare Worker proxy for xAI API
@@ -38,7 +38,10 @@ Lines 3440-3610:    generateAIScenario() — AI scenario generation via xAI Grok
 Lines 3610-3700:    Sound system, helper utilities
 Lines 3700-3850:    Field() component (SVG baseball field + 15 animations, 10 themes)
 Lines 3850-3910:    Board() component (scoreboard display)
-Lines 3910-5890:    Main App() component (game state, UI, all screens)
+Lines 3910-6050:    Helper functions (mastery, practice recs, error patterns, feedback)
+Lines 6050-6500:    Brain API functions, pitch recommendations, coaching
+Lines 6500-8800:    Field() component (SVG baseball field + 15 animations, 10 themes)
+Lines 8800-12200:   Main App() component (game state, UI, all screens)
 ```
 
 ## Key Architecture Decisions
@@ -83,6 +86,14 @@ leftField:25  centerField:27  rightField:25
 batter:59  baserunner:68  manager:79
 famous:21  rules:40  counts:28
 ```
+
+## Stickiness Features (Phase 3)
+- **Parent Progress Report**: Weekly concept trend, strongest/weakest position, recommended practice areas, accuracy by position bars, export analytics JSON. Parent-gated with math problem.
+- **Session Recap**: Plays/correct/accuracy, "What You Learned" (new concepts), session-over-session comparison, share progress button. Shows after 3+ plays.
+- **Coach Mode Preview**: Parent-gated team dashboard showing aggregate stats and concepts to work on. Teaser for full coach features.
+- **Onboarding Flow**: Age selection → 3-step tutorial → position interest picker → first-game guided tooltip.
+- **Practice Recommendations**: "Recommended for You" on home screen using spaced repetition, weak areas, and unplayed positions.
+- **Mastery System**: 5-state machine (unseen→introduced→learning→mastered→degraded) with spaced repetition. Requires 3 consecutive correct, 3 unique scenarios, 2 difficulty levels to master a concept.
 
 ## Key State Fields (DEFAULT object)
 - `gp`: games played, `ds`: daily streak, `bs`: best streak

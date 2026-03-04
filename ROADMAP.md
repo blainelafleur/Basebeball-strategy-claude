@@ -2,9 +2,9 @@
 
 ## Context
 
-**Where We Are:** A polished educational baseball game — 539 handcrafted scenarios across 15 categories, SVG field with 10 themes, avatar customization, season mode, coach mascot, survival/speed/daily modes, AI scenarios via xAI Grok + Cloudflare Worker proxy — running as a single-file React app (`index.jsx`, ~8,270 lines) on Cloudflare Pages. Free tier gives 8 plays/day with a well-designed limit screen and Daily Diamond always free. Pro gating, upgrade panel, and Stripe Payment Links are implemented. BRAIN knowledge system (v2.4.0) includes QUALITY_FIREWALL, CONSISTENCY_RULES, 7 knowledge maps, POS_PRINCIPLES, and Living Document System.
+**Where We Are:** A polished educational baseball game — 584 handcrafted scenarios across 15 categories, SVG field with 10 themes, avatar customization, season mode, coach mascot, survival/speed/daily modes, AI scenarios via xAI Grok + Cloudflare Worker proxy — running as a single-file React app (`index.jsx`, ~12,200 lines) on Cloudflare Pages. Free tier gives 8 plays/day with a well-designed limit screen and Daily Diamond always free. Pro gating, upgrade panel, and Stripe Payment Links are implemented. BRAIN knowledge system (v2.4.0) includes QUALITY_FIREWALL, CONSISTENCY_RULES, 7 knowledge maps, POS_PRINCIPLES, and Living Document System. Stickiness features (parent reports, coach mode, session recap, practice recommendations, onboarding) are complete. Preparing for soft launch to 20-50 coaches/families.
 
-**The Strategy:** Complete the Quality & Intelligence sprints (Phase 2.95) to fix the data model and make the AI actually smart. Then build production infrastructure. Then grow with social features and coach tools.
+**The Strategy:** Soft launch the current single-file app to validate with real users. Then build production infrastructure (user accounts, server-side auth). Then grow with social features and coach tools.
 
 **Key Decisions:**
 - **Pricing:** $4.99/mo or $29.99/year (competitive with Prodigy, validated by market research)
@@ -193,11 +193,11 @@ Built the knowledge engine that powers scenario quality, AI validation, and adap
 - POS_PRINCIPLES for all 15 positions (authoritative coaching reference)
 - Brain API functions: getRelevantMaps(), formatBrainStats(), getTeachingContext()
 
-### 2.92.2 Scenario Expansion (460 → 539) — DONE
+### 2.92.2 Scenario Expansion (460 → 539 → 584) — DONE
 - Situational mastery clusters: 16 scenarios across pitcher/batter/baserunner/manager
 - Outfield expansion: LF/CF/RF each expanded to 25+ scenarios (was ~21 each)
 - Rules edge cases: 6 new scenarios (batting out of order, interference, time play, pitch clock, fan interference)
-- Total: 539 handcrafted scenarios across 15 categories
+- Additional expansion in release prep: 584 handcrafted scenarios across 15 categories
 
 ### 2.92.3 AI Quality Systems — DONE
 - QUALITY_FIREWALL: 10 automated checks (Tier 1 reject, Tier 2 warn, Tier 3 suggest) integrated into generateAIScenario()
@@ -220,7 +220,7 @@ Built the knowledge engine that powers scenario quality, AI validation, and adap
 
 ---
 
-## Phase 2.95: "Quality & Intelligence" (Audit Sprints) — IN PROGRESS
+## Phase 2.95: "Quality & Intelligence" (Audit Sprints) — COMPLETE
 
 Comprehensive improvement plan based on full audit (see `AUDIT_REPORT.md`). Four sprints to fix the data model, make the AI intelligent, build adaptive learning, and prepare for scale.
 
@@ -267,6 +267,39 @@ Comprehensive improvement plan based on full audit (see `AUDIT_REPORT.md`). Four
 | 3 | A/B testing framework for AI prompts | DONE | Deterministic hash-based bucket assignment, 2 active tests (ai_temperature, ai_system_prompt), weighted variant selection, tracked in analytics |
 | 4 | Error monitoring + alerting for AI failures | DONE | Batched error reporting, auto-alert webhook (10 AI errors in 5 min), global JS/promise handlers, /error-report + /errors/summary endpoints, D1 error_logs table. **TODO:** Set up Slack Incoming Webhook and run `npx wrangler secret put ALERT_WEBHOOK_URL` to enable live error alerts. |
 | 5 | Performance audit (bundle optimization) | DONE | 1.3MB raw / 352KB gzipped, shared style constants (S object), React.memo on Field + Board components, load time tracking in analytics |
+
+---
+
+## Phase 2.96: "Ship It" (Soft Launch Prep) — IN PROGRESS
+
+Autonomous release preparation. See `AUTONOMOUS_RELEASE_PLAN.md` for detailed task list.
+
+### Bug Fixes — DONE
+- Fixed mastery heatmap counter, Speed Round deduplication, unicode arrow rendering
+- Verified existing implementations: sign-up validation, Pro toast, share feedback, challenge completion
+
+### Scenario Quality — DONE
+- 100% conceptTag coverage (584/584)
+- explSimple coverage: 175 Diff 1 + 238 Diff 2 = 413 total
+- 20 weakest explanations rewritten with strategic reasoning
+- AI prompt verified comprehensive
+
+### Stickiness & Engagement — DONE
+- Parent Report: weekly trend, strongest/weakest position, practice recommendations
+- Session Recap: "What You Learned" new concepts, accuracy comparison, share button
+- Coach Mode: parent-gated team dashboard preview
+- Onboarding: age selection, position interest picker, first-game tooltip
+
+### Stripe & Monetization — CODE VERIFIED
+- Payment links, Pro activation, promo codes, conversion funnel (10+ touchpoints) all verified in code
+- Manual browser testing of Stripe checkout still needed
+
+### Deploy & Launch — PENDING
+- Push to GitHub + deploy Worker
+- Generate 25 promo codes for testers
+- Pre-launch QA sweep on production
+- Documentation sync (in progress)
+- Soft launch go/no-go checklist
 
 ---
 
@@ -373,7 +406,7 @@ Major scope change: port to Next.js for SSR, move to PostgreSQL for scale, add a
 
 | Feature | Included |
 |---------|----------|
-| All 539 handcrafted scenarios | Yes |
+| All 584 handcrafted scenarios | Yes |
 | All 15 positions | Yes |
 | 8 plays per day | Yes |
 | Daily Diamond Play (exempt from limit) | Yes |
@@ -446,7 +479,7 @@ Major scope change: port to Next.js for SSR, move to PostgreSQL for scale, add a
 
 ## What NOT to Do
 
-1. **Don't gate educational content.** All 539 scenarios stay free. Always.
+1. **Don't gate educational content.** All 584 scenarios stay free. Always.
 2. **Don't show purchase prompts during active gameplay.** Only in natural pauses.
 3. **Don't use punishing language.** Celebrate progress, don't emphasize restrictions.
 4. **Don't require accounts for free play.** localStorage-only is fine.
