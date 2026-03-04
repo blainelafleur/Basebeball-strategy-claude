@@ -9775,7 +9775,7 @@ export default function App(){
       }
     }
     // Track session stats for recap
-    if(!speedMode&&!survivalMode&&!seasonMode&&!dailyMode){
+    if(!speedMode&&!survivalMode&&!seasonMode&&!realGameMode&&!dailyMode){
       sessionRef.current.plays++;if(isOpt)sessionRef.current.correct++;
       if(sc.concept&&!sessionRef.current.concepts.includes(sc.concept))sessionRef.current.concepts.push(sc.concept);
     }
@@ -9787,7 +9787,7 @@ export default function App(){
     setOd(o);setExplDepthLayer(0);
     outcomeStartRef.current=Date.now();
     // Sprint 5: Pre-fetch next AI scenario while player reads explanation
-    if(stats.isPro&&aiMode&&!speedMode&&!survivalMode&&!aiCacheRef.current.scenarios[pos]){
+    if(stats.isPro&&aiMode&&!speedMode&&!survivalMode&&!realGameMode&&!aiCacheRef.current.scenarios[pos]){
       prefetchAIScenario(pos,stats,stats.cl||[],stats.recentWrong||[],stats.aiHistory||[])
     }
     // Track speed round result
@@ -10111,7 +10111,8 @@ export default function App(){
     if(atLimit){setPanel('limit');return;}
     if(!stats.isPro){setPanel('upgrade');return;}
     snd.play('tap');
-    setRealGameMode(true);setSpeedMode(false);setSurvivalMode(false);setDailyMode(false);setSeasonMode(false);setSitMode(false);setAiMode(true);setAiFallback(false);
+    setRealGameMode(true);setSpeedMode(false);setSurvivalMode(false);setDailyMode(false);setSeasonMode(false);setSitMode(false);setAiMode(true);setAiFallback(false);setWrongStreak(0);
+    sessionPlanRef.current=null;sessionPlanPosRef.current=null;
     setRealGame({inning:1,playerScore:0,opponentScore:0,results:[],isComplete:false});
     // Pick a random position for inning 1
     const p=ALL_POS[Math.floor(Math.random()*ALL_POS.length)];setPos(p);
@@ -11369,7 +11370,7 @@ export default function App(){
           </div>}
 
           {/* Try Again? — remediation offer on wrong answers */}
-          {!od.isOpt&&(stats.isPro||(DAILY_FREE-(stats.todayPlayed||0))>0)&&!speedMode&&!survivalMode&&<div style={{textAlign:"center",marginTop:8}}>
+          {!od.isOpt&&(stats.isPro||(DAILY_FREE-(stats.todayPlayed||0))>0)&&!speedMode&&!survivalMode&&!realGameMode&&<div style={{textAlign:"center",marginTop:8}}>
             <button onClick={()=>{
               const remedConcept=sc?.conceptTag||findConceptTag(sc?.concept)||null
               console.log("[BSM] Try Again remediation for concept:",remedConcept)
