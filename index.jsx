@@ -5226,6 +5226,185 @@ const IMPROVEMENT_ENGINE = {
 };
 
 // ============================================================================
+// SELF-LEARNING AI: Real Baseball Knowledge Constants
+// Sources: Retrosheet play-by-play aggregates, coaching manuals, baseball consensus
+// ============================================================================
+
+const FLAG_CATEGORIES = {
+  wrong_answer: { label: "Wrong answer", desc: "The 'best' answer seemed wrong" },
+  unrealistic: { label: "Unrealistic", desc: "This wouldn't happen in a real game" },
+  wrong_position: { label: "Wrong position", desc: "This isn't my position's job" },
+  confusing_text: { label: "Confusing", desc: "The explanation didn't make sense" },
+  too_easy_hard: { label: "Too easy/hard", desc: "Way too easy or too hard" },
+};
+
+// Phase C1: Real game situations that make AI scenarios feel authentic
+// Each entry captures a REAL decision moment — what actually happens, not textbook theory
+const REAL_GAME_SITUATIONS = {
+  pitcher: [
+    { setup: "Runner on first, 1 out, ground ball to right side", real_decision: "Sprint to cover first — automatic, no thinking", why_real: "This is muscle memory drilled in every bullpen session", common_mistake: "Treating this as a strategic 'decision' — it's instinct", source: "Coaching consensus" },
+    { setup: "Full count, bases loaded, 2 outs", real_decision: "Throw your best pitch — don't nibble", why_real: "Walking in a run is the worst outcome. Trust your stuff", common_mistake: "Having the pitcher 'consider' 4 different pitch types analytically", source: "Pitching coaches consensus" },
+    { setup: "Batter squares to bunt, runner on first", real_decision: "Field position depends on bunt direction — charge if it's toward you, cover first if 2B fields it", why_real: "Pitcher's reaction is split-second, not a chess move", common_mistake: "Making pitcher 'decide' whether to field or cover — you react to where the ball goes", source: "ABCA manual" },
+    { setup: "Wild pitch with runner on third, less than 2 outs", real_decision: "Sprint to cover home plate immediately", why_real: "Catcher's going after the ball — someone must cover the plate", common_mistake: "Staying on the mound or hesitating", source: "USA Baseball" },
+    { setup: "2-0 count, no runners, early in game", real_decision: "Throw a fastball for a strike — get ahead", why_real: "2-0 is a hitter's count. Falling behind 3-0 is worse than giving up a hit", common_mistake: "Overcomplicating with breaking ball selection", source: "FanGraphs count data" },
+    { setup: "Leadoff hitter reaches base to start the inning", real_decision: "Focus on getting the next batter out, vary your look at the runner", why_real: "The runner changes your approach but you still pitch to the batter", common_mistake: "Making the scenario entirely about the runner rather than pitching", source: "Coaching consensus" },
+    { setup: "Pitcher gets 2 quick outs to start the inning", real_decision: "Don't ease up — finish the inning strong", why_real: "Third-time-through effects and pitch count matter more than 2-out comfort", common_mistake: "Treating 2-out situations as low-pressure", source: "Baseball Prospectus TTO data" },
+    { setup: "Comeback grounder hit right at the pitcher", real_decision: "Field it cleanly, turn and throw to first", why_real: "Self-defense reaction first, then a routine play", common_mistake: "Overcomplicating a simple play", source: "Retrosheet play-by-play" },
+  ],
+  catcher: [
+    { setup: "Runner stealing second, right-handed batter", real_decision: "Receive the pitch, pop up throwing, don't rush the catch", why_real: "A dropped ball is worse than a late throw. Catch first, throw second", common_mistake: "Making the throw the entire focus — receiving is step one", source: "Catching coaches consensus" },
+    { setup: "Wild pitch with runners on base", real_decision: "Find the ball first, then decide which runner to play on", why_real: "Chasing the ball blindly leads to overthrows. Controlled urgency", common_mistake: "Having catcher 'look at runners' before fielding the ball", source: "USA Baseball" },
+    { setup: "Popup behind home plate", real_decision: "Rip off mask, toss it away from the ball, track the spin", why_real: "Popup spin near home plate curves TOWARD the field — drift back", common_mistake: "Standing still and reaching up — popup drift is real", source: "Pro Baseball Insider" },
+    { setup: "Runner on third, less than 2 outs, ground ball to infield", real_decision: "Stay at home plate, set up for the throw", why_real: "You're the last line of defense — be ready for the play at the plate", common_mistake: "Having catcher leave the plate or chase the ball", source: "Coaching consensus" },
+    { setup: "Pitcher is struggling, walks two batters", real_decision: "Go visit the mound, slow things down, talk about one specific thing", why_real: "Not a lecture — just break the rhythm and refocus", common_mistake: "Making the mound visit too analytical", source: "Catching coaches consensus" },
+    { setup: "Foul tip with two strikes", real_decision: "Squeeze the glove — if it pops out, it's not a strikeout", why_real: "Foul tip must be caught for strike three. Bare hand helps trap it", common_mistake: "Treating foul tips as automatic outs", source: "MLB Rules 5.09" },
+  ],
+  firstBase: [
+    { setup: "Ground ball to second baseman, no runners", real_decision: "Get to the bag, stretch toward the throw, catch it", why_real: "Every first baseman does this 10+ times a game — it's fundamental", common_mistake: "Making a routine out into a strategic puzzle", source: "Retrosheet play-by-play" },
+    { setup: "Bunt down the first base line, pitcher fielding", real_decision: "If pitcher fields it, sprint to cover first base", why_real: "Someone has to be at first. If you fielded the bunt, pitcher covers", common_mistake: "Confusion about who covers — depends on who fields the ball", source: "ABCA manual" },
+    { setup: "Runner on first, pick-off attempt", real_decision: "Give a target, catch the ball, sweep the tag down", why_real: "Tag is at the back corner of the base where the runner's hand goes", common_mistake: "Tagging high or away from the base", source: "Coaching consensus" },
+    { setup: "Throw in the dirt on a ground ball play", real_decision: "Get in front of it — block it like a hockey goalie if you have to", why_real: "Keeping the ball in front of you is more important than catching it cleanly", common_mistake: "Trying to pick it cleanly every time instead of blocking", source: "Pro Baseball Insider" },
+  ],
+  secondBase: [
+    { setup: "Double play ball, runner on first", real_decision: "Get to the bag, receive the throw, pivot and throw to first", why_real: "The timing is tight — every DP has under 2 seconds to turn", common_mistake: "Overanalyzing the pivot — you drill this until it's automatic", source: "Coaching consensus" },
+    { setup: "Popup in shallow right field", real_decision: "Go get it — you have priority over the right fielder coming in", why_real: "Infielders coming out have a better angle than outfielders coming in", common_mistake: "Deferring to the outfielder on a ball you can reach", source: "ABCA manual" },
+    { setup: "Steal attempt, left-handed batter", real_decision: "Cover second base (shortstop takes it with right-handed batters)", why_real: "The batter's handedness determines who covers — it's predetermined", common_mistake: "Not knowing the coverage assignment by batter handedness", source: "Coaching consensus" },
+  ],
+  shortstop: [
+    { setup: "Ground ball in the hole between short and third", real_decision: "Backhand it, plant, throw across your body to first", why_real: "This is the signature shortstop play — requires arm strength", common_mistake: "Making it about 'deciding' whether to throw — if you field it, you throw it", source: "Pro Baseball Insider" },
+    { setup: "Runner on second, single to center", real_decision: "Get into cutoff position between the outfield and third base", why_real: "SS is the cutoff on throws from center to third", common_mistake: "Having SS cover a base instead of being the cutoff", source: "ABCA relay/cutoff system" },
+    { setup: "Popup in short left field", real_decision: "Call for it loudly and go catch it — you have priority", why_real: "SS going out has a better angle than LF coming in on most balls", common_mistake: "Collision scenarios where nobody calls for the ball", source: "Coaching consensus" },
+  ],
+  thirdBase: [
+    { setup: "Slow roller, runner on first", real_decision: "Charge hard, bare-hand it, throw on the run to first", why_real: "You don't have time to set your feet — this is the 'do or die' play", common_mistake: "Having the fielder 'decide' whether to charge — you always charge slow rollers", source: "Pro Baseball Insider" },
+    { setup: "Bunt situation, runner on second", real_decision: "Hold your position until you read bunt — don't crash too early", why_real: "If you crash and they fake bunt/slash, the line is wide open", common_mistake: "Auto-charging on every bunt look without reading the batter", source: "ABCA manual" },
+    { setup: "Line drive right at you", real_decision: "Catch it — if runner's off the base, throw to the base for a double play", why_real: "Reaction play first, then look for the bonus out", common_mistake: "Overcomplicating a catch-and-throw", source: "Retrosheet play-by-play" },
+  ],
+  leftField: [
+    { setup: "Line drive into the gap, runner on first", real_decision: "Cut the ball off to prevent extra bases, hit the cutoff man", why_real: "Preventing the triple is more important than trying for an impossible throw home", common_mistake: "Throwing home past the cutoff man on a ball deep in the gap", source: "Coaching consensus" },
+    { setup: "Fly ball, runner tagging from third", real_decision: "Catch the ball, crow-hop, throw home through the cutoff", why_real: "Even a weak arm needs to hit the cutoff — he can relay home", common_mistake: "Overthrowing the cutoff trying to reach home plate directly", source: "ABCA manual" },
+    { setup: "Ball hit off the wall", real_decision: "Play the carom off the wall, get the ball in quickly", why_real: "The ball comes back to you — don't run past it chasing the wall", common_mistake: "Turning the wrong way on wall balls", source: "Pro Baseball Insider" },
+  ],
+  centerField: [
+    { setup: "Fly ball in the gap, corner outfielder also going", real_decision: "Call it — center fielder has priority over corners", why_real: "CF sees the ball better coming in. Corner OF should peel off on the call", common_mistake: "Collision scenarios where both fielders go full speed", source: "Coaching consensus" },
+    { setup: "Single to center, runner trying to go first to third", real_decision: "Hit the cutoff man at shortstop — don't try to throw to third on the fly", why_real: "Overthrowing = runner advances to home. The cutoff keeps the play alive", common_mistake: "Always having CF throw to third base directly", source: "ABCA relay system" },
+    { setup: "Fly ball with the sun in your eyes", real_decision: "Use your glove as a sun shield, flip down sunglasses if you have them", why_real: "Every CF deals with this — it's a fundamental skill, not a rare event", common_mistake: "Treating sun balls as exotic situations", source: "Coaching consensus" },
+  ],
+  rightField: [
+    { setup: "Single to right, runner on first trying for third", real_decision: "Get the ball in quickly, throw to the cutoff man at shortstop or second base", why_real: "RF throw to third is the longest throw in the outfield — need the cutoff", common_mistake: "Trying to throw to third directly without the cutoff", source: "ABCA relay system" },
+    { setup: "Fly ball, runner on third, less than 2 outs", real_decision: "Catch the ball, set your feet, throw home through the cutoff", why_real: "Sac fly situation — your throw might save the run", common_mistake: "Not being ready to throw before the catch", source: "Coaching consensus" },
+    { setup: "Ground ball single past the infield", real_decision: "Charge the ball, field it cleanly, get it back in fast", why_real: "Speed of getting the ball back prevents runners from taking extra bases", common_mistake: "Casual fielding on routine singles", source: "Pro Baseball Insider" },
+  ],
+  batter: [
+    { setup: "0-2 count, two outs, runner in scoring position", real_decision: "Protect the plate — foul off tough pitches, look for something to drive", why_real: "You can't take a close pitch with 2 strikes. Shorten up and battle", common_mistake: "Having the batter 'choose a pitch to look for' on 0-2 like it's 2-0", source: "Hitting coaches consensus" },
+    { setup: "3-1 count, runner on second, nobody out", real_decision: "Look for your pitch in your zone — this is a hitter's count", why_real: "Pitcher doesn't want to go 3-2 or walk you. He's coming in the zone", common_mistake: "Making the batter consider taking the pitch on 3-1", source: "FanGraphs count data" },
+    { setup: "Hit and run is on, pitch is way outside", real_decision: "You have to swing — protect the runner", why_real: "The runner is going. A take means he's hung out to dry", common_mistake: "Giving 'take the pitch' as an option when hit-and-run is on", source: "Coaching consensus" },
+    { setup: "First pitch of the at-bat", real_decision: "If it's your pitch, hit it. First-pitch fastballs are the most hittable pitch", why_real: "First-pitch strike rate is ~60%. Hitters who swing at first-pitch strikes have higher OPS", common_mistake: "Always 'taking' the first pitch as if it's a rule", source: "Baseball Savant data" },
+    { setup: "Bases loaded, nobody out, close game", real_decision: "Put the ball in play — a fly ball scores a run, a ground ball might too", why_real: "Walking is fine too but you want to drive in runs, not just wait", common_mistake: "Overcomplicating a 'pressure' situation when the answer is: hit the ball", source: "Coaching consensus" },
+  ],
+  baserunner: [
+    { setup: "Runner on second, single to center", real_decision: "Read the outfielder's position and arm, round third aggressively, coach's call", why_real: "You look at the third base coach for the sign — hold or go", common_mistake: "Making the runner 'decide' independently without mentioning the third base coach", source: "USA Baseball" },
+    { setup: "Runner on first, fly ball to center, 1 out", real_decision: "Go halfway — if it's caught, get back; if it drops, advance", why_real: "Halfway is automatic with 1 out on medium fly balls", common_mistake: "Having the runner tag up on a routine fly with 1 out when it's not deep enough to score", source: "Coaching consensus" },
+    { setup: "Runner on third, ground ball to the right side, less than 2 outs", real_decision: "If the ball gets through, you score. If it's fielded, read the play", why_real: "Ground ball to the right side with runner on third is the sac fly equivalent for infield", common_mistake: "Auto-running home on every grounder — depends on where it's hit", source: "Coaching consensus" },
+    { setup: "Runner on first, pitcher has been slow to the plate", real_decision: "Get a bigger secondary lead, look for the steal sign", why_real: "Slow delivery = bigger window. But you still need the sign from the dugout", common_mistake: "Having the runner independently decide to steal without the sign", source: "Pro Baseball Insider" },
+    { setup: "Runner on second, two outs, single to left", real_decision: "You're running on contact with 2 outs — score standing up", why_real: "With 2 outs you run on anything. Single from second scores you easily", common_mistake: "Making the runner 'decide' whether to score on a clean single with 2 outs", source: "Retrosheet play-by-play" },
+  ],
+  manager: [
+    { setup: "Starter has faced the lineup 3 times, pitch count at 90", real_decision: "Get the bullpen ready — TTO effect means batters are timing him", why_real: "Third-time-through, batting average jumps ~30 points. It's data-backed", common_mistake: "Ignoring pitch count and TTO in favor of 'feel'", source: "Baseball Prospectus TTO data" },
+    { setup: "Tie game, bottom 8th, leadoff runner reaches", real_decision: "Consider a sacrifice bunt only if the next hitter is weak", why_real: "RE24 says bunting usually lowers run expectancy — but context matters", common_mistake: "Always bunting the runner over or never bunting", source: "The Book (Tango et al.)" },
+    { setup: "Closer has pitched 3 straight days", real_decision: "Find someone else. Fatigue + injury risk > saving one game", why_real: "Overuse injuries end seasons. One game isn't worth a blown arm", common_mistake: "Always bringing in the closer regardless of workload", source: "Pitching analytics consensus" },
+    { setup: "Runner on first, 1 out, batter has been hitting well", real_decision: "Let him hit — don't bunt away an out with a hot hitter", why_real: "Bunting a good hitter is giving away an at-bat", common_mistake: "Auto-bunting in 'bunt situations' without considering who's batting", source: "FanGraphs RE24" },
+    { setup: "Opposing team's best hitter comes up with first base open", real_decision: "Only walk him if the on-deck hitter is significantly worse AND force at home matters", why_real: "IBB puts the go-ahead run on base. It's rarely correct", common_mistake: "Walking good hitters reflexively", source: "The Book (Tango et al.)" },
+    { setup: "Defensive alignment with a pull-heavy left-handed hitter", real_decision: "Shade the defense toward right side, but keep 2 infielders on each side (2023+ rules)", why_real: "Full shifts are banned. You can shade but can't overload one side", common_mistake: "Using banned pre-2023 shift strategies", source: "MLB 2023 rule changes" },
+  ],
+};
+
+// Phase C2: Coaching voice patterns — how real coaches talk
+const COACHING_VOICE = {
+  right_answer: [
+    "That's heads-up baseball right there.",
+    "You read that perfectly.",
+    "Smart play — that's what coaches love to see.",
+    "Exactly what a pro would do in that spot.",
+    "Good instincts. You let the game come to you.",
+    "That's playing the game the right way.",
+    "Your baseball IQ is showing.",
+    "You trusted your training and it paid off.",
+  ],
+  wrong_answer: [
+    "That's a common mistake — here's what to look for next time.",
+    "Good effort, but let's talk about what happened.",
+    "Even pros make that mistake early on.",
+    "Think about it this way...",
+    "Here's the thing most players don't realize...",
+    "Close, but there's a better play here.",
+  ],
+  tone_guidance: [
+    "Get your feet moving BEFORE the ball gets there.",
+    "Don't try to be a hero — hit your cutoff man.",
+    "Always know where your next throw is going before you catch the ball.",
+    "Two outs changes everything — be aggressive on the bases.",
+    "Play catch, don't play throw. Accuracy beats arm strength.",
+    "See the ball, read the ball, react to the ball. In that order.",
+    "Never assume the play is over — always back up.",
+    "You've got to want the ball hit to you.",
+    "Stay on your toes. The play happens fast.",
+    "Keep your head in the game between pitches.",
+    "Routine plays win ball games.",
+    "Hustle is free — it doesn't cost you anything.",
+    "Trust your teammates — they've got their job, you've got yours.",
+    "Think one pitch ahead. What do I do if...?",
+  ],
+};
+
+// Phase C3: Decision windows — groups options by WHEN they happen
+// All 4 options in a scenario must occur in the SAME window
+const DECISION_WINDOWS = {
+  pitcher: {
+    pre_pitch: "Before delivering: pitch selection, pickoff look, checking runners, setting up",
+    during_delivery: "During the pitch: location, grip adjustment, release point",
+    after_contact: "After ball is hit: fielding position, covering bases, backing up",
+    between_pitches: "Between pitches: tempo, holding runner, reading batter",
+  },
+  catcher: {
+    pre_pitch: "Before the pitch: calling pitch/location, setting up target, positioning",
+    receiving: "Receiving the pitch: framing, blocking, catching",
+    after_contact: "After contact: fielding bunts, throwing out runners, directing traffic",
+    between_pitches: "Between pitches: reading batter, checking runners, mound visit decision",
+  },
+  batter: {
+    pre_pitch: "Before the pitch: stance, approach, looking for signs",
+    pitch_recognition: "Pitch is coming: swing/take decision, pitch recognition, timing",
+    contact: "Making contact: swing type, placement, execution",
+    on_base: "After reaching base: leadoff, reading pitcher, next play awareness",
+  },
+  baserunner: {
+    pre_pitch: "Before the pitch: lead distance, reading pitcher, steal decision",
+    pitch_in_flight: "Pitch is thrown: secondary lead, jump timing, go/no-go",
+    after_contact: "Ball is hit: read off bat, advance/hold, tag up decision",
+    between_pitches: "Between pitches: adjusting lead, reading defense, signals",
+  },
+  manager: {
+    pre_game: "Before the game: lineup, matchups, game plan",
+    pre_pitch: "Before each pitch: defensive alignment, steal/bunt signs, pitchout",
+    in_play: "During the play: no decisions (players execute)",
+    between_plays: "Between plays: pitching changes, pinch hitters, defensive subs, reviews",
+  },
+  infielder: {
+    pre_pitch: "Before the pitch: positioning, depth, ready position, anticipation",
+    after_contact: "Ball is hit: fielding, throwing, covering bases, relay/cutoff",
+    no_ball: "Ball not hit to you: covering bases, backing up, cutoff position",
+    between_pitches: "Between pitches: adjusting position, checking runners, communication",
+  },
+  outfielder: {
+    pre_pitch: "Before the pitch: depth, shading, ready position",
+    after_contact: "Ball is hit: tracking, catching, throwing to cutoff/base",
+    no_ball: "Ball not hit to you: backing up, communication, positioning for relay",
+    between_pitches: "Between pitches: adjusting depth, checking runners, sun/wind awareness",
+  },
+};
+
+// ============================================================================
 // BASEBALL BRAIN — Centralized knowledge engine for all game features
 // Stats from FanGraphs RE24 (2015-2024 avg), Baseball Reference count data
 // ============================================================================
@@ -7795,24 +7974,82 @@ function getActiveABConfigs(sessionHash) {
 }
 
 async function generateAIScenario(position, stats, conceptsLearned = [], recentWrong = [], signal = null, targetConcept = null, aiHistory = [], previousScenario = null) {
-  // Level 1.5: Fetch flagged scenario patterns to inject as "AVOID THESE PATTERNS"
+  // Self-Learning AI: Fetch semantic feedback patterns + prompt patches (replaces old ID-based injection)
   let flaggedAvoidText = ""
+  let promptPatchText = ""
+  let realGameFeelText = ""
   try {
-    const flagRes = await Promise.race([
-      fetch(`${WORKER_BASE}/flagged-scenarios?position=${encodeURIComponent(position)}&limit=5`),
-      new Promise((_, rej) => setTimeout(() => rej(new Error("flag-timeout")), 3000))
+    const [patternRes, patchRes] = await Promise.all([
+      Promise.race([
+        fetch(`${WORKER_BASE}/feedback-patterns?position=${encodeURIComponent(position)}&since=30`),
+        new Promise((_, rej) => setTimeout(() => rej(new Error("pattern-timeout")), 3000))
+      ]).catch(() => null),
+      Promise.race([
+        fetch(`${WORKER_BASE}/prompt-patches?position=${encodeURIComponent(position)}&limit=3`),
+        new Promise((_, rej) => setTimeout(() => rej(new Error("patch-timeout")), 2000))
+      ]).catch(() => null),
     ])
-    if (flagRes.ok) {
-      const flagData = await flagRes.json()
-      const flagged = flagData.flagged || []
-      if (flagged.length > 0) {
-        flaggedAvoidText = "\nAVOID THESE PATTERNS — players flagged these AI scenarios as confusing or incorrect:\n" +
-          flagged.map(f => `- "${f.scenario_id}" (flagged ${f.flag_count}x for ${f.position})`).join("\n") +
-          "\nDo NOT repeat similar scenarios, setups, or mistake patterns."
+    // Semantic avoidance from feedback patterns
+    if (patternRes?.ok) {
+      const patternData = await patternRes.json()
+      const patterns = patternData.patterns || []
+      if (patterns.length > 0) {
+        const CATEGORY_LABELS = { wrong_answer: "WRONG ANSWER", unrealistic: "UNREALISTIC", wrong_position: "WRONG POSITION", confusing_text: "CONFUSING", too_easy_hard: "DIFFICULTY" }
+        flaggedAvoidText = "\nAVOID THESE PATTERNS — players flagged these issues in AI scenarios:\n" +
+          patterns.slice(0, 5).map(p => {
+            const label = CATEGORY_LABELS[p.flag_category] || p.flag_category
+            const titles = p.sample_titles ? ` Titles: ${p.sample_titles.slice(0, 80)}` : ""
+            const comments = p.sample_comments ? ` Players said: ${p.sample_comments.slice(0, 100)}` : ""
+            return `- ${label} (${p.count} flags, ${p.position || position}):${titles}${comments}`
+          }).join("\n") +
+          "\nDo NOT repeat these mistake patterns."
+        console.log("[BSM] Injected", patterns.length, "semantic avoidance patterns for", position)
       }
     }
-  } catch (flagErr) {
-    console.warn("[BSM] Flagged scenarios fetch failed (non-blocking):", flagErr.message)
+    // Dynamic prompt patches from accumulated data
+    if (patchRes?.ok) {
+      const patchData = await patchRes.json()
+      const patches = patchData.patches || []
+      if (patches.length > 0) {
+        promptPatchText = "\nDYNAMIC QUALITY PATCHES (auto-generated from player data):\n" +
+          patches.map(p => `- ${p.patch_text}`).join("\n")
+        console.log("[BSM] Injected", patches.length, "prompt patches for", position)
+      }
+    }
+  } catch (err) {
+    console.warn("[BSM] Feedback/patch fetch failed (non-blocking):", err.message)
+  }
+
+  // Phase C: Real game feel context injection
+  try {
+    const posSituations = REAL_GAME_SITUATIONS[position] || REAL_GAME_SITUATIONS[
+      ["firstBase","secondBase","shortstop","thirdBase"].includes(position) ? "firstBase" :
+      ["leftField","centerField","rightField"].includes(position) ? "leftField" : "manager"
+    ] || []
+    if (posSituations.length > 0) {
+      // Pick 2-3 random situations
+      const shuffled = [...posSituations].sort(() => Math.random() - 0.5)
+      const picks = shuffled.slice(0, Math.min(3, shuffled.length))
+      realGameFeelText = "\nREAL GAME FEEL — these describe how this position actually works in real games:\n" +
+        picks.map(s => `- Setup: "${s.setup}" → Real: ${s.real_decision}. Common AI mistake: ${s.common_mistake}`).join("\n")
+    }
+    // Decision windows — enforce same-moment options
+    const dwKey = ["firstBase","secondBase","shortstop","thirdBase"].includes(position) ? "infielder" :
+      ["leftField","centerField","rightField"].includes(position) ? "outfielder" : position
+    const windows = DECISION_WINDOWS[dwKey]
+    if (windows) {
+      realGameFeelText += "\nDECISION TIMING — all 4 options MUST occur in the SAME moment:\n" +
+        Object.entries(windows).map(([k, v]) => `- ${k}: ${v}`).join("\n") +
+        "\nPick ONE window. Do NOT mix pre-pitch actions with after-contact actions."
+    }
+    // Coaching voice guidance
+    if (COACHING_VOICE.tone_guidance.length > 0) {
+      const voicePicks = [...COACHING_VOICE.tone_guidance].sort(() => Math.random() - 0.5).slice(0, 3)
+      realGameFeelText += "\nCOACHING VOICE — explanations should sound like a coach, not a textbook:\n" +
+        voicePicks.map(v => `- "${v}"`).join("\n")
+    }
+  } catch (e) {
+    console.warn("[BSM] Real game feel injection failed:", e.message)
   }
 
   // Level 3.7: Agent pipeline A/B test — shadow mode
@@ -7821,7 +8058,7 @@ async function generateAIScenario(position, stats, conceptsLearned = [], recentW
     const agentConfig = abConfigs.agent_pipeline || {}
     if (agentConfig.useAgent) {
       console.log("[BSM] Trying agent pipeline (A/B variant: agent)")
-      const agentResult = await generateWithAgentPipeline(position, stats, conceptsLearned, recentWrong, signal, targetConcept, aiHistory, flaggedAvoidText, previousScenario)
+      const agentResult = await generateWithAgentPipeline(position, stats, conceptsLearned, recentWrong, signal, targetConcept, aiHistory, flaggedAvoidText + realGameFeelText + promptPatchText, previousScenario)
       if (agentResult && agentResult.scenario) {
         return { scenario: agentResult.scenario, abVariants: { pipeline: "agent", grade: agentResult.agentGrade?.score } }
       }
@@ -7954,7 +8191,7 @@ POSITION-ACTION BOUNDARIES: ${(() => {
 })()}
 NEVER give this position options that belong to another position. Fielders do NOT call IBBs, shift the defense, call for pitchouts, or make pitching changes. Baserunner CANNOT "yell at pitcher", "call a play", "signal the batter". If a game event removes all meaningful decisions from a position, do NOT create a scenario about that event.
 ${analyticsRules}
-${flaggedAvoidText}
+${flaggedAvoidText}${realGameFeelText}${promptPatchText}
 
 EXAMPLE of a high-quality scenario (match this quality level):
 ${getAIFewShot(position, targetConcept, diffTarget)}
@@ -8383,6 +8620,64 @@ SITUATION CONSISTENCY: outs must be 0-2 (never 3). count must be valid (0-3 ball
         }).catch(() => {});
       }
     } catch (e) { /* non-critical */ }
+
+    // Phase B1: Self-audit — lightweight second AI call for baseball authenticity (~33% of the time, Pro only)
+    if (stats.isPro && Math.random() < 0.33) {
+      try {
+        const auditPrompt = `You are a former professional baseball player who coached at every level. Rate this ${position} scenario for baseball authenticity.
+
+SCENARIO: "${scenario.title}" — ${scenario.description}
+OPTIONS: ${scenario.options.map((o,i) => `${i+1}. ${o}${i === scenario.best ? " [BEST]" : ""}`).join(" | ")}
+BEST ANSWER EXPLANATION: ${scenario.explanations[scenario.best]}
+
+Rate 1-5 on each:
+1. REALISTIC: Would this exact situation happen in a real game? (1=never, 5=every game)
+2. OPTIONS: Are all 4 options things a real ${position.replace(/([A-Z])/g,' $1').trim().toLowerCase()} would actually consider? (1=absurd, 5=all realistic)
+3. COACH: Is the best answer what you'd teach? (1=wrong, 5=exactly right)
+4. TONE: Does the explanation sound like a coach talking to a kid? (1=textbook, 5=natural)
+
+Respond with ONLY JSON: {"score":3,"realistic":3,"options":3,"coach":3,"tone":3,"fix":"one sentence suggestion or empty string"}`;
+
+        const auditRes = await Promise.race([
+          fetch(AI_PROXY_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              model: "grok-4-1-fast-non-reasoning",
+              max_tokens: 200,
+              temperature: 0.2,
+              messages: [
+                { role: "system", content: "You are a baseball authenticity auditor. Respond with ONLY valid JSON." },
+                { role: "user", content: auditPrompt }
+              ]
+            })
+          }),
+          new Promise((_, rej) => setTimeout(() => rej(new Error("audit-timeout")), 5000))
+        ]);
+        if (auditRes.ok) {
+          const auditData = await auditRes.json();
+          const auditText = auditData.choices?.[0]?.message?.content || "";
+          const auditResult = JSON.parse(sanitizeAIResponse(auditText));
+          const auditScore = auditResult.score || Math.round((auditResult.realistic + auditResult.options + auditResult.coach + auditResult.tone) / 4);
+          console.log("[BSM] AI audit score:", auditScore, "/5 for", scenario.title);
+          scenario.auditScore = auditScore;
+          // Log to server
+          fetch(WORKER_BASE + "/analytics/ai-audit", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ scenario_id: scenario.id, position, score: auditScore, realistic: auditResult.realistic, options_quality: auditResult.options, coach_accuracy: auditResult.coach, tone: auditResult.tone, fix_suggestion: auditResult.fix || "" })
+          }).catch(() => {});
+          // Score < 3 = reject and retry
+          if (auditScore < 3) {
+            console.warn("[BSM] AI scenario rejected by audit (score " + auditScore + "):", auditResult.fix);
+            throw new Error("Audit rejection: score " + auditScore + " — " + (auditResult.fix || "low authenticity"));
+          }
+        }
+      } catch (auditErr) {
+        if (auditErr.message.startsWith("Audit rejection")) throw auditErr;
+        console.warn("[BSM] Self-audit failed (non-blocking):", auditErr.message);
+      }
+    }
 
     // Shuffle answer positions so best isn't always index 0
     shuffleAnswers(scenario)
@@ -9135,6 +9430,8 @@ export default function App(){
   const[wrongStreak,setWrongStreak]=useState(0); // consecutive wrong answers (reset on correct or position change)
   const[explDepthLayer,setExplDepthLayer]=useState(0); // 0=simple, 1=why, 2=data (progressive explanation depth)
   const[aiFallback,setAiFallback]=useState(false); // true when AI failed and we're showing handcrafted
+  const[flagOpen,setFlagOpen]=useState(false); // rich flag UI open state
+  const[flagComment,setFlagComment]=useState(""); // flag comment text
   const[dailyMode,setDailyMode]=useState(false); // true when playing daily diamond challenge
   const[seasonMode,setSeasonMode]=useState(false);
   const[tutStep,setTutStep]=useState(-1); // Phase 3.5: start at age selection
@@ -10153,7 +10450,7 @@ export default function App(){
       });
       outcomeStartRef.current=0;
     }
-    setLvlUp(null);setExplainMore(null);setExplainLoading(false);if(speedMode){speedNextRef.current?.()}else if(survivalMode){survivalNextRef.current?.()}else if(realGameMode){realGameNextRef.current?.()}else if(seasonMode){seasonNextRef.current?.()}else if(challengePack&&challengePack.done){setScreen("play")/* shows challenge results overlay */}else if(sitMode&&sitSet){const nq=sitQ+1;if(nq<sitSet.questions.length){setSitQ(nq);const q=sitSet.questions[nq];const s={...q,_pos:q.pos,situation:sitSet.situation};setPos(q.pos);setSc(s);setChoice(null);setOd(null);setRi(-1);setFo(null);setShowC(false);setShowExp(true);setScreen("play");s.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80)})}else{setScreen("sitResults")}}else if(dailyMode){goHomeRef.current?.()}else if(atLimit){setScreen("home");setTimeout(()=>setPanel('limit'),100)}else{startGame(pos,aiMode)}},[pos,startGame,dailyMode,speedMode,survivalMode,realGameMode,seasonMode,challengePack,sitMode,sitSet,sitQ,atLimit,aiMode,sc,explainMore]);
+    setLvlUp(null);setExplainMore(null);setExplainLoading(false);setFlagOpen(false);setFlagComment("");if(speedMode){speedNextRef.current?.()}else if(survivalMode){survivalNextRef.current?.()}else if(realGameMode){realGameNextRef.current?.()}else if(seasonMode){seasonNextRef.current?.()}else if(challengePack&&challengePack.done){setScreen("play")/* shows challenge results overlay */}else if(sitMode&&sitSet){const nq=sitQ+1;if(nq<sitSet.questions.length){setSitQ(nq);const q=sitSet.questions[nq];const s={...q,_pos:q.pos,situation:sitSet.situation};setPos(q.pos);setSc(s);setChoice(null);setOd(null);setRi(-1);setFo(null);setShowC(false);setShowExp(true);setScreen("play");s.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80)})}else{setScreen("sitResults")}}else if(dailyMode){goHomeRef.current?.()}else if(atLimit){setScreen("home");setTimeout(()=>setPanel('limit'),100)}else{startGame(pos,aiMode)}},[pos,startGame,dailyMode,speedMode,survivalMode,realGameMode,seasonMode,challengePack,sitMode,sitSet,sitQ,atLimit,aiMode,sc,explainMore]);
   const finishOnboard=useCallback(()=>{setStats(p=>({...p,onboarded:true,todayDate:new Date().toDateString()}));setScreen("home");trackAnalyticsEvent("onboard_complete",null,{ageGroup:stats.ageGroup,isPro:stats.isPro})},[stats.ageGroup,stats.isPro]);
 
   // Auth: signup
@@ -11822,20 +12119,38 @@ export default function App(){
             const sid=sc.id||sc._aiId;
             const flagged=stats.flaggedScenarios?.[sid];
             const alreadyFlagged=flagged&&Date.now()-new Date(flagged.lastFlagged).getTime()<86400000;
-            return(<div style={{display:"flex",justifyContent:"center",marginTop:6,marginBottom:2}}>
-              <button onClick={()=>{
-                if(alreadyFlagged)return;
-                const prev=stats.flaggedScenarios?.[sid]||{count:0,lastFlagged:null,position:pos};
-                const newCount=(prev.count||0)+1;
-                setStats(p=>({...p,flaggedScenarios:{...(p.flaggedScenarios||{}),[sid]:{count:newCount,lastFlagged:new Date().toISOString(),position:pos}}}));
-                setToast({e:"\u{1F914}",n:"Thanks for the feedback!",d:"We'll review this scenario."});
-                setTimeout(()=>setToast(null),2500);
-                if(newCount>=IMPROVEMENT_ENGINE.quality.flagThreshold){
-                  fetch(WORKER_BASE+'/flag-scenario',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({scenario_id:sid,flag_count:newCount,position:pos,flagged_at:new Date().toISOString()})}).catch(()=>{});
-                }
-              }} disabled={alreadyFlagged} style={{background:alreadyFlagged?"rgba(107,114,128,.04)":"rgba(107,114,128,.06)",border:"1px solid rgba(107,114,128,.15)",borderRadius:8,padding:"4px 12px",color:alreadyFlagged?"#4b5563":"#6b7280",fontSize:10,fontWeight:600,cursor:alreadyFlagged?"default":"pointer"}}>
-                {alreadyFlagged?"\u2713 Feedback received":"\u{1F914} Was this confusing?"}
-              </button>
+            const submitFlag=(category)=>{
+              const prev=stats.flaggedScenarios?.[sid]||{count:0,lastFlagged:null,position:pos};
+              const newCount=(prev.count||0)+1;
+              setStats(p=>({...p,flaggedScenarios:{...(p.flaggedScenarios||{}),[sid]:{count:newCount,lastFlagged:new Date().toISOString(),position:pos,category}}}));
+              setToast({e:"\u{1F914}",n:"Thanks for the feedback!",d:FLAG_CATEGORIES[category]?.desc||"We'll review this."});
+              setTimeout(()=>setToast(null),2500);
+              setFlagOpen(false);
+              setFlagComment("");
+              // Send rich feedback to server
+              const scenarioSnapshot={title:sc.title,description:sc.description,options:sc.options,best:sc.best,explanations:sc.explanations,concept:sc.concept,diff:sc.diff};
+              fetch(WORKER_BASE+'/feedback-scenario',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({scenario_id:sid,position:pos,flag_category:category,comment:flagComment.slice(0,140),scenario_json:JSON.stringify(scenarioSnapshot)})}).catch(()=>{});
+            };
+            if(alreadyFlagged)return(<div style={{display:"flex",justifyContent:"center",marginTop:6,marginBottom:2}}>
+              <span style={{fontSize:10,color:"#4b5563",fontWeight:600}}>✓ Feedback received</span>
+            </div>);
+            return(<div style={{marginTop:6,marginBottom:2}}>
+              {!flagOpen?<div style={{display:"flex",justifyContent:"center"}}>
+                <button onClick={()=>setFlagOpen(true)} style={{background:"rgba(107,114,128,.06)",border:"1px solid rgba(107,114,128,.15)",borderRadius:8,padding:"4px 12px",color:"#6b7280",fontSize:10,fontWeight:600,cursor:"pointer"}}>
+                  🤔 Something off?
+                </button>
+              </div>:<div style={{background:"rgba(107,114,128,.04)",border:"1px solid rgba(107,114,128,.12)",borderRadius:10,padding:"8px 10px"}}>
+                <div style={{fontSize:10,color:"#9ca3af",fontWeight:600,marginBottom:6,textAlign:"center"}}>What felt wrong?</div>
+                <div style={{display:"flex",flexWrap:"wrap",gap:4,justifyContent:"center",marginBottom:6}}>
+                  {Object.entries(FLAG_CATEGORIES).map(([key,{label}])=>(
+                    <button key={key} onClick={()=>submitFlag(key)} style={{background:"rgba(107,114,128,.08)",border:"1px solid rgba(107,114,128,.2)",borderRadius:6,padding:"3px 8px",fontSize:9,color:"#d1d5db",cursor:"pointer",fontWeight:500}}>{label}</button>
+                  ))}
+                </div>
+                <input value={flagComment} onChange={e=>setFlagComment(e.target.value)} placeholder="Optional: tell us more (140 chars)" maxLength={140} style={{width:"100%",background:"rgba(0,0,0,.2)",border:"1px solid rgba(107,114,128,.2)",borderRadius:6,padding:"4px 8px",fontSize:9,color:"#d1d5db",outline:"none",boxSizing:"border-box"}}/>
+                <div style={{display:"flex",justifyContent:"center",marginTop:4}}>
+                  <button onClick={()=>{setFlagOpen(false);setFlagComment("")}} style={{fontSize:9,color:"#6b7280",background:"none",border:"none",cursor:"pointer"}}>Cancel</button>
+                </div>
+              </div>}
             </div>);
           })()}
           <button onClick={next} style={{...btn(dailyMode?"linear-gradient(135deg,#d97706,#f59e0b)":"linear-gradient(135deg,#2563eb,#3b82f6)"),...{marginTop:12,boxShadow:dailyMode?"0 4px 12px rgba(245,158,11,.25)":"0 4px 12px rgba(37,99,235,.25)"}}}>{dailyMode?"Back to Home →":"Next Challenge →"}</button>

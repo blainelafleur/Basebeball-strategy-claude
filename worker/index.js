@@ -1357,6 +1357,165 @@ async function handleFlaggedScenarios(request, env, cors) {
   }
 }
 
+// --- Self-Learning AI: D1 migrations (run once) ---
+// CREATE TABLE IF NOT EXISTS scenario_feedback (
+//   id INTEGER PRIMARY KEY AUTOINCREMENT,
+//   scenario_id TEXT NOT NULL,
+//   position TEXT NOT NULL,
+//   flag_category TEXT NOT NULL,
+//   comment TEXT,
+//   scenario_json TEXT NOT NULL,
+//   created_at INTEGER NOT NULL
+// );
+// CREATE INDEX IF NOT EXISTS idx_feedback_position ON scenario_feedback(position);
+// CREATE INDEX IF NOT EXISTS idx_feedback_category ON scenario_feedback(flag_category);
+// CREATE INDEX IF NOT EXISTS idx_feedback_created ON scenario_feedback(created_at);
+//
+// CREATE TABLE IF NOT EXISTS ai_audits (
+//   id INTEGER PRIMARY KEY AUTOINCREMENT,
+//   scenario_id TEXT NOT NULL,
+//   position TEXT NOT NULL,
+//   score INTEGER NOT NULL,
+//   realistic INTEGER DEFAULT 0,
+//   options_quality INTEGER DEFAULT 0,
+//   coach_accuracy INTEGER DEFAULT 0,
+//   tone INTEGER DEFAULT 0,
+//   fix_suggestion TEXT,
+//   created_at INTEGER NOT NULL
+// );
+// CREATE INDEX IF NOT EXISTS idx_audits_position ON ai_audits(position);
+// CREATE INDEX IF NOT EXISTS idx_audits_score ON ai_audits(score);
+//
+// CREATE TABLE IF NOT EXISTS prompt_patches (
+//   id INTEGER PRIMARY KEY AUTOINCREMENT,
+//   position TEXT NOT NULL,
+//   patch_text TEXT NOT NULL,
+//   trigger_type TEXT NOT NULL,
+//   confidence REAL DEFAULT 0.5,
+//   expires_at INTEGER NOT NULL,
+//   active INTEGER DEFAULT 1,
+//   created_at INTEGER NOT NULL,
+//   updated_at INTEGER NOT NULL
+// );
+// CREATE INDEX IF NOT EXISTS idx_patches_position ON prompt_patches(position);
+// CREATE INDEX IF NOT EXISTS idx_patches_active ON prompt_patches(active);
+
+// POST /feedback-scenario — rich scenario flagging with category + comment + full snapshot
+async function handleFeedbackScenario(request, env, cors) {
+  let body;
+  try { body = await request.json(); } catch {
+    return jsonResponse({ error: "Invalid JSON" }, 400, cors);
+  }
+  const { scenario_id, position, flag_category, comment, scenario_json } = body;
+  if (!scenario_id || !position || !flag_category) {
+    return jsonResponse({ error: "missing required fields" }, 400, cors);
+  }
+  const validCategories = ["wrong_answer", "unrealistic", "wrong_position", "confusing_text", "too_easy_hard"];
+  if (!validCategories.includes(flag_category)) {
+    return jsonResponse({ error: "invalid flag_category" }, 400, cors);
+  }
+  try {
+    await env.DB.prepare(`
+      INSERT INTO scenario_feedback (scenario_id, position, flag_category, comment, scenario_json, created_at)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `).bind(
+      scenario_id, position, flag_category,
+      (comment || "").slice(0, 140),
+      (scenario_json || "{}").slice(0, 5000),
+      Date.now()
+    ).run();
+    // Also update legacy flagged_scenarios for backward compat
+    try {
+      await env.DB.prepare(`
+        INSERT INTO flagged_scenarios (scenario_id, flag_count, position, flagged_at)
+        VALUES (?, 1, ?, ?)
+        ON CONFLICT(scenario_id) DO UPDATE SET flag_count = flag_count + 1, flagged_at = excluded.flagged_at
+      `).bind(scenario_id, position, new Date().toISOString()).run();
+    } catch { /* legacy table may not exist */ }
+    return jsonResponse({ ok: true }, 200, cors);
+  } catch (e) {
+    return jsonResponse({ error: String(e) }, 500, cors);
+  }
+}
+
+// GET /feedback-patterns — aggregate flags by category+position for semantic AI avoidance
+async function handleFeedbackPatterns(request, env, cors) {
+  const url = new URL(request.url);
+  const position = url.searchParams.get("position") || "";
+  const sinceDays = Math.min(parseInt(url.searchParams.get("since") || "30"), 90);
+  const sinceTs = Date.now() - sinceDays * 24 * 60 * 60 * 1000;
+  try {
+    const query = position
+      ? `SELECT flag_category, COUNT(*) as count,
+           GROUP_CONCAT(SUBSTR(comment, 1, 80), ' | ') as sample_comments,
+           GROUP_CONCAT(DISTINCT SUBSTR(json_extract(scenario_json, '$.title'), 1, 50)) as sample_titles,
+           GROUP_CONCAT(DISTINCT json_extract(scenario_json, '$.concept')) as concepts
+         FROM scenario_feedback
+         WHERE position = ? AND created_at > ?
+         GROUP BY flag_category
+         HAVING count >= 2
+         ORDER BY count DESC`
+      : `SELECT flag_category, position, COUNT(*) as count,
+           GROUP_CONCAT(SUBSTR(comment, 1, 80), ' | ') as sample_comments,
+           GROUP_CONCAT(DISTINCT SUBSTR(json_extract(scenario_json, '$.title'), 1, 50)) as sample_titles,
+           GROUP_CONCAT(DISTINCT json_extract(scenario_json, '$.concept')) as concepts
+         FROM scenario_feedback
+         WHERE created_at > ?
+         GROUP BY flag_category, position
+         HAVING count >= 2
+         ORDER BY count DESC`;
+    const results = position
+      ? await env.DB.prepare(query).bind(position, sinceTs).all()
+      : await env.DB.prepare(query).bind(sinceTs).all();
+    return jsonResponse({ ok: true, patterns: results.results || [] }, 200, cors);
+  } catch (e) {
+    return jsonResponse({ ok: false, error: String(e) }, 500, cors);
+  }
+}
+
+// POST /analytics/ai-audit — store audit scores from self-audit second pass
+async function handleAIAudit(request, env, cors) {
+  let body;
+  try { body = await request.json(); } catch {
+    return jsonResponse({ error: "Invalid JSON" }, 400, cors);
+  }
+  const { scenario_id, position, score, realistic, options_quality, coach_accuracy, tone, fix_suggestion } = body;
+  if (!scenario_id || !position || typeof score !== "number") {
+    return jsonResponse({ error: "missing required fields" }, 400, cors);
+  }
+  try {
+    await env.DB.prepare(`
+      INSERT INTO ai_audits (scenario_id, position, score, realistic, options_quality, coach_accuracy, tone, fix_suggestion, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).bind(
+      scenario_id, position, score,
+      realistic || 0, options_quality || 0, coach_accuracy || 0, tone || 0,
+      (fix_suggestion || "").slice(0, 500), Date.now()
+    ).run();
+    return jsonResponse({ ok: true }, 200, cors);
+  } catch (e) {
+    return jsonResponse({ ok: false, error: String(e) }, 500, cors);
+  }
+}
+
+// GET /prompt-patches — fetch active prompt patches for a position
+async function handleGetPromptPatches(request, env, cors) {
+  const url = new URL(request.url);
+  const position = url.searchParams.get("position") || "";
+  const limit = Math.min(parseInt(url.searchParams.get("limit") || "3"), 5);
+  const now = Date.now();
+  try {
+    const results = await env.DB.prepare(`
+      SELECT patch_text, confidence, trigger_type FROM prompt_patches
+      WHERE position = ? AND active = 1 AND expires_at > ? AND confidence >= 0.2
+      ORDER BY confidence DESC LIMIT ?
+    `).bind(position, now, limit).all();
+    return jsonResponse({ ok: true, patches: results.results || [] }, 200, cors);
+  } catch (e) {
+    return jsonResponse({ ok: false, patches: [] }, 200, cors);
+  }
+}
+
 // Level 2.1: GET /analytics/ai-quality — aggregated AI quality metrics
 async function handleAIQualityAnalytics(request, env, cors) {
   const adminKey = request.headers.get("X-Admin-Key");
@@ -1659,6 +1818,145 @@ async function handleScheduled(event, env) {
   } catch (e) {
     console.error("[BSM Cron] Weekly aggregation failed:", e.message)
   }
+
+  // --- Phase D: Generate prompt patches from accumulated data ---
+  try {
+    const positions = ["pitcher","catcher","firstBase","secondBase","shortstop","thirdBase","leftField","centerField","rightField","batter","baserunner","manager"];
+    const patchWeekAgo = now - 7 * 24 * 60 * 60 * 1000;
+    const thirtyDays = 30 * 24 * 60 * 60 * 1000;
+
+    for (const pos of positions) {
+      // Check feedback patterns for this position
+      let feedbackPatterns = [];
+      try {
+        const fbRes = await env.DB.prepare(`
+          SELECT flag_category, COUNT(*) as count
+          FROM scenario_feedback WHERE position = ? AND created_at > ?
+          GROUP BY flag_category ORDER BY count DESC
+        `).bind(pos, patchWeekAgo).all();
+        feedbackPatterns = fbRes.results || [];
+      } catch { /* table may not exist */ }
+
+      // Check audit scores for this position
+      let avgAuditScore = null;
+      try {
+        const auditRes = await env.DB.prepare(`
+          SELECT ROUND(AVG(score), 1) as avg_score, COUNT(*) as count
+          FROM ai_audits WHERE position = ? AND created_at > ?
+        `).bind(pos, patchWeekAgo).first();
+        if (auditRes && auditRes.count >= 3) avgAuditScore = auditRes.avg_score;
+      } catch { /* table may not exist */ }
+
+      // Check AI error rates
+      let errorCounts = {};
+      try {
+        const errRes = await env.DB.prepare(`
+          SELECT error_type, COUNT(*) as count FROM error_logs
+          WHERE error_type LIKE 'ai_%' AND error_data LIKE ? AND created_at > ?
+          GROUP BY error_type
+        `).bind(`%${pos}%`, patchWeekAgo).all();
+        for (const r of (errRes.results || [])) errorCounts[r.error_type] = r.count;
+      } catch {}
+
+      const newPatches = [];
+
+      // Trigger: 5+ wrong_answer flags
+      const wrongAnswerFlags = feedbackPatterns.find(p => p.flag_category === "wrong_answer");
+      if (wrongAnswerFlags && wrongAnswerFlags.count >= 5) {
+        newPatches.push({
+          text: `QUALITY ALERT (${pos}): Recent ${pos} scenarios had ${wrongAnswerFlags.count} "wrong best answer" flags. Double-check that the best answer is what a real coach would teach. Verify the explanation for the best answer specifically argues FOR that option.`,
+          trigger: "wrong_answer_flags"
+        });
+      }
+
+      // Trigger: 5+ unrealistic flags
+      const unrealisticFlags = feedbackPatterns.find(p => p.flag_category === "unrealistic");
+      if (unrealisticFlags && unrealisticFlags.count >= 5) {
+        newPatches.push({
+          text: `REALISM ALERT (${pos}): ${unrealisticFlags.count} players flagged recent ${pos} scenarios as unrealistic. Make sure the game situation would actually happen. Use common counts, realistic scores, and real in-game decisions.`,
+          trigger: "unrealistic_flags"
+        });
+      }
+
+      // Trigger: 5+ wrong_position flags
+      const wrongPosFlags = feedbackPatterns.find(p => p.flag_category === "wrong_position");
+      if (wrongPosFlags && wrongPosFlags.count >= 5) {
+        newPatches.push({
+          text: `ROLE ALERT (${pos}): ${wrongPosFlags.count} players said recent ${pos} scenarios asked them to do another position's job. Every option must be an action THIS position performs.`,
+          trigger: "wrong_position_flags"
+        });
+      }
+
+      // Trigger: Low audit score
+      if (avgAuditScore !== null && avgAuditScore < 3.5) {
+        newPatches.push({
+          text: `AUTHENTICITY ALERT (${pos}): Recent ${pos} scenarios scored ${avgAuditScore}/5 on baseball authenticity. Make the situation feel like a real game — use coaching language, realistic timing, and decisions that matter.`,
+          trigger: "low_audit_score"
+        });
+      }
+
+      // Trigger: High role-violation error rate
+      if ((errorCounts["ai_role-violation"] || 0) >= 5) {
+        newPatches.push({
+          text: `BOUNDARY ALERT (${pos}): ${errorCounts["ai_role-violation"]} recent role violations. Strictly limit options to actions this position performs. Review the POSITION-ACTION BOUNDARIES section.`,
+          trigger: "role_violation_spike"
+        });
+      }
+
+      // Apply patches: update existing or create new
+      for (const patch of newPatches.slice(0, 5)) {
+        try {
+          // Check if similar patch already exists
+          const existing = await env.DB.prepare(`
+            SELECT id, confidence FROM prompt_patches
+            WHERE position = ? AND trigger_type = ? AND active = 1
+          `).bind(pos, patch.trigger).first();
+
+          if (existing) {
+            // Boost confidence
+            const newConf = Math.min(1.0, (existing.confidence || 0.5) + 0.1);
+            await env.DB.prepare(`
+              UPDATE prompt_patches SET confidence = ?, patch_text = ?, updated_at = ?, expires_at = ?
+              WHERE id = ?
+            `).bind(newConf, patch.text, now, now + thirtyDays, existing.id).run();
+          } else {
+            // Count active patches for this position
+            const activeCount = await env.DB.prepare(`
+              SELECT COUNT(*) as count FROM prompt_patches WHERE position = ? AND active = 1
+            `).bind(pos).first();
+            if ((activeCount?.count || 0) < 5) {
+              await env.DB.prepare(`
+                INSERT INTO prompt_patches (position, patch_text, trigger_type, confidence, expires_at, active, created_at, updated_at)
+                VALUES (?, ?, ?, 0.5, ?, 1, ?, ?)
+              `).bind(pos, patch.text, patch.trigger, now + thirtyDays, now, now).run();
+            }
+          }
+        } catch {}
+      }
+
+      // Decay patches that no longer have active triggers
+      try {
+        const activePatches = await env.DB.prepare(`
+          SELECT id, trigger_type, confidence FROM prompt_patches
+          WHERE position = ? AND active = 1
+        `).bind(pos).all();
+        const activeTriggers = new Set(newPatches.map(p => p.trigger));
+        for (const p of (activePatches.results || [])) {
+          if (!activeTriggers.has(p.trigger_type)) {
+            const newConf = Math.max(0, (p.confidence || 0.5) - 0.15);
+            if (newConf < 0.2) {
+              await env.DB.prepare("UPDATE prompt_patches SET active = 0, updated_at = ? WHERE id = ?").bind(now, p.id).run();
+            } else {
+              await env.DB.prepare("UPDATE prompt_patches SET confidence = ?, updated_at = ? WHERE id = ?").bind(newConf, now, p.id).run();
+            }
+          }
+        }
+      } catch {}
+    }
+    console.log("[BSM Cron] Prompt patch generation complete")
+  } catch (e) {
+    console.error("[BSM Cron] Prompt patch generation failed:", e.message)
+  }
 }
 
 // --- Router ---
@@ -1740,6 +2038,17 @@ export default {
         return await handleAIQualityAnalytics(request, env, cors);
       } catch {
         return jsonResponse({ error: "Server error" }, 500, cors);
+      }
+    }
+
+    if (path === "/analytics/ai-audit" && request.method === "POST") {
+      if (!checkRateLimit(`analytics:${ip}`, RATE_LIMIT_ANALYTICS)) {
+        return jsonResponse({ ok: false, error: "Rate limited" }, 429, cors);
+      }
+      try {
+        return await handleAIAudit(request, env, cors);
+      } catch {
+        return jsonResponse({ ok: false }, 500, cors);
       }
     }
 
@@ -1889,6 +2198,20 @@ export default {
           return jsonResponse({ ok: false }, 500, cors);
         }
       }
+      if (path === "/feedback-patterns") {
+        try {
+          return await handleFeedbackPatterns(request, env, cors);
+        } catch {
+          return jsonResponse({ ok: false, patterns: [] }, 200, cors);
+        }
+      }
+      if (path === "/prompt-patches") {
+        try {
+          return await handleGetPromptPatches(request, env, cors);
+        } catch {
+          return jsonResponse({ ok: false, patches: [] }, 200, cors);
+        }
+      }
       if (path === "/health") {
         return jsonResponse({ ok: true, ts: Date.now() }, 200, cors);
       }
@@ -1922,6 +2245,7 @@ export default {
         return await handleValidateCode(request, env, cors);
       }
       if (path === "/flag-scenario") return await handleFlagScenario(request, env, cors);
+      if (path === "/feedback-scenario") return await handleFeedbackScenario(request, env, cors);
       return await handleAIProxy(request, env, cors);
     } catch (err) {
       return jsonResponse({ error: "Proxy error" }, 502, cors);
