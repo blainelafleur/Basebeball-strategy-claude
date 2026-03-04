@@ -7129,6 +7129,26 @@ const AB_TESTS = {
   }
 }
 
+// ── Population Calibration Cache (Pillar 6B) ──
+let _calibrationCache = { data: null, fetchedAt: 0 }
+async function getCalibrationData() {
+  const ONE_HOUR = 60 * 60 * 1000
+  if (_calibrationCache.data && (Date.now() - _calibrationCache.fetchedAt) < ONE_HOUR) {
+    return _calibrationCache.data
+  }
+  try {
+    const res = await fetch(`${WORKER_BASE}/analytics/difficulty-calibration`)
+    if (res.ok) {
+      const json = await res.json()
+      _calibrationCache = { data: json.calibrations || [], fetchedAt: Date.now() }
+      return _calibrationCache.data
+    }
+  } catch (e) {
+    console.warn("[BSM] Calibration fetch failed:", e.message)
+  }
+  return _calibrationCache.data || []
+}
+
 // ── Baseball IQ (Pillar 7C) ──
 function computeBaseballIQ(stats) {
   const mastery = stats?.masteryData?.concepts || {}
@@ -7436,7 +7456,7 @@ function planScenario(position, stats, conceptsLearned = [], recentWrong = [], t
 // Level 3.4: Generator Agent — Builds focused prompt from Planner's output
 // ============================================================================
 function buildAgentPrompt(plan, previousScenario = null) {
-  const { position, difficulty, teachingGoal, targetConcept, playerContext, principles, brainData, exampleScenarios, avoidPatterns, avoidTitles, flaggedAvoidText, ageGate, ageGroup, situationHint, coachVoice } = plan
+  const { position, difficulty, teachingGoal, targetConcept, playerContext, principles, brainData, exampleScenarios, avoidPatterns, avoidTitles, flaggedAvoidText, ageGate, ageGroup, situationHint, coachVoice, promptPatch } = plan
 
   // Connected scenario arc — build on previous game context (Pillar 3C)
   const arcText = previousScenario && teachingGoal !== "prerequisite" ? `\nCONTINUING THE SAME GAME from the previous play. The previous scenario was: "${previousScenario.title}" — ${(previousScenario.description || "").slice(0, 120)}... Build on this game context. It's now a few batters later. The situation has evolved.${previousScenario.situation?.score ? ` Previous score was approximately ${JSON.stringify(previousScenario.situation.score)} — keep it close or adjust slightly.` : ""}` : ""
@@ -7471,7 +7491,7 @@ ${principles.detailed || principles.condensed}
 ${brainData}
 
 ${examplesText}
-${avoidText}${patternText}${flaggedAvoidText || ""}${sitText}${arcText}
+${avoidText}${patternText}${flaggedAvoidText || ""}${sitText}${arcText}${promptPatch ? "\n" + promptPatch : ""}
 
 THE QUESTION MUST ASK: "What should the ${position.replace(/([A-Z])/g,' $1').trim().toLowerCase()} do?" All 4 options must be physical actions or decisions that ONLY this position makes.
 
@@ -7596,6 +7616,19 @@ async function generateWithAgentPipeline(position, stats, conceptsLearned, recen
   // Stage 1: Plan
   const plan = planScenario(position, stats, conceptsLearned, recentWrong, targetConcept, aiHistory)
   if (flaggedAvoidText) plan.flaggedAvoidText = flaggedAvoidText
+
+  // Stage 1.5: Non-blocking calibration patch (Pillar 6B)
+  try {
+    const calData = _calibrationCache.data || []
+    const match = calData.find(c => c.concept === plan.targetConcept && c.position === position)
+    if (match) {
+      plan.promptPatch = match.adjustment === "too_hard"
+        ? `NOTE: This concept ("${match.concept}") has a population correct rate of ${match.correctRate}%. Players find it very difficult. Make the correct answer more obvious than usual. The best explanation should be especially clear with a concrete example.`
+        : `NOTE: This concept ("${match.concept}") has a ${match.correctRate}% correct rate. Increase the nuance — add a tempting distractor option that requires deeper understanding to distinguish from the correct answer.`
+      console.log("[BSM Agent] Calibration patch applied:", match.adjustment, match.concept, match.correctRate + "%")
+    }
+  } catch (e) { /* non-blocking */ }
+
   console.log("[BSM Agent] Plan:", plan.teachingGoal, "concept:", plan.targetConcept, "diff:", plan.difficulty, plan.situationHint ? "situationHint:" + JSON.stringify(plan.situationHint) : "")
 
   // Stage 2: Generate (using agent prompt)
@@ -9489,6 +9522,8 @@ export default function App(){
 
     // Local helper: AI generation with loading, abort, retry, cooldown, fallback
     const doAI=async()=>{
+      // Pillar 6B: Prime calibration cache (non-blocking)
+      getCalibrationData().catch(()=>{})
       // Sprint 2.3: Check pre-generation cache first
       const cachedResult=aiCacheRef.current.scenarios[p]
       if(cachedResult?.scenario){
