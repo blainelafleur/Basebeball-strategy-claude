@@ -7140,6 +7140,22 @@ function gradeAgentScenario(scenario, plan) {
     }
   }
 
+  // Pedagogical checks — does this scenario actually TEACH?
+  const bestExpl = scenario.explanations?.[scenario.best] || ""
+  if (bestExpl.length < 80) {
+    grade.score -= 10
+    agentDeductions.push("best_explanation_too_brief_for_teaching")
+  }
+  if (!/because|since|this means|the reason|so that|which is why/i.test(bestExpl)) {
+    grade.score -= 5
+    agentDeductions.push("missing_causal_reasoning_in_best_explanation")
+  }
+  const brainWarning = QUALITY_FIREWALL.tier1.brainContradiction(scenario)
+  if (brainWarning) {
+    grade.score -= 15
+    agentDeductions.push("brain_contradiction: " + brainWarning)
+  }
+
   grade.agentDeductions = agentDeductions
   grade.score = Math.max(0, grade.score)
   grade.pass = grade.score >= 60
