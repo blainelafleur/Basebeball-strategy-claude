@@ -4060,6 +4060,51 @@ const LB_KEY = "bsm_lb";
 function getWeek(){const d=new Date();const jan1=new Date(d.getFullYear(),0,1);return Math.ceil(((d-jan1)/86400000+jan1.getDay()+1)/7)+"-"+d.getFullYear();}
 const BASEBALL_NAMES=["Slugger","Ace","Rookie","MVP","Clutch","Hammer","Flash","Blaze","Storm","Thunder","Captain","Dash","Nitro","Phoenix","Cobra","Falcon","Eagle","Mustang","Raptor","Viking"];
 const AGE_GROUPS=[{id:"6-8",label:"Ages 6-8",desc:"Basic concepts, simple language",maxDiff:1},{id:"9-10",label:"Ages 9-10",desc:"Force plays, cutoffs, stealing",maxDiff:2},{id:"11-12",label:"Ages 11-12",desc:"Full situational awareness",maxDiff:3},{id:"13+",label:"Ages 13+",desc:"Advanced strategy & sabermetrics",maxDiff:3}];
+const CONCEPT_GATES = {
+  "6-8": {
+    allowed: ["force-vs-tag","fly-ball-priority","backup-duties","rundown-mechanics",
+              "tag-up","first-pitch-strike","wild-pitch-coverage"],
+    forbidden: ["steal-breakeven","count-leverage","bunt-re24","times-through-order",
+                "pitch-sequencing","squeeze-play","hit-and-run","relay-double-cut",
+                "first-third","pitch-type-value","eye-level-change","win-probability",
+                "leverage-index","platoon-advantage","pitch-clock-strategy","ibb-strategy",
+                "squeeze-recognition","balk-rule","line-guarding","steal-window"],
+    adjustments: {
+      stealing: "Almost always correct at this age — catchers can't throw well yet",
+      bunting: "Usually effective — fielders struggle to handle bunts",
+      errors: "Expect lots of errors — teach what to do AFTER errors happen"
+    }
+  },
+  "9-10": {
+    allowed: ["force-vs-tag","fly-ball-priority","backup-duties","rundown-mechanics",
+              "tag-up","first-pitch-strike","wild-pitch-coverage","cutoff-roles",
+              "count-leverage","double-play-turn","two-strike-approach","infield-fly",
+              "secondary-lead","of-communication","catcher-framing","pickoff-mechanics",
+              "dropped-third-strike","obstruction-interference"],
+    forbidden: ["bunt-re24","times-through-order","pitch-type-value","eye-level-change",
+                "win-probability","leverage-index","ibb-strategy","squeeze-recognition",
+                "steal-window","line-guarding"],
+    adjustments: {
+      stealing: "Lower threshold (~60% break-even) due to catcher skill level",
+      bunting: "More effective than at higher levels — fielders still developing",
+      pitchCount: "Youth pitch limits: 50-75 pitches max per game"
+    }
+  },
+  "11-12": {
+    forbidden: ["pitch-type-value","eye-level-change","leverage-index"],
+    adjustments: {
+      stealing: "Break-even closer to 65% at this age",
+      bunting: "Starting to resemble standard RE24 analysis"
+    }
+  },
+  "13+": {
+    forbidden: [],
+    adjustments: {
+      stealing: "Standard 72% break-even applies",
+      bunting: "Full RE24 analysis applies"
+    }
+  }
+};
 const SEASON_STAGES=[
   {name:"Spring Training",emoji:"🌴",games:2,diff:1,color:"#22c55e",
     story:"First day of camp. Coach hands you a glove and says 'Show me what you've got, kid.' The sun is warm, the grass is fresh, and anything feels possible."},
@@ -7012,6 +7057,27 @@ function planScenario(position, stats, conceptsLearned = [], recentWrong = [], t
     }
   }
 
+  // 1b. Age gate: if selected concept is forbidden for this age group, swap it
+  const ageGroup = stats.ageGroup || "11-12"
+  const gate = CONCEPT_GATES[ageGroup]
+  if (gate && selectedConcept) {
+    const isForbidden = gate.forbidden?.includes(selectedConcept)
+    const hasAllowed = gate.allowed && !gate.allowed.includes(selectedConcept)
+    if (isForbidden || hasAllowed) {
+      // Pick a different concept that's allowed
+      const available = KNOWLEDGE_BASE.getConceptsForPosition(position)
+      const allowed = available.filter(c => {
+        if (gate.forbidden?.includes(c.tag)) return false
+        if (gate.allowed && !gate.allowed.includes(c.tag)) return false
+        return true
+      })
+      if (allowed.length > 0) {
+        selectedConcept = allowed[Math.floor(Math.random() * allowed.length)].tag
+        if (teachingGoal === "prerequisite") teachingGoal = "introduce"
+      }
+    }
+  }
+
   // 2. Select difficulty
   const difficulty = posAcc > 75 ? 3 : posAcc > 50 ? 2 : 1
 
@@ -7053,7 +7119,9 @@ function planScenario(position, stats, conceptsLearned = [], recentWrong = [], t
     avoidTitles,
     playerContext,
     position,
-    principles: KNOWLEDGE_BASE.getPrinciplesForPosition(position)
+    principles: KNOWLEDGE_BASE.getPrinciplesForPosition(position),
+    ageGate: gate || null,
+    ageGroup
   }
 }
 
@@ -7061,7 +7129,7 @@ function planScenario(position, stats, conceptsLearned = [], recentWrong = [], t
 // Level 3.4: Generator Agent — Builds focused prompt from Planner's output
 // ============================================================================
 function buildAgentPrompt(plan) {
-  const { position, difficulty, teachingGoal, targetConcept, playerContext, principles, brainData, exampleScenarios, avoidPatterns, avoidTitles, flaggedAvoidText } = plan
+  const { position, difficulty, teachingGoal, targetConcept, playerContext, principles, brainData, exampleScenarios, avoidPatterns, avoidTitles, flaggedAvoidText, ageGate, ageGroup } = plan
 
   // Focused examples (condensed)
   const examplesText = exampleScenarios.slice(0, 2).map((s, i) =>
@@ -7072,11 +7140,14 @@ function buildAgentPrompt(plan) {
   const avoidText = avoidTitles.length > 0 ? `\nAVOID THESE TITLES (already generated): ${avoidTitles.join(", ")}` : ""
   const patternText = avoidPatterns.length > 0 ? `\nAVOID THESE PATTERNS: ${avoidPatterns.slice(0,5).join("; ")}` : ""
 
+  // Age gate adjustments
+  const ageText = ageGate?.adjustments ? `\nPLAYER AGE GROUP: ${ageGroup || "11-12"}\nSTRATEGIC ADJUSTMENTS FOR THIS AGE:\n${Object.entries(ageGate.adjustments).map(([k,v]) => `- ${k}: ${v}`).join("\n")}${ageGate.forbidden?.length > 0 ? `\nFORBIDDEN CONCEPTS (do NOT use): ${ageGate.forbidden.join(", ")}` : ""}` : ""
+
   const tv = getRandomTemplateValues()
   return `Create a baseball strategy scenario for position: ${position}.
 TEACHING GOAL: ${teachingGoal} concept "${targetConcept || "general " + position + " strategy"}".
 PLAYER: ${playerContext}
-DIFFICULTY: ${difficulty}/3
+DIFFICULTY: ${difficulty}/3${ageText}
 
 POSITION PRINCIPLES:
 ${principles.detailed || principles.condensed}
