@@ -198,7 +198,7 @@ These create the autonomous testing infrastructure. Do these first.
 ## Phase 3: Stickiness & Engagement
 
 ### 3.1 — Parent Progress Report Enhancement
-- [ ] **Make the parent report more compelling**
+- [x] **Make the parent report more compelling** ✅ Done 2026-03-04 — Added weekly trend (concepts this week vs last), strongest/weakest position display, and recommended practice areas using getPracticeRecommendations()
 - Add: concepts mastered this week vs last week (trend)
 - Add: strongest and weakest position with accuracy %
 - Add: "Your child learned X new concepts this session" summary
@@ -207,7 +207,7 @@ These create the autonomous testing infrastructure. Do these first.
 - **Acceptance:** Parent can see clear learning progress and next steps
 
 ### 3.2 — "What to Practice" Recommendations
-- [ ] **Add smart practice recommendations to home screen**
+- [x] **Add smart practice recommendations to home screen** ✅ Already implemented (verified 2026-03-04) — "Recommended for You" section at lines 11251-11275 using getPracticeRecommendations() with clickable concept targeting
 - Below the position grid, show 1-2 targeted recommendations:
   - "Your shortstop skills need work — 45% accuracy. Practice 3 more?"
   - "You've mastered pitcher basics! Ready to try All-Star difficulty?"
@@ -216,7 +216,7 @@ These create the autonomous testing infrastructure. Do these first.
 - **Acceptance:** Recommendations are personalized, accurate, and motivating
 
 ### 3.3 — Session Recap Enhancement
-- [ ] **Make session recaps more engaging and shareable**
+- [x] **Make session recaps more engaging and shareable** ✅ Done 2026-03-04 — Added "What You Learned" section tracking new concepts, session-over-session accuracy comparison, and "Share Progress" copy-to-clipboard button
 - Add: "New concepts learned" with checkmarks
 - Add: comparison to previous session (improving/declining)
 - Add: "Share your progress" button with copyable text
@@ -225,7 +225,7 @@ These create the autonomous testing infrastructure. Do these first.
 - **Acceptance:** Recap shows learning progress, not just stats
 
 ### 3.4 — Coach-Friendly Features
-- [ ] **Add a "Coach Mode" entry point**
+- [x] **Add a "Coach Mode" entry point** ✅ Done 2026-03-04 — Added "Coach Mode" button with parent gate, team dashboard preview panel showing aggregate position stats and recommended concepts to work on
 - New button on home screen: "I'm a Coach" (below the position grid)
 - Shows: roster management (localStorage), team progress overview, recommended drills by position
 - Can view aggregated team stats if multiple players use same device
@@ -233,7 +233,7 @@ These create the autonomous testing infrastructure. Do these first.
 - **Acceptance:** Coach can see which positions/concepts their team needs work on
 
 ### 3.5 — First-Time Experience Polish
-- [ ] **Improve the onboarding tutorial**
+- [x] **Improve the onboarding tutorial** ✅ Done 2026-03-04 — Added age selection step (step -1), position interest picker (step 3), and first-game guided tooltip ("Pick the best play!") that disappears after first choice
 - Current tutorial is basic. Enhance with:
   - Age selection (drives difficulty and language)
   - Position interest picker (personalizes home screen)
@@ -321,10 +321,10 @@ These create the autonomous testing infrastructure. Do these first.
 | 0: Infrastructure | 3 | 2 | In progress (0.3 pending) |
 | 1: Bug Fixes | 7 | 7 | ✅ Complete |
 | 2: Scenario Quality | 6 | 6 | ✅ Complete |
-| 3: Stickiness | 5 | 0 | Not started |
+| 3: Stickiness | 5 | 5 | ✅ Complete |
 | 4: Monetization | 2 | 0 | Not started |
 | 5: Deploy & Launch | 5 | 0 | Not started |
-| **Total** | **28** | **15** | **53% complete** |
+| **Total** | **28** | **20** | **71% complete** |
 
 ---
 
@@ -340,4 +340,19 @@ Session 2026-03-04 (initial):
 - Validation results: 0 errors, 214 warnings (down from 234). Code audit: 0 errors, 10 warnings.
 - Fixes applied: Mastery heatmap counter (shows explored+mastered), unicode arrow, Speed Round dedup (description-based), 3 explSimple for dropped-third-strike scenarios, 20 weak explanations rewritten
 - Next session should start with: Phase 3.1 (Parent Progress Report Enhancement)
+```
+
+```
+Session 2026-03-04 (Phase 3):
+- Tasks completed: 3.1, 3.2, 3.3, 3.4, 3.5
+- Tasks skipped: None
+- Issues found: 3.2 (Practice Recommendations) was already implemented as "Recommended for You" section
+- Features added:
+  - Parent Report: weekly concept trend, strongest/weakest position, practice recommendations
+  - Session Recap: "What You Learned" new concepts, session-vs-session accuracy comparison, share progress button
+  - Coach Mode: parent-gated team dashboard preview with aggregate stats and concept recommendations
+  - Onboarding: age selection step, position interest picker, first-game guided tooltip
+- Validation results: 0 errors, 214 warnings. Code audit: 0 errors, 10 warnings.
+- Progress: 20/28 tasks (71% complete)
+- Next session should start with: Phase 4.1 (Stripe End-to-End Test)
 ```

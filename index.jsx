@@ -9137,7 +9137,7 @@ export default function App(){
   const[aiFallback,setAiFallback]=useState(false); // true when AI failed and we're showing handcrafted
   const[dailyMode,setDailyMode]=useState(false); // true when playing daily diamond challenge
   const[seasonMode,setSeasonMode]=useState(false);
-  const[tutStep,setTutStep]=useState(0);
+  const[tutStep,setTutStep]=useState(-1); // Phase 3.5: start at age selection
   const[masteryPos,setMasteryPos]=useState(null);
   const[seasonStageIntro,setSeasonStageIntro]=useState(null); // stage object to show intro for
   const[lastSeasonStage,setLastSeasonStage]=useState(-1); // track which stage we've shown intro for
@@ -9164,8 +9164,8 @@ export default function App(){
   const[sitResults,setSitResults]=useState([]); // [{pos,correct,xp,choice,best}]
   const snd=useSound();
 
-  const[sessionRecap,setSessionRecap]=useState(null); // {plays,correct,concepts:[]}
-  const sessionRef=useRef({plays:0,correct:0,concepts:[]});
+  const[sessionRecap,setSessionRecap]=useState(null); // {plays,correct,concepts:[],newConcepts:[],improvement:bool}
+  const sessionRef=useRef({plays:0,correct:0,concepts:[],newConcepts:[]});
   const sessionPlanRef=useRef(null); // Session planner: array of {type, concept} or null
   const sessionPlanPosRef=useRef(null); // Track which position the plan was built for
   const abortRef=useRef(null);
@@ -10014,8 +10014,15 @@ export default function App(){
       };
       const sh = [...(p.masteryData?.sessionHistory||[]), shEntry].slice(-50);
       // Update concept mastery state
-      const updMastery = updateConceptMastery(p.masteryData||{concepts:{},errorPatterns:{},sessionHistory:[]}, conceptTag, isOpt, sc.id);
+      const oldMastery = p.masteryData||{concepts:{},errorPatterns:{},sessionHistory:[]};
+      const updMastery = updateConceptMastery(oldMastery, conceptTag, isOpt, sc.id);
       updMastery.sessionHistory = sh;
+      // Phase 3.3: Track new concepts (unseen -> introduced/learning)
+      if(conceptTag && oldMastery.concepts[conceptTag]?.state==="unseen" && (updMastery.concepts[conceptTag]?.state==="introduced"||updMastery.concepts[conceptTag]?.state==="learning")){
+        if(!sessionRef.current.newConcepts.includes(conceptTag)){
+          sessionRef.current.newConcepts.push(conceptTag);
+        }
+      }
       // Improvement Engine: quality signal, explanation effectiveness, gap cache
       const _qsResult = trackScenarioQuality(p, sc.id, isOpt, sc.isAI || false);
       const _srcResult = trackSourceQuality(_qsResult, isOpt, sc.isAI || false);
@@ -10118,8 +10125,12 @@ export default function App(){
     // Show session recap for normal play with 3+ plays
     const sr=sessionRef.current;
     if(sr.plays>=3&&!speedMode&&!survivalMode&&!seasonMode&&!realGameMode&&!dailyMode&&!sitMode&&screen!=="home"){
-      setSessionRecap({plays:sr.plays,correct:sr.correct,concepts:[...sr.concepts]});
-      sessionRef.current={plays:0,correct:0,concepts:[]};
+      const thisAccuracy=Math.round((sr.correct/sr.plays)*100);
+      const lastAccuracy=stats.lastSessionAccuracy||0;
+      const improvement=thisAccuracy>lastAccuracy;
+      setSessionRecap({plays:sr.plays,correct:sr.correct,concepts:[...sr.concepts],newConcepts:[...sr.newConcepts],improvement});
+      setStats(p=>({...p,lastSessionAccuracy:thisAccuracy}));
+      sessionRef.current={plays:0,correct:0,concepts:[],newConcepts:[]};
     }
     sessionConceptsRef.current=[] // Sprint 3.1: reset session concept diversity tracker
     cancelPrefetch() // BUG 5: cancel in-flight prefetches on navigate away
@@ -10571,19 +10582,43 @@ export default function App(){
                   <div key={i}><div style={{fontSize:22,fontWeight:800,color:s.c}}>{s.v}</div><div style={{fontSize:9,color:"#6b7280",marginTop:2}}>{s.l}</div></div>
                 )}
               </div>
-              {sessionRecap.concepts.length>0&&<div style={{marginBottom:14}}>
+              {sessionRecap.concepts.length>0&&<div style={{marginBottom:10}}>
                 <div style={{fontSize:9,color:"#6b7280",textTransform:"uppercase",letterSpacing:1,fontWeight:700,marginBottom:5}}>Concepts Practiced</div>
                 <div style={{display:"flex",flexWrap:"wrap",gap:3,justifyContent:"center"}}>
                   {sessionRecap.concepts.slice(0,6).map((c,i)=><span key={i} style={{background:"rgba(59,130,246,.08)",border:"1px solid rgba(59,130,246,.15)",borderRadius:6,padding:"2px 7px",fontSize:9,color:"#93c5fd"}}>{c}</span>)}
                   {sessionRecap.concepts.length>6&&<span style={{fontSize:9,color:"#6b7280"}}>+{sessionRecap.concepts.length-6} more</span>}
                 </div>
               </div>}
-              <button onClick={()=>setSessionRecap(null)} style={{...btn("linear-gradient(135deg,#2563eb,#3b82f6)"),...{fontSize:13,padding:"10px 28px"}}}>Continue</button>
+              {sessionRecap.newConcepts&&sessionRecap.newConcepts.length>0&&<div style={{marginBottom:10}}>
+                <div style={{fontSize:9,color:"#22c55e",textTransform:"uppercase",letterSpacing:1,fontWeight:700,marginBottom:5}}>What You Learned</div>
+                <div style={{display:"flex",flexWrap:"wrap",gap:3,justifyContent:"center"}}>
+                  {sessionRecap.newConcepts.slice(0,4).map((c,i)=><span key={i} style={{background:"rgba(34,197,94,.12)",border:"1px solid rgba(34,197,94,.2)",borderRadius:6,padding:"2px 7px",fontSize:9,color:"#86efac"}}>🆕 {c}</span>)}
+                </div>
+              </div>}
+              <div style={{margin:"10px 0",fontSize:11,color:sessionRecap.improvement?"#86efac":"#fbbf24",fontWeight:700}}>
+                {sessionRecap.improvement?"✅ Better than last session!":"Keep practicing to beat your last session!"}
+              </div>
+              <button onClick={()=>{const txt=`I just played ${sessionRecap.plays} scenarios on Baseball Strategy Master with ${Math.round((sessionRecap.correct/sessionRecap.plays)*100)}% accuracy! 🎯⚾`;navigator.clipboard.writeText(txt);setToast({e:"📋",n:"Copied!",d:"Progress shared to clipboard"});setTimeout(()=>setToast(null),2500)}} style={{...ghost,fontSize:10,marginBottom:8,width:"100%"}}>Share your progress →</button>
+              <button onClick={()=>setSessionRecap(null)} style={{...btn("linear-gradient(135deg,#2563eb,#3b82f6)"),...{fontSize:13,padding:"10px 28px"}}}>{stats.gp>0?"Continue":"Let's Play!"}→</button>
             </div>
           </div>}
           {stats.gp===0&&!stats.tutorialDone&&<div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,.85)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
             <div style={{background:"#1e293b",borderRadius:20,padding:"32px 24px",maxWidth:340,width:"100%",textAlign:"center",border:"2px solid rgba(245,158,11,.3)"}}>
-              {[
+              {/* Phase 3.5: Step -1: Age Selection */}
+              {tutStep===-1&&<div>
+                <div style={{fontSize:40,marginBottom:8}}>🎂</div>
+                <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:22,color:"#f59e0b",letterSpacing:1,marginBottom:8}}>How Old Are You?</div>
+                <p style={{fontSize:13,color:"#d1d5db",lineHeight:1.6,marginBottom:16}}>We'll adjust the game to match your level!</p>
+                <div style={{display:"flex",flexDirection:"column",gap:6}}>
+                  {AGE_GROUPS.map(ag=>(
+                    <button key={ag.id} onClick={()=>{setStats(p=>({...p,ageGroup:ag.id}));setTutStep(0)}} style={{background:stats.ageGroup===ag.id?"rgba(245,158,11,.2)":"rgba(255,255,255,.04)",border:"1px solid "+(stats.ageGroup===ag.id?"rgba(245,158,11,.3)":"rgba(255,255,255,.1)"),borderRadius:8,padding:"8px 12px",color:"#d1d5db",fontSize:12,fontWeight:600,cursor:"pointer",transition:"all .2s"}}>
+                      {ag.label}
+                    </button>
+                  ))}
+                </div>
+              </div>}
+              {/* Steps 0-2: Original Tutorial */}
+              {tutStep>=0&&tutStep<=2&&[
                 {e:"👆",t:"Pick a Position",d:"Choose any baseball position to start. Each one teaches different strategy skills!"},
                 {e:"🤔",t:"Read & Choose",d:"You'll see a real game situation with 4 options. Pick the best baseball play!"},
                 {e:"🟢",t:"Learn from Every Play",d:"Green = great choice, Yellow = okay, Red = needs work. Every answer teaches you something!"}
@@ -10592,12 +10627,30 @@ export default function App(){
                 <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:22,color:"#f59e0b",letterSpacing:1,marginBottom:8}}>{s.t}</div>
                 <p style={{fontSize:13,color:"#d1d5db",lineHeight:1.6,marginBottom:20}}>{s.d}</p>
               </div>)}
-              <div style={{display:"flex",gap:6,justifyContent:"center",marginBottom:16}}>
-                {[0,1,2].map(i=><div key={i} style={{width:8,height:8,borderRadius:4,background:i===tutStep?"#f59e0b":"rgba(255,255,255,.15)"}}/>)}
+              {/* Phase 3.5: Step 3: Position Interest */}
+              {tutStep===3&&<div>
+                <div style={{fontSize:40,marginBottom:8}}>⚾</div>
+                <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:22,color:"#f59e0b",letterSpacing:1,marginBottom:8}}>What Interests You?</div>
+                <p style={{fontSize:13,color:"#d1d5db",lineHeight:1.6,marginBottom:14}}>Start with your favorite role!</p>
+                <div style={{display:"flex",flexDirection:"column",gap:6}}>
+                  {[
+                    {label:"At the Plate",emoji:"🎯",pos:"batter"},
+                    {label:"On the Bases",emoji:"💨",pos:"baserunner"},
+                    {label:"In the Field",emoji:"🧤",pos:"pitcher"},
+                    {label:"In the Dugout",emoji:"📋",pos:"manager"}
+                  ].map(cat=>(
+                    <button key={cat.pos} onClick={()=>{setStats(p=>({...p,favoritePosition:cat.pos}));setTutStep(0);setStats(p=>({...p,tutorialDone:true}))}} style={{background:"rgba(59,130,246,.1)",border:"1px solid rgba(59,130,246,.2)",borderRadius:8,padding:"10px 12px",color:"#93c5fd",fontSize:12,fontWeight:600,cursor:"pointer",transition:"all .2s",textAlign:"left"}}>
+                      <span style={{marginRight:8}}>{cat.emoji}</span>{cat.label}
+                    </button>
+                  ))}
+                </div>
+              </div>}
+              <div style={{display:"flex",gap:6,justifyContent:"center",marginBottom:16,marginTop:tutStep===-1||tutStep===3?0:16}}>
+                {tutStep===-1?<div style={{width:8,height:8,borderRadius:4,background:"#f59e0b"}}/>:[...Array(4)].map((_,i)=><div key={i} style={{width:8,height:8,borderRadius:4,background:i===tutStep?"#f59e0b":"rgba(255,255,255,.15)"}}/>)}
               </div>
               <div style={{display:"flex",gap:8,justifyContent:"center"}}>
                 <button onClick={()=>{setTutStep(0);setStats(p=>({...p,tutorialDone:true}))}} style={{...ghost,fontSize:11}}>Skip</button>
-                <button onClick={()=>{if(tutStep<2)setTutStep(tutStep+1);else{setTutStep(0);setStats(p=>({...p,tutorialDone:true}))}}} style={{...btn("linear-gradient(135deg,#d97706,#f59e0b)"),...{fontSize:13,padding:"10px 28px"}}}>{tutStep<2?"Next":"Let's Play!"}</button>
+                <button onClick={()=>{if(tutStep===-1){setTutStep(0)}else if(tutStep<3){setTutStep(tutStep+1)}else{setStats(p=>({...p,tutorialDone:true}))}}} style={{...btn("linear-gradient(135deg,#d97706,#f59e0b)"),...{fontSize:13,padding:"10px 28px"}}}>{tutStep<3?"Next":"Let's Play!"}</button>
               </div>
             </div>
           </div>}
@@ -11399,16 +11452,22 @@ export default function App(){
               const a=Math.floor(Math.random()*10)+5;const b=Math.floor(Math.random()*10)+3;
               setParentGateInline({a,b,answer:""});
             }} style={{...ghost,fontSize:10}}>👪 Parent Report</button>
+            <span style={{color:"#374151"}}>·</span>
+            <button onClick={()=>{
+              if(parentGate){setPanel(panel==='coach'?null:'coach');return;}
+              const a=Math.floor(Math.random()*10)+5;const b=Math.floor(Math.random()*10)+3;
+              setParentGateInline({a,b,answer:"",forCoach:true});
+            }} style={{...ghost,fontSize:10}}>🏆 Coach Mode</button>
           </div>
 
           {parentGateInline&&!parentGate&&<div style={{...card,marginBottom:12,marginTop:8,textAlign:"center"}}>
-            <div style={{fontSize:11,color:"#8b5cf6",fontWeight:700,marginBottom:8}}>Parent Verification</div>
+            <div style={{fontSize:11,color:"#8b5cf6",fontWeight:700,marginBottom:8}}>{parentGateInline.forCoach?"Coach Verification":"Parent Verification"}</div>
             <div style={{fontSize:14,color:"#d1d5db",marginBottom:8}}>What is {parentGateInline.a} × {parentGateInline.b}?</div>
             <input type="number" inputMode="numeric" autoFocus value={parentGateInline.answer} onChange={e=>{
               const val=e.target.value;setParentGateInline(g=>({...g,answer:val}));
-              if(val&&parseInt(val)===parentGateInline.a*parentGateInline.b){setParentGate(true);setParentGateInline(null);setPanel('parent')}
+              if(val&&parseInt(val)===parentGateInline.a*parentGateInline.b){setParentGate(true);setParentGateInline(null);setPanel(parentGateInline.forCoach?'coach':'parent')}
             }} style={{width:80,background:"rgba(255,255,255,.06)",border:"1.5px solid rgba(139,92,246,.3)",borderRadius:10,padding:"8px 12px",color:"white",fontSize:18,fontWeight:700,textAlign:"center",outline:"none"}}/>
-            <div style={{fontSize:9,color:"#6b7280",marginTop:6}}>This keeps the report for parents only</div>
+            <div style={{fontSize:9,color:"#6b7280",marginTop:6}}>This keeps the {parentGateInline.forCoach?"dashboard":"report"} for coaches only</div>
           </div>}
 
           {panel==='parent'&&parentGate&&<div style={{...card,marginBottom:12,marginTop:8}}>
@@ -11422,6 +11481,34 @@ export default function App(){
                 {stats.ds>0?` Currently on a ${stats.ds}-day daily streak!`:" Encourage them to play daily to build a streak!"}
               </div>
             </div>
+
+            {/* Phase 3.1: Weekly Trend */}
+            {(()=>{const md=stats.masteryData||{concepts:{}};const now=Date.now();const oneWeekAgo=now-7*24*60*60*1000;const twoWeeksAgo=now-14*24*60*60*1000;const thisWeek=Object.entries(md.concepts).filter(([,v])=>v.masteredAt&&v.masteredAt>=oneWeekAgo).length;const lastWeek=Object.entries(md.concepts).filter(([,v])=>v.masteredAt&&v.masteredAt>=twoWeeksAgo&&v.masteredAt<oneWeekAgo).length;if(thisWeek===0&&lastWeek===0)return null;const trend=thisWeek>lastWeek?"📈":thisWeek<lastWeek?"📉":"➡️";return(
+              <div style={{background:"rgba(59,130,246,.06)",border:"1px solid rgba(59,130,246,.12)",borderRadius:10,padding:"8px 10px",marginBottom:10,fontSize:11,color:"#93c5fd"}}>
+                {trend} <strong>{thisWeek} concept{thisWeek!==1?"s":""} this week</strong> {lastWeek>0?`(${lastWeek} last week)`:lastWeek===0&&thisWeek>0?"(0 last week)":" — Encourage daily practice!"}
+              </div>
+            )})()}
+
+            {/* Phase 3.1: Strongest/Weakest Position */}
+            {(()=>{const ps=stats.ps||{};const posStats=Object.entries(ps).filter(([,v])=>v.p>=5).map(([p,v])=>({p,acc:Math.round((v.c/v.p)*100)}));if(posStats.length===0)return null;const best=posStats.reduce((a,b)=>b.acc-a.acc>0?b:a);const worst=posStats.reduce((a,b)=>a.acc-b.acc>0?a:b);return(
+              <div style={{background:"rgba(34,197,94,.06)",border:"1px solid rgba(34,197,94,.12)",borderRadius:10,padding:"8px 10px",marginBottom:10,fontSize:11,color:"#86efac"}}>
+                <div>💪 <strong>Strongest:</strong> {POS_META[best.p]?.label||best.p} ({best.acc}%)</div>
+                <div style={{marginTop:4}}>⚡ <strong>Needs Work:</strong> {POS_META[worst.p]?.label||worst.p} ({worst.acc}%)</div>
+              </div>
+            )})()}
+
+            {/* Phase 3.1: Recommended Practice Areas */}
+            {(()=>{const recs=getPracticeRecommendations(stats).slice(0,3);if(recs.length===0)return null;return(
+              <div style={{background:"rgba(168,85,247,.06)",border:"1px solid rgba(168,85,247,.12)",borderRadius:10,padding:"8px 10px",marginBottom:10}}>
+                <div style={{fontSize:11,fontWeight:700,color:"#d8b4fe",marginBottom:4}}>📚 Suggested Practice Areas</div>
+                <div style={{fontSize:10,color:"#c4b5fd"}}>
+                  {recs.slice(0,2).map((r,i)=>(
+                    <div key={i}>{r.emoji} {r.name}</div>
+                  ))}
+                </div>
+              </div>
+            )})()}
+
             <div style={{fontSize:11,fontWeight:700,color:"#6b7280",marginBottom:6}}>ACCURACY BY POSITION</div>
             <div style={{display:"flex",flexDirection:"column",gap:4,marginBottom:10}}>
               {ALL_POS.map(p=>{const s=stats.ps[p];const m=POS_META[p];const pAcc=s&&s.p>0?Math.round((s.c/s.p)*100):null;return(
@@ -11475,6 +11562,42 @@ export default function App(){
               a.download=`bsm-analytics-${new Date().toISOString().slice(0,10)}.json`;a.click();URL.revokeObjectURL(url);
             }} style={{...ghost,fontSize:10,marginTop:4,width:"100%"}}>📊 Export Analytics (JSON)</button>
           </div>}
+
+          {/* Phase 3.4: Coach Mode Preview */}
+          {panel==='coach'&&parentGate&&<div style={{...card,marginBottom:12,marginTop:8}}>
+            <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:14,color:"#06b6d4",letterSpacing:1,marginBottom:8}}>TEAM DASHBOARD (PREVIEW)</div>
+            <div style={{background:"rgba(6,182,212,.04)",border:"1px solid rgba(6,182,212,.12)",borderRadius:10,padding:"10px 12px",marginBottom:10}}>
+              <div style={{fontSize:11,color:"#a5f3fc",marginBottom:4}}>
+                📊 Aggregate Position Stats
+              </div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6}}>
+                {ALL_POS.slice(0,6).map(p=>{const s=stats.ps[p];const m=POS_META[p];const pAcc=s&&s.p>0?Math.round((s.c/s.p)*100):null;return(
+                  <div key={p} style={{background:"rgba(0,0,0,.3)",borderRadius:8,padding:"6px 8px",textAlign:"center",fontSize:10}}>
+                    <div style={{fontSize:14,marginBottom:2}}>{m.emoji}</div>
+                    <div style={{fontWeight:600,color:"#d1d5db"}}>{m.label}</div>
+                    <div style={{fontSize:9,color:"#6b7280"}}>{pAcc||"—"}% · {s?.p||0} plays</div>
+                  </div>
+                )})}
+              </div>
+            </div>
+            {(()=>{const recs=getPracticeRecommendations(stats).slice(0,3);if(recs.length===0)return null;return(
+              <div style={{background:"rgba(245,158,11,.04)",border:"1px solid rgba(245,158,11,.12)",borderRadius:10,padding:"8px 10px",marginBottom:10}}>
+                <div style={{fontSize:10,fontWeight:700,color:"#fbbf24",marginBottom:4}}>Top Concepts to Work On</div>
+                <div style={{fontSize:9,color:"#fcd34d"}}>
+                  {recs.map((r,i)=>(
+                    <div key={i}>{r.emoji} {r.name}</div>
+                  ))}
+                </div>
+              </div>
+            )})()}
+            <div style={{background:"rgba(168,85,247,.06)",border:"1px solid rgba(168,85,247,.12)",borderRadius:10,padding:"8px 10px",marginBottom:10}}>
+              <div style={{fontSize:10,color:"#d8b4fe",lineHeight:1.5}}>
+                Full coach features coming soon! Email <strong>feedback@bsm-app.pages.dev</strong> to request team sync, multi-player tracking, and performance analytics.
+              </div>
+            </div>
+            <button onClick={()=>setPanel(null)} style={{...ghost,fontSize:10,width:"100%"}}>Close</button>
+          </div>}
+
           {/* Footer links */}
           <div style={{textAlign:"center",marginTop:20,paddingTop:12,borderTop:"1px solid rgba(255,255,255,.06)"}}>
             <a href="/privacy.html" target="_blank" rel="noopener" style={{fontSize:10,color:"#6b7280",textDecoration:"none",marginRight:16}}>Privacy Policy</a>
@@ -11559,6 +11682,12 @@ export default function App(){
             <p style={{fontSize:14,lineHeight:1.55,color:"#d1d5db"}}>{sc.description}</p>
           </div>
 
+          {/* Phase 3.5: First-game guided tooltip */}
+          {stats.gp===0&&!stats.firstGameGuide&&choice===null&&<div style={{background:"linear-gradient(135deg,rgba(59,130,246,.1),rgba(139,92,246,.1))",border:"1px solid rgba(59,130,246,.2)",borderRadius:12,padding:"10px 12px",marginBottom:10,textAlign:"center"}}>
+            <div style={{fontSize:13,fontWeight:700,color:"#93c5fd"}}>👇 Pick the best play!</div>
+            <div style={{fontSize:10,color:"#60a5fa"}}>You got this! Read carefully and choose wisely.</div>
+          </div>}
+
           <div style={{display:"flex",flexDirection:"column",gap:10}}>
             {sc.options.map((opt,i)=>{
               const vis=ri>=i;const sel=choice===i;
@@ -11566,7 +11695,7 @@ export default function App(){
               if(sel&&od){if(od.cat==="success"){bg="rgba(34,197,94,.08)";bd="#22c55e"}else if(od.cat==="warning"){bg="rgba(245,158,11,.08)";bd="#f59e0b"}else{bg="rgba(239,68,68,.08)";bd="#ef4444"}}
               if(choice!==null&&i===sc.best&&!sel){bg="rgba(34,197,94,.04)";bd="rgba(34,197,94,.3)"}
               return(
-                <button key={i} aria-label={`Option ${i+1}: ${opt}`} onClick={()=>{snd.play('tap');handleChoice(i)}} disabled={choice!==null}
+                <button key={i} aria-label={`Option ${i+1}: ${opt}`} onClick={()=>{if(stats.gp===0&&!stats.firstGameGuide)setStats(p=>({...p,firstGameGuide:true}));snd.play('tap');handleChoice(i)}} disabled={choice!==null}
                   style={{background:bg,border:`1.5px solid ${bd}`,borderRadius:12,padding:"14px 12px",cursor:choice!==null?"default":"pointer",transition:"all .2s",opacity:vis?1:0,transform:vis?"translateX(0)":"translateX(-10px)",textAlign:"left",width:"100%",color:"white",fontSize:14,lineHeight:1.4,display:"flex",alignItems:"flex-start",gap:8,minHeight:48}}>
                   <span style={{width:24,height:24,borderRadius:7,flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",
                     background:sel?(od?.cat==="success"?"#22c55e":od?.cat==="warning"?"#f59e0b":"#ef4444"):choice!==null&&i===sc.best?"#22c55e":"rgba(255,255,255,.04)",
