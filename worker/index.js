@@ -1445,35 +1445,41 @@ async function handlePopulationDifficulty(request, env, cors) {
   }
 }
 
-// Level 2.4: GET /analytics/difficulty-calibration — population difficulty stats
+// Level 2.4 (upgraded): GET /analytics/difficulty-calibration — population difficulty from learning_events
 async function handleDifficultyCalibration(request, env, cors) {
+  const db = env.DB;
+  if (!db) {
+    return jsonResponse({ error: "No database configured" }, 500, cors);
+  }
   try {
     const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
-    // Concepts with extreme correct rates
-    const calibration = await env.DB.prepare(`
+    const results = await db.prepare(`
       SELECT concept, position, difficulty,
-        COUNT(*) as attempts,
-        SUM(is_correct) as correct,
-        ROUND(100.0 * SUM(is_correct) / COUNT(*), 1) as correct_rate,
-        SUM(is_ai) as ai_count
-      FROM scenario_difficulty
-      WHERE created_at > ? AND concept != ''
+             COUNT(*) as attempts,
+             SUM(CASE WHEN is_correct = 1 THEN 1 ELSE 0 END) as correct,
+             ROUND(AVG(CASE WHEN is_correct = 1 THEN 1.0 ELSE 0.0 END) * 100) as pct
+      FROM learning_events
+      WHERE timestamp > ?
+        AND concept != ''
       GROUP BY concept, position, difficulty
-      HAVING attempts >= 10
-      ORDER BY correct_rate ASC
+      HAVING attempts >= 20
+      ORDER BY pct ASC
     `).bind(thirtyDaysAgo).all();
 
-    const tooHard = (calibration.results || []).filter(r => r.correct_rate < 40);
-    const tooEasy = (calibration.results || []).filter(r => r.correct_rate > 90);
+    const calibrations = (results.results || [])
+      .filter(r => r.pct < 30 || r.pct > 90)
+      .map(r => ({
+        concept: r.concept,
+        position: r.position,
+        difficulty: r.difficulty,
+        correctRate: r.pct,
+        attempts: r.attempts,
+        adjustment: r.pct < 30 ? "too_hard" : "too_easy"
+      }));
 
-    return jsonResponse({
-      ok: true,
-      all: calibration.results || [],
-      tooHard,
-      tooEasy,
-    }, 200, cors);
+    return jsonResponse({ calibrations, queriedAt: new Date().toISOString() }, 200, cors);
   } catch (e) {
-    return jsonResponse({ ok: false, error: String(e) }, 500, cors);
+    return jsonResponse({ error: e.message }, 500, cors);
   }
 }
 
