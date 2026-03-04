@@ -100,6 +100,35 @@ const PBKDF2_ITERATIONS = 100_000;
 // );
 // CREATE INDEX IF NOT EXISTS idx_ab_test ON ab_results(test_id, variant_id);
 
+// Community Scenario Pool — shared across all users
+// CREATE TABLE IF NOT EXISTS scenario_pool (
+//   id TEXT PRIMARY KEY,
+//   position TEXT NOT NULL,
+//   difficulty INTEGER NOT NULL DEFAULT 2,
+//   concept TEXT,
+//   concept_tag TEXT,
+//   title TEXT NOT NULL,
+//   scenario_json TEXT NOT NULL,
+//   quality_score REAL DEFAULT 0,
+//   audit_score REAL DEFAULT 0,
+//   times_served INTEGER DEFAULT 0,
+//   times_correct INTEGER DEFAULT 0,
+//   times_wrong INTEGER DEFAULT 0,
+//   times_flagged INTEGER DEFAULT 0,
+//   correct_rate REAL GENERATED ALWAYS AS (CASE WHEN times_served > 0 THEN CAST(times_correct AS REAL) / times_served ELSE 0 END) STORED,
+//   flag_rate REAL GENERATED ALWAYS AS (CASE WHEN times_served > 0 THEN CAST(times_flagged AS REAL) / times_served ELSE 0 END) STORED,
+//   source TEXT DEFAULT 'ai',
+//   contributed_by TEXT,
+//   created_at INTEGER NOT NULL,
+//   last_served_at INTEGER,
+//   retired INTEGER DEFAULT 0
+// );
+// CREATE INDEX IF NOT EXISTS idx_pool_position ON scenario_pool(position);
+// CREATE INDEX IF NOT EXISTS idx_pool_pos_diff ON scenario_pool(position, difficulty);
+// CREATE INDEX IF NOT EXISTS idx_pool_concept ON scenario_pool(concept_tag);
+// CREATE INDEX IF NOT EXISTS idx_pool_quality ON scenario_pool(quality_score);
+// CREATE INDEX IF NOT EXISTS idx_pool_retired ON scenario_pool(retired);
+
 const rateCounts = new Map();
 const loginAttempts = new Map();
 
@@ -1581,6 +1610,203 @@ async function handleScenarioGrade(request, env, cors) {
   }
 }
 
+// ============================================================================
+// Community Scenario Pool — shared across all users
+// ============================================================================
+
+// POST /scenario-pool/submit — contribute a quality AI scenario to the shared pool
+async function handlePoolSubmit(request, env, cors) {
+  try {
+    const body = await request.json();
+    const { scenario, position, quality_score, audit_score, source } = body;
+
+    if (!scenario || !position || !scenario.title) {
+      return jsonResponse({ error: "Missing scenario, position, or title" }, 400, cors);
+    }
+
+    // Quality gate: only accept scenarios scoring >= 8.0
+    if ((quality_score || 0) < 8.0) {
+      return jsonResponse({ error: "Quality score too low for pool", min: 8.0, got: quality_score }, 400, cors);
+    }
+
+    // Generate stable pool ID from content hash (prevents exact duplicates)
+    const hashInput = `${position}:${scenario.title}:${scenario.concept || ""}:${(scenario.options || []).join("|")}`;
+    const hashBuffer = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(hashInput));
+    const poolId = "pool_" + Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, "0")).join("").slice(0, 16);
+
+    // Check for duplicate
+    const existing = await env.DB.prepare("SELECT id FROM scenario_pool WHERE id = ?").bind(poolId).first();
+    if (existing) {
+      // Update quality score if new score is higher
+      await env.DB.prepare("UPDATE scenario_pool SET quality_score = MAX(quality_score, ?), audit_score = MAX(audit_score, ?) WHERE id = ?")
+        .bind(quality_score || 0, audit_score || 0, poolId).run();
+      return jsonResponse({ status: "duplicate_updated", id: poolId }, 200, cors);
+    }
+
+    // Strip fields that shouldn't be in the pool (user-specific data)
+    const cleanScenario = {
+      title: scenario.title,
+      diff: scenario.diff,
+      description: scenario.description,
+      situation: scenario.situation,
+      options: scenario.options,
+      best: scenario.best,
+      explanations: scenario.explanations,
+      rates: scenario.rates,
+      concept: scenario.concept,
+      conceptTag: scenario.conceptTag || null,
+      anim: scenario.anim || "freeze",
+      explSimple: scenario.explSimple || null,
+      explDepth: scenario.explDepth || null
+    };
+
+    await env.DB.prepare(`
+      INSERT INTO scenario_pool (id, position, difficulty, concept, concept_tag, title, scenario_json, quality_score, audit_score, source, contributed_by, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).bind(
+      poolId,
+      position,
+      scenario.diff || 2,
+      scenario.concept || "",
+      scenario.conceptTag || "",
+      scenario.title,
+      JSON.stringify(cleanScenario),
+      quality_score || 0,
+      audit_score || 0,
+      source || "ai",
+      "anonymous",
+      Date.now()
+    ).run();
+
+    console.log(`[BSM Pool] New scenario added: "${scenario.title}" (${position}, quality: ${quality_score})`);
+    return jsonResponse({ status: "added", id: poolId }, 201, cors);
+  } catch (e) {
+    console.error("[BSM Pool] Submit error:", e.message);
+    return jsonResponse({ error: e.message }, 500, cors);
+  }
+}
+
+// GET /scenario-pool/fetch?position=X&difficulty=Y&concept=Z&exclude=id1,id2
+async function handlePoolFetch(request, env, cors) {
+  try {
+    const url = new URL(request.url);
+    const position = url.searchParams.get("position");
+    const difficulty = parseInt(url.searchParams.get("difficulty") || "2");
+    const conceptTag = url.searchParams.get("concept") || null;
+    const exclude = (url.searchParams.get("exclude") || "").split(",").filter(Boolean);
+    const limit = Math.min(parseInt(url.searchParams.get("limit") || "3"), 10);
+
+    if (!position) {
+      return jsonResponse({ error: "position required" }, 400, cors);
+    }
+
+    // Build query — prioritize: high quality, low flag rate, concept match
+    let query = `
+      SELECT id, scenario_json, quality_score, audit_score, times_served, correct_rate
+      FROM scenario_pool
+      WHERE position = ? AND difficulty = ? AND retired = 0
+        AND (times_served < 3 OR flag_rate < 0.10)
+    `;
+    const params = [position, difficulty];
+
+    // Exclude already-seen scenarios
+    if (exclude.length > 0 && exclude.length <= 200) {
+      query += ` AND id NOT IN (${exclude.map(() => "?").join(",")})`;
+      params.push(...exclude);
+    }
+
+    // Prefer concept match if provided
+    if (conceptTag) {
+      query += ` ORDER BY CASE WHEN concept_tag = ? THEN 0 ELSE 1 END, quality_score DESC, RANDOM()`;
+      params.push(conceptTag);
+    } else {
+      query += ` ORDER BY quality_score DESC, RANDOM()`;
+    }
+
+    query += ` LIMIT ?`;
+    params.push(limit);
+
+    const results = await env.DB.prepare(query).bind(...params).all();
+
+    // Update times_served for returned scenarios
+    if (results.results && results.results.length > 0) {
+      const ids = results.results.map(r => r.id);
+      // Non-blocking update
+      env.DB.prepare(`UPDATE scenario_pool SET times_served = times_served + 1, last_served_at = ? WHERE id IN (${ids.map(() => "?").join(",")})`)
+        .bind(Date.now(), ...ids).run().catch(() => {});
+    }
+
+    const scenarios = (results.results || []).map(r => {
+      try {
+        const sc = JSON.parse(r.scenario_json);
+        sc.id = r.id; // use pool ID
+        sc.isAI = true;
+        sc.isPooled = true;
+        sc.poolQuality = r.quality_score;
+        return sc;
+      } catch { return null; }
+    }).filter(Boolean);
+
+    return jsonResponse({
+      scenarios,
+      total: scenarios.length,
+      pool_size: await env.DB.prepare("SELECT COUNT(*) as cnt FROM scenario_pool WHERE position = ? AND retired = 0").bind(position).first().then(r => r?.cnt || 0)
+    }, 200, cors);
+  } catch (e) {
+    console.error("[BSM Pool] Fetch error:", e.message);
+    return jsonResponse({ error: e.message }, 500, cors);
+  }
+}
+
+// POST /scenario-pool/feedback — report outcome for a pool scenario
+async function handlePoolFeedback(request, env, cors) {
+  try {
+    const { pool_id, correct, flagged } = await request.json();
+    if (!pool_id) return jsonResponse({ error: "pool_id required" }, 400, cors);
+
+    if (correct === true) {
+      await env.DB.prepare("UPDATE scenario_pool SET times_correct = times_correct + 1 WHERE id = ?").bind(pool_id).run();
+    } else if (correct === false) {
+      await env.DB.prepare("UPDATE scenario_pool SET times_wrong = times_wrong + 1 WHERE id = ?").bind(pool_id).run();
+    }
+    if (flagged) {
+      await env.DB.prepare("UPDATE scenario_pool SET times_flagged = times_flagged + 1 WHERE id = ?").bind(pool_id).run();
+      // Auto-retire if flagged too many times
+      await env.DB.prepare("UPDATE scenario_pool SET retired = 1 WHERE id = ? AND times_flagged >= 3 AND times_served >= 5 AND CAST(times_flagged AS REAL) / times_served > 0.15").bind(pool_id).run();
+    }
+
+    return jsonResponse({ status: "ok" }, 200, cors);
+  } catch (e) {
+    return jsonResponse({ error: e.message }, 500, cors);
+  }
+}
+
+// GET /scenario-pool/stats — pool inventory overview
+async function handlePoolStats(request, env, cors) {
+  try {
+    const byPosition = await env.DB.prepare(`
+      SELECT position, difficulty, COUNT(*) as count,
+        ROUND(AVG(quality_score), 1) as avg_quality,
+        SUM(times_served) as total_served,
+        ROUND(AVG(CASE WHEN times_served > 0 THEN CAST(times_correct AS REAL) / times_served ELSE 0 END), 2) as avg_correct_rate
+      FROM scenario_pool WHERE retired = 0
+      GROUP BY position, difficulty
+      ORDER BY position, difficulty
+    `).all();
+
+    const total = await env.DB.prepare("SELECT COUNT(*) as total, SUM(CASE WHEN retired = 1 THEN 1 ELSE 0 END) as retired FROM scenario_pool").first();
+
+    return jsonResponse({
+      total: total?.total || 0,
+      retired: total?.retired || 0,
+      active: (total?.total || 0) - (total?.retired || 0),
+      by_position: byPosition.results || []
+    }, 200, cors);
+  } catch (e) {
+    return jsonResponse({ error: e.message }, 500, cors);
+  }
+}
+
 // Level 2.4: POST /analytics/population-difficulty — store aggregated difficulty data
 async function handlePopulationDifficulty(request, env, cors) {
   let body;
@@ -2008,6 +2234,42 @@ export default {
     if (path === "/errors/summary" && request.method === "GET") {
       try {
         return await handleErrorsSummary(request, env, cors);
+      } catch {
+        return jsonResponse({ error: "Server error" }, 500, cors);
+      }
+    }
+
+    // Community Scenario Pool endpoints
+    if (path === "/scenario-pool/submit" && request.method === "POST") {
+      if (!checkRateLimit(`ai:${ip}`, RATE_LIMIT_AI)) {
+        return jsonResponse({ error: "Rate limited. Try again in a minute." }, 429, cors);
+      }
+      try {
+        return await handlePoolSubmit(request, env, cors);
+      } catch {
+        return jsonResponse({ error: "Server error" }, 500, cors);
+      }
+    }
+    if (path === "/scenario-pool/fetch" && request.method === "GET") {
+      try {
+        return await handlePoolFetch(request, env, cors);
+      } catch {
+        return jsonResponse({ error: "Server error" }, 500, cors);
+      }
+    }
+    if (path === "/scenario-pool/feedback" && request.method === "POST") {
+      if (!checkRateLimit(`ai:${ip}`, RATE_LIMIT_AI)) {
+        return jsonResponse({ error: "Rate limited. Try again in a minute." }, 429, cors);
+      }
+      try {
+        return await handlePoolFeedback(request, env, cors);
+      } catch {
+        return jsonResponse({ error: "Server error" }, 500, cors);
+      }
+    }
+    if (path === "/scenario-pool/stats" && request.method === "GET") {
+      try {
+        return await handlePoolStats(request, env, cors);
       } catch {
         return jsonResponse({ error: "Server error" }, 500, cors);
       }

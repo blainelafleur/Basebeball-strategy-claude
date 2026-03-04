@@ -8881,6 +8881,10 @@ COMMON MISTAKES TO AVOID:
           body: JSON.stringify({ scenario_id: scenario.id, position, score: grade.score, pass: grade.pass, deductions: grade.deductions, source: "standard" })
         }).catch(() => {});
       }
+      // Upload to community pool if quality is high enough
+      if (grade.score >= 80) {
+        submitToServerPool(scenario, position, grade.score / 10, scenario.auditScore || 0)
+      }
     } catch (e) { /* non-critical */ }
 
     // Phase B1: Self-audit — lightweight second AI call for baseball authenticity (~33% of the time, Pro only)
@@ -9015,10 +9019,121 @@ function getRandomTemplateValues() {
 // Module-level recent title tracking (survives across React renders, unlike aiHistory)
 const _recentAITitles = []
 
+// ═══════════════════════════════════════════════════════════════
+// Community Scenario Pool — 3-tier retrieval system
+// Tier 1: localStorage pool (unused pre-cached scenarios)
+// Tier 2: Server pool (community-contributed quality scenarios)
+// Tier 3: Fresh AI generation (fallback)
+// ═══════════════════════════════════════════════════════════════
+const LOCAL_POOL_KEY = "bsm_scenario_pool"
+const LOCAL_POOL_MAX = 50 // max scenarios stored locally
+
+function getLocalPool() {
+  try {
+    return JSON.parse(localStorage.getItem(LOCAL_POOL_KEY) || "[]")
+  } catch { return [] }
+}
+
+function saveToLocalPool(scenario, position) {
+  try {
+    const pool = getLocalPool()
+    // Dedup by title + position
+    if (pool.some(p => p.scenario.title === scenario.title && p.position === position)) return
+    pool.push({
+      scenario,
+      position,
+      difficulty: scenario.diff || 2,
+      conceptTag: scenario.conceptTag || "",
+      quality: scenario.qualityGrade || 0,
+      savedAt: Date.now()
+    })
+    // Trim to max, removing oldest first
+    while (pool.length > LOCAL_POOL_MAX) pool.shift()
+    localStorage.setItem(LOCAL_POOL_KEY, JSON.stringify(pool))
+    console.log("[BSM Pool] Saved to local pool:", scenario.title, "(" + position + "). Pool size:", pool.length)
+  } catch (e) {
+    console.warn("[BSM Pool] Local save failed:", e.message)
+  }
+}
+
+function consumeFromLocalPool(position, difficulty, excludeIds = []) {
+  try {
+    const pool = getLocalPool()
+    const matchIdx = pool.findIndex(p =>
+      p.position === position &&
+      p.difficulty === difficulty &&
+      !excludeIds.includes(p.scenario.id)
+    )
+    if (matchIdx === -1) return null
+    const match = pool.splice(matchIdx, 1)[0]
+    localStorage.setItem(LOCAL_POOL_KEY, JSON.stringify(pool))
+    console.log("[BSM Pool] Consumed from local pool:", match.scenario.title)
+    return match.scenario
+  } catch { return null }
+}
+
+async function fetchFromServerPool(position, difficulty, conceptTag, excludeIds = []) {
+  try {
+    const params = new URLSearchParams({ position, difficulty: String(difficulty) })
+    if (conceptTag) params.set("concept", conceptTag)
+    if (excludeIds.length > 0 && excludeIds.length <= 100) {
+      params.set("exclude", excludeIds.slice(0, 100).join(","))
+    }
+    const response = await Promise.race([
+      fetch(WORKER_BASE + "/scenario-pool/fetch?" + params.toString()),
+      new Promise((_, rej) => setTimeout(() => rej(new Error("pool-timeout")), 5000))
+    ])
+    if (!response.ok) return null
+    const data = await response.json()
+    if (data.scenarios && data.scenarios.length > 0) {
+      console.log("[BSM Pool] Fetched from server pool:", data.scenarios.length, "scenarios. Pool size:", data.pool_size)
+      return data.scenarios[0] // return best match
+    }
+    return null
+  } catch (e) {
+    console.warn("[BSM Pool] Server fetch failed:", e.message)
+    return null
+  }
+}
+
+function submitToServerPool(scenario, position, qualityScore, auditScore) {
+  // Non-blocking — fire and forget
+  if ((qualityScore || 0) < 8.0) return // only submit quality scenarios
+  fetch(WORKER_BASE + "/scenario-pool/submit", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      scenario,
+      position,
+      quality_score: qualityScore,
+      audit_score: auditScore || 0,
+      source: "ai"
+    })
+  }).then(r => r.json()).then(data => {
+    if (data.status === "added") console.log("[BSM Pool] Contributed to server pool:", scenario.title)
+    else if (data.status === "duplicate_updated") console.log("[BSM Pool] Updated existing pool entry:", scenario.title)
+  }).catch(() => {})
+}
+
+function reportPoolFeedback(poolId, correct, flagged = false) {
+  if (!poolId || !poolId.startsWith("pool_")) return // only for pool scenarios
+  fetch(WORKER_BASE + "/scenario-pool/feedback", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ pool_id: poolId, correct, flagged })
+  }).catch(() => {})
+}
+
 // Sprint 5: AI pre-generation cache \u2014 fetch next scenario in background
 const _aiCache = { scenario: null, position: null, fetching: false, controller: null }
 async function prefetchAIScenario(position, stats, conceptsLearned, recentWrong, aiHistory) {
   if (_aiCache.fetching) return
+  // Save existing cache for different position to local pool before overwriting
+  if (_aiCache.scenario && _aiCache.position && _aiCache.position !== position) {
+    saveToLocalPool(_aiCache.scenario.scenario, _aiCache.position)
+    _aiCache.scenario = null
+    _aiCache.position = null
+  }
   if (_aiCache.scenario && _aiCache.position === position) return // already cached for this position
   _aiCache.fetching = true
   _aiCache.controller = new AbortController()
@@ -10307,6 +10422,50 @@ export default function App(){
         cachedSc.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80)})
         return
       }
+      // Tier 1: Check local scenario pool
+      const maxDiffForPos = (AGE_GROUPS.find(a=>a.id===stats.ageGroup)||AGE_GROUPS[2]).maxDiff
+      const diffForPool = (stats.ps?.[p]?.p||0) > 0 ? ((stats.ps[p].c/stats.ps[p].p) > 0.75 ? Math.min(3,maxDiffForPos) : (stats.ps[p].c/stats.ps[p].p) > 0.5 ? Math.min(2,maxDiffForPos) : 1) : 1
+      const excludePoolIds = [...(stats.cl || []), ...(stats.aiHistory || []).map(h => h.id)]
+      const localPoolSc = consumeFromLocalPool(p, diffForPool, excludePoolIds)
+      if (localPoolSc) {
+        console.log("[BSM] Using local pool scenario:", localPoolSc.title)
+        localPoolSc.isPooled = true
+        setAiMode(true); setScreen("play")
+        aiFailRef.current.consecutive = 0; aiFailRef.current.cooldownUntil = 0
+        trackAnalyticsEvent("ai_scenario_generated", { pos: p, concept: localPoolSc.conceptTag || "", diff: localPoolSc.diff, source: "local_pool" }, { ageGroup: stats.ageGroup, isPro: stats.isPro })
+        setStats(prev => {
+          const entry = { id: localPoolSc.id, title: localPoolSc.title, position: p, diff: localPoolSc.diff, concept: localPoolSc.concept, conceptTag: localPoolSc.conceptTag || null, generatedAt: Date.now(), answered: false, correct: null, chosenIdx: null }
+          const hist = [...(prev.aiHistory || []), entry].slice(-100)
+          return { ...prev, aiHistory: hist }
+        })
+        setSc(localPoolSc)
+        localPoolSc.options.forEach((_, i) => { setTimeout(() => setRi(i), 120 + i * 80) })
+        return
+      }
+
+      // Tier 2: Check server community pool
+      try {
+        const serverPoolSc = await fetchFromServerPool(p, diffForPool, null, excludePoolIds)
+        if (serverPoolSc) {
+          console.log("[BSM] Using server pool scenario:", serverPoolSc.title)
+          serverPoolSc.isPooled = true
+          setAiMode(true); setScreen("play")
+          aiFailRef.current.consecutive = 0; aiFailRef.current.cooldownUntil = 0
+          trackAnalyticsEvent("ai_scenario_generated", { pos: p, concept: serverPoolSc.conceptTag || "", diff: serverPoolSc.diff, source: "server_pool" }, { ageGroup: stats.ageGroup, isPro: stats.isPro })
+          setStats(prev => {
+            const entry = { id: serverPoolSc.id, title: serverPoolSc.title, position: p, diff: serverPoolSc.diff, concept: serverPoolSc.concept, conceptTag: serverPoolSc.conceptTag || null, generatedAt: Date.now(), answered: false, correct: null, chosenIdx: null }
+            const hist = [...(prev.aiHistory || []), entry].slice(-100)
+            return { ...prev, aiHistory: hist }
+          })
+          setSc(serverPoolSc)
+          serverPoolSc.options.forEach((_, i) => { setTimeout(() => setRi(i), 120 + i * 80) })
+          return
+        }
+      } catch (e) {
+        console.warn("[BSM] Server pool fetch failed, falling through to AI generation:", e.message)
+      }
+
+      // Tier 3: Fresh AI generation (existing code continues below)
       // Cooldown check — skip AI if recent repeated failures
       if(Date.now()<aiFailRef.current.cooldownUntil){
         const mins=Math.ceil((aiFailRef.current.cooldownUntil-Date.now())/60000);
@@ -10444,7 +10603,7 @@ export default function App(){
         aiCacheRef.current.generating=true;aiCacheRef.current.lastGenTime=Date.now();
         console.log("[BSM] Just-in-time AI precache for",p);
         generateAIScenario(p,stats,stats.cl||[],stats.recentWrong||[],null,null,stats.aiHistory||[])
-          .then(result=>{if(result?.scenario){aiCacheRef.current.scenarios[p]=result;console.log("[BSM] Pre-cached AI scenario:",result.scenario.title,"for",p)}})
+          .then(result=>{if(result?.scenario){const existing=aiCacheRef.current.scenarios[p];if(existing?.scenario)saveToLocalPool(existing.scenario,p);aiCacheRef.current.scenarios[p]=result;console.log("[BSM] Pre-cached AI scenario:",result.scenario.title,"for",p)}})
           .catch(()=>{}).finally(()=>{aiCacheRef.current.generating=false})
       }
       setTimeout(()=>{setToast({e:"🔄",n:"Review Mode",d:"Revisiting scenarios to sharpen your skills!"});setTimeout(()=>setToast(null),3000)},300);
@@ -10476,7 +10635,7 @@ export default function App(){
         aiCacheRef.current.generating=true;aiCacheRef.current.lastGenTime=Date.now();
         console.log("[BSM] Just-in-time AI precache for",p);
         generateAIScenario(p,stats,stats.cl||[],stats.recentWrong||[],null,null,stats.aiHistory||[])
-          .then(result=>{if(result?.scenario){aiCacheRef.current.scenarios[p]=result;console.log("[BSM] Pre-cached AI scenario:",result.scenario.title,"for",p)}})
+          .then(result=>{if(result?.scenario){const existing=aiCacheRef.current.scenarios[p];if(existing?.scenario)saveToLocalPool(existing.scenario,p);aiCacheRef.current.scenarios[p]=result;console.log("[BSM] Pre-cached AI scenario:",result.scenario.title,"for",p)}})
           .catch(()=>{}).finally(()=>{aiCacheRef.current.generating=false})
       }
     }
@@ -10492,6 +10651,8 @@ export default function App(){
     if(choice!==null||!sc)return;setChoice(idx);
     const conceptTagForEffectiveness = findConceptTag(sc.concept);
     const isOpt=idx===sc.best;const rate=sc.rates[idx];const cat=isOpt?"success":rate>=55?"warning":"danger";
+    // Report pool scenario feedback
+    if (sc.isPooled && sc.id) { reportPoolFeedback(sc.id, isOpt, false) }
     // Sprint 4.2: Track scenario answer
     trackAnalyticsEvent("scenario_answer",{pos:pos,correct:isOpt,diff:sc.diff||1,concept:conceptTagForEffectiveness||"",isAI:!!sc.isAI},{ageGroup:stats.ageGroup,isPro:stats.isPro});
     let pts=isOpt?15:rate>=55?8:rate>=35?4:2;
@@ -12392,6 +12553,8 @@ export default function App(){
               // Send rich feedback to server
               const scenarioSnapshot={title:sc.title,description:sc.description,options:sc.options,best:sc.best,explanations:sc.explanations,concept:sc.concept,diff:sc.diff};
               fetch(WORKER_BASE+'/feedback-scenario',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({scenario_id:sid,position:pos,flag_category:category,comment:flagComment.slice(0,140),scenario_json:JSON.stringify(scenarioSnapshot)})}).catch(()=>{});
+              // Report flag to pool
+              if (sc.isPooled && sc.id) { reportPoolFeedback(sc.id, false, true) }
             };
             if(alreadyFlagged)return(<div style={{display:"flex",justifyContent:"center",marginTop:6,marginBottom:2}}>
               <span style={{fontSize:10,color:"#4b5563",fontWeight:600}}>✓ Feedback received</span>
