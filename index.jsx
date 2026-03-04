@@ -7081,6 +7081,39 @@ function planSession(stats, position) {
   return plan
 }
 
+// Optimal game situations for teaching specific concepts
+const CONCEPT_SITUATIONS = {
+  "force-vs-tag": { runners: [1, 2], outs: 1 },
+  "steal-breakeven": { runners: [1], outs: 0 },
+  "bunt-re24": { runners: [2], outs: 0 },
+  "relay-double-cut": { runners: [2], outs: 0 },
+  "infield-fly": { runners: [1, 2], outs: 0 },
+  "double-play-turn": { runners: [1], outs: 0 },
+  "tag-up": { runners: [3], outs: 0 },
+  "hit-and-run": { runners: [1], outs: 0, count: "1-1" },
+  "squeeze-play": { runners: [3], outs: 1 },
+  "cutoff-roles": { runners: [2], outs: 1 },
+  "backup-duties": { runners: [1], outs: 0 },
+  "pickoff-mechanics": { runners: [1], outs: 0 },
+  "pitch-count-mgmt": { runners: [], outs: 0 },
+  "two-strike-approach": { runners: [], outs: 1, count: "1-2" },
+  "count-leverage": { runners: [1], outs: 1, count: "3-1" },
+  "lead-distance": { runners: [1], outs: 0 },
+  "secondary-lead": { runners: [1, 2], outs: 1 },
+  "first-third": { runners: [1, 3], outs: 1 },
+  "wild-pitch-coverage": { runners: [3], outs: 1 },
+  "bunt-defense": { runners: [1], outs: 0 },
+  "situational-hitting": { runners: [2, 3], outs: 1 },
+  "dp-positioning": { runners: [1], outs: 0 },
+  "fly-ball-priority": { runners: [3], outs: 0 },
+  "first-pitch-strike": { runners: [], outs: 0, count: "0-0" },
+  "of-communication": { runners: [2], outs: 1 },
+  "rundown-mechanics": { runners: [1, 2], outs: 0 },
+  "scoring-probability": { runners: [2, 3], outs: 1 },
+  "ibb-strategy": { runners: [2], outs: 1 },
+  "obstruction-interference": { runners: [1], outs: 1 },
+}
+
 // ============================================================================
 // Level 3.3: Planner Agent — Decides what to teach and selects context
 // ============================================================================
@@ -7187,7 +7220,8 @@ function planScenario(position, stats, conceptsLearned = [], recentWrong = [], t
     position,
     principles: KNOWLEDGE_BASE.getPrinciplesForPosition(position),
     ageGate: gate || null,
-    ageGroup
+    ageGroup,
+    situationHint: selectedConcept ? (CONCEPT_SITUATIONS[selectedConcept] || null) : null
   }
 }
 
@@ -7195,7 +7229,7 @@ function planScenario(position, stats, conceptsLearned = [], recentWrong = [], t
 // Level 3.4: Generator Agent — Builds focused prompt from Planner's output
 // ============================================================================
 function buildAgentPrompt(plan) {
-  const { position, difficulty, teachingGoal, targetConcept, playerContext, principles, brainData, exampleScenarios, avoidPatterns, avoidTitles, flaggedAvoidText, ageGate, ageGroup } = plan
+  const { position, difficulty, teachingGoal, targetConcept, playerContext, principles, brainData, exampleScenarios, avoidPatterns, avoidTitles, flaggedAvoidText, ageGate, ageGroup, situationHint } = plan
 
   // Focused examples (condensed)
   const examplesText = exampleScenarios.slice(0, 2).map((s, i) =>
@@ -7209,6 +7243,9 @@ function buildAgentPrompt(plan) {
   // Age gate adjustments
   const ageText = ageGate?.adjustments ? `\nPLAYER AGE GROUP: ${ageGroup || "11-12"}\nSTRATEGIC ADJUSTMENTS FOR THIS AGE:\n${Object.entries(ageGate.adjustments).map(([k,v]) => `- ${k}: ${v}`).join("\n")}${ageGate.forbidden?.length > 0 ? `\nFORBIDDEN CONCEPTS (do NOT use): ${ageGate.forbidden.join(", ")}` : ""}` : ""
 
+  // Situation hint from CONCEPT_SITUATIONS
+  const sitText = situationHint ? `\nREQUIRED SITUATION: Set runners to ${JSON.stringify(situationHint.runners)}, outs to ${situationHint.outs}${situationHint.count ? ", count to " + situationHint.count : ""}. This situation best illustrates the concept "${targetConcept}".` : ""
+
   const tv = getRandomTemplateValues()
   return `Create a baseball strategy scenario for position: ${position}.
 TEACHING GOAL: ${teachingGoal} concept "${targetConcept || "general " + position + " strategy"}".
@@ -7221,7 +7258,7 @@ ${principles.detailed || principles.condensed}
 ${brainData}
 
 ${examplesText}
-${avoidText}${patternText}${flaggedAvoidText || ""}
+${avoidText}${patternText}${flaggedAvoidText || ""}${sitText}
 
 THE QUESTION MUST ASK: "What should the ${position.replace(/([A-Z])/g,' $1').trim().toLowerCase()} do?" All 4 options must be physical actions or decisions that ONLY this position makes.
 
@@ -7346,7 +7383,7 @@ async function generateWithAgentPipeline(position, stats, conceptsLearned, recen
   // Stage 1: Plan
   const plan = planScenario(position, stats, conceptsLearned, recentWrong, targetConcept, aiHistory)
   if (flaggedAvoidText) plan.flaggedAvoidText = flaggedAvoidText
-  console.log("[BSM Agent] Plan:", plan.teachingGoal, "concept:", plan.targetConcept, "diff:", plan.difficulty)
+  console.log("[BSM Agent] Plan:", plan.teachingGoal, "concept:", plan.targetConcept, "diff:", plan.difficulty, plan.situationHint ? "situationHint:" + JSON.stringify(plan.situationHint) : "")
 
   // Stage 2: Generate (using agent prompt)
   const agentPrompt = buildAgentPrompt(plan)
