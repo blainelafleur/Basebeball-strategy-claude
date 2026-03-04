@@ -4129,6 +4129,59 @@ function getCoachVoice(stats) {
   if (ag === "13+" || lvl >= 15) return COACH_VOICES.scout
   return COACH_VOICES.varsity
 }
+// ── Learning Paths (Pillar 3A) — structured multi-session progressions ──
+// All concept tags cross-referenced against BRAIN.concepts (46 tags verified)
+const LEARNING_PATHS = {
+  "defensive_fundamentals": {
+    sequence: ["fly-ball-priority", "backup-duties", "wild-pitch-coverage",
+               "cutoff-roles", "double-play-turn", "dp-positioning", "relay-double-cut"],
+    assessAt: [2, 4, 6],
+    positions: ["firstBase", "secondBase", "shortstop", "thirdBase",
+                "leftField", "centerField", "rightField"]
+  },
+  "baserunning_intelligence": {
+    sequence: ["force-vs-tag", "tag-up", "secondary-lead", "steal-breakeven",
+               "scoring-probability", "baserunning-rates", "steal-window"],
+    assessAt: [2, 4, 6],
+    positions: ["baserunner"]
+  },
+  "count_mastery": {
+    sequence: ["first-pitch-strike", "count-leverage", "two-strike-approach",
+               "first-pitch-value", "pitch-clock-strategy"],
+    assessAt: [2, 4],
+    positions: ["batter", "pitcher", "catcher"]
+  },
+  "pitching_strategy": {
+    sequence: ["first-pitch-strike", "pitch-count-mgmt", "pitch-sequencing",
+               "pitch-clock-strategy", "times-through-order", "pitch-type-value"],
+    assessAt: [2, 4, 6],
+    positions: ["pitcher", "catcher", "manager"]
+  },
+  "situational_offense": {
+    sequence: ["situational-hitting", "hit-and-run", "bunt-re24",
+               "squeeze-play", "squeeze-recognition"],
+    assessAt: [2, 4],
+    positions: ["batter", "baserunner", "manager"]
+  },
+  "team_defense": {
+    sequence: ["backup-duties", "rundown-mechanics", "double-play-turn",
+               "bunt-defense", "first-third", "pickoff-mechanics"],
+    assessAt: [2, 4, 6],
+    positions: ["firstBase", "secondBase", "shortstop", "thirdBase", "pitcher", "catcher"]
+  },
+  "outfield_craft": {
+    sequence: ["fly-ball-priority", "of-communication", "backup-duties",
+               "tag-up", "of-depth-arm-value", "cutoff-roles"],
+    assessAt: [2, 4, 6],
+    positions: ["leftField", "centerField", "rightField"]
+  },
+  "game_management": {
+    sequence: ["platoon-advantage", "times-through-order", "ibb-strategy",
+               "win-probability", "leverage-index", "line-guarding"],
+    assessAt: [2, 4, 6],
+    positions: ["manager"]
+  }
+};
 const SEASON_STAGES=[
   {name:"Spring Training",emoji:"🌴",games:2,diff:1,color:"#22c55e",
     story:"First day of camp. Coach hands you a glove and says 'Show me what you've got, kid.' The sun is warm, the grass is fresh, and anything feels possible."},
