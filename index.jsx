@@ -10973,6 +10973,30 @@ export default function App(){
             {showExp&&<p style={{fontSize:14,lineHeight:1.5,color:"#d1d5db"}}>{od.bestExp}</p>}
           </div>}
 
+          {/* Try Again? — remediation offer on wrong answers */}
+          {!od.isOpt&&(stats.isPro||(DAILY_FREE-(stats.todayPlayed||0))>0)&&!speedMode&&!survivalMode&&<div style={{textAlign:"center",marginTop:8}}>
+            <button onClick={()=>{
+              const remedConcept=sc?.conceptTag||findConceptTag(sc?.concept)||null
+              console.log("[BSM] Try Again remediation for concept:",remedConcept)
+              conceptTargetRef.current=remedConcept
+              setChoice(null);setOd(null);setRi(-1);setFo(null);setShowC(false);setShowExp(true);setExplainMore(null);setScreen("play");setAiLoading(true);setAiMode(true)
+              const _aiHist=stats.aiHistory||[]
+              generateAIScenario(pos,stats,stats.cl||[],stats.recentWrong||[],null,remedConcept,_aiHist).then(result=>{
+                setAiLoading(false)
+                if(result?.scenario){
+                  result.scenario._remediation=true
+                  setSc(result.scenario);result.scenario.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80)})
+                }else{
+                  setAiMode(false);setAiFallback(true)
+                  const s=getSmartRecycle(pos,Object.entries(SCENARIOS).flatMap(([k,arr])=>arr.filter(s=>s._pos===pos||(!s._pos&&k===pos))),lastScRef.current?.id)
+                  setSc(s);setScreen("play");s.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80)})
+                }
+              })
+            }} style={{background:"linear-gradient(135deg,rgba(59,130,246,.08),rgba(168,85,247,.08))",border:"1px solid rgba(59,130,246,.2)",borderRadius:10,padding:"8px 20px",color:"#60a5fa",fontSize:13,fontWeight:700,cursor:"pointer",display:"inline-flex",alignItems:"center",gap:6}}>
+              🔄 Try Again? <span style={{fontSize:11,fontWeight:400,color:"#9ca3af"}}>Same concept, different angle</span>
+            </button>
+          </div>}
+
           {showC&&<div style={{background:"linear-gradient(135deg,rgba(59,130,246,.04),rgba(168,85,247,.04))",border:"1px solid rgba(59,130,246,.12)",borderRadius:12,padding:12,marginTop:10,textAlign:"center"}}>
             <div style={{fontSize:16,marginBottom:2}}>💡</div>
             <div style={{fontSize:9,color:"#60a5fa",textTransform:"uppercase",letterSpacing:1,fontWeight:700,marginBottom:3}}>Key Concept</div>
