@@ -7512,7 +7512,8 @@ Each explanation must be 2-4 sentences. BEST explanation: state WHY correct + WH
 VARY EVERYTHING: Each scenario must have a DIFFERENT count, runner configuration, inning, and score than previous ones. Do NOT default to count "2-1" or runners [2]. Mix counts across the full range (0-0, 1-0, 0-2, 3-1, 2-2, 3-2, etc.). Use empty bases, single runners, multiple runners, and loaded bases. Vary innings from early (1-3) through late (7-9). The best answer should NOT always be option 1 — distribute across all 4 positions.
 
 Respond with ONLY valid JSON:
-{"title":"Short Title","diff":${difficulty},"description":"2-3 sentence scenario","situation":{"inning":"${tv.inning}","outs":${tv.outs},"count":"${tv.count}","runners":${tv.runners},"score":${tv.score}},"options":["A","B","C","D"],"best":${tv.best},"explanations":["Why A","Why B","Why C","Why D"],"rates":${tv.rates},"concept":"One-sentence lesson","anim":"strike|strikeout|hit|groundout|flyout|steal|score|advance|catch|throwHome|doubleplay|bunt|walk|safe|freeze"}
+{"title":"Short Title","diff":${difficulty},"description":"2-3 sentence scenario","situation":{"inning":"${tv.inning}","outs":${tv.outs},"count":"${tv.count}","runners":${tv.runners},"score":${tv.score}},"options":["A","B","C","D"],"best":${tv.best},"explanations":["Why A","Why B","Why C","Why D"],"explDepth":[{"simple":"1 sentence kid version","why":"2-3 sentence strategic reasoning","data":"RE24/stat reference"},{"simple":"...","why":"...","data":"..."},{"simple":"...","why":"...","data":"..."},{"simple":"...","why":"...","data":"..."}],"rates":${tv.rates},"concept":"One-sentence lesson","anim":"strike|strikeout|hit|groundout|flyout|steal|score|advance|catch|throwHome|doubleplay|bunt|walk|safe|freeze"}
+explDepth: array of 4 objects (one per option). "simple"=1 sentence a 6-year-old understands. "why"=2-3 sentences of strategic reasoning (why this works or fails). "data"=1 sentence referencing a real stat (RE24, batting avg, steal %, etc.) — write "n/a" if no stat applies.
 count format: "B-S" (0-3 balls, 0-2 strikes) or "-". runners: [] empty, [1]=1st, [2]=2nd, [1,2]=1st+2nd, [1,2,3]=loaded. VARY the runner state — do not default to [1,3]. Choose runners that fit the scenario concept. Empty bases, single runner, and loaded situations should appear regularly. rates: optimal 75-90, decent 45-65, poor 10-40. score=[HOME,AWAY]. outs must be 0-2.`
 }
 
@@ -7658,7 +7659,7 @@ async function generateWithAgentPipeline(position, stats, conceptsLearned, recen
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         model: "grok-4-1-fast-non-reasoning",
-        max_tokens: 1200,
+        max_tokens: 1800,
         temperature: aiTemp,
         messages: [
           { role: "system", content: "You are an expert baseball coach creating personalized training scenarios. Respond with ONLY valid JSON — no markdown, no code fences." },
@@ -7931,7 +7932,8 @@ ${getAIFewShot(position, targetConcept, diffTarget)}
 VARY EVERYTHING: Each scenario must have a DIFFERENT count, runner configuration, inning, and score than previous ones. Do NOT default to count "2-1" or runners [2]. Mix counts across the full range (0-0, 1-0, 0-2, 3-1, 2-2, 3-2, etc.). Use empty bases, single runners, multiple runners, and loaded bases. Vary innings from early (1-3) through late (7-9). The best answer should NOT always be option 1 — distribute across all 4 positions.
 
 Respond with ONLY valid JSON:
-{"title":"Short Title","diff":${diffTarget},"description":"2-3 sentence scenario","situation":{"inning":"${tv2.inning}","outs":${tv2.outs},"count":"${tv2.count}","runners":${tv2.runners},"score":${tv2.score}},"options":["A","B","C","D"],"best":${tv2.best},"explanations":["Why A","Why B","Why C","Why D"],"rates":${tv2.rates},"concept":"One-sentence lesson","anim":"strike|strikeout|hit|groundout|flyout|steal|score|advance|catch|throwHome|doubleplay|bunt|walk|safe|freeze"}
+{"title":"Short Title","diff":${diffTarget},"description":"2-3 sentence scenario","situation":{"inning":"${tv2.inning}","outs":${tv2.outs},"count":"${tv2.count}","runners":${tv2.runners},"score":${tv2.score}},"options":["A","B","C","D"],"best":${tv2.best},"explanations":["Why A","Why B","Why C","Why D"],"explDepth":[{"simple":"1 sentence kid version","why":"2-3 sentence strategic reasoning","data":"RE24/stat reference"},{"simple":"...","why":"...","data":"..."},{"simple":"...","why":"...","data":"..."},{"simple":"...","why":"...","data":"..."}],"rates":${tv2.rates},"concept":"One-sentence lesson","anim":"strike|strikeout|hit|groundout|flyout|steal|score|advance|catch|throwHome|doubleplay|bunt|walk|safe|freeze"}
+explDepth: array of 4 objects (one per option). "simple"=1 sentence a 6-year-old understands. "why"=2-3 sentences of strategic reasoning (why this works or fails). "data"=1 sentence referencing a real stat (RE24, batting avg, steal %, etc.) — write "n/a" if no stat applies.
 
 count format: "B-S" (0-3 balls, 0-2 strikes) or "-". runners: [] empty, [1]=1st, [2]=2nd, [1,2]=1st+2nd, [1,2,3]=loaded. VARY the runner state — do not default to [1,3]. Choose runners that fit the scenario concept. Empty bases, single runner, and loaded situations should appear regularly. rates: optimal 75-90, decent 45-65, poor 10-40.
 SITUATION CONSISTENCY: outs must be 0-2 (never 3). count must be valid (0-3 balls, 0-2 strikes). runners array must not conflict with the scenario premise. score=[HOME,AWAY] where HOME bats in "Bot" half. The scenario description must match the situation object exactly.
@@ -7951,7 +7953,7 @@ SCORE PERSPECTIVE: If the scenario says "you're up 5-3" and it's "Bot 7" (home b
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         model: "grok-4-1-fast-non-reasoning",
-        max_tokens: 1200,
+        max_tokens: 1800,
         temperature: aiTemp,
         messages: [
           { role: "system", content: (getCoachVoice(stats)?.system || "You are an expert baseball coach") + " You are creating personalized training scenarios for the Baseball Strategy Master app. You always respond with ONLY a valid JSON object — no markdown, no code fences, no explanation text. Just the raw JSON." + systemSuffix },
@@ -8952,6 +8954,7 @@ export default function App(){
   const[explainLoading,setExplainLoading]=useState(false);
   const[aiMode,setAiMode]=useState(false); // true when playing AI-generated scenario
   const[wrongStreak,setWrongStreak]=useState(0); // consecutive wrong answers (reset on correct or position change)
+  const[explDepthLayer,setExplDepthLayer]=useState(0); // 0=simple, 1=why, 2=data (progressive explanation depth)
   const[aiFallback,setAiFallback]=useState(false); // true when AI failed and we're showing handcrafted
   const[dailyMode,setDailyMode]=useState(false); // true when playing daily diamond challenge
   const[seasonMode,setSeasonMode]=useState(false);
@@ -9775,8 +9778,9 @@ export default function App(){
     // Use simplified explanations for young players when available
     const useSimple=sc.explSimple&&(stats.ageGroup==="6-8"||stats.ageGroup==="9-10");
     const expArr=useSimple?sc.explSimple:sc.explanations;
-    const o={cat,isOpt,exp:expArr[idx],bestExp:expArr[sc.best],bestOpt:sc.options[sc.best],concept:sc.concept,pts,chosen:sc.options[idx],rate,anim:sc.anim,speedBonus,timeLeft:timer};
-    setOd(o);
+    const _ed=sc.explDepth||null; // AI 3-layer explanations (Pillar 1C)
+    const o={cat,isOpt,exp:expArr[idx],bestExp:expArr[sc.best],bestOpt:sc.options[sc.best],concept:sc.concept,pts,chosen:sc.options[idx],rate,anim:sc.anim,speedBonus,timeLeft:timer,explDepth:_ed,chosenIdx:idx,bestIdx:sc.best};
+    setOd(o);setExplDepthLayer(0);
     outcomeStartRef.current=Date.now();
     // Sprint 5: Pre-fetch next AI scenario while player reads explanation
     if(stats.isPro&&aiMode&&!speedMode&&!survivalMode&&!aiCacheRef.current.scenarios[pos]){
@@ -11269,13 +11273,13 @@ export default function App(){
               <div><div style={{fontSize:9,color:"#6b7280",textTransform:"uppercase",letterSpacing:1,fontWeight:700}}>Your Choice</div><div style={{fontSize:13,fontWeight:700,color:"white",marginTop:2}}>"{od.chosen}"</div></div>
               <button onClick={()=>setShowExp(!showExp)} style={{background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.06)",borderRadius:6,padding:"4px 10px",fontSize:10,color:"#6b7280",cursor:"pointer",minHeight:32}}>{showExp?"▼":"▶"}</button>
             </div>
-            {showExp&&<p style={{fontSize:14,lineHeight:1.5,color:"#d1d5db",marginTop:6}}>{od.exp}</p>}
+            {showExp&&(()=>{const ed=od.explDepth?.[od.chosenIdx];return ed?<div style={{marginTop:6}}><p style={{fontSize:14,lineHeight:1.5,color:"#d1d5db"}}>{ed.simple}</p>{explDepthLayer>=1&&<p style={{fontSize:13,lineHeight:1.5,color:"#9ca3af",marginTop:4,paddingLeft:8,borderLeft:"2px solid rgba(255,255,255,.08)"}}>{ed.why}</p>}{explDepthLayer>=2&&ed.data&&ed.data!=="n/a"&&<p style={{fontSize:12,lineHeight:1.4,color:"#60a5fa",marginTop:4,fontStyle:"italic"}}>{ed.data}</p>}<div style={{display:"flex",gap:6,marginTop:6}}>{explDepthLayer<1&&<button onClick={()=>setExplDepthLayer(1)} style={{background:"rgba(168,85,247,.06)",border:"1px solid rgba(168,85,247,.15)",borderRadius:6,padding:"3px 10px",fontSize:10,color:"#a855f7",cursor:"pointer",fontWeight:600}}>Why?</button>}{explDepthLayer===1&&stats.ageGroup!=="6-8"&&stats.ageGroup!=="9-10"&&<button onClick={()=>setExplDepthLayer(2)} style={{background:"rgba(59,130,246,.06)",border:"1px solid rgba(59,130,246,.15)",borderRadius:6,padding:"3px 10px",fontSize:10,color:"#60a5fa",cursor:"pointer",fontWeight:600}}>Show Data</button>}</div></div>:<p style={{fontSize:14,lineHeight:1.5,color:"#d1d5db",marginTop:6}}>{od.exp}</p>})()}
           </div>
 
           {!od.isOpt&&<div style={{background:"rgba(34,197,94,.02)",border:"1px solid rgba(34,197,94,.1)",borderRadius:12,padding:12,marginTop:8,borderLeft:"3px solid #22c55e"}}>
             <div style={{fontSize:9,color:"#22c55e",textTransform:"uppercase",letterSpacing:1,fontWeight:700,marginBottom:3}}>✅ Best Strategy</div>
             <div style={{fontSize:13,fontWeight:700,color:"white",marginBottom:4}}>"{od.bestOpt}"</div>
-            {showExp&&<p style={{fontSize:14,lineHeight:1.5,color:"#d1d5db"}}>{od.bestExp}</p>}
+            {showExp&&(()=>{const ed=od.explDepth?.[od.bestIdx];return ed?<div><p style={{fontSize:14,lineHeight:1.5,color:"#d1d5db"}}>{ed.simple}</p>{explDepthLayer>=1&&<p style={{fontSize:13,lineHeight:1.5,color:"#9ca3af",marginTop:4,paddingLeft:8,borderLeft:"2px solid rgba(34,197,94,.15)"}}>{ed.why}</p>}{explDepthLayer>=2&&ed.data&&ed.data!=="n/a"&&<p style={{fontSize:12,lineHeight:1.4,color:"#60a5fa",marginTop:4,fontStyle:"italic"}}>{ed.data}</p>}</div>:<p style={{fontSize:14,lineHeight:1.5,color:"#d1d5db"}}>{od.bestExp}</p>})()}
           </div>}
 
           {/* Try Again? — remediation offer on wrong answers */}
