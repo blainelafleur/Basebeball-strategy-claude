@@ -4233,7 +4233,7 @@ const STADIUM_MILESTONES=[
   {games:200,label:"Fireworks",desc:"Fireworks on perfect answers!",icon:"🎆"},
   {games:330,label:"Legend Stadium",desc:"Golden border + Legend title!",icon:"👑"},
 ];
-const DEFAULT = {pts:0,str:0,bs:0,gp:0,co:0,ps:{},achs:[],cl:[],ds:0,lastDay:null,todayPlayed:0,todayDate:null,sp:0,isPro:false,onboarded:false,soundOn:true,recentWrong:[],dailyDone:false,dailyDate:null,weeklyDone:null,streakFreezes:0,survivalBest:0,ageGroup:"11-12",displayName:"",teamCode:"",teamName:"",seasonGame:0,seasonCorrect:0,seasonComplete:false,fieldTheme:"default",avatarJersey:0,avatarCap:0,avatarBat:0,season:1,proPlan:null,proPurchaseDate:null,proExpiry:null,lastStreakFreezeDate:null,wrongCounts:{},posGrad:{},funnel:[],hist:{},posPlayed:{},firstPlayDate:null,lastPlayDate:null,sessionCount:0,tutorialDone:false,promoCode:null,promoActivatedDate:null,masteryShown:[],masteryData:{concepts:{},errorPatterns:{},sessionHistory:[]},qualitySignals:{},flaggedScenarios:{},explanationLog:{},gapDetectionCache:null,lastWrongConceptTag:null,aiHistory:[],aiMetrics:{correct:0,total:0,flagged:0,scores:[]},hcMetrics:{correct:0,total:0,flagged:0}};
+const DEFAULT = {pts:0,str:0,bs:0,gp:0,co:0,ps:{},achs:[],cl:[],ds:0,lastDay:null,todayPlayed:0,todayDate:null,sp:0,isPro:false,onboarded:false,soundOn:true,recentWrong:[],dailyDone:false,dailyDate:null,weeklyDone:null,streakFreezes:0,survivalBest:0,ageGroup:"11-12",displayName:"",teamCode:"",teamName:"",seasonGame:0,seasonCorrect:0,seasonComplete:false,fieldTheme:"default",avatarJersey:0,avatarCap:0,avatarBat:0,season:1,proPlan:null,proPurchaseDate:null,proExpiry:null,lastStreakFreezeDate:null,wrongCounts:{},posGrad:{},funnel:[],hist:{},posPlayed:{},firstPlayDate:null,lastPlayDate:null,sessionCount:0,tutorialDone:false,promoCode:null,promoActivatedDate:null,masteryShown:[],masteryData:{concepts:{},errorPatterns:{},sessionHistory:[]},qualitySignals:{},flaggedScenarios:{},explanationLog:{},gapDetectionCache:null,lastWrongConceptTag:null,aiHistory:[],aiMetrics:{correct:0,total:0,flagged:0,scores:[]},hcMetrics:{correct:0,total:0,flagged:0},activePath:null};
 
 // Streak flame visual — grows with daily streak length
 function getFlame(ds){
@@ -7099,6 +7099,35 @@ const AB_TESTS = {
   }
 }
 
+// ── Learning Path Helpers (Pillar 3A) ──
+function getCurrentPath(mastery, position) {
+  const concepts = mastery?.concepts || {}
+  let bestPath = null, bestProgress = -1
+  for (const [name, path] of Object.entries(LEARNING_PATHS)) {
+    if (!path.positions.includes(position)) continue
+    const masteredInPath = path.sequence.filter(tag => concepts[tag]?.state === 'mastered').length
+    if (masteredInPath >= path.sequence.length) continue // fully complete
+    if (masteredInPath > bestProgress) {
+      bestProgress = masteredInPath
+      bestPath = { name, ...path, progress: masteredInPath }
+    }
+  }
+  return bestPath
+}
+function getNextInPath(path, mastery, count) {
+  const concepts = mastery?.concepts || {}
+  const items = []
+  let foundFirst = false
+  for (let i = 0; i < path.sequence.length && items.length < count; i++) {
+    const tag = path.sequence[i]
+    if (concepts[tag]?.state === 'mastered') continue
+    if (!foundFirst) foundFirst = true
+    const isAssessment = path.assessAt?.includes(i + 1)
+    items.push({ tag, type: isAssessment ? "assessment" : "progression", index: i })
+  }
+  return items
+}
+
 // ============================================================================
 // Level 3.2: Session Planner — Plans an 8-scenario teaching sequence
 // ============================================================================
@@ -7132,18 +7161,35 @@ function planSession(stats, position) {
     plan.push({ type: "prerequisite", concept: prereqGap.gap })
   }
 
-  // 3. Learning progression: unmastered concepts in order (3-4 slots)
+  // 3. Learning progression: follow learning path if available (3-4 slots)
   const unseen = available.filter(c => !mastered.has(c.tag) && !(masteryData.concepts?.[c.tag]) && isAllowed(c.tag))
   const learning = dueReview.filter(c => c.state === 'learning' && isAllowed(c.tag))
-  const progression = [...learning, ...unseen.map(c => ({ tag: c.tag, state: 'unseen' }))]
   const usedTags = new Set(plan.map(p => p.concept))
   let added = 0
-  for (const c of progression) {
-    if (added >= 4 || plan.length >= 7) break
-    if (usedTags.has(c.tag)) continue
-    plan.push({ type: c.state === 'learning' ? "review" : "introduce", concept: c.tag })
-    usedTags.add(c.tag)
-    added++
+
+  // Try structured learning path first
+  const activePath = getCurrentPath(masteryData, position)
+  if (activePath) {
+    const pathItems = getNextInPath(activePath, masteryData, 4).filter(it => isAllowed(it.tag) && !usedTags.has(it.tag))
+    for (const item of pathItems) {
+      if (added >= 4 || plan.length >= 7) break
+      plan.push({ type: item.type === "assessment" ? "assessment" : "progression", concept: item.tag, path: activePath.name })
+      usedTags.add(item.tag)
+      added++
+    }
+    console.log("[BSM Session] Using learning path:", activePath.name, "progress:", activePath.progress + "/" + activePath.sequence.length)
+  }
+
+  // Fall back to general concept selection if path didn't fill enough slots
+  if (added < 3) {
+    const progression = [...learning, ...unseen.map(c => ({ tag: c.tag, state: 'unseen' }))]
+    for (const c of progression) {
+      if (added >= 4 || plan.length >= 7) break
+      if (usedTags.has(c.tag)) continue
+      plan.push({ type: c.state === 'learning' ? "review" : "introduce", concept: c.tag })
+      usedTags.add(c.tag)
+      added++
+    }
   }
 
   // 4. Challenge: hardest unmastered concept (1 slot)
@@ -9400,6 +9446,11 @@ export default function App(){
       if(!sessionPlanRef.current||sessionPlanPosRef.current!==p){
         sessionPlanRef.current=planSession(stats,p)
         sessionPlanPosRef.current=p
+        // Store active learning path in state
+        const pathItem = sessionPlanRef.current?.find(item => item.path)
+        if (pathItem?.path && stats.activePath !== pathItem.path) {
+          setStats(prev => ({...prev, activePath: pathItem.path}))
+        }
       }
       let concept=null;
       const nextPlanItem=sessionPlanRef.current?.length>0?sessionPlanRef.current.shift():null
