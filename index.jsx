@@ -4105,6 +4105,30 @@ const CONCEPT_GATES = {
     }
   }
 };
+const COACH_VOICES = {
+  rookie: {
+    ageRange: [5, 10],
+    system: "You are Coach Rookie — an enthusiastic, encouraging youth baseball coach. Use simple words, exciting analogies, and celebrate effort. Never use statistics or advanced terms. Keep sentences short. Use exclamation marks naturally.",
+    lineStyle: "excited"
+  },
+  varsity: {
+    ageRange: [11, 14],
+    system: "You are Coach Varsity — a knowledgeable travel ball coach. Reference real MLB players as examples when relevant. Introduce statistics gently. Be encouraging but direct about mistakes.",
+    lineStyle: "teaching"
+  },
+  scout: {
+    ageRange: [15, 18],
+    system: "You are Coach Scout — an analytical baseball mind who respects the player's intelligence. Use full statistical vocabulary freely. Reference game theory and RE24 when relevant. Talk to the player as a peer analyst.",
+    lineStyle: "analytical"
+  }
+};
+function getCoachVoice(stats) {
+  const ag = stats?.ageGroup || "11-12"
+  const lvl = getLvl(stats?.pts || 0).n
+  if (ag === "6-8" || (ag === "9-10" && lvl < 5)) return COACH_VOICES.rookie
+  if (ag === "13+" || lvl >= 15) return COACH_VOICES.scout
+  return COACH_VOICES.varsity
+}
 const SEASON_STAGES=[
   {name:"Spring Training",emoji:"🌴",games:2,diff:1,color:"#22c55e",
     story:"First day of camp. Coach hands you a glove and says 'Show me what you've got, kid.' The sun is warm, the grass is fresh, and anything feels possible."},
@@ -6206,7 +6230,9 @@ function enrichFeedback(scenario, choiceIdx, situation, playerAge, masteryData) 
   }
   return insights.slice(0, 3);
 }
-function getSmartCoachLine(cat, situation, position, streak, isPro) {
+function getSmartCoachLine(cat, situation, position, streak, isPro, stats) {
+  // Coach voice style for line adaptation
+  const voiceStyle = stats ? getCoachVoice(stats)?.lineStyle : null
   // Pro users get situation-aware lines from the brain
   if (isPro && situation) {
     const {runners=[], outs=0, count, score=[0,0], inning=""} = situation;
@@ -6256,12 +6282,17 @@ function getSmartCoachLine(cat, situation, position, streak, isPro) {
       if (key && BRAIN.coaching.situational[key]) {
         let line = BRAIN.coaching.situational[key];
         for (const [k, v] of Object.entries(vars)) line = line.replace(`{${k}}`, v);
+        // Adapt line to coach voice
+        if (voiceStyle === "excited") line = line.replace(/\.$/, "!").replace(/^/, "Wow — ")
+        else if (voiceStyle === "analytical") line = line.replace(/^/, "Data point: ")
         return line;
       }
     }
   }
   // Fall through to original getCoachLine logic
-  return getCoachLine(cat, position, streak, isPro);
+  let baseLine = getCoachLine(cat, position, streak, isPro);
+  if (voiceStyle === "excited" && cat === "success") baseLine = baseLine.replace(/\.$/, "!") || baseLine
+  return baseLine;
 }
 function formatBrainStats(position, age, stats) {
   const lines = [];
@@ -7221,7 +7252,8 @@ function planScenario(position, stats, conceptsLearned = [], recentWrong = [], t
     principles: KNOWLEDGE_BASE.getPrinciplesForPosition(position),
     ageGate: gate || null,
     ageGroup,
-    situationHint: selectedConcept ? (CONCEPT_SITUATIONS[selectedConcept] || null) : null
+    situationHint: selectedConcept ? (CONCEPT_SITUATIONS[selectedConcept] || null) : null,
+    coachVoice: getCoachVoice(stats)
   }
 }
 
@@ -7229,7 +7261,7 @@ function planScenario(position, stats, conceptsLearned = [], recentWrong = [], t
 // Level 3.4: Generator Agent — Builds focused prompt from Planner's output
 // ============================================================================
 function buildAgentPrompt(plan) {
-  const { position, difficulty, teachingGoal, targetConcept, playerContext, principles, brainData, exampleScenarios, avoidPatterns, avoidTitles, flaggedAvoidText, ageGate, ageGroup, situationHint } = plan
+  const { position, difficulty, teachingGoal, targetConcept, playerContext, principles, brainData, exampleScenarios, avoidPatterns, avoidTitles, flaggedAvoidText, ageGate, ageGroup, situationHint, coachVoice } = plan
 
   // Focused examples (condensed)
   const examplesText = exampleScenarios.slice(0, 2).map((s, i) =>
@@ -7243,6 +7275,9 @@ function buildAgentPrompt(plan) {
   // Age gate adjustments
   const ageText = ageGate?.adjustments ? `\nPLAYER AGE GROUP: ${ageGroup || "11-12"}\nSTRATEGIC ADJUSTMENTS FOR THIS AGE:\n${Object.entries(ageGate.adjustments).map(([k,v]) => `- ${k}: ${v}`).join("\n")}${ageGate.forbidden?.length > 0 ? `\nFORBIDDEN CONCEPTS (do NOT use): ${ageGate.forbidden.join(", ")}` : ""}` : ""
 
+  // Coach voice injection
+  const voiceText = coachVoice ? `\nCOACH VOICE: ${coachVoice.system}` : ""
+
   // Situation hint from CONCEPT_SITUATIONS
   const sitText = situationHint ? `\nREQUIRED SITUATION: Set runners to ${JSON.stringify(situationHint.runners)}, outs to ${situationHint.outs}${situationHint.count ? ", count to " + situationHint.count : ""}. This situation best illustrates the concept "${targetConcept}".` : ""
 
@@ -7250,7 +7285,7 @@ function buildAgentPrompt(plan) {
   return `Create a baseball strategy scenario for position: ${position}.
 TEACHING GOAL: ${teachingGoal} concept "${targetConcept || "general " + position + " strategy"}".
 PLAYER: ${playerContext}
-DIFFICULTY: ${difficulty}/3${ageText}
+DIFFICULTY: ${difficulty}/3${ageText}${voiceText}
 
 POSITION PRINCIPLES:
 ${principles.detailed || principles.condensed}
@@ -7693,7 +7728,7 @@ SCORE PERSPECTIVE: If the scenario says "you're up 5-3" and it's "Bot 7" (home b
         max_tokens: 1200,
         temperature: aiTemp,
         messages: [
-          { role: "system", content: "You are an expert baseball coach creating personalized training scenarios for the Baseball Strategy Master app. You always respond with ONLY a valid JSON object — no markdown, no code fences, no explanation text. Just the raw JSON." + systemSuffix },
+          { role: "system", content: (getCoachVoice(stats)?.system || "You are an expert baseball coach") + " You are creating personalized training scenarios for the Baseball Strategy Master app. You always respond with ONLY a valid JSON object — no markdown, no code fences, no explanation text. Just the raw JSON." + systemSuffix },
           { role: "user", content: prompt }
         ]
       })
@@ -9464,7 +9499,7 @@ export default function App(){
     // Speed Round bonus: +1 pt per second remaining
     let speedBonus=0;
     if(speedMode&&isOpt&&timer>0){speedBonus=timer;pts+=speedBonus;}
-    setFo(cat);setAk(k=>k+1);snd.play(isOpt?'correct':rate>=55?'near':'wrong');setCoachMsg(getSmartCoachLine(cat,sc.situation,pos,isOpt?stats.str+1:0,stats.isPro));
+    setFo(cat);setAk(k=>k+1);snd.play(isOpt?'correct':rate>=55?'near':'wrong');setCoachMsg(getSmartCoachLine(cat,sc.situation,pos,isOpt?stats.str+1:0,stats.isPro,stats));
     // Crowd cheer on perfect answers, jackpot on every 5th streak
     if(isOpt){setTimeout(()=>snd.play('cheer'),300);const newStr=stats.str+1;if(newStr>0&&newStr%5===0)setTimeout(()=>snd.play('jackpot'),500);}
     // Streak break toast when losing 3+ streak
