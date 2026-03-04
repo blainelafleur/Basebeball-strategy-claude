@@ -7099,6 +7099,52 @@ const AB_TESTS = {
   }
 }
 
+// ── Baseball IQ (Pillar 7C) ──
+function computeBaseballIQ(stats) {
+  const mastery = stats?.masteryData?.concepts || {}
+  const allConcepts = Object.keys(BRAIN.concepts || {})
+  const totalConcepts = Math.max(allConcepts.length, 1)
+
+  // Breadth: % of concepts mastered (0-1)
+  const masteredEntries = Object.entries(mastery).filter(([, c]) => c.state === 'mastered')
+  const breadth = masteredEntries.length / totalConcepts
+
+  // Depth: % of mastered concepts that are diff:3 (advanced)
+  const advancedMastered = masteredEntries.filter(([tag]) => {
+    const concept = BRAIN.concepts[tag]
+    return concept && concept.diff >= 3
+  }).length
+  const depth = masteredEntries.length > 0 ? advancedMastered / masteredEntries.length : 0
+
+  // Consistency: average correctStreak across mastered concepts (normalized 0-1)
+  const streaks = masteredEntries.map(([, c]) => c.correctStreak || 0)
+  const consistency = streaks.length > 0
+    ? Math.min(1, (streaks.reduce((a, b) => a + b, 0) / streaks.length) / 5)
+    : 0.3
+
+  // Cross-position: unique positions with >60% accuracy
+  const ps = stats?.ps || {}
+  const positionsStrong = Object.entries(ps)
+    .filter(([, v]) => v.p >= 5 && (v.c / v.p) > 0.6).length
+  const crossPosition = Math.min(positionsStrong / 8, 1.0)
+
+  // Experience: games played (diminishing returns)
+  const experience = Math.min(1, (stats?.gp || 0) / 200)
+
+  // Weighted composite
+  const raw = breadth * 0.30 + depth * 0.25 + consistency * 0.20
+            + crossPosition * 0.15 + experience * 0.10
+
+  return Math.round(50 + (raw * 110)) // Range: 50-160
+}
+function getIQColor(iq) {
+  if (iq >= 140) return "#a855f7"
+  if (iq >= 120) return "#eab308"
+  if (iq >= 100) return "#22c55e"
+  if (iq >= 80) return "#3b82f6"
+  return "#6b7280"
+}
+
 // ── Learning Path Helpers (Pillar 3A) ──
 function getCurrentPath(mastery, position) {
   const concepts = mastery?.concepts || {}
@@ -10204,6 +10250,12 @@ export default function App(){
 
           {/* Stats card */}
           {stats.gp>0&&<div style={{...card,marginBottom:12}}>
+            {stats.gp>=5&&(()=>{const iq=computeBaseballIQ(stats);const iqC=getIQColor(iq);return(
+              <div style={{textAlign:"center",marginBottom:10,padding:"8px 12px",background:`${iqC}08`,border:`1px solid ${iqC}18`,borderRadius:12}}>
+                <div style={{fontSize:9,color:"#6b7280",textTransform:"uppercase",letterSpacing:1.5,fontWeight:700,marginBottom:3}}>Baseball IQ</div>
+                <div style={{fontSize:28,fontWeight:900,color:iqC,letterSpacing:1}}>{iq}</div>
+              </div>
+            )})()}
             <div style={{display:"flex",justifyContent:"space-around",textAlign:"center",marginBottom:8}}>
               {[{v:stats.pts,l:"Points",c:"#f59e0b"},{v:`${acc}%`,l:"Accuracy",c:"#22c55e"},{v:stats.bs,l:"Best Streak",c:"#f97316"},{v:stats.gp,l:"Played",c:"#3b82f6"}].map((s,i)=>(
                 <div key={i}><div style={{fontSize:18,fontWeight:800,color:s.c}}>{s.v}</div><div style={{fontSize:8,color:"#6b7280",marginTop:1}}>{s.l}</div></div>
@@ -10280,6 +10332,13 @@ export default function App(){
           </div>}
 
           {panel==='stats'&&<div style={{...card,marginBottom:12}}>
+            {(()=>{const iq=computeBaseballIQ(stats);const iqC=getIQColor(iq);return(
+              <div style={{textAlign:"center",marginBottom:10,padding:"10px 12px",background:`${iqC}08`,border:`1px solid ${iqC}18`,borderRadius:12}}>
+                <div style={{fontSize:9,color:"#6b7280",textTransform:"uppercase",letterSpacing:1.5,fontWeight:700,marginBottom:3}}>Baseball IQ</div>
+                <div style={{fontSize:32,fontWeight:900,color:iqC,letterSpacing:1}}>{iq}</div>
+                <div style={{fontSize:9,color:"#6b7280",marginTop:2}}>{iq>=140?"Elite":iq>=120?"Advanced":iq>=100?"Solid":iq>=80?"Developing":"Rookie"}</div>
+              </div>
+            )})()}
             <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:14,color:"#22c55e",letterSpacing:1,marginBottom:6}}>POSITION STATS</div>
             <div style={{display:"flex",flexDirection:"column",gap:4}}>
               {ALL_POS.map(p=>{const s=stats.ps[p];const m=POS_META[p];const a=s&&s.p>0?Math.round((s.c/s.p)*100):null;return(
