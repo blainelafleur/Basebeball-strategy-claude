@@ -7131,10 +7131,10 @@ const AB_TESTS = {
   },
   // Level 3.7: Agent pipeline A/B test
   agent_pipeline: {
-    id: "agent_pipeline_v1",
+    id: "agent_pipeline_v2",
     variants: [
-      { id: "control", weight: 80, config: { useAgent: false } },
-      { id: "agent", weight: 20, config: { useAgent: true } }
+      { id: "control", weight: 50, config: { useAgent: false } },
+      { id: "agent", weight: 50, config: { useAgent: true } }
     ]
   }
 }
