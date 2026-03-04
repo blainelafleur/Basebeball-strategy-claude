@@ -11648,7 +11648,10 @@ export default function App(){
             {stats.isPro?<>{!explainMore&&!explainLoading&&<button onClick={async()=>{
               setExplainLoading(true);
               try{
-                const res=await fetch(AI_PROXY_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"grok-4-1-fast",messages:[{role:"system",content:"You are a baseball coach explaining concepts to young players (ages 8-18). Keep it clear, engaging, and under 100 words. Use specific examples."},{role:"user",content:`Explain this baseball concept in more depth: "${od.concept}". The player ${od.isOpt?"got this right":"got this wrong"} in a ${POS_META[pos]?.label||pos} scenario. Give a deeper explanation with a real-game example.`}],max_tokens:200,temperature:0.5})});
+                const _ec=new AbortController();const _et=setTimeout(()=>_ec.abort(),15000);
+                const res=await fetch(AI_PROXY_URL,{method:"POST",headers:{"Content-Type":"application/json"},signal:_ec.signal,body:JSON.stringify({model:"grok-4-1-fast",messages:[{role:"system",content:"You are a baseball coach explaining concepts to young players (ages 8-18). Keep it clear, engaging, and under 100 words. Use specific examples."},{role:"user",content:`Explain this baseball concept in more depth: "${od.concept}". The player ${od.isOpt?"got this right":"got this wrong"} in a ${POS_META[pos]?.label||pos} scenario. Give a deeper explanation with a real-game example.`}],max_tokens:200,temperature:0.5})});
+                clearTimeout(_et);
+                if(!res.ok)throw new Error("API "+res.status);
                 const d=await res.json();
                 setExplainMore(d.choices?.[0]?.message?.content||"Couldn't load explanation. Try again later!");
               }catch{setExplainMore("Couldn't load explanation. Check your connection and try again.")}
