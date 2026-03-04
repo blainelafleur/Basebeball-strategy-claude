@@ -3987,6 +3987,16 @@ function flushAnalytics() {
     }
   })
 }
+// Pillar 6D: Report A/B test outcomes to worker
+function reportABResult(testId, variantId, metric, value) {
+  try {
+    fetch(`${WORKER_BASE}/analytics/ab-results`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ testId, variantId, sessionHash: analyticsSessionHash, metric, value, timestamp: Date.now() })
+    }).catch(() => {}) // Fire and forget
+  } catch (e) { /* silent */ }
+}
 // Auto-flush on interval and page unload
 if (typeof window !== "undefined") {
   setInterval(flushAnalytics, ANALYTICS_BATCH_INTERVAL)
@@ -9619,6 +9629,13 @@ export default function App(){
         console.log("[BSM] AI scenario accepted:", result.scenario.title);
         // Sprint 4.2+4.3: Track AI scenario generation success with A/B variants
         trackAnalyticsEvent("ai_scenario_generated",{pos:p,concept:result.scenario.conceptTag||"",diff:result.scenario.diff,ab:result.abVariants||{}},{ageGroup:stats.ageGroup,isPro:stats.isPro});
+        // Pillar 6D: Report A/B variant outcomes
+        if(result.abVariants){
+          const ab=result.abVariants
+          if(ab.pipeline)reportABResult("agent_pipeline_v2",ab.pipeline,"scenario_generated",ab.grade||0)
+          if(ab.temp)reportABResult("ai_temperature_v1",ab.temp,"scenario_generated",1)
+          if(ab.prompt)reportABResult("ai_system_prompt_v1",ab.prompt,"scenario_generated",1)
+        }
         // Persist AI scenario to history (Sprint 1.5)
         setStats(prev=>{
           const entry={id:result.scenario.id,title:result.scenario.title,position:p,diff:result.scenario.diff,
@@ -9627,6 +9644,7 @@ export default function App(){
           const hist=[...(prev.aiHistory||[]),entry].slice(-100)
           return{...prev,aiHistory:hist}
         })
+        if(result.abVariants)result.scenario._abVariants=result.abVariants;
         setSc(result.scenario);
         result.scenario.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80);});
       } else {
@@ -9801,6 +9819,11 @@ export default function App(){
         const contrib = buildLearningContribution(p, pos, sc.id, conceptTag, isOpt, sc.isAI || false, sc.diff || 1);
         queueLearningContribution(contrib);
       } catch (e) { /* non-critical */ }
+      // Pillar 6D: Report A/B answer outcome
+      if(sc.isAI&&sc._abVariants){
+        const ab=sc._abVariants
+        if(ab.pipeline)reportABResult("agent_pipeline_v2",ab.pipeline,isOpt?"correct":"incorrect",1)
+      }
       const _newLastWrong = !isOpt ? (conceptTagForEffectiveness || null) : null;
       const _newGapCache = ((p.gp + 1) % IMPROVEMENT_ENGINE.gapRules.cacheRefreshInterval === 0) ? null : (p.gapDetectionCache || null);
       // Difficulty graduation for ages 6-8

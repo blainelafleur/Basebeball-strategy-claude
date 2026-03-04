@@ -87,6 +87,19 @@ const PBKDF2_ITERATIONS = 100_000;
 // CREATE INDEX IF NOT EXISTS idx_le_position_ts ON learning_events(position, timestamp);
 // CREATE INDEX IF NOT EXISTS idx_le_age ON learning_events(age_group);
 
+// Level 4: ab_results table (A/B test outcome tracking)
+// CREATE TABLE IF NOT EXISTS ab_results (
+//   id INTEGER PRIMARY KEY AUTOINCREMENT,
+//   test_id TEXT NOT NULL,
+//   variant_id TEXT NOT NULL,
+//   session_hash TEXT,
+//   metric TEXT NOT NULL,
+//   value REAL DEFAULT 0,
+//   timestamp INTEGER NOT NULL,
+//   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+// );
+// CREATE INDEX IF NOT EXISTS idx_ab_test ON ab_results(test_id, variant_id);
+
 const rateCounts = new Map();
 const loginAttempts = new Map();
 
@@ -1526,6 +1539,34 @@ async function handleLearningCalibration(request, env, cors) {
   }
 }
 
+// Level 4: POST /analytics/ab-results — store A/B test outcome data
+async function handleABResults(request, env, cors) {
+  const db = env.DB;
+  if (!db) {
+    return jsonResponse({ error: "No database configured" }, 500, cors);
+  }
+  try {
+    const body = await request.json();
+    const events = Array.isArray(body.events) ? body.events : [body];
+    for (const event of events.slice(0, 50)) {
+      await db.prepare(`
+        INSERT INTO ab_results (test_id, variant_id, session_hash, metric, value, timestamp)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `).bind(
+        event.testId || "",
+        event.variantId || "",
+        event.sessionHash || "",
+        event.metric || "",
+        event.value || 0,
+        event.timestamp || Date.now()
+      ).run();
+    }
+    return jsonResponse({ stored: events.length }, 200, cors);
+  } catch (err) {
+    return jsonResponse({ error: err.message }, 500, cors);
+  }
+}
+
 // --- Level 2.1: Weekly Cron Trigger for AI Quality Aggregation ---
 // Runs every Monday at 6am UTC. Creates weekly_ai_report entries in D1.
 // Identifies: degraded concepts (<40% correct), too-easy concepts (>90%), high flag-rate positions (>5%).
@@ -1735,6 +1776,17 @@ export default {
     if (path === "/analytics/learning-calibration" && request.method === "GET") {
       try {
         return await handleLearningCalibration(request, env, cors);
+      } catch {
+        return jsonResponse({ error: "Server error" }, 500, cors);
+      }
+    }
+
+    if (path === "/analytics/ab-results" && request.method === "POST") {
+      if (!checkRateLimit(`analytics:${ip}`, RATE_LIMIT_ANALYTICS)) {
+        return jsonResponse({ error: "Rate limited" }, 429, cors);
+      }
+      try {
+        return await handleABResults(request, env, cors);
       } catch {
         return jsonResponse({ error: "Server error" }, 500, cors);
       }
