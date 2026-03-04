@@ -7016,6 +7016,72 @@ const AB_TESTS = {
 }
 
 // ============================================================================
+// Level 3.2: Session Planner — Plans an 8-scenario teaching sequence
+// ============================================================================
+function planSession(stats, position) {
+  const masteryData = stats.masteryData || { concepts: {} }
+  const ageGroup = stats.ageGroup || "11-12"
+  const gate = CONCEPT_GATES[ageGroup]
+  const available = KNOWLEDGE_BASE.getConceptsForPosition(position)
+  const mastered = new Set(Object.entries(masteryData.concepts || {}).filter(([,d]) => d.state === 'mastered').map(([t]) => t))
+
+  // Helper: filter concepts by age gate
+  const isAllowed = (tag) => {
+    if (!gate) return true
+    if (gate.forbidden?.includes(tag)) return false
+    if (gate.allowed && !gate.allowed.includes(tag)) return false
+    return true
+  }
+
+  const plan = []
+
+  // 1. Remediation: degraded concepts (1-2 slots)
+  const dueReview = getDueForReview(masteryData)
+  const degraded = dueReview.filter(c => c.state === 'degraded' && isAllowed(c.tag))
+  degraded.slice(0, 2).forEach(c => plan.push({ type: "reinforce", concept: c.tag }))
+
+  // 2. Prerequisite gap (1 slot)
+  const recentWrong = stats.recentWrong || []
+  const lastWrongTag = recentWrong.length > 0 ? recentWrong[recentWrong.length - 1] : null
+  const prereqGap = lastWrongTag ? getPrereqGap(lastWrongTag, masteryData) : null
+  if (prereqGap && isAllowed(prereqGap.gap) && plan.length < 3) {
+    plan.push({ type: "prerequisite", concept: prereqGap.gap })
+  }
+
+  // 3. Learning progression: unmastered concepts in order (3-4 slots)
+  const unseen = available.filter(c => !mastered.has(c.tag) && !(masteryData.concepts?.[c.tag]) && isAllowed(c.tag))
+  const learning = dueReview.filter(c => c.state === 'learning' && isAllowed(c.tag))
+  const progression = [...learning, ...unseen.map(c => ({ tag: c.tag, state: 'unseen' }))]
+  const usedTags = new Set(plan.map(p => p.concept))
+  let added = 0
+  for (const c of progression) {
+    if (added >= 4 || plan.length >= 7) break
+    if (usedTags.has(c.tag)) continue
+    plan.push({ type: c.state === 'learning' ? "review" : "introduce", concept: c.tag })
+    usedTags.add(c.tag)
+    added++
+  }
+
+  // 4. Challenge: hardest unmastered concept (1 slot)
+  const hardUnseen = unseen.filter(c => (BRAIN.concepts[c.tag]?.diff || 1) >= 2 && !usedTags.has(c.tag))
+  if (hardUnseen.length > 0 && plan.length < 8) {
+    const pick = hardUnseen[Math.floor(Math.random() * hardUnseen.length)]
+    plan.push({ type: "challenge", concept: pick.tag })
+    usedTags.add(pick.tag)
+  }
+
+  // 5. Engagement: famous play or cross-position (1 slot)
+  if (plan.length < 8) {
+    const specialPositions = ["famous", "rules", "counts"]
+    const engagement = specialPositions[Math.floor(Math.random() * specialPositions.length)]
+    plan.push({ type: "engagement", concept: null, note: engagement })
+  }
+
+  console.log("[BSM Session] Planned", plan.length, "scenarios for", position + ":", plan.map(p => p.type + ":" + (p.concept || p.note)).join(", "))
+  return plan
+}
+
+// ============================================================================
 // Level 3.3: Planner Agent — Decides what to teach and selects context
 // ============================================================================
 function planScenario(position, stats, conceptsLearned = [], recentWrong = [], targetConcept = null, aiHistory = []) {
@@ -8615,6 +8681,8 @@ export default function App(){
 
   const[sessionRecap,setSessionRecap]=useState(null); // {plays,correct,concepts:[]}
   const sessionRef=useRef({plays:0,correct:0,concepts:[]});
+  const sessionPlanRef=useRef(null); // Session planner: array of {type, concept} or null
+  const sessionPlanPosRef=useRef(null); // Track which position the plan was built for
   const abortRef=useRef(null);
   const aiFailRef=useRef({consecutive:0,cooldownUntil:0});
   const outcomeStartRef=useRef(0);
@@ -9198,13 +9266,25 @@ export default function App(){
         return;
       }
       setAiLoading(true);setAiMode(true);setScreen("play")
+      // Session planner: build plan on first AI call for this position, consume items
+      if(!sessionPlanRef.current||sessionPlanPosRef.current!==p){
+        sessionPlanRef.current=planSession(stats,p)
+        sessionPlanPosRef.current=p
+      }
       let concept=null;
-      const wc=stats.wrongCounts||{};
-      const wrongIds=Object.keys(wc).filter(id=>wc[id]>0);
-      if(wrongIds.length>0&&Math.random()<0.5){
-        const allSc=Object.entries(SCENARIOS).flatMap(([,arr])=>arr);
-        const wrongSc=allSc.find(s=>wrongIds.includes(s.id)&&s.concept);
-        if(wrongSc)concept=wrongSc.concept;
+      const nextPlanItem=sessionPlanRef.current?.length>0?sessionPlanRef.current.shift():null
+      if(nextPlanItem){
+        console.log("[BSM Session] Consuming plan item:",nextPlanItem.type,nextPlanItem.concept||nextPlanItem.note||"")
+        if(nextPlanItem.concept)concept=nextPlanItem.concept
+      }else{
+        // Fallback: original random wrong-concept targeting
+        const wc=stats.wrongCounts||{};
+        const wrongIds=Object.keys(wc).filter(id=>wc[id]>0);
+        if(wrongIds.length>0&&Math.random()<0.5){
+          const allSc=Object.entries(SCENARIOS).flatMap(([,arr])=>arr);
+          const wrongSc=allSc.find(s=>wrongIds.includes(s.id)&&s.concept);
+          if(wrongSc)concept=wrongSc.concept;
+        }
       }
       const _aiHist=stats.aiHistory||[]
       const _aiStartMs=Date.now()
