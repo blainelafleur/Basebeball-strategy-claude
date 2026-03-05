@@ -9025,6 +9025,9 @@ const _recentAITitles = []
 // Tier 2: Server pool (community-contributed quality scenarios)
 // Tier 3: Fresh AI generation (fallback)
 // ═══════════════════════════════════════════════════════════════
+// Session-level tracker for served scenario IDs — bypasses React state batching
+const _servedScenarioIds = new Set()
+
 const LOCAL_POOL_KEY = "bsm_scenario_pool"
 const LOCAL_POOL_MAX = 50 // max scenarios stored locally
 
@@ -10411,6 +10414,8 @@ export default function App(){
         // BUG 7: Track analytics with A/B variants from cached result
         trackAnalyticsEvent("ai_scenario_generated",{pos:p,concept:cachedSc.conceptTag||"",diff:cachedSc.diff,ab:cachedResult.abVariants||{},cached:true},{ageGroup:stats.ageGroup,isPro:stats.isPro})
         // Persist to AI history
+        if (_servedScenarioIds.size > 500) _servedScenarioIds.clear()
+        _servedScenarioIds.add(cachedSc.id)
         setStats(prev=>{
           const entry={id:cachedSc.id,title:cachedSc.title,position:p,diff:cachedSc.diff,
             concept:cachedSc.concept,conceptTag:cachedSc.conceptTag||null,
@@ -10425,7 +10430,7 @@ export default function App(){
       // Tier 1: Check local scenario pool
       const maxDiffForPos = (AGE_GROUPS.find(a=>a.id===stats.ageGroup)||AGE_GROUPS[2]).maxDiff
       const diffForPool = (stats.ps?.[p]?.p||0) > 0 ? ((stats.ps[p].c/stats.ps[p].p) > 0.75 ? Math.min(3,maxDiffForPos) : (stats.ps[p].c/stats.ps[p].p) > 0.5 ? Math.min(2,maxDiffForPos) : 1) : 1
-      const excludePoolIds = [...(stats.cl || []), ...(stats.aiHistory || []).map(h => h.id)]
+      const excludePoolIds = [...new Set([...(stats.cl || []), ...(stats.aiHistory || []).map(h => h.id), ..._servedScenarioIds])]
       const localPoolSc = consumeFromLocalPool(p, diffForPool, excludePoolIds)
       if (localPoolSc) {
         console.log("[BSM] Using local pool scenario:", localPoolSc.title)
@@ -10433,6 +10438,8 @@ export default function App(){
         setAiMode(true); setScreen("play")
         aiFailRef.current.consecutive = 0; aiFailRef.current.cooldownUntil = 0
         trackAnalyticsEvent("ai_scenario_generated", { pos: p, concept: localPoolSc.conceptTag || "", diff: localPoolSc.diff, source: "local_pool" }, { ageGroup: stats.ageGroup, isPro: stats.isPro })
+        if (_servedScenarioIds.size > 500) _servedScenarioIds.clear()
+        _servedScenarioIds.add(localPoolSc.id)
         setStats(prev => {
           const entry = { id: localPoolSc.id, title: localPoolSc.title, position: p, diff: localPoolSc.diff, concept: localPoolSc.concept, conceptTag: localPoolSc.conceptTag || null, generatedAt: Date.now(), answered: false, correct: null, chosenIdx: null }
           const hist = [...(prev.aiHistory || []), entry].slice(-100)
@@ -10446,12 +10453,14 @@ export default function App(){
       // Tier 2: Check server community pool
       try {
         const serverPoolSc = await fetchFromServerPool(p, diffForPool, null, excludePoolIds)
-        if (serverPoolSc) {
+        if (serverPoolSc && !_servedScenarioIds.has(serverPoolSc.id)) {
           console.log("[BSM] Using server pool scenario:", serverPoolSc.title)
           serverPoolSc.isPooled = true
           setAiMode(true); setScreen("play")
           aiFailRef.current.consecutive = 0; aiFailRef.current.cooldownUntil = 0
           trackAnalyticsEvent("ai_scenario_generated", { pos: p, concept: serverPoolSc.conceptTag || "", diff: serverPoolSc.diff, source: "server_pool" }, { ageGroup: stats.ageGroup, isPro: stats.isPro })
+          if (_servedScenarioIds.size > 500) _servedScenarioIds.clear()
+          _servedScenarioIds.add(serverPoolSc.id)
           setStats(prev => {
             const entry = { id: serverPoolSc.id, title: serverPoolSc.title, position: p, diff: serverPoolSc.diff, concept: serverPoolSc.concept, conceptTag: serverPoolSc.conceptTag || null, generatedAt: Date.now(), answered: false, correct: null, chosenIdx: null }
             const hist = [...(prev.aiHistory || []), entry].slice(-100)
@@ -10550,6 +10559,8 @@ export default function App(){
           if(ab.persona)reportABResult("coach_persona_v1",ab.persona,"scenario_generated",1)
         }
         // Persist AI scenario to history (Sprint 1.5)
+        if (_servedScenarioIds.size > 500) _servedScenarioIds.clear()
+        _servedScenarioIds.add(result.scenario.id)
         setStats(prev=>{
           const entry={id:result.scenario.id,title:result.scenario.title,position:p,diff:result.scenario.diff,
             concept:result.scenario.concept,conceptTag:result.scenario.conceptTag||null,

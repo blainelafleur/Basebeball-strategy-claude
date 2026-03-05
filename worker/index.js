@@ -1705,7 +1705,7 @@ async function handlePoolFetch(request, env, cors) {
       SELECT id, scenario_json, quality_score, audit_score, times_served, correct_rate
       FROM scenario_pool
       WHERE position = ? AND difficulty = ? AND retired = 0
-        AND (times_served < 3 OR flag_rate < 0.10)
+        AND (times_served < 10 OR flag_rate < 0.10)
     `;
     const params = [position, difficulty];
 
