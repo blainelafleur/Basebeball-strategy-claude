@@ -11837,6 +11837,12 @@ export default function App(){
     setScreen("home");setPos(null);setSc(null);setChoice(null);setOd(null);setFo(null);setPanel(null);setLvlUp(null);setCoachMsg(null);setDailyMode(false);setSpeedMode(false);setSpeedRound(null);setSurvivalMode(false);setSurvivalRun(null);setRealGameMode(false);setRealGame(null);setChallengeMode(false);setChallengePack(null);setSeasonMode(false);setSeasonStageIntro(null);setAiMode(false);setAiFallback(false);setExplainMore(null);setExplainLoading(false);setSitMode(false);setSitSet(null);setSitQ(0);setSitResults([]);setSitTransition(null);setFilmStep(-1);if(filmTimerRef.current){clearTimeout(filmTimerRef.current);filmTimerRef.current=null}setAiSitLoading(false);if(aiSitAbortRef.current){aiSitAbortRef.current.abort();aiSitAbortRef.current=null}if(timerRef.current)clearTimeout(timerRef.current)
   },[speedMode,survivalMode,seasonMode,realGameMode,dailyMode,sitMode,screen]);
   goHomeRef.current=goHome;
+  const launchSitQuestion=useCallback((set,qIdx)=>{
+    const q=set.questions[qIdx];
+    const s={...q,_pos:q.pos,situation:set.situation};
+    setPos(q.pos);setSc(s);setChoice(null);setOd(null);setRi(-1);setFo(null);setShowC(false);setLvlUp(null);setShowExp(true);
+    setScreen("play");s.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80)});
+  },[]);
   const next=useCallback(()=>{
     // Track explanation engagement for AI scenarios
     if(sc?.isAI&&sc?.id&&outcomeStartRef.current>0){
@@ -12003,13 +12009,6 @@ export default function App(){
     setSitSet(set);setSitQ(0);setSitResults([]);
     setScreen("sitIntro");
   },[snd]);
-
-  const launchSitQuestion=useCallback((set,qIdx)=>{
-    const q=set.questions[qIdx];
-    const s={...q,_pos:q.pos,situation:set.situation};
-    setPos(q.pos);setSc(s);setChoice(null);setOd(null);setRi(-1);setFo(null);setShowC(false);setLvlUp(null);setShowExp(true);
-    setScreen("play");s.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80)});
-  },[]);
 
   const survivalNext=useCallback(()=>{
     if(!survivalRun)return;
