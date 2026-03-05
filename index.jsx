@@ -10403,6 +10403,16 @@ export default function App(){
 
     console.log('[BSM] startGame',{pos:p,forceAI,unseen:unseen.length,allExhausted,isPro:stats.isPro});
 
+    const triggerPrefetch = (position) => {
+      if (!stats.isPro) return
+      // Small delay so current scenario renders first
+      setTimeout(() => {
+        if (!_aiCache.fetching && !_aiCache.scenario) {
+          prefetchAIScenario(position, stats, stats.cl || [], stats.recentWrong || [], stats.aiHistory || [])
+        }
+      }, 2000)
+    }
+
     // Local helper: AI generation with loading, abort, retry, cooldown, fallback
     const doAI=async()=>{
       // Pillar 6B: Prime calibration cache (non-blocking)
@@ -10430,6 +10440,7 @@ export default function App(){
         })
         setSc(cachedSc)
         cachedSc.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80)})
+        triggerPrefetch(p)
         return
       } else if (cachedResult?.scenario) {
         // Pre-cached scenario has already-served title — discard it
@@ -10458,6 +10469,7 @@ export default function App(){
         })
         setSc(localPoolSc)
         localPoolSc.options.forEach((_, i) => { setTimeout(() => setRi(i), 120 + i * 80) })
+        triggerPrefetch(p)
         return
       }
 
@@ -10480,6 +10492,7 @@ export default function App(){
           })
           setSc(serverPoolSc)
           serverPoolSc.options.forEach((_, i) => { setTimeout(() => setRi(i), 120 + i * 80) })
+          triggerPrefetch(p)
           return
         }
       } catch (e) {
@@ -10584,6 +10597,7 @@ export default function App(){
         if(result.abVariants)result.scenario._abVariants=result.abVariants;
         setSc(result.scenario);
         result.scenario.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80);});
+        triggerPrefetch(p)
       } else {
         aiFailRef.current.consecutive++;
         // Sprint 4.2: Track AI scenario failure
@@ -10720,7 +10734,7 @@ export default function App(){
     setOd(o);setExplDepthLayer(0);
     outcomeStartRef.current=Date.now();
     // Sprint 5: Pre-fetch next AI scenario while player reads explanation
-    if(stats.isPro&&aiMode&&!speedMode&&!survivalMode&&!realGameMode&&!aiCacheRef.current.scenarios[pos]){
+    if(stats.isPro&&aiMode&&!speedMode&&!survivalMode&&!realGameMode&&!aiCacheRef.current.scenarios[pos]&&!_aiCache.fetching&&!_aiCache.scenario){
       prefetchAIScenario(pos,stats,stats.cl||[],stats.recentWrong||[],stats.aiHistory||[])
     }
     // Track speed round result
