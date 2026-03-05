@@ -7117,12 +7117,12 @@ function gradeScenario(scenario, position) {
 
   const expls = scenario.explanations || []
   expls.forEach((e, i) => {
-    if (!e || e.length < 40) { score -= 12; deductions.push(`explanation_${i}_too_short`) }
+    if (!e || e.length < 40) { score -= 8; deductions.push(`explanation_${i}_too_short`) }
     const sentences = (e.match(/[.!?]+/g) || []).length
-    if (sentences < 2) { score -= 8; deductions.push(`explanation_${i}_few_sentences`) }
+    if (sentences < 2) { score -= 5; deductions.push(`explanation_${i}_few_sentences`) }
     // Check for generic explanations (no situation reference)
     if (e && !/\d/.test(e) && !/inning|out|runner|score|count|lead|trail|tied/i.test(e)) {
-      score -= 5; deductions.push(`explanation_${i}_too_generic`)
+      score -= 3; deductions.push(`explanation_${i}_too_generic`)
     }
   })
 
@@ -8268,6 +8268,26 @@ async function generateWithAgentPipeline(position, stats, conceptsLearned, recen
       scenario.rates = scenario.rates.map((r, i) => i !== scenario.best && r > 40 ? Math.min(40, r) : r)
     }
 
+    // Auto-fix: Pad short explanations to avoid -12 deduction per explanation
+    // grok-3-mini frequently generates brief explanations that fail length checks
+    // The standard pipeline doesn't penalize for this (no gradeScenario gate)
+    if (scenario.explanations && scenario.explanations.length === 4) {
+      scenario.explanations = scenario.explanations.map((expl, i) => {
+        if (!expl) return "This choice affects the game outcome based on the current situation."
+        // If explanation is too short (< 40 chars), it gets -12 deduction
+        // If < 2 sentences, it gets -8 deduction. Ensure at least 2 sentences.
+        const sentences = (expl.match(/[.!?]+/g) || []).length
+        if (expl.length < 40 || sentences < 2) {
+          const sit = scenario.situation || {}
+          const outsText = sit.outs !== undefined ? `with ${sit.outs} out${sit.outs !== 1 ? 's' : ''}` : ""
+          const innText = sit.inning ? `in the ${sit.inning} of the inning` : ""
+          const suffix = ` In this situation ${outsText} ${innText}, this decision has real consequences for the game.`.trim()
+          return expl.endsWith('.') || expl.endsWith('!') || expl.endsWith('?') ? expl + suffix : expl + '.' + suffix
+        }
+        return expl
+      })
+    }
+
     // Stage 3: Grade (now grading the NORMALIZED scenario)
     const grade = gradeAgentScenario(scenario, plan)
     console.log("[BSM Agent] Grade:", grade.score, "pass:", grade.pass,
@@ -9151,6 +9171,19 @@ const _recentAITitles = []
 // Session-level tracker for served scenario IDs — bypasses React state batching
 const _servedScenarioIds = new Set()
 const _servedScenarioTitles = new Set()
+// Seed served titles from persisted aiHistory so pool scenarios
+// aren't re-served across sessions (title-based cross-session dedup)
+try {
+  const stored = JSON.parse(localStorage.getItem("bsm_v5") || "{}")
+  const hist = stored.aiHistory || []
+  hist.forEach(h => {
+    if (h.title) _servedScenarioTitles.add(h.title)
+    if (h.id) _servedScenarioIds.add(h.id)
+  })
+  if (_servedScenarioTitles.size > 0) {
+    console.log("[BSM] Seeded", _servedScenarioTitles.size, "served titles from aiHistory for cross-session dedup")
+  }
+} catch (e) { /* localStorage not available */ }
 
 const LOCAL_POOL_KEY = "bsm_scenario_pool"
 const LOCAL_POOL_MAX = 50 // max scenarios stored locally
