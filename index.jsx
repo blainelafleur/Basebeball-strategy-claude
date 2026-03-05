@@ -3685,6 +3685,8 @@ const SITUATION_SETS = [
   {id:"sr1",title:"Bases Loaded Jam",emoji:"🔥",color:"#ef4444",
     situation:{inning:"Bot 6",outs:1,count:"1-2",runners:[1,2,3],score:[3,4]},
     desc:"Bases loaded, one out, down by one in the 6th. Every position has a job. Can you see the whole field?",
+    debrief:"The pitcher threw a low fastball, and the catcher had already set up low-and-away \u2014 they were on the same page. The batter hit a grounder to short, who flipped to second for one, and the relay to first completed the double play. Meanwhile, the smart baserunner on third read the sharp grounder and held \u2014 if he'd run blindly, he would have been the third out. The pitcher's location, the catcher's setup, and the baserunner's patience all worked together.",
+    teamworkTakeaway:"A double play only works when the pitcher pitches for grounders, the catcher calls for the right location, and the baserunner reads the ball before committing. One breakdown in the chain changes everything.",
     questions:[
       {pos:"pitcher",id:"sr1a",conceptTag:"pitch-sequencing",title:"Pitcher: Navigate the Jam",diff:2,cat:"pitcher",ageMin:9,ageMax:99,
         options:["Throw a fastball low for a ground-ball double play","Go for the strikeout with a high fastball","Pitch around this batter \u2014 walk in the tying run to face an easier hitter","Throw a changeup middle-middle to get ahead"],
@@ -3705,6 +3707,8 @@ const SITUATION_SETS = [
   {id:"sr2",title:"Steal Attempt at Second",emoji:"💨",color:"#06b6d4",
     situation:{inning:"Top 4",outs:0,count:"1-1",runners:[1],score:[2,2]},
     desc:"A speedster takes off for second base! The pitcher, catcher, and shortstop all have a role. Who executes?",
+    debrief:"The pitcher used a slide step, cutting delivery time from 1.5 seconds to 1.2 seconds. That extra 0.3 seconds gave the catcher time to make a clean transfer and fire to second. The shortstop timed his break perfectly \u2014 arriving at the bag with the throw, straddling the front edge, and sweeping a low tag. The runner was out by half a step. Every fraction of a second mattered.",
+    teamworkTakeaway:"Stopping a stolen base is a relay chain: pitcher's delivery time + catcher's transfer and throw + fielder's tag. If any link is slow, the runner is safe. The slide step is what makes the whole chain possible.",
     questions:[
       {pos:"pitcher",id:"sr2a",conceptTag:"steal-window",title:"Pitcher: Quick to the Plate",diff:2,cat:"pitcher",ageMin:9,ageMax:99,
         options:["Use a slide step to get the ball to your catcher quickly","Use your full windup for maximum velocity \u2014 blow the batter away","Step off the rubber and try to catch the runner leaning","Hold the ball for 5+ seconds to freeze the runner"],
@@ -3725,6 +3729,8 @@ const SITUATION_SETS = [
   {id:"sr3",title:"Sacrifice Bunt Situation",emoji:"🎯",color:"#22c55e",
     situation:{inning:"Bot 7",outs:0,count:"0-0",runners:[1],score:[3,3]},
     desc:"Tie game, late innings, runner on first, nobody out. The bunt is on! Every defender and the batter must execute.",
+    debrief:"The pitcher threw a high fastball \u2014 the toughest pitch to bunt. The third baseman charged hard and the first baseman crashed in from the other side, creating a wall of defenders. The batter did the smart thing and bunted softly down the first-base line, away from the charging third baseman. The pitcher fielded it, threw to first (where the second baseman was covering), and the runner moved to second. Sacrifice successful, but the defense made it as hard as possible.",
+    teamworkTakeaway:"Bunt defense is choreography \u2014 every defender has an assigned role. The pitcher makes the bunt difficult, corners charge, middle infielders cover the vacated bases. The batter's job is to find the gap in the defense. Both sides are executing a plan.",
     questions:[
       {pos:"pitcher",id:"sr3a",conceptTag:"bunt-defense",title:"Pitcher: Defend the Bunt",diff:2,cat:"pitcher",ageMin:9,ageMax:99,
         options:["Throw a high fastball \u2014 bunts on high pitches pop up","Throw your best breaking ball low to make the bunt difficult","Throw a fastball right down the middle for an easy bunt","Throw inside to jam the batter and make the bunt roll foul"],
@@ -3750,6 +3756,8 @@ const SITUATION_SETS = [
   {id:"sr4",title:"Extra-Base Hit to the Gap",emoji:"🏃",color:"#f97316",
     situation:{inning:"Top 5",outs:1,count:"-",runners:[1],score:[1,2]},
     desc:"A line drive splits the outfielders into the left-center gap! The runner on first is off and running. Can the defense limit the damage?",
+    debrief:"The ball split the outfielders into the left-center gap. The center fielder sprinted to the ball, set his feet, and threw a strong one-hopper to the shortstop, who had sprinted out to be the relay man \u2014 arms up, lined up between the outfielder and home plate. The shortstop caught the relay and fired home. The baserunner rounded third hard, read the relay throw coming in strong and on-line, and held at third. Smart aggression \u2014 he pressured the defense without running into an out.",
+    teamworkTakeaway:"The relay system only works when everyone does their specific job: the outfielder hits the relay man, the relay man lines up correctly, and the baserunner reads the throw before committing. The ball moves faster than any runner \u2014 that's why the relay exists.",
     questions:[
       {pos:"centerField",id:"sr4a",conceptTag:"relay-double-cut",title:"Center Fielder: Get the Ball In",diff:2,cat:"fielder",ageMin:9,ageMax:99,
         options:["Chase the ball down, pick it up, and throw a rainbow to home plate","Get to the ball quickly and hit the cutoff man in the chest","Pick up the ball and hold it \u2014 don't throw to the wrong base","Run the ball in toward the infield yourself"],
@@ -3770,6 +3778,8 @@ const SITUATION_SETS = [
   {id:"sr5",title:"Full Count Showdown",emoji:"⚡",color:"#a855f7",
     situation:{inning:"Bot 8",outs:2,count:"3-2",runners:[2],score:[5,5]},
     desc:"Tie game, 8th inning, two outs, runner on second, full count. This at-bat decides the game. Three perspectives, one moment.",
+    debrief:"Full count, two outs, tie game. The pitcher trusted his best pitch \u2014 a fastball on the corner \u2014 and threw it with conviction. The batter took the championship approach: protect the plate, foul off tough pitches, put hittable ones in play. The manager had already sent the runner from second, knowing there was no downside on a full count with two outs. The batter lined a single to right, and the runner scored from second easily with his head start. Ballgame.",
+    teamworkTakeaway:"In high-leverage moments, every role simplifies: the pitcher competes with his best stuff, the batter refuses to go down without a fight, and the manager makes sure the runners are in motion. Trust, aggression, and awareness win these moments.",
     questions:[
       {pos:"pitcher",id:"sr5a",conceptTag:"count-leverage",title:"Pitcher: The Payoff Pitch",diff:2,cat:"pitcher",ageMin:9,ageMax:99,
         options:["Throw your best pitch \u2014 fastball on the black, let your stuff win","Nibble the corner with a breaking ball \u2014 get him to chase","Walk him intentionally and pitch to the next batter","Throw the fastball right down the middle \u2014 just throw a strike"],
@@ -3790,6 +3800,8 @@ const SITUATION_SETS = [
   {id:"sr6",title:"Squeeze Play Alert",emoji:"🤫",color:"#eab308",
     situation:{inning:"Bot 7",outs:1,count:"1-1",runners:[3],score:[2,3]},
     desc:"Runner on third, one out, down by one late in the game. The squeeze play is on! But the defense is watching.",
+    debrief:"The squeeze was on. The runner on third broke for home as the pitcher started his delivery. The batter squared late \u2014 at the last possible moment \u2014 to keep the element of surprise. He bunted everything, getting the bat on a tough pitch and rolling it up the first-base line. The run scored. On the defensive side, the third baseman had been watching the runner's lead, saw him break early, and yelled 'SQUEEZE!' \u2014 but the call came just a fraction too late for the pitcher to adjust. Execution beats reaction.",
+    teamworkTakeaway:"The squeeze play is baseball's most dramatic gamble. The runner commits blindly, the batter MUST make contact, and the defense has to recognize it in real-time. The offense wins through timing and commitment; the defense wins through recognition and communication.",
     questions:[
       {pos:"batter",id:"sr6a",conceptTag:"squeeze-play",title:"Batter: Execute the Squeeze",diff:2,cat:"batter",ageMin:9,ageMax:99,
         options:["Square around early to show bunt \u2014 get set before the pitch arrives","Wait until the pitcher commits to home, then square late and bunt anything","Only bunt if it's a strike \u2014 don't bunt a bad pitch","Pull back and swing if the pitch is hittable"],
@@ -3810,6 +3822,8 @@ const SITUATION_SETS = [
   {id:"sr7",title:"Rundown Chaos",emoji:"🔄",color:"#6366f1",
     situation:{inning:"Top 3",outs:0,count:"-",runners:[1,3],score:[0,1]},
     desc:"Runners on first and third, nobody out. The runner on first gets caught in a rundown between first and second! But the runner on third is lurking. What does everyone do?",
+    debrief:"Runners on first and third, and the runner on first got caught in a rundown. The first baseman chased him toward second \u2014 ball held high, running hard \u2014 while keeping one eye on the runner at third. The shortstop closed the gap from the second-base side, shortening the runway. When the runner at third saw the ball thrown toward second (away from home), he broke for the plate. The first baseman, alert to this exact situation, threw home instead. The catcher applied the tag. One out in the rundown, and the defense kept the runner at third honest.",
+    teamworkTakeaway:"In a first-and-third rundown, the defense has to solve two problems at once: get the out on the caught runner AND watch the runner at third. The runner at third has to time his break for when the ball moves away from home. Both sides are thinking two moves ahead.",
     questions:[
       {pos:"firstBase",id:"sr7a",conceptTag:"rundown-mechanics",title:"First Base: Chase and Tag",diff:2,cat:"fielder",ageMin:9,ageMax:99,
         options:["Chase the runner toward second with the ball, throw when the runner from third commits to score","Run the runner back to first and tag him yourself \u2014 don't risk a throw","Chase toward second and make as many throws as possible to tire out the runner","Throw to second immediately and let them handle the rundown"],
@@ -3830,6 +3844,8 @@ const SITUATION_SETS = [
   {id:"sr8",title:"Tag-Up Play at the Warning Track",emoji:"🏷️",color:"#ec4899",
     situation:{inning:"Bot 5",outs:1,count:"-",runners:[3],score:[1,2]},
     desc:"A deep fly ball to center field! The runner on third has to decide: tag up and try to score, or stay put?",
+    debrief:"Deep fly ball to center. The center fielder camped under it, caught it cleanly with momentum toward home, crow-hopped, and fired a throw on a line toward the plate. The baserunner on third tagged up the instant the ball hit leather, read the outfielder's throw, and saw it was strong and on-line. The third base coach read the same thing and held the runner. Smart play \u2014 a run scoring on a sacrifice fly is only valuable if you actually score. Running into the tag wastes the out.",
+    teamworkTakeaway:"Tag-up plays are a three-way calculation: the outfielder's depth and arm strength, the runner's speed and read, and the third base coach's judgment. The coach sees the whole play \u2014 the runner trusts the coach, and the outfielder makes his best throw. Everyone reads the same situation differently based on their role.",
     questions:[
       {pos:"centerField",id:"sr8a",conceptTag:"of-depth-arm-value",title:"Center Fielder: Catch and Throw Home",diff:2,cat:"fielder",ageMin:9,ageMax:99,
         options:["Catch the ball on the run and throw home in one motion","Camp under the ball, catch it, then crow hop and throw home with everything you've got","Let the ball bounce and play it on a hop to keep the runner at third","Catch the ball and throw to second base to prevent the batter from advancing"],
@@ -13036,7 +13052,7 @@ export default function App(){
             {/* Team Debrief — How the Play Unfolded */}
             <div style={{...card,textAlign:"left",marginBottom:16}}>
               <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:11,color:sitSet.color,letterSpacing:1,marginBottom:8}}>🎬 HOW THE PLAY UNFOLDED</div>
-              <p style={{fontSize:12,color:"#9ca3af",lineHeight:1.5,marginBottom:10}}>{sitSet.description||sitSet.title}</p>
+              <p style={{fontSize:12,color:"#9ca3af",lineHeight:1.5,marginBottom:10}}>{sitSet.debrief||sitSet.desc}</p>
               <div style={{display:"flex",flexDirection:"column",gap:8}}>
                 {sitResults.map((r,i)=>{const q=sitSet.questions[i];const pm=POS_META[r.pos];const bestExp=q?.explanations?.[q?.best]||"";return(
                   <div key={i} style={{borderLeft:`3px solid ${r.correct?"#22c55e":"#ef4444"}`,paddingLeft:10}}>
@@ -13049,9 +13065,7 @@ export default function App(){
               <div style={{marginTop:10,padding:"8px 10px",background:"rgba(168,85,247,.04)",border:"1px solid rgba(168,85,247,.1)",borderRadius:8}}>
                 <div style={{fontSize:10,color:"#a855f7",fontWeight:700,marginBottom:3}}>💡 Teamwork Takeaway</div>
                 <div style={{fontSize:11,color:"#d1d5db",lineHeight:1.45}}>
-                  {pct===100?"Every position executed perfectly — that's championship-level teamwork! Each player read the situation and made the optimal play.":
-                   pct>=50?"Good team effort! Most positions made the right call. Review the missed plays above — in real games, one wrong decision from any position can change the outcome.":
-                   "This situation exposed some gaps. In real games, every position must think together — the outfielder's throw, the infielder's relay, the catcher's block all connect. Study each role above!"}
+                  {sitSet.teamworkTakeaway||"Every position's decision connects to every other position's decision. That's what makes baseball a team sport."}
                 </div>
               </div>
             </div>
