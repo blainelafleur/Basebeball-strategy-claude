@@ -4581,7 +4581,7 @@ const STADIUM_MILESTONES=[
   {games:200,label:"Fireworks",desc:"Fireworks on perfect answers!",icon:"🎆"},
   {games:330,label:"Legend Stadium",desc:"Golden border + Legend title!",icon:"👑"},
 ];
-const DEFAULT = {pts:0,str:0,bs:0,gp:0,co:0,ps:{},achs:[],cl:[],ds:0,lastDay:null,todayPlayed:0,todayDate:null,sp:0,isPro:false,onboarded:false,soundOn:true,recentWrong:[],dailyDone:false,dailyDate:null,weeklyDone:null,streakFreezes:0,survivalBest:0,ageGroup:"11-12",displayName:"",teamCode:"",teamName:"",seasonGame:0,seasonCorrect:0,seasonComplete:false,fieldTheme:"default",avatarJersey:0,avatarCap:0,avatarBat:0,season:1,proPlan:null,proPurchaseDate:null,proExpiry:null,lastStreakFreezeDate:null,wrongCounts:{},posGrad:{},funnel:[],hist:{},posPlayed:{},firstPlayDate:null,lastPlayDate:null,sessionCount:0,tutorialDone:false,promoCode:null,promoActivatedDate:null,masteryShown:[],masteryData:{concepts:{},errorPatterns:{},sessionHistory:[]},qualitySignals:{},flaggedScenarios:{},explanationLog:{},gapDetectionCache:null,lastWrongConceptTag:null,aiHistory:[],aiMetrics:{correct:0,total:0,flagged:0,scores:[]},hcMetrics:{correct:0,total:0,flagged:0},activePath:null,sitMastery:{}};
+const DEFAULT = {pts:0,str:0,bs:0,gp:0,co:0,ps:{},achs:[],cl:[],ds:0,lastDay:null,todayPlayed:0,todayDate:null,sp:0,isPro:false,onboarded:false,soundOn:true,recentWrong:[],dailyDone:false,dailyDate:null,weeklyDone:null,streakFreezes:0,survivalBest:0,ageGroup:"11-12",displayName:"",teamCode:"",teamName:"",seasonGame:0,seasonCorrect:0,seasonComplete:false,fieldTheme:"default",avatarJersey:0,avatarCap:0,avatarBat:0,season:1,proPlan:null,proPurchaseDate:null,proExpiry:null,lastStreakFreezeDate:null,wrongCounts:{},posGrad:{},funnel:[],hist:{},posPlayed:{},firstPlayDate:null,lastPlayDate:null,sessionCount:0,tutorialDone:false,promoCode:null,promoActivatedDate:null,masteryShown:[],masteryData:{concepts:{},errorPatterns:{},sessionHistory:[]},qualitySignals:{},flaggedScenarios:{},explanationLog:{},gapDetectionCache:null,lastWrongConceptTag:null,aiHistory:[],aiMetrics:{correct:0,total:0,flagged:0,scores:[]},hcMetrics:{correct:0,total:0,flagged:0},activePath:null,sitMastery:{},dailySitDone:false,dailySitDate:null,dailySitStreak:0,dailySitBestStreak:0,lastDailySitDate:null,aiSitCount:0};
 
 // Streak flame visual — grows with daily streak length
 function getFlame(ds){
@@ -4616,6 +4616,40 @@ function getWeeklyScenario(){
   const hardPool=allSc.filter(s=>(s.diff||1)>=2);
   let hash=weekNum*2654435761;hash=Math.abs(hash)%hardPool.length;
   return hardPool[hash];
+}
+
+// Daily Situation — one rotating situation set per day (Pro difficulty)
+function getDailySituation(){
+  const today=new Date();
+  const seed=today.getFullYear()*10000+(today.getMonth()+1)*100+today.getDate();
+  const proSets=SITUATION_SETS.filter(s=>s.diff===2);
+  return proSets.length>0?proSets[seed%proSets.length]:SITUATION_SETS[0];
+}
+
+// Mastery tier for a situation set: Diamond > Gold > Silver > Bronze > none
+function getSitTier(setId,sitMastery){
+  const sm=sitMastery?.[setId];if(!sm||!sm.bestGrade)return null;
+  const g=sm.bestGrade;
+  // Diamond requires S grade on the set
+  if(g==="S")return{id:"diamond",emoji:"💎",label:"Diamond",color:"#38bdf8",bg:"rgba(56,189,248,"};
+  if(g==="A")return{id:"gold",emoji:"🥇",label:"Gold",color:"#f59e0b",bg:"rgba(245,158,11,"};
+  if(g==="B")return{id:"silver",emoji:"🥈",label:"Silver",color:"#94a3b8",bg:"rgba(148,163,184,"};
+  return{id:"bronze",emoji:"🥉",label:"Bronze",color:"#d97706",bg:"rgba(217,119,6,"};
+}
+
+// Situation Room aggregate rank
+function getSitRank(sitMastery){
+  const tiers=SITUATION_SETS.map(s=>getSitTier(s.id,sitMastery));
+  const bronze=tiers.filter(t=>t).length;
+  const silver=tiers.filter(t=>t&&(t.id==="silver"||t.id==="gold"||t.id==="diamond")).length;
+  const gold=tiers.filter(t=>t&&(t.id==="gold"||t.id==="diamond")).length;
+  const diamond=tiers.filter(t=>t&&t.id==="diamond").length;
+  const allDiamond=diamond===SITUATION_SETS.length&&SITUATION_SETS.length>0;
+  if(allDiamond)return{title:"Hall of Fame Strategist",emoji:"👑",color:"#38bdf8"};
+  if(gold>=15)return{title:"Field General",emoji:"🎖️",color:"#f59e0b"};
+  if(silver>=8)return{title:"Dugout Genius",emoji:"🧠",color:"#94a3b8"};
+  if(bronze>=4)return{title:"Coordinator",emoji:"📋",color:"#d97706"};
+  return{title:"Scout",emoji:"🔍",color:"#6b7280"};
 }
 
 // ============================================================================
@@ -6559,6 +6593,29 @@ function getPracticeRecommendations(stats) {
     if(meta)recs.push({type:"explore",priority:40,position:p,name:meta.label,
       reason:"Haven't tried this position yet!",emoji:meta.emoji})
   })
+
+  // 7. Situation Room sets with weak positions or due concepts
+  const weakPos=new Set()
+  Object.entries(ps).filter(([,v])=>v.p>=5&&(v.c/v.p)<0.5).forEach(([p])=>weakPos.add(p))
+  const degradedTags=new Set()
+  Object.entries(cm).filter(([,v])=>v.state==="degraded").forEach(([tag])=>degradedTags.add(tag))
+  if(typeof SITUATION_SETS!=="undefined"){
+    SITUATION_SETS.filter(s=>s.diff<=2).forEach(set=>{
+      const matchingWeak=set.questions.filter(q=>weakPos.has(q.pos));
+      const matchingDegraded=set.questions.filter(q=>q.conceptTag&&degradedTags.has(q.conceptTag));
+      if(matchingWeak.length>=2||matchingDegraded.length>=1){
+        const posLabels=matchingWeak.length>=2?matchingWeak.slice(0,2).map(q=>POS_META[q.pos]?.label).filter(Boolean).join(" and "):
+          matchingDegraded.length>0?matchingDegraded.map(q=>POS_META[q.pos]?.label).filter(Boolean).slice(0,2).join(" and "):"";
+        const reason=matchingWeak.length>=2?`Covers ${posLabels} \u2014 positions to improve`:
+          `Reviews ${matchingDegraded[0]?.conceptTag||"concepts"} you need to refresh`;
+        const sm=stats.sitMastery?.[set.id];
+        if(!sm||!sm.bestGrade||sm.bestGrade==="D"||sm.bestGrade==="C"){
+          recs.push({type:"situation_room",priority:70,name:set.title,
+            reason,emoji:"🏟️",sitSetId:set.id})
+        }
+      }
+    })
+  }
 
   return recs.sort((a,b)=>b.priority-a.priority).slice(0,5)
 }
@@ -9501,6 +9558,391 @@ function getRandomTemplateValues() {
 const _recentAITitles = []
 
 // ═══════════════════════════════════════════════════════════════
+// generateAISituation — creates multi-position situation sets via AI
+// ═══════════════════════════════════════════════════════════════
+const AI_SIT_GAME_STATES = [
+  {label:"Bases Loaded Jam",runners:[1,2,3],outs:1,count:"1-2",posPool:["pitcher","catcher","baserunner","firstBase","shortstop","batter","manager"],anim:"doubleplay"},
+  {label:"Steal Attempt",runners:[1],outs:0,count:"1-1",posPool:["pitcher","catcher","shortstop","secondBase","baserunner"],anim:"steal"},
+  {label:"Sacrifice Bunt",runners:[1],outs:0,count:"0-0",posPool:["pitcher","thirdBase","firstBase","batter","secondBase"],anim:"bunt"},
+  {label:"Extra-Base Hit to Gap",runners:[1],outs:1,count:"-",posPool:["centerField","leftField","shortstop","secondBase","baserunner"],anim:"hit"},
+  {label:"Runner on Third, Less Than Two Outs",runners:[3],outs:1,count:"1-0",posPool:["pitcher","catcher","thirdBase","batter","baserunner","manager"],anim:"score"},
+  {label:"Double Play Situation",runners:[1],outs:0,count:"0-1",posPool:["pitcher","catcher","shortstop","secondBase","firstBase"],anim:"doubleplay"},
+  {label:"First-and-Third Steal",runners:[1,3],outs:0,count:"1-0",posPool:["catcher","pitcher","shortstop","secondBase","baserunner","manager"],anim:"steal"},
+  {label:"Fly Ball to the Wall",runners:[2],outs:1,count:"-",posPool:["rightField","centerField","leftField","baserunner","firstBase"],anim:"flyout"},
+  {label:"Wild Pitch / Passed Ball",runners:[2,3],outs:1,count:"2-2",posPool:["pitcher","catcher","thirdBase","baserunner","firstBase"],anim:"score"},
+  {label:"Rundown Between Bases",runners:[1,3],outs:1,count:"-",posPool:["pitcher","firstBase","secondBase","shortstop","baserunner","thirdBase"],anim:"safe"},
+  {label:"Batter's Count Decision",runners:[1,2],outs:1,count:"3-1",posPool:["batter","baserunner","pitcher","catcher","manager"],anim:"hit"},
+  {label:"Late-Inning Hold",runners:[1,2],outs:2,count:"2-2",posPool:["pitcher","catcher","shortstop","centerField","manager"],anim:"strikeout"},
+];
+
+async function generateAISituation(stats, signal = null) {
+  const ageGroup = stats.ageGroup || "11-12";
+  const ageNum = parseInt(ageGroup) || 11;
+  const diffTarget = ageNum >= 13 ? 3 : ageNum >= 9 ? 2 : 1;
+  const ps = stats.ps || {};
+  const cm = (stats.masteryData?.concepts) || {};
+
+  // 1. Identify 3-4 positions based on player weaknesses
+  const weakPositions = [];
+  const strongPositions = [];
+  Object.entries(ps).forEach(([p, v]) => {
+    if (v.p >= 5 && (v.c / v.p) < 0.5) weakPositions.push(p);
+    else if (v.p >= 5 && (v.c / v.p) >= 0.7) strongPositions.push(p);
+  });
+  // Add degraded concept positions
+  const degradedPos = new Set();
+  Object.entries(cm).filter(([, v]) => v.state === "degraded").forEach(([tag]) => {
+    const concept = BRAIN.concepts[tag];
+    if (concept?.domain) {
+      const domainPos = { pitching: "pitcher", defense: "shortstop", hitting: "batter", baserunning: "baserunner", strategy: "manager" };
+      if (domainPos[concept.domain]) degradedPos.add(domainPos[concept.domain]);
+    }
+  });
+
+  // 2. Select a coherent game state that matches player needs
+  const shuffledStates = [...AI_SIT_GAME_STATES].sort(() => Math.random() - 0.5);
+  let chosenState = shuffledStates[0];
+  // Prefer states whose posPool overlaps with weak/degraded positions
+  for (const state of shuffledStates) {
+    const overlapCount = state.posPool.filter(p => weakPositions.includes(p) || degradedPos.has(p)).length;
+    if (overlapCount >= 2) { chosenState = state; break; }
+  }
+
+  // 3. Pick 3-4 positions from the state's pool — prioritize weak/degraded
+  const posPool = [...chosenState.posPool];
+  const numPos = Math.min(posPool.length, Math.random() < 0.5 ? 3 : 4);
+  const selectedPos = [];
+  // First add weak/degraded positions that are in the pool
+  for (const p of posPool) {
+    if (selectedPos.length >= numPos) break;
+    if ((weakPositions.includes(p) || degradedPos.has(p)) && !selectedPos.includes(p)) selectedPos.push(p);
+  }
+  // Fill remaining slots randomly from pool (no duplicates)
+  const remaining = posPool.filter(p => !selectedPos.includes(p)).sort(() => Math.random() - 0.5);
+  for (const p of remaining) {
+    if (selectedPos.length >= numPos) break;
+    selectedPos.push(p);
+  }
+
+  // 4. Build game context
+  const innings = ["Top 3", "Bot 4", "Top 6", "Bot 7", "Top 2", "Bot 9", "Top 5", "Bot 8"];
+  const inning = innings[Math.floor(Math.random() * innings.length)];
+  const score = [Math.floor(Math.random() * 6), Math.floor(Math.random() * 6)];
+  const situation = { inning, outs: chosenState.outs, count: chosenState.count, runners: chosenState.runners, score };
+
+  // 5. Gather position-specific context for each position
+  const posContexts = selectedPos.map(pos => {
+    const principle = AI_POS_PRINCIPLES[pos] || POS_PRINCIPLES[pos] || "";
+    const mapText = getAIMap(pos);
+    return `POSITION: ${pos}\nRULES: ${principle}\n${mapText}`;
+  }).join("\n\n");
+
+  // Decision windows and coaching voice
+  let decisionText = "";
+  const dwKeys = new Set(selectedPos.map(p =>
+    ["firstBase", "secondBase", "shortstop", "thirdBase"].includes(p) ? "infielder" :
+    ["leftField", "centerField", "rightField"].includes(p) ? "outfielder" : p
+  ));
+  for (const key of dwKeys) {
+    const w = DECISION_WINDOWS[key];
+    if (w) decisionText += `\n${key.toUpperCase()} TIMING: ${Object.entries(w).map(([k, v]) => `${k}: ${v}`).join(". ")}`;
+  }
+
+  let coachVoice = "";
+  if (COACHING_VOICE.tone_guidance.length > 0) {
+    const picks = [...COACHING_VOICE.tone_guidance].sort(() => Math.random() - 0.5).slice(0, 3);
+    coachVoice = "\nCOACHING VOICE — explanations should sound like a coach, not a textbook:\n" + picks.map(v => `- "${v}"`).join("\n");
+  }
+
+  // Real game situations for context
+  let realGameFeel = "";
+  try {
+    const allSits = selectedPos.flatMap(pos => {
+      const key = ["firstBase", "secondBase", "shortstop", "thirdBase"].includes(pos) ? "firstBase" :
+        ["leftField", "centerField", "rightField"].includes(pos) ? "leftField" : pos;
+      return (REAL_GAME_SITUATIONS[pos] || REAL_GAME_SITUATIONS[key] || []).slice(0, 2);
+    });
+    if (allSits.length > 0) {
+      const picks = allSits.sort(() => Math.random() - 0.5).slice(0, 3);
+      realGameFeel = "\nREAL GAME FEEL:\n" + picks.map(s => `- "${s.setup}" → Real: ${s.real_decision}. Mistake: ${s.common_mistake}`).join("\n");
+    }
+  } catch {}
+
+  // Mastery context
+  const degraded = Object.entries(cm).filter(([, v]) => v.state === "degraded").map(([t]) => t);
+  const learning = Object.entries(cm).filter(([, v]) => v.state === "learning").map(([t]) => t);
+  let masteryHint = "";
+  if (degraded.length > 0) masteryHint += `\nDEGRADED CONCEPTS (test these): ${degraded.slice(0, 3).join(", ")}.`;
+  if (learning.length > 0) masteryHint += `\nLEARNING CONCEPTS (reinforce): ${learning.slice(0, 3).join(", ")}.`;
+
+  // Age gate
+  const ageGate = CONCEPT_GATES[ageGroup];
+  const ageText = ageGate?.adjustments ? `\nAGE GROUP: ${ageGroup}\n${Object.entries(ageGate.adjustments).map(([k, v]) => `- ${k}: ${v}`).join("\n")}${ageGate.forbidden?.length > 0 ? `\nFORBIDDEN: ${ageGate.forbidden.join(", ")}` : ""}` : "";
+
+  // Template values for JSON example
+  const bestIdx = Math.floor(Math.random() * 4);
+  const exRates = [0, 0, 0, 0];
+  exRates[bestIdx] = 75 + Math.floor(Math.random() * 15);
+  for (let i = 0; i < 4; i++) if (i !== bestIdx) exRates[i] = 15 + Math.floor(Math.random() * 40);
+
+  // Handcrafted example for few-shot
+  const exampleSet = SITUATION_SETS.find(s => s.diff === diffTarget) || SITUATION_SETS[0];
+  const fewShot = exampleSet ? JSON.stringify({
+    title: exampleSet.title, emoji: exampleSet.emoji, color: exampleSet.color, diff: exampleSet.diff,
+    situation: exampleSet.situation, desc: exampleSet.desc,
+    debrief: (exampleSet.debrief || "").slice(0, 300),
+    teamworkTakeaway: exampleSet.teamworkTakeaway || "",
+    questions: exampleSet.questions.slice(0, 2).map(q => ({
+      pos: q.pos, id: q.id, conceptTag: q.conceptTag, title: q.title, diff: q.diff,
+      options: q.options, best: q.best, explanations: q.explanations.map(e => e.slice(0, 150) + "..."),
+      rates: q.rates, concept: q.concept, anim: q.anim
+    }))
+  }) : "";
+
+  // 6. Build the prompt
+  const userPrompt = `Create a multi-position SITUATION SET for Baseball Strategy Master.
+
+GAME STATE: ${inning}, ${chosenState.outs} out${chosenState.outs !== 1 ? "s" : ""}, count ${chosenState.count}, runners: ${JSON.stringify(chosenState.runners)}, score: ${JSON.stringify(score)}
+SITUATION THEME: ${chosenState.label}
+POSITIONS TO INCLUDE: ${selectedPos.join(", ")} (generate one question per position)
+DIFFICULTY: ${diffTarget}/3
+PLAYER: Level ${getLvl(stats.pts).n}, age group ${ageGroup}${ageText}${masteryHint}
+
+SCORE RULES:
+- score=[HOME, AWAY]. Home bats in "Bot" half, away in "Top".
+- Double-check: description references must match the score array.
+
+POSITION-SPECIFIC CONTEXT:
+${posContexts}
+
+DECISION TIMING — ALL options for each position must occur at the SAME moment in the play:${decisionText}
+${coachVoice}${realGameFeel}
+
+CRITICAL RULES:
+1. All ${selectedPos.length} questions describe decisions at the SAME MOMENT of the same play.
+2. Each position can ONLY do actions appropriate to their role.
+3. Each question has exactly 4 options, 1 best answer, 4 explanations (2-4 sentences each), 4 rates.
+4. The debrief narrative must mention ALL ${selectedPos.length} positions and how their decisions connect.
+5. teamworkTakeaway: one sentence about the teamwork lesson.
+6. Each question needs a conceptTag from: pitch-sequencing, steal-window, bunt-defense, dp-positioning, relay-double-cut, baserunning-rates, force-vs-tag, fly-ball-priority, cutoff-relay, situational-hitting, bunt-re24, pickoff-mechanics, secondary-lead, squeeze-recognition.
+7. Explanations must reference specific game situation (score, inning, outs, runners).
+8. rates[best] MUST be highest for each question (75-90 optimal, 15-40 poor).
+9. VARY the best answer index across questions (don't always use 0).
+10. anim per question: one of ${ANIMS.join("|")}.
+
+EXAMPLE of a situation set:
+${fewShot}
+
+Respond with ONLY valid JSON:
+{"title":"Short Title","emoji":"🔥","color":"#ef4444","diff":${diffTarget},"situation":{"inning":"${inning}","outs":${chosenState.outs},"count":"${chosenState.count}","runners":${JSON.stringify(chosenState.runners)},"score":${JSON.stringify(score)}},"desc":"2-3 sentence description","debrief":"Narrative of how the play unfolded connecting all positions","teamworkTakeaway":"One sentence teamwork lesson","questions":[{"pos":"${selectedPos[0]}","conceptTag":"tag","title":"Short title","diff":${diffTarget},"options":["A","B","C","D"],"best":${bestIdx},"explanations":["Why A","Why B","Why C","Why D"],"rates":${JSON.stringify(exRates)},"concept":"One sentence lesson","anim":"strike"},...]}`
+
+  const systemPrompt = `You are the smartest, most experienced baseball coach in the world. You create MULTI-POSITION situation sets for Baseball Strategy Master, a strategy-teaching app for kids 6-18.
+
+OUTPUT: Respond with ONLY a valid JSON object. No markdown, no code fences, no text outside the JSON.
+
+Each situation set presents ONE game moment from multiple positions' perspectives. Every position faces a realistic decision at the same time. The debrief explains how all decisions connect — that's what makes baseball a team sport.
+
+EXPLANATION RULES:
+- Each explanation: 2-4 sentences. Write from "you" perspective.
+- BEST answer: name action → why correct in THIS situation → positive result.
+- WRONG answer: name action → concrete consequences → what makes it wrong.
+- Reference specific game state (score, inning, outs, runners).
+- No jargon (RE24, OBP, wOBA) in options. Stats only in explanations for older players.
+
+OPTION RULES:
+- All 4 options for each position happen at the SAME decision moment.
+- Each option is a SPECIFIC, CONCRETE action.
+- At least one option should be a common MISTAKE a young player would make.
+- No near-duplicates within a question's options.
+
+POSITION BOUNDARIES: Each position can ONLY do actions that position actually performs. Pitcher ≠ cutoff/relay. Fielders ≠ IBB/pitching changes. Baserunner ≠ calling plays.`;
+
+  try {
+    const fetchOpts = {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "grok-3-mini",
+        max_tokens: 4000,
+        temperature: 0.4,
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt }
+        ]
+      })
+    };
+    if (signal) fetchOpts.signal = signal;
+
+    const _t0 = Date.now();
+    const response = await Promise.race([
+      fetch(AI_PROXY_URL, fetchOpts),
+      new Promise((_, rej) => setTimeout(() => rej(new Error("Timeout")), 65000))
+    ]);
+    const _ms = Date.now() - _t0;
+
+    if (!response.ok) {
+      const errBody = await response.text().catch(() => "");
+      console.error("[BSM] AI Situation API error:", response.status, "(" + _ms + "ms)", errBody.slice(0, 200));
+      throw new Error(`API ${response.status}`);
+    }
+
+    const data = await response.json();
+    const text = data.choices?.[0]?.message?.content || "";
+    const finishReason = data.choices?.[0]?.finish_reason || "unknown";
+    console.log("[BSM] AI Situation response in " + _ms + "ms, length:", text.length, "finish:", finishReason);
+    if (!text) throw new Error("Empty response");
+    if (finishReason === "length") throw new Error("Truncated response");
+
+    const sanitized = sanitizeAIResponse(text);
+    let sitSet;
+    try { sitSet = JSON.parse(sanitized); }
+    catch (e) { console.error("[BSM] AI Situation JSON parse failed:", e.message); throw new Error("Parse: invalid JSON"); }
+
+    // ─── VALIDATION ─── Layer 1: Structure
+    const missing = [];
+    if (!sitSet.title || typeof sitSet.title !== "string") missing.push("title");
+    if (!sitSet.desc || typeof sitSet.desc !== "string") missing.push("desc");
+    if (!sitSet.situation || typeof sitSet.situation !== "object") missing.push("situation");
+    if (!sitSet.debrief || typeof sitSet.debrief !== "string") missing.push("debrief");
+    if (!Array.isArray(sitSet.questions) || sitSet.questions.length < 3) missing.push("questions(min 3)");
+    if (missing.length > 0) throw new Error("Structure: missing " + missing.join(", "));
+
+    // Normalize situation
+    if (!Array.isArray(sitSet.situation.runners)) sitSet.situation.runners = chosenState.runners;
+    if (!Array.isArray(sitSet.situation.score)) sitSet.situation.score = score;
+    sitSet.situation.outs = Math.max(0, Math.min(2, Number(sitSet.situation.outs) || chosenState.outs));
+    if (!sitSet.situation.inning) sitSet.situation.inning = inning;
+    if (!sitSet.situation.count) sitSet.situation.count = chosenState.count;
+
+    // Normalize top-level fields
+    if (!sitSet.emoji || typeof sitSet.emoji !== "string") sitSet.emoji = "🤖";
+    if (!sitSet.color || typeof sitSet.color !== "string") sitSet.color = "#8b5cf6";
+    if (![1, 2, 3].includes(sitSet.diff)) sitSet.diff = diffTarget;
+    if (!sitSet.teamworkTakeaway) sitSet.teamworkTakeaway = "Every position's decision connects to every other position's decision.";
+
+    // ─── VALIDATION ─── Layer 2: Per-question validation
+    const validQuestions = [];
+    for (let qi = 0; qi < sitSet.questions.length; qi++) {
+      const q = sitSet.questions[qi];
+      const qMissing = [];
+      if (!q.pos || typeof q.pos !== "string") qMissing.push("pos");
+      if (!q.options || q.options.length !== 4) qMissing.push("options");
+      if (!q.explanations || q.explanations.length !== 4) qMissing.push("explanations");
+      if (typeof q.best !== "number" || q.best < 0 || q.best > 3) qMissing.push("best");
+      if (!q.rates || q.rates.length !== 4) qMissing.push("rates");
+      if (!q.concept) qMissing.push("concept");
+      if (qMissing.length > 0) {
+        console.warn("[BSM] AI Sit Q" + qi + " invalid:", qMissing.join(", "));
+        continue; // skip invalid questions
+      }
+      // Auto-fix rates[best] alignment
+      const maxRate = Math.max(...q.rates);
+      if (q.rates[q.best] !== maxRate) {
+        q.best = q.rates.indexOf(maxRate);
+      }
+      // Ensure valid anim
+      if (!ANIMS.includes(q.anim)) q.anim = chosenState.anim || "freeze";
+      // Ensure difficulty
+      if (![1, 2, 3].includes(q.diff)) q.diff = diffTarget;
+      // Generate unique ID
+      q.id = `ai_sit_${Date.now()}_${qi}_${Math.random().toString(36).slice(2, 6)}`;
+      // Default title
+      if (!q.title) q.title = `${(POS_META[q.pos]?.label || q.pos)}: Make the Play`;
+      // Default conceptTag
+      if (!q.conceptTag) q.conceptTag = "situational-hitting";
+      // Strip [BEST] prefix
+      if (q.options) q.options = q.options.map(o => o.replace(/^\[BEST\]\s*/i, ""));
+
+      // Run QUALITY_FIREWALL on individual question
+      try {
+        const fwResult = QUALITY_FIREWALL.validate(q);
+        if (!fwResult.pass) {
+          console.warn("[BSM] AI Sit Q" + qi + " firewall fail:", fwResult.tier1Fails.map(f => f.message).join("; "));
+          continue; // skip this question
+        }
+      } catch {}
+
+      // Role violation check per question
+      const ROLE_VIOLATIONS_MAP = {
+        pitcher: [/pitcher.*cutoff/i, /pitcher.*relay\s*man/i, /pitcher.*covers?\s*(second|2nd|third|3rd)\b/i],
+        catcher: [/catcher.*cutoff/i, /catcher.*goes?\s*out.*cutoff/i],
+        shortstop: [/SS\s*covers?\s*(1st|first)\b.*bunt/i],
+        secondBase: [/2B\s*covers?\s*(3rd|third)\b.*bunt/i],
+      };
+      const posViolations = ROLE_VIOLATIONS_MAP[q.pos] || [];
+      const qAllText = [q.title || "", ...(q.options || []), ...(q.explanations || [])].join(" ");
+      if (posViolations.some(rx => rx.test(qAllText))) {
+        console.warn("[BSM] AI Sit Q" + qi + " role violation for", q.pos);
+        continue;
+      }
+
+      // Shuffle answers
+      shuffleAnswers(q);
+      validQuestions.push(q);
+    }
+
+    if (validQuestions.length < 3) {
+      throw new Error("Quality: only " + validQuestions.length + " valid questions (need 3+)");
+    }
+
+    // ─── VALIDATION ─── Layer 10: Cross-position temporal consistency
+    // All questions should reference the same game moment
+    const posSet = new Set(validQuestions.map(q => q.pos));
+    if (posSet.size < validQuestions.length) {
+      // Deduplicate positions — keep first occurrence
+      const seen = new Set();
+      const deduped = [];
+      for (const q of validQuestions) {
+        if (!seen.has(q.pos)) { seen.add(q.pos); deduped.push(q); }
+      }
+      validQuestions.length = 0;
+      validQuestions.push(...deduped);
+    }
+
+    // ─── VALIDATION ─── Layer 13: Debrief mentions all positions
+    const debriefLower = (sitSet.debrief || "").toLowerCase();
+    const mentionedCount = validQuestions.filter(q => {
+      const posName = (POS_META[q.pos]?.label || q.pos).toLowerCase();
+      return debriefLower.includes(posName) || debriefLower.includes(q.pos.toLowerCase());
+    }).length;
+    if (mentionedCount < Math.ceil(validQuestions.length * 0.5)) {
+      console.warn("[BSM] AI Sit debrief only mentions " + mentionedCount + "/" + validQuestions.length + " positions");
+      // Auto-fix: append missing positions to debrief
+      const missing = validQuestions.filter(q => {
+        const posName = (POS_META[q.pos]?.label || q.pos).toLowerCase();
+        return !debriefLower.includes(posName) && !debriefLower.includes(q.pos.toLowerCase());
+      });
+      if (missing.length > 0) {
+        sitSet.debrief += " Meanwhile, the " + missing.map(q => POS_META[q.pos]?.label || q.pos).join(" and ") + " executed their assignments.";
+      }
+    }
+
+    // Build final situation set
+    const finalSet = {
+      id: `ai_sit_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+      title: sitSet.title,
+      emoji: sitSet.emoji,
+      color: sitSet.color,
+      diff: sitSet.diff,
+      situation: sitSet.situation,
+      desc: sitSet.desc,
+      debrief: sitSet.debrief,
+      teamworkTakeaway: sitSet.teamworkTakeaway,
+      questions: validQuestions,
+      isAI: true,
+    };
+
+    console.log("[BSM] AI Situation generated:", finalSet.title, "(" + validQuestions.length + " questions)");
+    return finalSet;
+  } catch (err) {
+    const msg = err.message || "";
+    console.error("[BSM] AI Situation generation failed:", msg);
+    reportError("ai_situation", msg, { positions: selectedPos.join(",") });
+    return null;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
 // Community Scenario Pool — 3-tier retrieval system
 // Tier 1: localStorage pool (unused pre-cached scenarios)
 // Tier 2: Server pool (community-contributed quality scenarios)
@@ -10337,6 +10779,12 @@ export default function App(){
   const[sitSet,setSitSet]=useState(null); // current SITUATION_SETS entry
   const[sitQ,setSitQ]=useState(0); // current question index
   const[sitResults,setSitResults]=useState([]); // [{pos,correct,xp,choice,best}]
+  const[sitTab,setSitTab]=useState(null); // difficulty tab for picker (1/2/3, null=auto)
+  const[sitTransition,setSitTransition]=useState(null); // {qIdx, pos, label, emoji, color, total} or null
+  const[filmStep,setFilmStep]=useState(-1); // Film Room: -1=not started, 0..N-1=position steps, N=summary
+  const filmTimerRef=useRef(null);
+  const[aiSitLoading,setAiSitLoading]=useState(false); // AI situation generation in progress
+  const aiSitAbortRef=useRef(null);
   const snd=useSound();
 
   const[sessionRecap,setSessionRecap]=useState(null); // {plays,correct,concepts:[],newConcepts:[],improvement:bool}
@@ -11181,7 +11629,7 @@ export default function App(){
 
   const handleChoice=useCallback((idx)=>{
     if(choice!==null||!sc)return;setChoice(idx);
-    const conceptTagForEffectiveness = findConceptTag(sc.concept);
+    const conceptTagForEffectiveness = sc.conceptTag || findConceptTag(sc.concept);
     const isOpt=idx===sc.best;const rate=sc.rates[idx];const cat=isOpt?"success":rate>=55?"warning":"danger";
     // Report pool scenario feedback
     if (sc.isPooled && sc.id) { reportPoolFeedback(sc.id, isOpt, false) }
@@ -11204,7 +11652,7 @@ export default function App(){
     // Streak break toast when losing 3+ streak
     if(!isOpt&&stats.str>=3){setTimeout(()=>{setToast({e:"💔",n:"Streak Broken!",d:`${stats.str} in a row — you'll get it back!`});setTimeout(()=>setToast(null),3000)},600);}
     // Sprint 3.4: Update session coherence with answer result
-    const scTag=findConceptTag(sc.concept)
+    const scTag=sc.conceptTag||findConceptTag(sc.concept)
     if(scTag){
       const scRef=sessionConceptsRef.current
       // Replace last entry with correct/incorrect info, or add new entry
@@ -11253,7 +11701,7 @@ export default function App(){
       if(!isOpt&&sc.id){wc[sc.id]=(wc[sc.id]||0)+1}
       else if(isOpt&&sc.id&&wc[sc.id]){delete wc[sc.id]} // Clear on correct answer
       // SessionHistory tracking for error pattern detection
-      const conceptTag = findConceptTag(sc.concept);
+      const conceptTag = sc.conceptTag || findConceptTag(sc.concept);
       const innNum = parseInt((sc.situation?.inning||'').replace(/\D/g,''))||1;
       const scoreDiff = Math.abs((sc.situation?.score?.[0]||0)-(sc.situation?.score?.[1]||0));
       const shEntry = {
@@ -11327,9 +11775,9 @@ export default function App(){
       }
       const ns={...p,pts:p.pts+pts,str:isOpt?p.str+1:0,bs:Math.max(p.bs,isOpt?p.str+1:p.bs),gp:p.gp+1,co:p.co+(isOpt?1:0),
         ps:updatedPs,
-        cl:isOpt&&!p.cl?.includes(sc.concept)?[...(p.cl||[]),sc.concept]:(p.cl||[]),
+        cl:(()=>{let c=p.cl||[];if(isOpt&&sc.concept&&!c.includes(sc.concept))c=[...c,sc.concept];if(sitMode&&sc.id&&!c.includes(sc.id))c=[...c,sc.id];return c})(),
         recentWrong:isOpt?(p.recentWrong||[]):[...(p.recentWrong||[]),sc.concept].slice(-5),
-        todayPlayed:dailyMode?p.todayPlayed:(p.todayDate===today?p.todayPlayed:0)+1,todayDate:today,
+        todayPlayed:dailyMode||sitMode?p.todayPlayed:(p.todayDate===today?p.todayPlayed:0)+1,todayDate:today,
         sp:isOpt?(p.sp||0)+1:0,
         dailyDone:dailyMode?true:p.dailyDone,dailyDate:dailyMode?today:(p.dailyDate||today),
         weeklyDone:(()=>{const wk=getWeeklyScenario();if(sc&&sc.id===wk.id){const d=new Date();return`${d.getFullYear()}-W${Math.ceil(((d-new Date(d.getFullYear(),0,1))/86400000+new Date(d.getFullYear(),0,1).getDay()+1)/7)}`;}return p.weeklyDone})(),
@@ -11386,7 +11834,7 @@ export default function App(){
     }
     sessionConceptsRef.current=[] // Sprint 3.1: reset session concept diversity tracker
     cancelPrefetch() // BUG 5: cancel in-flight prefetches on navigate away
-    setScreen("home");setPos(null);setSc(null);setChoice(null);setOd(null);setFo(null);setPanel(null);setLvlUp(null);setCoachMsg(null);setDailyMode(false);setSpeedMode(false);setSpeedRound(null);setSurvivalMode(false);setSurvivalRun(null);setRealGameMode(false);setRealGame(null);setChallengeMode(false);setChallengePack(null);setSeasonMode(false);setSeasonStageIntro(null);setAiMode(false);setAiFallback(false);setExplainMore(null);setExplainLoading(false);setSitMode(false);setSitSet(null);setSitQ(0);setSitResults([]);if(timerRef.current)clearTimeout(timerRef.current)
+    setScreen("home");setPos(null);setSc(null);setChoice(null);setOd(null);setFo(null);setPanel(null);setLvlUp(null);setCoachMsg(null);setDailyMode(false);setSpeedMode(false);setSpeedRound(null);setSurvivalMode(false);setSurvivalRun(null);setRealGameMode(false);setRealGame(null);setChallengeMode(false);setChallengePack(null);setSeasonMode(false);setSeasonStageIntro(null);setAiMode(false);setAiFallback(false);setExplainMore(null);setExplainLoading(false);setSitMode(false);setSitSet(null);setSitQ(0);setSitResults([]);setSitTransition(null);setFilmStep(-1);if(filmTimerRef.current){clearTimeout(filmTimerRef.current);filmTimerRef.current=null}setAiSitLoading(false);if(aiSitAbortRef.current){aiSitAbortRef.current.abort();aiSitAbortRef.current=null}if(timerRef.current)clearTimeout(timerRef.current)
   },[speedMode,survivalMode,seasonMode,realGameMode,dailyMode,sitMode,screen]);
   goHomeRef.current=goHome;
   const next=useCallback(()=>{
@@ -11405,7 +11853,7 @@ export default function App(){
       });
       outcomeStartRef.current=0;
     }
-    setLvlUp(null);setExplainMore(null);setExplainLoading(false);setFlagOpen(false);setFlagComment("");if(speedMode){speedNextRef.current?.()}else if(survivalMode){survivalNextRef.current?.()}else if(realGameMode){realGameNextRef.current?.()}else if(seasonMode){seasonNextRef.current?.()}else if(challengePack&&challengePack.done){setScreen("play")/* shows challenge results overlay */}else if(sitMode&&sitSet){const nq=sitQ+1;if(nq<sitSet.questions.length){setSitQ(nq);const q=sitSet.questions[nq];const s={...q,_pos:q.pos,situation:sitSet.situation};setPos(q.pos);setSc(s);setChoice(null);setOd(null);setRi(-1);setFo(null);setShowC(false);setShowExp(true);setScreen("play");s.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80)})}else{setScreen("sitResults")}}else if(dailyMode){goHomeRef.current?.()}else if(atLimit){setScreen("home");setTimeout(()=>setPanel('limit'),100)}else{startGame(pos,aiMode)}},[pos,startGame,dailyMode,speedMode,survivalMode,realGameMode,seasonMode,challengePack,sitMode,sitSet,sitQ,atLimit,aiMode,sc,explainMore]);
+    setLvlUp(null);setExplainMore(null);setExplainLoading(false);setFlagOpen(false);setFlagComment("");if(speedMode){speedNextRef.current?.()}else if(survivalMode){survivalNextRef.current?.()}else if(realGameMode){realGameNextRef.current?.()}else if(seasonMode){seasonNextRef.current?.()}else if(challengePack&&challengePack.done){setScreen("play")/* shows challenge results overlay */}else if(sitMode&&sitSet){const nq=sitQ+1;if(nq<sitSet.questions.length){const nxQ=sitSet.questions[nq];const pm=POS_META[nxQ.pos];setSitTransition({qIdx:nq,pos:nxQ.pos,label:pm?.label||nxQ.pos,emoji:pm?.emoji||"⚾",color:pm?.color||"#3b82f6",total:sitSet.questions.length});setTimeout(()=>{setSitTransition(null);launchSitQuestion(sitSet,nq);setSitQ(nq)},1500)}else{setFilmStep(-1);setScreen("sitResults")}}else if(dailyMode){goHomeRef.current?.()}else if(atLimit){setScreen("home");setTimeout(()=>setPanel('limit'),100)}else{startGame(pos,aiMode)}},[pos,startGame,dailyMode,speedMode,survivalMode,realGameMode,seasonMode,challengePack,sitMode,sitSet,sitQ,atLimit,aiMode,sc,explainMore,launchSitQuestion]);
   const finishOnboard=useCallback(()=>{setStats(p=>({...p,onboarded:true,todayDate:new Date().toDateString()}));setScreen("home");trackAnalyticsEvent("onboard_complete",null,{ageGroup:stats.ageGroup,isPro:stats.isPro})},[stats.ageGroup,stats.isPro]);
 
   // Auth: signup
@@ -12481,6 +12929,30 @@ export default function App(){
             </div>
           );})()}
 
+          {/* Daily Situation */}
+          {(()=>{const today=new Date().toDateString();const done=stats.dailySitDone&&stats.dailySitDate===today;const dailySit=getDailySituation();const sitGrade=stats.sitMastery?.[dailySit.id]?.bestGrade;const streak=stats.dailySitStreak||0;return(
+            <div style={{marginBottom:12,background:done?"rgba(6,182,212,.04)":"linear-gradient(135deg,rgba(6,182,212,.08),rgba(8,145,178,.04))",border:`1.5px solid ${done?"rgba(6,182,212,.15)":"rgba(6,182,212,.25)"}`,borderRadius:14,padding:14,position:"relative",overflow:"hidden"}}
+              onClick={done?undefined:()=>startSituation(dailySit)}>
+              <div style={{position:"absolute",top:0,right:0,width:120,height:120,background:"radial-gradient(circle at 80% 20%,rgba(6,182,212,.12),transparent 70%)"}}/>
+              <div style={{display:"flex",alignItems:"center",gap:12,position:"relative"}}>
+                <div style={{width:48,height:48,borderRadius:12,background:done?"rgba(6,182,212,.1)":"linear-gradient(135deg,#0891b2,#06b6d4)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:24,flexShrink:0}}>
+                  {done?"✅":"📅"}
+                </div>
+                <div style={{flex:1}}>
+                  <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:2}}>
+                    <span style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:14,letterSpacing:1,color:done?"#06b6d4":"#22d3ee"}}>DAILY SITUATION</span>
+                    {streak>=3&&<span style={{background:"rgba(6,182,212,.15)",border:"1px solid rgba(6,182,212,.25)",borderRadius:6,padding:"1px 6px",fontSize:9,fontWeight:800,color:"#22d3ee"}}>🔥 {streak}-day streak!</span>}
+                  </div>
+                  <div style={{fontSize:11,color:done?"#6b7280":"#d1d5db",lineHeight:1.3}}>
+                    {done?<>Completed!{sitGrade&&` Grade: ${sitGrade}`} Come back tomorrow!</>
+                      :<>{dailySit.emoji} {dailySit.title} · ⭐⭐ Pro</>}
+                  </div>
+                </div>
+                {!done&&<div style={{color:"#06b6d4",fontSize:20,flexShrink:0,cursor:"pointer"}}>▶</div>}
+              </div>
+            </div>
+          );})()}
+
           {/* Season Mode */}
           {(()=>{const stage=getSeasonStage(stats.seasonGame);const pct=Math.round((stats.seasonGame/SEASON_TOTAL)*100);return(
             <div onClick={stats.seasonComplete?()=>setStats(p=>({...p,seasonGame:0,seasonCorrect:0,seasonComplete:false})):startSeason} style={{background:"linear-gradient(135deg,rgba(245,158,11,.06),rgba(234,179,8,.03))",border:"1px solid rgba(245,158,11,.15)",borderRadius:14,padding:"12px 14px",cursor:"pointer",marginBottom:12}}>
@@ -12526,11 +12998,12 @@ export default function App(){
               <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:14,color:"#3b82f6",letterSpacing:1}}>CHALLENGE A FRIEND</div>
               <div style={{fontSize:10,color:"#9ca3af",marginTop:3}}>Play 5 scenarios · Share link · Compare scores</div>
             </div>
+            {(()=>{const rank=getSitRank(stats.sitMastery);return(
             <div onClick={()=>{setScreen("sitPicker")}} style={{flex:"1 1 100%",background:"linear-gradient(135deg,rgba(16,185,129,.08),rgba(5,150,105,.04))",border:"1px solid rgba(16,185,129,.2)",borderRadius:14,padding:"14px 12px",textAlign:"center",cursor:"pointer",minHeight:48}}>
               <div style={{fontSize:22,marginBottom:3}}>🏟️</div>
               <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:14,color:"#10b981",letterSpacing:1}}>SITUATION ROOM</div>
-              <div style={{fontSize:10,color:"#9ca3af",marginTop:3}}>One situation · Multiple positions · Think like a team</div>
-            </div>
+              <div style={{fontSize:10,color:"#9ca3af",marginTop:3}}>{rank.emoji} {rank.title}</div>
+            </div>)})()}
             <div onClick={startRealGame} style={{flex:"1 1 100%",background:stats.isPro?"linear-gradient(135deg,rgba(245,158,11,.1),rgba(234,179,8,.04))":"linear-gradient(135deg,rgba(107,114,128,.06),rgba(75,85,99,.03))",border:`1px solid ${stats.isPro?"rgba(245,158,11,.25)":"rgba(107,114,128,.15)"}`,borderRadius:14,padding:"14px 12px",textAlign:"center",cursor:"pointer",minHeight:48,position:"relative"}}>
               <div style={{fontSize:22,marginBottom:3}}>⚾</div>
               <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:14,color:stats.isPro?"#f59e0b":"#6b7280",letterSpacing:1}}>REAL GAME</div>
@@ -12563,19 +13036,21 @@ export default function App(){
                 <span style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:11,color:"#3b82f6",letterSpacing:1}}>RECOMMENDED FOR YOU</span>
                 <span style={{fontSize:8,color:"#6b7280"}}>{recs.length} suggestions</span>
               </div>
-              {recs.slice(0,3).map((rec,i)=>(
-                <div key={i} style={{display:"flex",alignItems:"center",gap:8,padding:"6px 8px",background:i===0?"rgba(59,130,246,.06)":"transparent",borderRadius:8,marginBottom:i<2?4:0,cursor:rec.position?"pointer":"default"}}
-                  onClick={rec.position?()=>{if(rec.tag)conceptTargetRef.current=rec.tag;startGame(rec.position)}:undefined}>
+              {recs.slice(0,3).map((rec,i)=>{
+                const clickable=rec.position||rec.type==="situation_room";
+                return(<div key={i} style={{display:"flex",alignItems:"center",gap:8,padding:"6px 8px",background:i===0?"rgba(59,130,246,.06)":"transparent",borderRadius:8,marginBottom:i<2?4:0,cursor:clickable?"pointer":"default"}}
+                  onClick={rec.type==="situation_room"?()=>{const set=SITUATION_SETS.find(s=>s.id===rec.sitSetId);if(set)startSituation(set);else setScreen("sitPicker")}:rec.position?()=>{if(rec.tag)conceptTargetRef.current=rec.tag;startGame(rec.position)}:undefined}>
                   <span style={{fontSize:16}}>{rec.emoji}</span>
                   <div style={{flex:1}}>
                     <div style={{fontSize:11,fontWeight:700,color:i===0?"#93c5fd":"#d1d5db"}}>{rec.name}{rec.position&&<span style={{fontSize:9,color:"#6b7280",fontWeight:400,marginLeft:4}}>{POS_META[rec.position]?.emoji||""}</span>}</div>
                     <div style={{fontSize:9,color:"#6b7280"}}>{rec.reason}</div>
                   </div>
-                  {rec.position&&<span style={{fontSize:10,color:"#3b82f6"}}>Play →</span>}
+                  {clickable&&<span style={{fontSize:10,color:"#3b82f6"}}>{rec.type==="situation_room"?"Try →":"Play →"}</span>}
                   {rec.type==="reinforce"&&<span style={{fontSize:8,background:"#ef444420",color:"#ef4444",padding:"1px 5px",borderRadius:4,fontWeight:700}}>Review</span>}
                   {rec.type==="new"&&<span style={{fontSize:8,background:"#22c55e20",color:"#22c55e",padding:"1px 5px",borderRadius:4,fontWeight:700}}>New</span>}
-                </div>
-              ))}
+                  {rec.type==="situation_room"&&<span style={{fontSize:8,background:"#10b98120",color:"#10b981",padding:"1px 5px",borderRadius:4,fontWeight:700}}>Situation</span>}
+                </div>)
+              })}
             </div>
           })()}
 
@@ -12785,6 +13260,30 @@ export default function App(){
                 <span key={a.id} style={{fontSize:16,opacity:earned?1:.2,cursor:"default"}} title={`${a.n}${earned?" (earned)":""}`}>{a.e}</span>
               )})}
             </div>
+            {/* Situation Room Progress */}
+            {(()=>{const sm=stats.sitMastery||{};const completed=SITUATION_SETS.filter(s=>sm[s.id]?.bestGrade).length;if(completed===0)return null;const rank=getSitRank(sm);const tierCounts={diamond:0,gold:0,silver:0,bronze:0};SITUATION_SETS.forEach(s=>{const t=getSitTier(s.id,sm);if(t)tierCounts[t.id]++});return(
+              <div style={{marginBottom:10}}>
+                <div style={{fontSize:11,fontWeight:700,color:"#6b7280",marginBottom:6}}>SITUATION ROOM</div>
+                <div style={{background:"rgba(168,85,247,.04)",border:"1px solid rgba(168,85,247,.12)",borderRadius:10,padding:"10px 12px"}}>
+                  <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:8}}>
+                    <span style={{fontSize:18}}>{rank.emoji}</span>
+                    <div>
+                      <div style={{fontSize:12,fontWeight:700,color:rank.color}}>{rank.title}</div>
+                      <div style={{fontSize:9,color:"#6b7280"}}>{completed}/{SITUATION_SETS.length} situations completed</div>
+                    </div>
+                  </div>
+                  <div style={{display:"flex",gap:10,justifyContent:"center"}}>
+                    {[{id:"diamond",emoji:"💎",label:"Diamond"},{id:"gold",emoji:"🥇",label:"Gold"},{id:"silver",emoji:"🥈",label:"Silver"},{id:"bronze",emoji:"🥉",label:"Bronze"}].map(t=>(
+                      <div key={t.id} style={{textAlign:"center",opacity:tierCounts[t.id]>0?1:.35}}>
+                        <div style={{fontSize:16}}>{t.emoji}</div>
+                        <div style={{fontSize:12,fontWeight:800,color:"#d1d5db"}}>{tierCounts[t.id]}</div>
+                        <div style={{fontSize:8,color:"#6b7280"}}>{t.label}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )})()}
             <div style={{background:"rgba(255,255,255,.02)",border:"1px solid rgba(255,255,255,.04)",borderRadius:8,padding:"8px 10px",marginBottom:10}}>
               <div style={{fontSize:10,color:"#6b7280",lineHeight:1.5}}>
                 <strong>Summary:</strong> {stats.gp} total games · {(stats.cl||[]).length} concepts · {(stats.achs||[]).length}/{ACHS.length} achievements · Level: {lvl.n}
@@ -12857,6 +13356,37 @@ export default function App(){
           </div>
         </div>}
 
+        {/* SITUATION HUD — persistent during sit play */}
+        {sitMode&&sitSet&&screen==="play"&&!aiLoading&&!sitTransition&&<div style={{background:"rgba(0,0,0,.6)",backdropFilter:"blur(8px)",WebkitBackdropFilter:"blur(8px)",borderRadius:12,padding:"8px 14px",marginBottom:8,display:"flex",alignItems:"center",justifyContent:"center",gap:12,minHeight:42}}>
+          {/* Position dots */}
+          <div style={{display:"flex",gap:5,alignItems:"center"}}>
+            {sitSet.questions.map((q,i)=>{
+              const res=sitResults[i];const isCur=i===sitQ;const pm=POS_META[q.pos];
+              return <div key={q.id} style={{width:isCur?28:18,height:isCur?28:18,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontSize:isCur?14:10,border:isCur?`2px solid ${pm?.color||"#3b82f6"}`:res?`2px solid ${res.correct?"#22c55e":"#ef4444"}`:"1.5px solid rgba(255,255,255,.15)",background:isCur?`${pm?.color||"#3b82f6"}20`:res?(res.correct?"rgba(34,197,94,.15)":"rgba(239,68,68,.15)"):"transparent",transition:"all .3s",animation:isCur?"sitPulse 1.5s ease-in-out infinite":undefined}}>
+                {isCur?pm?.emoji:res?(res.correct?"✓":"✗"):""}
+              </div>;
+            })}
+          </div>
+          {/* Game state mini */}
+          <div style={{fontSize:9,color:"#9ca3af",whiteSpace:"nowrap"}}>
+            {sitSet.situation.inning} | {sitSet.situation.outs} Out{sitSet.situation.outs!==1?"s":""} | {sitSet.situation.runners.length>0?sitSet.situation.runners.map(r=>r===1?"1B":r===2?"2B":"3B").join(" "):"Empty"}
+          </div>
+          {/* Set title */}
+          <div style={{fontSize:10,fontWeight:700,color:sitSet.color,whiteSpace:"nowrap"}}>{sitSet.emoji} {sitSet.title.replace(/ \(.*\)$/,"")}</div>
+        </div>}
+
+        {/* SITUATION TRANSITION — position switch animation */}
+        {sitTransition&&sitMode&&<div style={{position:"fixed",top:0,left:0,right:0,bottom:0,zIndex:100,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(0,0,0,.85)",animation:"fi .3s ease-out"}}>
+          <div style={{textAlign:"center",animation:"su .4s ease-out .1s both"}}>
+            <div style={{fontSize:72,marginBottom:12,animation:"pulse 1s ease-in-out infinite"}}>{sitTransition.emoji}</div>
+            <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:28,letterSpacing:2,color:sitTransition.color,marginBottom:8,textTransform:"uppercase"}}>Now you're the {sitTransition.label}</div>
+            <div style={{fontSize:13,color:"#6b7280"}}>Question {sitTransition.qIdx+1} of {sitTransition.total}</div>
+            <div style={{width:60,height:3,borderRadius:2,background:`${sitTransition.color}40`,margin:"16px auto 0",overflow:"hidden"}}>
+              <div style={{width:"100%",height:"100%",background:sitTransition.color,borderRadius:2,animation:"sitSlide 1.2s ease-in-out"}}/>
+            </div>
+          </div>
+        </div>}
+
         {/* PLAYING */}
         {screen==="play"&&aiLoading&&(()=>{
           const msgs=["COACH IS DRAWING UP A PLAY...","AI COACH IS THINKING...","ALMOST THERE...","TAKING A LITTLE LONGER..."]
@@ -12877,7 +13407,7 @@ export default function App(){
             <button onClick={goHome} style={{background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.06)",borderRadius:8,padding:"6px 12px",fontSize:11,color:"#6b7280",cursor:"pointer",minHeight:32}}>← Back</button>
             <div style={{display:"flex",gap:4,alignItems:"center"}}>
               {survivalMode&&<span style={{background:"rgba(168,85,247,.15)",border:"1px solid rgba(168,85,247,.25)",borderRadius:7,padding:"2px 7px",fontSize:9,fontWeight:700,color:"#a855f7"}}>💀 #{survivalRun?survivalRun.count+1:1}</span>}
-              {sitMode&&sitSet&&<span style={{background:`${sitSet.color}20`,border:`1px solid ${sitSet.color}40`,borderRadius:7,padding:"2px 7px",fontSize:9,fontWeight:700,color:sitSet.color}}>🏟️ Q{sitQ+1}/{sitSet.questions.length}</span>}
+
               {speedMode&&<span style={{background:"rgba(239,68,68,.15)",border:"1px solid rgba(239,68,68,.25)",borderRadius:7,padding:"2px 7px",fontSize:9,fontWeight:700,color:"#ef4444"}}>⚡ {speedRound?speedRound.round+1:1}/5</span>}
               {dailyMode&&<span style={{background:"rgba(245,158,11,.15)",border:"1px solid rgba(245,158,11,.25)",borderRadius:7,padding:"2px 7px",fontSize:9,fontWeight:700,color:"#f59e0b"}}>💎 Daily · 2x XP</span>}
               {seasonMode&&(()=>{const st=getSeasonStage(stats.seasonGame);return <span style={{background:`${st.color}15`,border:`1px solid ${st.color}25`,borderRadius:7,padding:"2px 7px",fontSize:9,fontWeight:700,color:st.color}}>{st.emoji} {st.name}</span>})()}
@@ -13273,32 +13803,138 @@ export default function App(){
 
         {/* SITUATION ROOM — PICKER */}
         {screen==="sitPicker"&&(()=>{
+          const gradeBadge={S:{emoji:"⭐",color:"#f59e0b",border:"rgba(245,158,11,.3)"},A:{emoji:"A",color:"#22c55e",border:"rgba(34,197,94,.3)"},B:{emoji:"B",color:"#3b82f6",border:"rgba(59,130,246,.3)"},C:{emoji:"C",color:"#f59e0b",border:"rgba(245,158,11,.3)"},D:{emoji:"D",color:"#6b7280",border:"rgba(107,114,128,.3)"}};
+          const tiers=[
+            {diff:1,label:"Rookie",stars:"⭐",color:"#22c55e",accent:"rgba(34,197,94,"},
+            {diff:2,label:"Pro",stars:"⭐⭐",color:"#3b82f6",accent:"rgba(59,130,246,"},
+            {diff:3,label:"All-Star",stars:"⭐⭐⭐",color:"#a855f7",accent:"rgba(168,85,247,"}
+          ];
+          // Default tab: match age group (6-8→Rookie, 9-10→Pro, 11+→All-Star) or use level
+          const ageMaxDiff=(AGE_GROUPS.find(a=>a.id===stats.ageGroup)||AGE_GROUPS[2]).maxDiff;
+          const defaultTab=Math.min(ageMaxDiff,3);
+          const activeTab=sitTab||defaultTab;
+          // All-Star unlock: need 3+ "A" or better grades at Pro level
+          const proAGrades=SITUATION_SETS.filter(s=>s.diff===2).filter(s=>{const g=stats.sitMastery?.[s.id]?.bestGrade;return g==="S"||g==="A"}).length;
+          const allStarLocked=proAGrades<3;
+          // Filter sets for active tab
+          const tabSets=SITUATION_SETS.filter(s=>s.diff===activeTab);
+          // Relevance scoring for recommendation
+          const ps=stats.ps||{};const cm=(stats.masteryData?.concepts)||{};
+          const weakPositions=new Set();
+          Object.entries(ps).filter(([,v])=>v.p>=5&&(v.c/v.p)<0.5).forEach(([p])=>weakPositions.add(p));
+          Object.keys(POS_META).filter(p=>!ps[p]||ps[p].p===0).forEach(p=>weakPositions.add(p));
+          const dueOrDegraded=new Set();
+          const now=new Date();
+          Object.entries(cm).forEach(([tag,v])=>{if(v.state==="degraded"||(v.state!=="unseen"&&v.state!=="mastered"))dueOrDegraded.add(tag);if(v.state==="mastered"&&v.nextReviewDate&&new Date(v.nextReviewDate)<=now)dueOrDegraded.add(tag)});
+          const getSitRelevance=(set)=>{
+            let score=0;
+            set.questions.forEach(q=>{if(weakPositions.has(q.pos))score+=10;if(q.conceptTag&&dueOrDegraded.has(q.conceptTag))score+=15});
+            if(!stats.sitMastery?.[set.id]?.lastPlayed)score+=5;
+            const bg=stats.sitMastery?.[set.id]?.bestGrade;if(bg&&bg!=="S"&&bg!=="A"&&bg!=="B")score+=10;
+            return score;
+          };
+          // Sort: highest relevance first, then oldest played
+          const sortedSets=[...tabSets].sort((a,b)=>{
+            const aScore=getSitRelevance(a);const bScore=getSitRelevance(b);
+            if(bScore!==aScore)return bScore-aScore;
+            const aTime=stats.sitMastery?.[a.id]?.lastPlayed||0;
+            const bTime=stats.sitMastery?.[b.id]?.lastPlayed||0;
+            return aTime-bTime;
+          });
+          // Aggregate stats
+          const totalSets=SITUATION_SETS.length;
+          const masteredCount=SITUATION_SETS.filter(s=>{const g=stats.sitMastery?.[s.id]?.bestGrade;return g==="S"||g==="A"}).length;
+          const activeTier=tiers.find(t=>t.diff===activeTab)||tiers[1];
+          const rank=getSitRank(stats.sitMastery);
           return(<div style={{padding:"20px 0"}}>
-            <div style={{textAlign:"center",marginBottom:20}}>
-              <div style={{fontSize:48,marginBottom:6}}>🏟️</div>
-              <h2 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:28,letterSpacing:2,color:"#10b981",marginBottom:4}}>SITUATION ROOM</h2>
-              <p style={{color:"#9ca3af",fontSize:12,lineHeight:1.5,maxWidth:300,margin:"0 auto"}}>One game situation. Multiple positions. See the play from every angle and think like a whole team.</p>
+            <div style={{textAlign:"center",marginBottom:14}}>
+              <div style={{fontSize:42,marginBottom:4}}>🏟️</div>
+              <h2 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:26,letterSpacing:2,color:"#10b981",marginBottom:4}}>SITUATION ROOM</h2>
+              <p style={{color:"#6b7280",fontSize:11}}>{masteredCount} of {totalSets} mastered · {rank.emoji} {rank.title}</p>
             </div>
-            <div style={{display:"flex",flexDirection:"column",gap:8}}>
-              {SITUATION_SETS.map(set=>{const done=set.questions.every(q=>stats.cl.includes(q.id));const sm=stats.sitMastery?.[set.id];const bg=sm?.bestGrade;const gradeBadge={S:{emoji:"⭐",color:"#f59e0b",border:"rgba(245,158,11,.3)"},A:{emoji:"A",color:"#22c55e",border:"rgba(34,197,94,.3)"},B:{emoji:"B",color:"#3b82f6",border:"rgba(59,130,246,.3)"},C:{emoji:"C",color:"#f59e0b",border:"rgba(245,158,11,.3)"},D:{emoji:"D",color:"#6b7280",border:"rgba(107,114,128,.3)"}};const badge=bg?gradeBadge[bg]:null;return(
-                <div key={set.id} onClick={()=>startSituation(set)} style={{background:`linear-gradient(135deg,${set.color}10,${set.color}05)`,border:`1px solid ${badge&&bg==="S"?badge.border:set.color+"25"}`,borderRadius:14,padding:"14px 16px",cursor:"pointer",display:"flex",alignItems:"center",gap:12,transition:"transform .15s",position:"relative",overflow:"hidden"}}>
-                  <div style={{fontSize:28,flexShrink:0}}>{set.emoji}</div>
-                  <div style={{flex:1,minWidth:0}}>
-                    <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:2}}>
-                      <span style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:15,color:set.color,letterSpacing:1}}>{set.title}</span>
-                      {badge&&<span style={{background:`${badge.color}15`,border:`1px solid ${badge.border}`,borderRadius:5,padding:"0 5px",fontSize:10,fontWeight:800,color:badge.color,lineHeight:"18px"}}>{badge.emoji}</span>}
+            {/* DIFFICULTY TABS */}
+            <div style={{display:"flex",gap:0,marginBottom:16,borderBottom:"1px solid rgba(255,255,255,.06)"}}>
+              {tiers.map(t=>{
+                const active=activeTab===t.diff;
+                const locked=t.diff===3&&allStarLocked;
+                return(<button key={t.diff} onClick={()=>{if(!locked)setSitTab(t.diff)}} style={{flex:1,background:"none",border:"none",borderBottom:active?`2px solid ${t.color}`:"2px solid transparent",padding:"10px 4px 8px",cursor:locked?"not-allowed":"pointer",opacity:locked?.45:1,transition:"all .15s"}}>
+                  <div style={{fontSize:12,marginBottom:2}}>{t.stars}</div>
+                  <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:13,letterSpacing:1,color:active?t.color:"#6b7280"}}>{t.label}</div>
+                  {locked&&<div style={{fontSize:8,color:"#6b7280",marginTop:2}}>🔒 Get 3 A's at Pro</div>}
+                </button>);
+              })}
+            </div>
+            {/* CARD GRID */}
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+              {sortedSets.map(set=>{
+                const sm=stats.sitMastery?.[set.id];const bg=sm?.bestGrade;const badge=bg?gradeBadge[bg]:null;
+                const tier=getSitTier(set.id,stats.sitMastery);
+                const isRec=getSitRelevance(set)>15;
+                return(
+                <div key={set.id} onClick={()=>startSituation(set)} style={{background:"rgba(255,255,255,.025)",border:"1px solid rgba(255,255,255,.05)",borderLeft:`3px solid ${set.color}`,borderRadius:12,padding:"12px 10px",cursor:"pointer",transition:"transform .15s",position:"relative",display:"flex",flexDirection:"column",gap:6}}>
+                  {/* Top row: emoji + title + tier badge */}
+                  <div style={{display:"flex",alignItems:"center",gap:6}}>
+                    <span style={{fontSize:22}}>{set.emoji}</span>
+                    <div style={{flex:1,minWidth:0}}>
+                      <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:13,color:set.color,letterSpacing:.5,lineHeight:1.2,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{set.title.replace(/ \(.*\)$/,"")}</div>
                     </div>
-                    <div style={{fontSize:10,color:"#9ca3af",lineHeight:1.4,marginBottom:4}}>{set.desc}</div>
-                    <div style={{display:"flex",alignItems:"center",gap:4,flexWrap:"wrap"}}>
-                      {set.questions.map(q=><span key={q.id} style={{background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.06)",borderRadius:5,padding:"1px 6px",fontSize:9,color:"#9ca3af"}}>{POS_META[q.pos]?.emoji} {POS_META[q.pos]?.label}</span>)}
-                      <span style={{fontSize:9,color:"#6b7280",marginLeft:4}}>{sm?`Played ${sm.attempts}x`:"New!"}</span>
-                    </div>
+                    {tier&&<span style={{fontSize:14,flexShrink:0}} title={tier.label}>{tier.emoji}</span>}
                   </div>
-                  {done&&!badge&&<div style={{position:"absolute",top:8,right:10,fontSize:14}}>✅</div>}
-                  <div style={{color:set.color,fontSize:18,flexShrink:0}}>▶</div>
-                </div>
-              )})}
+                  {/* Grade + difficulty stars */}
+                  <div style={{display:"flex",alignItems:"center",gap:6}}>
+                    {badge?<span style={{background:`${badge.color}15`,border:`1px solid ${badge.border}`,borderRadius:5,padding:"0 5px",fontSize:10,fontWeight:800,color:badge.color,lineHeight:"18px"}}>{badge.emoji}</span>
+                      :<span style={{background:"rgba(255,255,255,.06)",borderRadius:5,padding:"0 5px",fontSize:9,fontWeight:700,color:"#6b7280",lineHeight:"18px"}}>NEW</span>}
+                    <span style={{fontSize:9,color:"#6b7280"}}>{set.diff===1?"⭐":set.diff===2?"⭐⭐":"⭐⭐⭐"}</span>
+                  </div>
+                  {/* Position icons row */}
+                  <div style={{display:"flex",gap:3,flexWrap:"wrap"}}>
+                    {set.questions.map(q=><span key={q.id} title={POS_META[q.pos]?.label} style={{fontSize:13}}>{POS_META[q.pos]?.emoji}</span>)}
+                  </div>
+                  {/* Footer: attempts + recommended */}
+                  <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginTop:"auto"}}>
+                    <span style={{fontSize:9,color:"#6b7280"}}>{sm?`Played ${sm.attempts}x`:"NEW!"}</span>
+                    {isRec&&<span style={{fontSize:8,color:"#f59e0b",fontWeight:700}}>📍 Rec</span>}
+                  </div>
+                </div>);
+              })}
             </div>
+            {/* AI Situation button (Pro only) */}
+            {stats.isPro&&!aiSitLoading&&<button onClick={async()=>{
+              setAiSitLoading(true);snd.play('tap');
+              const ctrl=new AbortController();aiSitAbortRef.current=ctrl;
+              const timeout=setTimeout(()=>{ctrl.abort();setAiSitLoading(false);setToast({e:"⏰",n:"Timed Out",d:"Couldn't create a situation right now. Try a handcrafted one!"});setTimeout(()=>setToast(null),4000)},20000);
+              try{
+                const result=await generateAISituation(stats,ctrl.signal);
+                clearTimeout(timeout);
+                if(result){
+                  setStats(p=>({...p,aiSitCount:(p.aiSitCount||0)+1}));
+                  startSituation(result);
+                }else{
+                  // Fallback: pick an unplayed or lowest-grade handcrafted set
+                  const tabDiff=activeTab||2;const pool=SITUATION_SETS.filter(s=>s.diff===tabDiff);
+                  const unplayed=pool.filter(s=>!stats.sitMastery?.[s.id]?.lastPlayed);
+                  const fallback=unplayed.length>0?unplayed[Math.floor(Math.random()*unplayed.length)]
+                    :pool.sort((a,b)=>{const ga={D:1,C:2,B:3,A:4,S:5};return(ga[stats.sitMastery?.[a.id]?.bestGrade]||0)-(ga[stats.sitMastery?.[b.id]?.bestGrade]||0)})[0]||pool[0];
+                  if(fallback){startSituation(fallback);setToast({e:"🏟️",n:"AI Unavailable",d:"Here's a handcrafted situation instead!"});setTimeout(()=>setToast(null),3000)}
+                }
+              }catch(e){
+                clearTimeout(timeout);
+                if(e.name!=="AbortError"){setToast({e:"❌",n:"Generation Failed",d:"Couldn't create a situation. Try a handcrafted one!"});setTimeout(()=>setToast(null),4000)}
+              }finally{setAiSitLoading(false);aiSitAbortRef.current=null}
+            }} style={{...btn("linear-gradient(135deg,#8b5cf6,#7c3aed)"),...{display:"block",margin:"14px auto 0",maxWidth:300,boxShadow:"0 4px 12px rgba(139,92,246,.25)"}}}>
+              🤖 AI Situation — Custom for You
+            </button>}
+            {aiSitLoading&&<div style={{textAlign:"center",margin:"14px auto 0",maxWidth:300}}>
+              <div style={{background:"rgba(139,92,246,.06)",border:"1px solid rgba(139,92,246,.15)",borderRadius:12,padding:"16px 14px"}}>
+                <div style={{fontSize:28,marginBottom:8,animation:"su .5s ease-out infinite alternate"}}>🤖</div>
+                <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:13,color:"#8b5cf6",letterSpacing:1,marginBottom:4}}>CREATING YOUR SITUATION...</div>
+                <div style={{fontSize:10,color:"#6b7280",marginBottom:10}}>Analyzing your strengths and weaknesses</div>
+                <button onClick={()=>{if(aiSitAbortRef.current){aiSitAbortRef.current.abort();aiSitAbortRef.current=null}setAiSitLoading(false)}} style={{...ghost,fontSize:10,color:"#ef4444"}}>Cancel</button>
+              </div>
+            </div>}
+            {!stats.isPro&&<div style={{textAlign:"center",margin:"14px auto 0",maxWidth:300,opacity:.5}}>
+              <div style={{background:"rgba(139,92,246,.04)",border:"1px solid rgba(139,92,246,.08)",borderRadius:12,padding:"10px 14px",fontSize:11,color:"#6b7280"}}>🤖 AI Situations — <span style={{color:"#f59e0b",fontWeight:700}}>Pro</span></div>
+            </div>}
             <button onClick={goHome} style={{...ghost,display:"block",margin:"16px auto"}}>← Back to Home</button>
           </div>);
         })()}
@@ -13310,7 +13946,7 @@ export default function App(){
           const runnerStr=runnerNames.length>0?runnerNames.join(", "):"None";
           return(<div style={{textAlign:"center",padding:"20px 0"}}>
             <div style={{fontSize:52,marginBottom:6,animation:"su .4s ease-out"}}>{sitSet.emoji}</div>
-            <h2 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:26,letterSpacing:2,color:sitSet.color,marginBottom:4,animation:"su .4s ease-out .1s both"}}>{sitSet.title}</h2>
+            <h2 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:26,letterSpacing:2,color:sitSet.color,marginBottom:4,animation:"su .4s ease-out .1s both"}}>{sitSet.title}{sitSet.isAI&&<span style={{fontSize:10,background:"rgba(139,92,246,.15)",color:"#a78bfa",padding:"2px 8px",borderRadius:6,marginLeft:8,verticalAlign:"middle",fontFamily:"system-ui",letterSpacing:0}}>🤖 AI</span>}</h2>
             <p style={{color:"#9ca3af",fontSize:12,lineHeight:1.5,maxWidth:320,margin:"0 auto 16px",animation:"su .4s ease-out .15s both"}}>{sitSet.desc}</p>
             <div style={{background:"rgba(0,0,0,.3)",borderRadius:12,padding:6,marginBottom:14,border:"1px solid rgba(255,255,255,.04)",animation:"su .4s ease-out .2s both"}}>
               <Field pos="pitcher" runners={sit.runners} anim="freeze" theme={FIELD_THEMES.find(th=>th.id===stats.fieldTheme)||FIELD_THEMES[0]} avatar={{j:stats.avatarJersey||0,c:stats.avatarCap||0,b:stats.avatarBat||0}}/>
@@ -13340,7 +13976,7 @@ export default function App(){
           </div>);
         })()}
 
-        {/* SITUATION ROOM — RESULTS */}
+        {/* SITUATION ROOM — RESULTS (Film Room) */}
         {screen==="sitResults"&&sitSet&&(()=>{
           const total=sitResults.length;const correct=sitResults.filter(r=>r.correct).length;
           const pct=total>0?Math.round((correct/total)*100):0;
@@ -13352,58 +13988,160 @@ export default function App(){
             const setId=sitSet.id;const prev=stats.sitMastery?.[setId]||{bestGrade:null,attempts:0,grades:[],perfectCount:0,lastPlayed:null};
             const gradeRank={S:5,A:4,B:3,C:2,D:1};const newBest=!prev.bestGrade||gradeRank[grade]>gradeRank[prev.bestGrade]?grade:prev.bestGrade;
             const newMastery={bestGrade:newBest,attempts:prev.attempts+1,grades:[...prev.grades.slice(-9),grade],perfectCount:prev.perfectCount+(pct===100?1:0),lastPlayed:Date.now()};
-            if(!prev.lastPlayed||Date.now()-prev.lastPlayed>2000){setStats(p=>({...p,sitMastery:{...p.sitMastery,[setId]:newMastery}}))}
+            if(!prev.lastPlayed||Date.now()-prev.lastPlayed>2000){
+              const today=new Date().toDateString();const dailySit=getDailySituation();const isDailySit=sitSet.id===dailySit.id;
+              setStats(p=>{
+                const upd={...p,sitMastery:{...p.sitMastery,[setId]:newMastery}};
+                if(isDailySit&&p.dailySitDate!==today){
+                  const yesterday=new Date(Date.now()-86400000).toDateString();
+                  const streak=p.lastDailySitDate===yesterday?(p.dailySitStreak||0)+1:1;
+                  upd.dailySitDone=true;upd.dailySitDate=today;upd.dailySitStreak=streak;upd.dailySitBestStreak=Math.max(streak,p.dailySitBestStreak||0);upd.lastDailySitDate=today;
+                }
+                return upd;
+              })
+            }
           }
-          return(<div style={{textAlign:"center",padding:"30px 0"}}>
-            <div style={{fontSize:52,marginBottom:6}}>🏟️</div>
-            <h2 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:28,letterSpacing:2,color:sitSet.color,marginBottom:4}}>SITUATION COMPLETE</h2>
-            <p style={{color:"#9ca3af",fontSize:12,marginBottom:16}}>{sitSet.title}</p>
-            <div style={{display:"flex",justifyContent:"center",gap:20,marginBottom:16}}>
-              <div><div style={{fontSize:36,fontWeight:800,color:gradeColor}}>{grade}</div><div style={{fontSize:9,color:"#6b7280"}}>Grade</div></div>
-              <div><div style={{fontSize:22,fontWeight:800,color:"#22c55e"}}>{correct}/{total}</div><div style={{fontSize:9,color:"#6b7280"}}>Optimal</div></div>
-              <div><div style={{fontSize:22,fontWeight:800,color:"#f59e0b"}}>{totalXp}</div><div style={{fontSize:9,color:"#6b7280"}}>XP Earned</div></div>
-            </div>
-            <div style={{...card,textAlign:"left",marginBottom:16}}>
-              <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:11,color:"#6b7280",letterSpacing:1,marginBottom:8}}>POSITION BREAKDOWN</div>
-              <div style={{display:"flex",flexDirection:"column",gap:6}}>
-                {sitResults.map((r,i)=>{const q=sitSet.questions[i];const pm=POS_META[r.pos];return(
-                  <div key={i} style={{display:"flex",alignItems:"center",gap:10,background:r.correct?"rgba(34,197,94,.04)":"rgba(239,68,68,.04)",border:`1px solid ${r.correct?"rgba(34,197,94,.12)":"rgba(239,68,68,.12)"}`,borderRadius:10,padding:"8px 12px"}}>
-                    <span style={{fontSize:22,flexShrink:0}}>{r.correct?"\u2705":"\u274c"}</span>
-                    <div style={{flex:1,minWidth:0}}>
-                      <div style={{fontSize:12,fontWeight:700,color:pm?.color||"#d1d5db"}}>{pm?.emoji} {pm?.label}</div>
-                      <div style={{fontSize:10,color:"#9ca3af",marginTop:1}}>{q?.title||""}</div>
-                      {!r.correct&&<div style={{fontSize:10,color:"#6b7280",marginTop:2}}>Best: Option {r.best+1} \u2014 {q?.explanations?.[r.best]?.substring(0,60)||""}...</div>}
-                    </div>
-                    <div style={{fontSize:11,fontWeight:700,color:"#f59e0b",flexShrink:0}}>+{r.xp}</div>
-                  </div>
-                )})}
+          const inFilm=filmStep>=0&&filmStep<total;
+          const isSummary=filmStep>=total;
+          const filmAdvance=()=>{if(filmTimerRef.current){clearTimeout(filmTimerRef.current);filmTimerRef.current=null}setFilmStep(s=>s+1)};
+          const filmSkip=()=>{if(filmTimerRef.current){clearTimeout(filmTimerRef.current);filmTimerRef.current=null}setFilmStep(total)};
+          // Auto-advance timer for film steps (4s per step)
+          if(inFilm){
+            if(filmTimerRef.current)clearTimeout(filmTimerRef.current);
+            filmTimerRef.current=setTimeout(filmAdvance,4000);
+          }
+          // Position highlight coordinates for SVG glow overlay
+          const POS_COORDS={pitcher:{x:200,y:212},catcher:{x:200,y:300},firstBase:{x:290,y:210},secondBase:{x:245,y:165},shortstop:{x:155,y:165},thirdBase:{x:110,y:210},leftField:{x:80,y:90},centerField:{x:200,y:60},rightField:{x:320,y:90},batter:{x:215,y:285},baserunner:{x:240,y:250},manager:{x:60,y:290}};
+          const sit=sitSet.situation;
+          const thm=FIELD_THEMES.find(th=>th.id===stats.fieldTheme)||FIELD_THEMES[0];
+          const av={j:stats.avatarJersey||0,c:stats.avatarCap||0,b:stats.avatarBat||0};
+          return(<div style={{padding:"20px 0"}}>
+            {/* HEADER — always visible */}
+            <div style={{textAlign:"center",marginBottom:inFilm?10:16}}>
+              <div style={{fontSize:inFilm?32:48,marginBottom:4,transition:"font-size .3s"}}>{inFilm?"🎬":"🏟️"}</div>
+              <h2 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:inFilm?20:26,letterSpacing:2,color:sitSet.color,marginBottom:4,transition:"font-size .3s"}}>{inFilm?"FILM ROOM":"SITUATION COMPLETE"}</h2>
+              <p style={{color:"#9ca3af",fontSize:12,marginBottom:inFilm?6:14}}>{sitSet.title}</p>
+              <div style={{display:"flex",justifyContent:"center",gap:20,marginBottom:inFilm?8:14}}>
+                <div><div style={{fontSize:inFilm?24:36,fontWeight:800,color:gradeColor,transition:"font-size .3s"}}>{grade}</div><div style={{fontSize:9,color:"#6b7280"}}>Grade</div></div>
+                <div><div style={{fontSize:inFilm?16:22,fontWeight:800,color:"#22c55e",transition:"font-size .3s"}}>{correct}/{total}</div><div style={{fontSize:9,color:"#6b7280"}}>Optimal</div></div>
+                <div><div style={{fontSize:inFilm?16:22,fontWeight:800,color:"#f59e0b",transition:"font-size .3s"}}>{totalXp}</div><div style={{fontSize:9,color:"#6b7280"}}>XP Earned</div></div>
               </div>
             </div>
-            {pct===100&&<div style={{background:"rgba(34,197,94,.08)",border:"1px solid rgba(34,197,94,.2)",borderRadius:10,padding:"8px 16px",display:"inline-block",marginBottom:12}}>
-              <span style={{fontSize:13,fontWeight:800,color:"#22c55e"}}>🏆 PERFECT! You nailed every position!</span>
+
+            {/* FILM ROOM — not started (filmStep === -1) */}
+            {filmStep===-1&&<div style={{textAlign:"center",animation:"fi .3s ease-out"}}>
+              <button onClick={()=>setFilmStep(0)} style={{...btn(`linear-gradient(135deg,${sitSet.color},${sitSet.color}cc)`),...{maxWidth:300,margin:"0 auto 8px",boxShadow:`0 4px 12px ${sitSet.color}40`}}}>🎬 Watch Film Room</button>
+              <button onClick={filmSkip} style={{...ghost,display:"block",margin:"0 auto 8px",fontSize:11}}>Skip to Summary →</button>
             </div>}
-            {/* Team Debrief — How the Play Unfolded */}
-            <div style={{...card,textAlign:"left",marginBottom:16}}>
-              <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:11,color:sitSet.color,letterSpacing:1,marginBottom:8}}>🎬 HOW THE PLAY UNFOLDED</div>
-              <p style={{fontSize:12,color:"#9ca3af",lineHeight:1.5,marginBottom:10}}>{sitSet.debrief||sitSet.desc}</p>
-              <div style={{display:"flex",flexDirection:"column",gap:8}}>
-                {sitResults.map((r,i)=>{const q=sitSet.questions[i];const pm=POS_META[r.pos];const bestExp=q?.explanations?.[q?.best]||"";return(
-                  <div key={i} style={{borderLeft:`3px solid ${r.correct?"#22c55e":"#ef4444"}`,paddingLeft:10}}>
-                    <div style={{fontSize:11,fontWeight:700,color:pm?.color||"#d1d5db",marginBottom:2}}>{pm?.emoji} {pm?.label}'s Role</div>
-                    <div style={{fontSize:11,color:r.correct?"#22c55e":"#ef4444",fontWeight:600,marginBottom:2}}>{r.correct?"✅ Optimal":"❌ Missed"}: "{q?.options?.[r.correct?q?.best:r.choice]||""}"</div>
-                    <div style={{fontSize:11,color:"#d1d5db",lineHeight:1.45}}>{bestExp.length>150?bestExp.substring(0,150)+"...":bestExp}</div>
+
+            {/* FILM ROOM — step-through mode */}
+            {inFilm&&(()=>{
+              const r=sitResults[filmStep];const q=sitSet.questions[filmStep];const pm=POS_META[r?.pos];
+              const bestExp=q?.explanations?.[q?.best]||"";
+              const chosenText=q?.options?.[r?.choice]||"";
+              const bestText=q?.options?.[q?.best]||"";
+              const coord=POS_COORDS[r?.pos]||{x:200,y:200};
+              return(<div onClick={filmAdvance} style={{animation:"fi .3s ease-out"}}>
+                {/* Skip + progress row */}
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+                  <div style={{display:"flex",gap:6,alignItems:"center"}}>
+                    {sitResults.map((_,i)=>{const done=i<filmStep;const cur=i===filmStep;const ri=sitResults[i];return(
+                      <div key={i} style={{width:cur?10:8,height:cur?10:8,borderRadius:"50%",background:done?(ri.correct?"#22c55e":"#ef4444"):cur?pm?.color||"#3b82f6":"rgba(255,255,255,.12)",transition:"all .3s",boxShadow:cur?`0 0 8px ${pm?.color||"#3b82f6"}50`:undefined}}/>
+                    )})}
                   </div>
-                )})}
-              </div>
-              <div style={{marginTop:10,padding:"8px 10px",background:"rgba(168,85,247,.04)",border:"1px solid rgba(168,85,247,.1)",borderRadius:8}}>
-                <div style={{fontSize:10,color:"#a855f7",fontWeight:700,marginBottom:3}}>💡 Teamwork Takeaway</div>
-                <div style={{fontSize:11,color:"#d1d5db",lineHeight:1.45}}>
-                  {sitSet.teamworkTakeaway||"Every position's decision connects to every other position's decision. That's what makes baseball a team sport."}
+                  <button onClick={e=>{e.stopPropagation();filmSkip()}} style={{background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.08)",borderRadius:8,padding:"4px 10px",fontSize:10,color:"#6b7280",cursor:"pointer"}}>Skip to Summary →</button>
+                </div>
+                {/* Field with position highlight glow */}
+                <div style={{background:"rgba(0,0,0,.3)",borderRadius:12,padding:4,marginBottom:10,border:`1px solid ${pm?.color||"#3b82f6"}20`,position:"relative",overflow:"hidden"}}>
+                  <Field pos={r.pos} runners={sit.runners} anim="freeze" theme={thm} avatar={av}/>
+                  {/* SVG glow overlay for highlighted position */}
+                  <svg viewBox="0 0 400 340" style={{position:"absolute",top:4,left:4,right:4,bottom:4,width:"calc(100% - 8px)",height:"calc(100% - 8px)",pointerEvents:"none"}}>
+                    <defs>
+                      <radialGradient id={`filmGlow${filmStep}`} cx="50%" cy="50%" r="50%">
+                        <stop offset="0%" stopColor={pm?.color||"#3b82f6"} stopOpacity=".35"/>
+                        <stop offset="100%" stopColor={pm?.color||"#3b82f6"} stopOpacity="0"/>
+                      </radialGradient>
+                    </defs>
+                    <circle cx={coord.x} cy={coord.y} r="28" fill={`url(#filmGlow${filmStep})`}>
+                      <animate attributeName="r" values="24;32;24" dur="2s" repeatCount="indefinite"/>
+                      <animate attributeName="opacity" values="1;.6;1" dur="2s" repeatCount="indefinite"/>
+                    </circle>
+                    <circle cx={coord.x} cy={coord.y} r="18" fill="none" stroke={pm?.color||"#3b82f6"} strokeWidth="1.5" opacity=".5">
+                      <animate attributeName="r" values="18;22;18" dur="2s" repeatCount="indefinite"/>
+                      <animate attributeName="opacity" values=".5;.15;.5" dur="2s" repeatCount="indefinite"/>
+                    </circle>
+                  </svg>
+                </div>
+                {/* Position banner */}
+                <div key={filmStep} style={{textAlign:"center",marginBottom:10,animation:"su .35s ease-out"}}>
+                  <div style={{fontSize:36,marginBottom:4}}>{pm?.emoji}</div>
+                  <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:18,letterSpacing:1,color:pm?.color||"#d1d5db"}}>{pm?.label}</div>
+                  <div style={{fontSize:10,color:"#6b7280"}}>Position {filmStep+1} of {total}</div>
+                </div>
+                {/* Choice + result card */}
+                <div key={"c"+filmStep} style={{...card,textAlign:"left",marginBottom:10,animation:"su .4s ease-out .1s both"}}>
+                  <div style={{fontSize:11,color:"#9ca3af",marginBottom:4}}>You chose:</div>
+                  <div style={{fontSize:12,fontWeight:700,color:"#d1d5db",marginBottom:8,borderLeft:`3px solid ${r.correct?"#22c55e":"#ef4444"}`,paddingLeft:8}}>"{chosenText}"</div>
+                  <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:8}}>
+                    <span style={{fontSize:18}}>{r.correct?"✅":"❌"}</span>
+                    <span style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:16,letterSpacing:1,color:r.correct?"#22c55e":"#ef4444"}}>{r.correct?"Optimal!":"Not quite..."}</span>
+                    <span style={{marginLeft:"auto",fontSize:11,fontWeight:700,color:"#f59e0b"}}>+{r.xp} XP</span>
+                  </div>
+                  {!r.correct&&<div style={{fontSize:11,color:"#22c55e",marginBottom:6,fontWeight:600}}>Best answer: "{bestText}"</div>}
+                  <div style={{fontSize:11,color:"#d1d5db",lineHeight:1.5,maxHeight:130,overflowY:"auto"}}>{bestExp}</div>
+                </div>
+                {/* Auto-advance progress bar (4s) */}
+                <div style={{height:3,borderRadius:2,background:"rgba(255,255,255,.06)",overflow:"hidden"}}>
+                  <div key={"bar"+filmStep} style={{height:"100%",background:pm?.color||"#3b82f6",borderRadius:2,animation:"filmBar 4s linear"}}/>
+                </div>
+                <div style={{textAlign:"center",marginTop:6}}>
+                  <span style={{fontSize:9,color:"#6b7280"}}>Tap anywhere to continue</span>
+                </div>
+              </div>);
+            })()}
+
+            {/* SUMMARY VIEW — after all film steps or skipped */}
+            {isSummary&&(()=>{const tier=getSitTier(sitSet.id,stats.sitMastery);const prevTier=getSitTier(sitSet.id,{...stats.sitMastery,[sitSet.id]:{...(stats.sitMastery?.[sitSet.id]||{}),bestGrade:stats.sitMastery?.[sitSet.id]?.grades?.slice(-2,-1)?.[0]||null}});const isNewTier=tier&&(!prevTier||tier.id!==prevTier.id);return(<div style={{animation:"fi .4s ease-out"}}>
+              {pct===100&&<div style={{textAlign:"center",marginBottom:12}}>
+                <div style={{background:"rgba(34,197,94,.08)",border:"1px solid rgba(34,197,94,.2)",borderRadius:10,padding:"8px 16px",display:"inline-block"}}>
+                  <span style={{fontSize:13,fontWeight:800,color:"#22c55e"}}>🏆 PERFECT! You nailed every position!</span>
+                </div>
+              </div>}
+              {tier&&<div style={{textAlign:"center",marginBottom:12}}>
+                <div style={{background:`${tier.bg}.06)`,border:`1px solid ${tier.bg}.15)`,borderRadius:12,padding:"10px 18px",display:"inline-block"}}>
+                  <div style={{fontSize:28,marginBottom:2}}>{tier.emoji}</div>
+                  <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:14,letterSpacing:1,color:tier.color}}>{isNewTier?"NEW: ":""}{tier.label} Tier{isNewTier?" Earned!":""}</div>
+                </div>
+              </div>}
+              {/* Position breakdown */}
+              <div style={{...card,textAlign:"left",marginBottom:12}}>
+                <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:11,color:"#6b7280",letterSpacing:1,marginBottom:8}}>POSITION BREAKDOWN</div>
+                <div style={{display:"flex",flexDirection:"column",gap:5}}>
+                  {sitResults.map((r,i)=>{const q=sitSet.questions[i];const pm=POS_META[r.pos];return(
+                    <div key={i} style={{display:"flex",alignItems:"center",gap:8,background:r.correct?"rgba(34,197,94,.04)":"rgba(239,68,68,.04)",border:`1px solid ${r.correct?"rgba(34,197,94,.1)":"rgba(239,68,68,.1)"}`,borderRadius:8,padding:"6px 10px"}}>
+                      <span style={{fontSize:16}}>{r.correct?"✅":"❌"}</span>
+                      <span style={{fontSize:12,fontWeight:700,color:pm?.color||"#d1d5db"}}>{pm?.emoji} {pm?.label}</span>
+                      <span style={{marginLeft:"auto",fontSize:10,fontWeight:700,color:"#f59e0b"}}>+{r.xp}</span>
+                    </div>
+                  )})}
                 </div>
               </div>
-            </div>
-            <button onClick={()=>setScreen("sitPicker")} style={{...btn(`linear-gradient(135deg,${sitSet.color},${sitSet.color}cc)`),...{marginBottom:6,boxShadow:`0 4px 12px ${sitSet.color}40`}}}>🏟️ Play Another</button>
-            <button onClick={goHome} style={{...btn("rgba(255,255,255,.06)"),...{fontSize:12}}}>← Back to Home</button>
+              {/* Debrief + teamwork takeaway */}
+              <div style={{...card,textAlign:"left",marginBottom:14}}>
+                <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:11,color:sitSet.color,letterSpacing:1,marginBottom:6}}>🎬 HOW THE PLAY UNFOLDED</div>
+                <p style={{fontSize:12,color:"#9ca3af",lineHeight:1.5,marginBottom:8}}>{sitSet.debrief||sitSet.desc}</p>
+                <div style={{padding:"8px 10px",background:"rgba(168,85,247,.04)",border:"1px solid rgba(168,85,247,.1)",borderRadius:8}}>
+                  <div style={{fontSize:10,color:"#a855f7",fontWeight:700,marginBottom:3}}>💡 Teamwork Takeaway</div>
+                  <div style={{fontSize:11,color:"#d1d5db",lineHeight:1.45}}>
+                    {sitSet.teamworkTakeaway||"Every position's decision connects to every other position's decision. That's what makes baseball a team sport."}
+                  </div>
+                </div>
+              </div>
+              {/* Actions */}
+              <button onClick={()=>setFilmStep(0)} style={{...ghost,display:"block",margin:"0 auto 4px",fontSize:10}}>🎬 Watch Film Room Again</button>
+              <button onClick={()=>setScreen("sitPicker")} style={{...btn(`linear-gradient(135deg,${sitSet.color},${sitSet.color}cc)`),...{marginBottom:6,boxShadow:`0 4px 12px ${sitSet.color}40`}}}>🏟️ Play Another</button>
+              <button onClick={goHome} style={{...btn("rgba(255,255,255,.06)"),...{fontSize:12}}}>← Back to Home</button>
+            </div>)})()}
           </div>);
         })()}
 
@@ -13478,6 +14216,9 @@ export default function App(){
         @keyframes su{from{opacity:0;transform:scale(.8)translateY(20px)}to{opacity:1;transform:scale(1)translateY(0)}}
         @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
         @keyframes pulse{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1.2)}}
+        @keyframes sitPulse{0%,100%{box-shadow:0 0 0 0 rgba(59,130,246,.4)}50%{box-shadow:0 0 0 6px rgba(59,130,246,0)}}
+        @keyframes sitSlide{from{width:0}to{width:100%}}
+        @keyframes filmBar{from{width:0}to{width:100%}}
         *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
         button:hover{filter:brightness(1.05)}
         button:active{transform:scale(.98)}
