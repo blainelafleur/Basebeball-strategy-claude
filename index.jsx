@@ -7919,12 +7919,74 @@ ${principles || "Follow standard baseball rules for this position."}
 ${ageGate ? `AGE RESTRICTIONS (${ageGroup}): ${ageGate.forbidden ? "Do NOT use these concepts: " + ageGate.forbidden.join(", ") : ""} ${ageGate.allowed ? "Only use these concepts: " + ageGate.allowed.join(", ") : ""}` : ""}`
 
   // ═══════════════════════════════════════════════════════════════
+  // TIER 1.5: CRITICAL QUALITY RULES (closes gap with standard pipeline)
+  // ═══════════════════════════════════════════════════════════════
+  const isOffensive = ["batter","baserunner"].includes(position)
+  const isDefensive = ["pitcher","catcher","firstBase","secondBase","shortstop","thirdBase","leftField","centerField","rightField"].includes(position)
+
+  const scoreRules = `
+SCORE RULES (READ FIRST — score errors are the #1 quality issue):
+- score=[HOME, AWAY]. Home team bats in "Bot" half, away team bats in "Top" half.
+- ${isOffensive ? "This is an OFFENSIVE position. If the inning is 'Bot X', the player is on the HOME team (score[0]). If 'Top X', the player is on the AWAY team (score[1])." : isDefensive ? "This is a DEFENSIVE position. If the inning is 'Bot X', the player is on the AWAY team (score[1]). If 'Top X', the player is on the HOME team (score[0])." : "Manager can be either team. Pick one and be consistent."}
+- If you say "trailing 4-3" the player's team score MUST be 3, opponent MUST be 4.
+- If you say "up by 2" the player's team score MUST be exactly 2 more than the opponent.
+- "Tying run" = the run that ties the game. "Go-ahead run" = the run that takes the lead. Do NOT confuse these.
+- Double-check: read your description, find every score reference, and verify it matches the score array.`
+
+  const descriptionStyle = `
+DESCRIPTION STYLE: Write descriptions as if explaining a game situation to a young baseball player. Use simple, everyday language. Do NOT include statistics, RE24 values, batting averages, or advanced analytics in the description or options. Save numbers for explanations only.`
+
+  const POS_ACTIONS = {
+    pitcher: "Pitcher=pitch selection, pitch location, pickoff attempts, fielding batted balls, covering 1B on grounders right side, backing up bases.",
+    catcher: "Catcher=calling pitches, setting up location targets, blocking, throwing out runners, framing, fielding bunts/WP/PB.",
+    batter: "Batter=swing decisions, bunt, take, protect the plate, hit-and-run swing.",
+    baserunner: "Baserunner=lead distance, jump timing, steal/hold, tag-up, sliding, secondary lead, advance/hold decisions, reading ball off bat.",
+    manager: "Manager=pitching changes, IBB signals, defensive alignment/shifts, steal/bunt signs, pinch hitters, lineup decisions.",
+    firstBase: "FirstBase=holding runners at 1B, scooping low throws, stretch footwork, charging bunts, cutoff on CF/RF throws home, 3-6-3 DP, fielding grounders.",
+    secondBase: "SecondBase=turning DPs (pivot at 2B), covering 1B on bunts, covering 2B on steals (LHB), relay on LF/CF throws, fielding grounders, positioning.",
+    shortstop: "Shortstop=turning DPs (feed to 2B), covering 2B on steals (RHB), relay on CF/RF throws, fielding grounders, cutoff alignment, positioning depth.",
+    thirdBase: "ThirdBase=guarding the line, charging bunts/slow rollers, bare-hand plays, tagging runners at 3B, fielding grounders, positioning depth.",
+    leftField: "LeftField=tracking fly balls, throwing to cutoff/bases, backing up 3B/SS, playing the wall, reading balls off bat.",
+    centerField: "CenterField=tracking fly balls, calling off corner OFs, throwing to cutoff/relay, backing up other OFs, gap coverage.",
+    rightField: "RightField=tracking fly balls, throwing to 3B/cutoff, backing up 1B/2B, playing the wall, strongest arm to 3B.",
+  }
+  const posActionText = POS_ACTIONS[position] || POS_ACTIONS.manager
+
+  const FIELDER_POS_LIST = ["firstBase","secondBase","shortstop","thirdBase","leftField","centerField","rightField"]
+  const isFielder = FIELDER_POS_LIST.includes(position)
+  const analyticsRules = isFielder
+    ? "ANALYTICS: Bunting with 0 outs usually lowers run expectancy. Sac bunt only justified with weak hitter, late game, need 1 run. IBBs, pitching changes, and defensive shifts are MANAGER decisions — do NOT create fielder scenarios about these topics."
+    : position === "baserunner"
+    ? "ANALYTICS: Steals need ~72% success to break even. Bunting usually lowers RE24. IBBs under 2023+ rules give the runner no decision (automatic advance) — NEVER create baserunner scenarios about IBBs."
+    : position === "batter"
+    ? "ANALYTICS: Bunting with 0 outs usually lowers RE24. Sac bunt only justified with weak hitter, late game, need 1 run. Two-strike approach = protect the plate. IBBs and pitching changes are not batter decisions."
+    : "ANALYTICS: Intentional walks almost always wrong per The Book (Tango). NEVER make IBB the best answer unless runners on 2nd+3rd with 1 out. Never put go-ahead/winning run on base via IBB. IBB REQUIRES 1B open."
+
+  const positionBoundaries = `
+POSITION-ACTION BOUNDARIES: ${posActionText}
+NEVER give this position options that belong to another position. Fielders do NOT call IBBs, shift the defense, call for pitchouts, or make pitching changes. Baserunners CANNOT "yell at pitcher", "call a play", "signal the batter".
+${analyticsRules}`
+
+  const auditInstruction = `
+AUDIT CHECKLIST (verify before responding):
+- All 4 options are actions THIS position performs at the SAME decision point
+- rates[best] is the HIGHEST rate value
+- score=[HOME,AWAY] matches the description text
+- Every explanation references the SPECIFIC game situation
+- Best answer index (0-3) should vary — do NOT always make the best answer index 0 or 1`
+
+  const qualityRules = scoreRules + descriptionStyle + positionBoundaries + auditInstruction
+
+  // ═══════════════════════════════════════════════════════════════
   // TIER 2: BASEBALL KNOWLEDGE (data to inform the correct answer)
   // ═══════════════════════════════════════════════════════════════
   const tier2Parts = []
   if (brainData) tier2Parts.push(brainData)
   if (situationHint) tier2Parts.push(`SUGGESTED GAME SITUATION for "${targetConcept}": ${JSON.stringify(situationHint)}`)
   const tier2 = tier2Parts.length > 0 ? `\nBASEBALL REFERENCE DATA:\n${tier2Parts.join("\n")}` : ""
+
+  const topicsText = AI_SCENARIO_TOPICS[position] || ""
+  const topicsSection = topicsText ? `\nSCENARIO TOPIC IDEAS:\n${topicsText}` : ""
 
   // ═══════════════════════════════════════════════════════════════
   // TIER 3: QUALITY EXAMPLES (show what good looks like)
@@ -7933,6 +7995,10 @@ ${ageGate ? `AGE RESTRICTIONS (${ageGroup}): ${ageGate.forbidden ? "Do NOT use t
     ? exampleScenarios.map((s, i) => `EXAMPLE ${i + 1}:\n${JSON.stringify(s)}`).join("\n\n")
     : ""
   const tier3 = exampleText ? `\nSTUDY THESE EXAMPLES — match this quality level:\n${exampleText}` : ""
+
+  // Also include the targeted few-shot example (matches standard pipeline)
+  const fewShotExample = getAIFewShot(position, targetConcept, difficulty)
+  const fewShotSection = fewShotExample ? `\nHIGH-QUALITY EXAMPLE (match this quality level):\n${fewShotExample}` : ""
 
   // ═══════════════════════════════════════════════════════════════
   // ANTI-REPETITION
@@ -7959,21 +8025,39 @@ ${ageGate ? `AGE RESTRICTIONS (${ageGroup}): ${ageGate.forbidden ? "Do NOT use t
   // ═══════════════════════════════════════════════════════════════
   const patchSection = promptPatch ? `\nADDITIONAL INSTRUCTIONS:\n${promptPatch}` : ""
 
-  return `${tier1}${tier2}${tier3}${avoidText}${contextSection}${voiceSection}${patchSection}
+  // Dynamic error reinforcement from error history (matches standard pipeline)
+  let errorReinforcement = ""
+  try {
+    const errStore = JSON.parse(localStorage.getItem("bsm_ai_errors") || "{}")
+    const roleViolations = errStore[position + ":role-violation"] || 0
+    const parseErrors = errStore[position + ":parse"] || 0
+    const qualityErrors = errStore[position + ":quality-firewall"] || 0
+    if (roleViolations >= 2) errorReinforcement += "\nCRITICAL: Previous scenarios for this position had role violations. Double-check EVERY option is an action this specific position performs."
+    if (parseErrors >= 2) errorReinforcement += "\nCRITICAL: Previous responses had JSON errors. Respond with ONLY valid JSON — no markdown, no text before or after."
+    if (qualityErrors >= 2) errorReinforcement += "\nCRITICAL: Previous scenarios failed quality checks. Ensure explanations are detailed (3+ sentences), all options are distinct, and success rates are realistic."
+  } catch {}
+
+  // Randomize template values to prevent patterns (matches standard pipeline)
+  const tv = getRandomTemplateValues()
+
+  return `${tier1}${qualityRules}${topicsSection}${tier2}${tier3}${fewShotSection}${avoidText}${contextSection}${voiceSection}${patchSection}${errorReinforcement}
 
 NOW: Generate ONE scenario as a JSON object with this EXACT structure:
 {
   "title": "Short memorable title (3-6 words)",
   "diff": ${difficulty},
   "description": "3-5 sentence game situation. Last sentence sets up the decision moment.",
-  "situation": {"inning": "Top/Bot N", "outs": 0-2, "count": "B-S", "runners": [], "score": [HOME, AWAY]},
+  "situation": {"inning": "${tv.inning}", "outs": ${tv.outs}, "count": "${tv.count}", "runners": ${tv.runners}, "score": [HOME, AWAY]},
   "options": ["Option A", "Option B", "Option C", "Option D"],
-  "best": 0-3,
+  "best": ${tv.best},
   "explanations": ["Why A is best/wrong", "Why B is best/wrong", "Why C is best/wrong", "Why D is best/wrong"],
-  "rates": [0-100, 0-100, 0-100, 0-100],
+  "explDepth": [{"simple":"1 sentence kid version","why":"2-3 sentence strategic reasoning","data":"RE24/stat reference or n/a"},{"simple":"...","why":"...","data":"..."},{"simple":"...","why":"...","data":"..."},{"simple":"...","why":"...","data":"..."}],
+  "rates": ${tv.rates},
   "concept": "One sentence: the baseball concept this teaches and WHY it matters.",
   "anim": "one of: steal, score, hit, throwHome, doubleplay, strike, strikeout, groundout, flyout, catch, advance, walk, bunt, safe, freeze"
-}`
+}
+explDepth: array of 4 objects (one per option). "simple"=1 sentence a 6-year-old understands. "why"=2-3 sentences of strategic reasoning. "data"=1 sentence referencing a real stat — write "n/a" if no stat applies.
+count format: "B-S" (0-3 balls, 0-2 strikes) or "-". runners: [] empty, [1]=1st, [2]=2nd, [1,2]=1st+2nd, [1,2,3]=loaded. rates: optimal 75-90, decent 45-65, poor 10-40.`
 }
 
 // ============================================================================
@@ -8121,7 +8205,7 @@ async function generateWithAgentPipeline(position, stats, conceptsLearned, recen
         max_tokens: 2500,
         temperature: aiTemp,
         messages: [
-          { role: "system", content: "You are the smartest, most experienced baseball coach in the world. You have coached at every level from tee-ball to MLB. You create training scenarios for Baseball Strategy Master, a strategy-teaching app for kids 6-18. Respond with ONLY valid JSON — no markdown, no code fences.\n\nGOLDEN RULE: Every scenario teaches ONE baseball concept. The concept drives the situation, options, correct answer, and all explanations.\n\nEXPLANATION RULES:\n- Each explanation: 2-4 sentences.\n- BEST explanation: Name the action, state WHY correct in this game situation (reference score/inning/outs/runners/count), state the positive result.\n- WRONG explanations: Name the action, state WHY it fails with concrete consequences.\n- Use player perspective: \"you\", \"your team\" — never \"the offense\".\n- Every explanation must reference the SPECIFIC game situation.\n\nOPTION RULES:\n- All 4 options at the SAME decision moment.\n- Each option is a specific, concrete action.\n- Options must be strategically distinct — not 4 variations of the same action.\n- Include at least one common mistake a young player would actually make.\n- No near-duplicates.\n\nSITUATION RULES:\n- outs: 0-2 only. count: valid B-S format. runners: array of [1,2,3]. score: [HOME,AWAY].\n- Last sentence of description sets up the decision moment.\n\nPOSITION BOUNDARIES: Only include actions the selected position actually performs." },
+          { role: "system", content: "You are the smartest, most experienced baseball coach in the world. You have coached at every level from tee-ball to MLB. You know the fundamentals cold. You teach concepts the way a patient coach explains them on the field — concrete, specific, grounded in real baseball.\n\nYou create training scenarios for Baseball Strategy Master, a strategy-teaching app for kids 6-18.\n\nOUTPUT: Respond with ONLY a valid JSON object. No markdown, no code fences, no text outside the JSON.\n\nGOLDEN RULE: Every scenario teaches ONE baseball concept. The concept drives everything — the situation setup, the 4 options, the correct answer, and every explanation. If an option does not relate to the concept being taught, replace it with one that does.\n\nEXPLANATION RULES (most important — players learn from explanations):\n- Each explanation: 2-4 sentences.\n- BEST answer explanation: Name the action → state WHY it is correct in THIS specific game situation (reference score, inning, outs, runners, count) → state the POSITIVE RESULT.\n- WRONG answer explanations: Name the action → state WHY it fails in THIS situation with concrete consequences → teach what makes it wrong.\n- Write from the player's perspective: \"you\", \"your team\", \"your runner\" — never \"the offense\" or \"the batting team.\"\n- NEVER use jargon like RE24, OBP, wOBA, xBA in descriptions or options. Stats go in explDepth.data only.\n- EVERY explanation must reference the SPECIFIC game situation. No generic explanations ever.\n\nOPTION RULES:\n- All 4 options happen at the SAME decision moment. Never mix \"before the pitch\" with \"after the ball is hit.\"\n- Each option is a SPECIFIC, CONCRETE action (not \"make the right play\" or \"do something smart\").\n- Options must be STRATEGICALLY DISTINCT — not 4 variations of the same action.\n- At least one option should be a common MISTAKE that a young player would actually make — this is how kids learn.\n- No near-duplicates. If two options describe essentially the same action with different wording, replace one.\n\nSITUATION RULES:\n- outs: 0, 1, or 2 (never 3).\n- count: valid format \"B-S\" where balls 0-3, strikes 0-2. Use \"-\" only if count is irrelevant.\n- runners: array of occupied bases [1], [1,3], [1,2,3], or [] for empty. Must match the description exactly.\n- score: [HOME, AWAY]. Home team bats in \"Bot\" half. If description says \"trailing 4-3\" and it is Bot inning, score must be [3,4] not [4,3].\n- The LAST sentence of the description MUST set up the exact decision moment.\n\nVARY EVERYTHING: Different count, runner configuration, inning (1-9), and score each time. The best answer should NOT always be option index 0 or 1 — distribute across 0-3.\n\nPOSITION BOUNDARIES: The scenario MUST only include actions that the selected position actually performs on the field. A center fielder does not call pitches. A batter does not position the defense. A pitcher does not decide the batting order.\n\nCOMMON MISTAKES TO AVOID:\n- Best explanation argues for the wrong option.\n- Score math is wrong (e.g., \"one-run game\" when the difference is 2 runs).\n- Combining two actions in one option (\"Wave off CF but also back up the throw\").\n- Options that no real player would ever consider.\n- Description says one thing but situation object says another." },
           { role: "user", content: agentPrompt }
         ]
       })
