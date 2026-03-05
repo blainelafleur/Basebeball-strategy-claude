@@ -1694,6 +1694,7 @@ async function handlePoolFetch(request, env, cors) {
     const difficulty = parseInt(url.searchParams.get("difficulty") || "2");
     const conceptTag = url.searchParams.get("concept") || null;
     const exclude = (url.searchParams.get("exclude") || "").split(",").filter(Boolean);
+    const excludeTitles = (url.searchParams.get("exclude_titles") || "").split("|").filter(Boolean);
     const limit = Math.min(parseInt(url.searchParams.get("limit") || "3"), 10);
 
     if (!position) {
@@ -1713,6 +1714,11 @@ async function handlePoolFetch(request, env, cors) {
     if (exclude.length > 0 && exclude.length <= 200) {
       query += ` AND id NOT IN (${exclude.map(() => "?").join(",")})`;
       params.push(...exclude);
+    }
+
+    if (excludeTitles.length > 0 && excludeTitles.length <= 50) {
+      query += ` AND title NOT IN (${excludeTitles.map(() => "?").join(",")})`;
+      params.push(...excludeTitles);
     }
 
     // Prefer concept match if provided

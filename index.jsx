@@ -9027,6 +9027,7 @@ const _recentAITitles = []
 // ═══════════════════════════════════════════════════════════════
 // Session-level tracker for served scenario IDs — bypasses React state batching
 const _servedScenarioIds = new Set()
+const _servedScenarioTitles = new Set()
 
 const LOCAL_POOL_KEY = "bsm_scenario_pool"
 const LOCAL_POOL_MAX = 50 // max scenarios stored locally
@@ -9075,12 +9076,15 @@ function consumeFromLocalPool(position, difficulty, excludeIds = []) {
   } catch { return null }
 }
 
-async function fetchFromServerPool(position, difficulty, conceptTag, excludeIds = []) {
+async function fetchFromServerPool(position, difficulty, conceptTag, excludeIds = [], excludeTitles = []) {
   try {
     const params = new URLSearchParams({ position, difficulty: String(difficulty) })
     if (conceptTag) params.set("concept", conceptTag)
     if (excludeIds.length > 0) {
       params.set("exclude", excludeIds.slice(0, 100).join(","))
+    }
+    if (excludeTitles.length > 0) {
+      params.set("exclude_titles", excludeTitles.slice(0, 50).join("|"))
     }
     const response = await Promise.race([
       fetch(WORKER_BASE + "/scenario-pool/fetch?" + params.toString()),
@@ -10405,7 +10409,7 @@ export default function App(){
       getCalibrationData().catch(()=>{})
       // Sprint 2.3: Check pre-generation cache first
       const cachedResult=aiCacheRef.current.scenarios[p]
-      if(cachedResult?.scenario){
+      if(cachedResult?.scenario && !_servedScenarioTitles.has(cachedResult.scenario.title)){
         delete aiCacheRef.current.scenarios[p]
         const cachedSc=cachedResult.scenario
         console.log("[BSM] Using pre-cached AI scenario:", cachedSc.title)
@@ -10414,8 +10418,9 @@ export default function App(){
         // BUG 7: Track analytics with A/B variants from cached result
         trackAnalyticsEvent("ai_scenario_generated",{pos:p,concept:cachedSc.conceptTag||"",diff:cachedSc.diff,ab:cachedResult.abVariants||{},cached:true},{ageGroup:stats.ageGroup,isPro:stats.isPro})
         // Persist to AI history
-        if (_servedScenarioIds.size > 500) _servedScenarioIds.clear()
+        if (_servedScenarioIds.size > 500) { _servedScenarioIds.clear(); _servedScenarioTitles.clear() }
         _servedScenarioIds.add(cachedSc.id)
+        _servedScenarioTitles.add(cachedSc.title)
         setStats(prev=>{
           const entry={id:cachedSc.id,title:cachedSc.title,position:p,diff:cachedSc.diff,
             concept:cachedSc.concept,conceptTag:cachedSc.conceptTag||null,
@@ -10426,6 +10431,10 @@ export default function App(){
         setSc(cachedSc)
         cachedSc.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80)})
         return
+      } else if (cachedResult?.scenario) {
+        // Pre-cached scenario has already-served title — discard it
+        delete aiCacheRef.current.scenarios[p]
+        console.log("[BSM] Discarded pre-cached duplicate:", cachedResult.scenario.title)
       }
       // Tier 1: Check local scenario pool
       const maxDiffForPos = (AGE_GROUPS.find(a=>a.id===stats.ageGroup)||AGE_GROUPS[2]).maxDiff
@@ -10433,14 +10442,15 @@ export default function App(){
       const allExcludeIds = [...new Set([...(stats.cl || []), ...(stats.aiHistory || []).map(h => h.id), ..._servedScenarioIds])]
       const poolExcludeIds = allExcludeIds.filter(id => typeof id === "string" && id.startsWith("pool_"))
       const localPoolSc = consumeFromLocalPool(p, diffForPool, allExcludeIds)
-      if (localPoolSc) {
+      if (localPoolSc && !_servedScenarioTitles.has(localPoolSc.title)) {
         console.log("[BSM] Using local pool scenario:", localPoolSc.title)
         localPoolSc.isPooled = true
         setAiMode(true); setScreen("play")
         aiFailRef.current.consecutive = 0; aiFailRef.current.cooldownUntil = 0
         trackAnalyticsEvent("ai_scenario_generated", { pos: p, concept: localPoolSc.conceptTag || "", diff: localPoolSc.diff, source: "local_pool" }, { ageGroup: stats.ageGroup, isPro: stats.isPro })
-        if (_servedScenarioIds.size > 500) _servedScenarioIds.clear()
+        if (_servedScenarioIds.size > 500) { _servedScenarioIds.clear(); _servedScenarioTitles.clear() }
         _servedScenarioIds.add(localPoolSc.id)
+        _servedScenarioTitles.add(localPoolSc.title)
         setStats(prev => {
           const entry = { id: localPoolSc.id, title: localPoolSc.title, position: p, diff: localPoolSc.diff, concept: localPoolSc.concept, conceptTag: localPoolSc.conceptTag || null, generatedAt: Date.now(), answered: false, correct: null, chosenIdx: null }
           const hist = [...(prev.aiHistory || []), entry].slice(-100)
@@ -10453,15 +10463,16 @@ export default function App(){
 
       // Tier 2: Check server community pool
       try {
-        const serverPoolSc = await fetchFromServerPool(p, diffForPool, null, poolExcludeIds)
-        if (serverPoolSc && !_servedScenarioIds.has(serverPoolSc.id)) {
+        const serverPoolSc = await fetchFromServerPool(p, diffForPool, null, poolExcludeIds, [..._servedScenarioTitles])
+        if (serverPoolSc && !_servedScenarioIds.has(serverPoolSc.id) && !_servedScenarioTitles.has(serverPoolSc.title)) {
           console.log("[BSM] Using server pool scenario:", serverPoolSc.title)
           serverPoolSc.isPooled = true
           setAiMode(true); setScreen("play")
           aiFailRef.current.consecutive = 0; aiFailRef.current.cooldownUntil = 0
           trackAnalyticsEvent("ai_scenario_generated", { pos: p, concept: serverPoolSc.conceptTag || "", diff: serverPoolSc.diff, source: "server_pool" }, { ageGroup: stats.ageGroup, isPro: stats.isPro })
-          if (_servedScenarioIds.size > 500) _servedScenarioIds.clear()
+          if (_servedScenarioIds.size > 500) { _servedScenarioIds.clear(); _servedScenarioTitles.clear() }
           _servedScenarioIds.add(serverPoolSc.id)
+          _servedScenarioTitles.add(serverPoolSc.title)
           setStats(prev => {
             const entry = { id: serverPoolSc.id, title: serverPoolSc.title, position: p, diff: serverPoolSc.diff, concept: serverPoolSc.concept, conceptTag: serverPoolSc.conceptTag || null, generatedAt: Date.now(), answered: false, correct: null, chosenIdx: null }
             const hist = [...(prev.aiHistory || []), entry].slice(-100)
@@ -10560,8 +10571,9 @@ export default function App(){
           if(ab.persona)reportABResult("coach_persona_v1",ab.persona,"scenario_generated",1)
         }
         // Persist AI scenario to history (Sprint 1.5)
-        if (_servedScenarioIds.size > 500) _servedScenarioIds.clear()
+        if (_servedScenarioIds.size > 500) { _servedScenarioIds.clear(); _servedScenarioTitles.clear() }
         _servedScenarioIds.add(result.scenario.id)
+        _servedScenarioTitles.add(result.scenario.title)
         setStats(prev=>{
           const entry={id:result.scenario.id,title:result.scenario.title,position:p,diff:result.scenario.diff,
             concept:result.scenario.concept,conceptTag:result.scenario.conceptTag||null,
