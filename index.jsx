@@ -9079,7 +9079,7 @@ async function fetchFromServerPool(position, difficulty, conceptTag, excludeIds 
   try {
     const params = new URLSearchParams({ position, difficulty: String(difficulty) })
     if (conceptTag) params.set("concept", conceptTag)
-    if (excludeIds.length > 0 && excludeIds.length <= 100) {
+    if (excludeIds.length > 0) {
       params.set("exclude", excludeIds.slice(0, 100).join(","))
     }
     const response = await Promise.race([
@@ -10430,8 +10430,9 @@ export default function App(){
       // Tier 1: Check local scenario pool
       const maxDiffForPos = (AGE_GROUPS.find(a=>a.id===stats.ageGroup)||AGE_GROUPS[2]).maxDiff
       const diffForPool = (stats.ps?.[p]?.p||0) > 0 ? ((stats.ps[p].c/stats.ps[p].p) > 0.75 ? Math.min(3,maxDiffForPos) : (stats.ps[p].c/stats.ps[p].p) > 0.5 ? Math.min(2,maxDiffForPos) : 1) : 1
-      const excludePoolIds = [...new Set([...(stats.cl || []), ...(stats.aiHistory || []).map(h => h.id), ..._servedScenarioIds])]
-      const localPoolSc = consumeFromLocalPool(p, diffForPool, excludePoolIds)
+      const allExcludeIds = [...new Set([...(stats.cl || []), ...(stats.aiHistory || []).map(h => h.id), ..._servedScenarioIds])]
+      const poolExcludeIds = allExcludeIds.filter(id => typeof id === "string" && id.startsWith("pool_"))
+      const localPoolSc = consumeFromLocalPool(p, diffForPool, allExcludeIds)
       if (localPoolSc) {
         console.log("[BSM] Using local pool scenario:", localPoolSc.title)
         localPoolSc.isPooled = true
@@ -10452,7 +10453,7 @@ export default function App(){
 
       // Tier 2: Check server community pool
       try {
-        const serverPoolSc = await fetchFromServerPool(p, diffForPool, null, excludePoolIds)
+        const serverPoolSc = await fetchFromServerPool(p, diffForPool, null, poolExcludeIds)
         if (serverPoolSc && !_servedScenarioIds.has(serverPoolSc.id)) {
           console.log("[BSM] Using server pool scenario:", serverPoolSc.title)
           serverPoolSc.isPooled = true
