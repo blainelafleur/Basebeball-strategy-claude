@@ -13901,7 +13901,7 @@ export default function App(){
             {stats.isPro&&!aiSitLoading&&<button onClick={async()=>{
               setAiSitLoading(true);snd.play('tap');
               const ctrl=new AbortController();aiSitAbortRef.current=ctrl;
-              const timeout=setTimeout(()=>{ctrl.abort();setAiSitLoading(false);setToast({e:"⏰",n:"Timed Out",d:"Couldn't create a situation right now. Try a handcrafted one!"});setTimeout(()=>setToast(null),4000)},20000);
+              const timeout=setTimeout(()=>{ctrl.abort();setAiSitLoading(false);setToast({e:"⏰",n:"Timed Out",d:"Couldn't create a situation right now. Try a handcrafted one!"});setTimeout(()=>setToast(null),4000)},55000);
               try{
                 const result=await generateAISituation(stats,ctrl.signal);
                 clearTimeout(timeout);
@@ -13927,7 +13927,7 @@ export default function App(){
               <div style={{background:"rgba(139,92,246,.06)",border:"1px solid rgba(139,92,246,.15)",borderRadius:12,padding:"16px 14px"}}>
                 <div style={{fontSize:28,marginBottom:8,animation:"su .5s ease-out infinite alternate"}}>🤖</div>
                 <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:13,color:"#8b5cf6",letterSpacing:1,marginBottom:4}}>CREATING YOUR SITUATION...</div>
-                <div style={{fontSize:10,color:"#6b7280",marginBottom:10}}>Analyzing your strengths and weaknesses</div>
+                <div style={{fontSize:10,color:"#6b7280",marginBottom:10}}>Building a multi-position situation — this takes 20-40 seconds</div>
                 <button onClick={()=>{if(aiSitAbortRef.current){aiSitAbortRef.current.abort();aiSitAbortRef.current=null}setAiSitLoading(false)}} style={{...ghost,fontSize:10,color:"#ef4444"}}>Cancel</button>
               </div>
             </div>}
