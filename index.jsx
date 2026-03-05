@@ -3682,7 +3682,7 @@ const SCENARIOS = {
 };
 
 const SITUATION_SETS = [
-  {id:"sr1",title:"Bases Loaded Jam",emoji:"🔥",color:"#ef4444",
+  {id:"sr1",title:"Bases Loaded Jam",emoji:"🔥",color:"#ef4444",diff:2,
     situation:{inning:"Bot 6",outs:1,count:"1-2",runners:[1,2,3],score:[3,4]},
     desc:"Bases loaded, one out, down by one in the 6th. Every position has a job. Can you see the whole field?",
     debrief:"The pitcher threw a low fastball, and the catcher had already set up low-and-away \u2014 they were on the same page. The batter hit a grounder to short, who flipped to second for one, and the relay to first completed the double play. Meanwhile, the smart baserunner on third read the sharp grounder and held \u2014 if he'd run blindly, he would have been the third out. The pitcher's location, the catcher's setup, and the baserunner's patience all worked together.",
@@ -3704,7 +3704,7 @@ const SITUATION_SETS = [
         rates:[15,88,20,12],concept:"Good baserunning means reading the ball off the bat. On a ground ball from third, go on balls hit away from home; hold on sharp grounders near the battery.",anim:"score",
         explSimple:["Don't just run on every ground ball \u2014 some are hit right at the catcher or pitcher!","Smart! Read where the ball goes first. If it's hit to the right side, you have time to score.","Only tag up on deep fly balls. Shallow ones mean the throw will beat you home.","Don't just stand there! With bases loaded, there are lots of chances to score."]}
     ]},
-  {id:"sr2",title:"Steal Attempt at Second",emoji:"💨",color:"#06b6d4",
+  {id:"sr2",title:"Steal Attempt at Second",emoji:"💨",color:"#06b6d4",diff:2,
     situation:{inning:"Top 4",outs:0,count:"1-1",runners:[1],score:[2,2]},
     desc:"A speedster takes off for second base! The pitcher, catcher, and shortstop all have a role. Who executes?",
     debrief:"The pitcher used a slide step, cutting delivery time from 1.5 seconds to 1.2 seconds. That extra 0.3 seconds gave the catcher time to make a clean transfer and fire to second. The shortstop timed his break perfectly \u2014 arriving at the bag with the throw, straddling the front edge, and sweeping a low tag. The runner was out by half a step. Every fraction of a second mattered.",
@@ -3726,7 +3726,7 @@ const SITUATION_SETS = [
         rates:[88,20,10,15],concept:"On a steal, the shortstop times the break to arrive at second with the throw. Straddle the bag and give a low sweep tag.",anim:"steal",
         explSimple:["Time it right! Run to the bag as the pitcher throws, catch the ball, and tag low.","Getting there too early leaves a big hole where you're supposed to be fielding.","If you wait until you see the throw, you'll be too late. Start moving when the pitch is thrown.","Standing right at the bag before the pitch gives away the play and leaves a gap."]}
     ]},
-  {id:"sr3",title:"Sacrifice Bunt Situation",emoji:"🎯",color:"#22c55e",
+  {id:"sr3",title:"Sacrifice Bunt Situation",emoji:"🎯",color:"#22c55e",diff:2,
     situation:{inning:"Bot 7",outs:0,count:"0-0",runners:[1],score:[3,3]},
     desc:"Tie game, late innings, runner on first, nobody out. The bunt is on! Every defender and the batter must execute.",
     debrief:"The pitcher threw a high fastball \u2014 the toughest pitch to bunt. The third baseman charged hard and the first baseman crashed in from the other side, creating a wall of defenders. The batter did the smart thing and bunted softly down the first-base line, away from the charging third baseman. The pitcher fielded it, threw to first (where the second baseman was covering), and the runner moved to second. Sacrifice successful, but the defense made it as hard as possible.",
@@ -3753,7 +3753,7 @@ const SITUATION_SETS = [
         rates:[15,88,10,12],concept:"On a sacrifice bunt, bunt softly away from the charging defenders. Down the first-base line is usually safest.",anim:"bunt",
         explSimple:["Bunting hard toward the charging third baseman is like throwing it right to him!","Perfect! Bunt it softly down the other side, away from the fielders running at you.","Bunting toward the pitcher usually means he grabs it for an easy out at second.","Your coach called a bunt for a reason. Surprise swings can mess up the whole plan."]}
     ]},
-  {id:"sr4",title:"Extra-Base Hit to the Gap",emoji:"🏃",color:"#f97316",
+  {id:"sr4",title:"Extra-Base Hit to the Gap",emoji:"🏃",color:"#f97316",diff:2,
     situation:{inning:"Top 5",outs:1,count:"-",runners:[1],score:[1,2]},
     desc:"A line drive splits the outfielders into the left-center gap! The runner on first is off and running. Can the defense limit the damage?",
     debrief:"The ball split the outfielders into the left-center gap. The center fielder sprinted to the ball, set his feet, and threw a strong one-hopper to the shortstop, who had sprinted out to be the relay man \u2014 arms up, lined up between the outfielder and home plate. The shortstop caught the relay and fired home. The baserunner rounded third hard, read the relay throw coming in strong and on-line, and held at third. Smart aggression \u2014 he pressured the defense without running into an out.",
@@ -3775,7 +3775,7 @@ const SITUATION_SETS = [
         rates:[20,88,10,35],concept:"Round third aggressively on a gap hit and read the relay throw. Put pressure on the defense but don't run into an out.",anim:"score",
         explSimple:["Trying to score every time is risky. Read the throw first!","Round third hard and watch the throw. If they mess up, go home. If not, stay at third.","Stopping at second on a gap hit is too safe. You can make it to third easily.","At least round the bag and look! You might be able to score if they bobble the throw."]}
     ]},
-  {id:"sr5",title:"Full Count Showdown",emoji:"⚡",color:"#a855f7",
+  {id:"sr5",title:"Full Count Showdown",emoji:"⚡",color:"#a855f7",diff:2,
     situation:{inning:"Bot 8",outs:2,count:"3-2",runners:[2],score:[5,5]},
     desc:"Tie game, 8th inning, two outs, runner on second, full count. This at-bat decides the game. Three perspectives, one moment.",
     debrief:"Full count, two outs, tie game. The pitcher trusted his best pitch \u2014 a fastball on the corner \u2014 and threw it with conviction. The batter took the championship approach: protect the plate, foul off tough pitches, put hittable ones in play. The manager had already sent the runner from second, knowing there was no downside on a full count with two outs. The batter lined a single to right, and the runner scored from second easily with his head start. Ballgame.",
@@ -3797,7 +3797,7 @@ const SITUATION_SETS = [
         rates:[88,12,30,3],concept:"With a full count and two outs, send the runner. Ball four advances him, a hit gives him a head start, and a strikeout ends the inning regardless.",anim:"steal",
         explSimple:["On a full count with two outs, the runner should always go. If it's ball four, he moves up free!","Holding the runner wastes a free chance to advance. Let him go!","At 3-2, the runner is going anyway. No need for a special hit-and-run call.","Never bunt with two outs \u2014 a bunt out ends the inning!"]}
     ]},
-  {id:"sr6",title:"Squeeze Play Alert",emoji:"🤫",color:"#eab308",
+  {id:"sr6",title:"Squeeze Play Alert",emoji:"🤫",color:"#eab308",diff:2,
     situation:{inning:"Bot 7",outs:1,count:"1-1",runners:[3],score:[2,3]},
     desc:"Runner on third, one out, down by one late in the game. The squeeze play is on! But the defense is watching.",
     debrief:"The squeeze was on. The runner on third broke for home as the pitcher started his delivery. The batter squared late \u2014 at the last possible moment \u2014 to keep the element of surprise. He bunted everything, getting the bat on a tough pitch and rolling it up the first-base line. The run scored. On the defensive side, the third baseman had been watching the runner's lead, saw him break early, and yelled 'SQUEEZE!' \u2014 but the call came just a fraction too late for the pitcher to adjust. Execution beats reaction.",
@@ -3819,7 +3819,7 @@ const SITUATION_SETS = [
         rates:[88,20,12,10],concept:"The third baseman is the squeeze alarm. Watch the runner's lead and break \u2014 yell 'SQUEEZE!' to alert the battery if you see it.",anim:"bunt",
         explSimple:["Watch the runner! If he starts running home early, yell 'SQUEEZE!' to warn your team.","Don't charge in too early \u2014 you might leave third base wide open.","Staying back doesn't help. Your job is to read the play and tell your pitcher.","The runner gives away the squeeze before the batter does. Watch his lead!"]}
     ]},
-  {id:"sr7",title:"Rundown Chaos",emoji:"🔄",color:"#6366f1",
+  {id:"sr7",title:"Rundown Chaos",emoji:"🔄",color:"#6366f1",diff:2,
     situation:{inning:"Top 3",outs:0,count:"-",runners:[1,3],score:[0,1]},
     desc:"Runners on first and third, nobody out. The runner on first gets caught in a rundown between first and second! But the runner on third is lurking. What does everyone do?",
     debrief:"Runners on first and third, and the runner on first got caught in a rundown. The first baseman chased him toward second \u2014 ball held high, running hard \u2014 while keeping one eye on the runner at third. The shortstop closed the gap from the second-base side, shortening the runway. When the runner at third saw the ball thrown toward second (away from home), he broke for the plate. The first baseman, alert to this exact situation, threw home instead. The catcher applied the tag. One out in the rundown, and the defense kept the runner at third honest.",
@@ -3841,7 +3841,7 @@ const SITUATION_SETS = [
         rates:[15,88,8,25],concept:"In a first-and-third rundown, the runner at third goes home when the throw goes toward second. The defense's momentum takes them away from you.",anim:"score",
         explSimple:["Going right away is too easy for the defense to catch. Wait for the right moment!","When the ball goes toward second base, the fielders are moving away from you. That's when to go!","Don't just stand there \u2014 this is a great chance to score if you time it right.","Bluffing is risky \u2014 you might get caught in between. When you go, commit fully!"]}
     ]},
-  {id:"sr8",title:"Tag-Up Play at the Warning Track",emoji:"🏷️",color:"#ec4899",
+  {id:"sr8",title:"Tag-Up Play at the Warning Track",emoji:"🏷️",color:"#ec4899",diff:2,
     situation:{inning:"Bot 5",outs:1,count:"-",runners:[3],score:[1,2]},
     desc:"A deep fly ball to center field! The runner on third has to decide: tag up and try to score, or stay put?",
     debrief:"Deep fly ball to center. The center fielder camped under it, caught it cleanly with momentum toward home, crow-hopped, and fired a throw on a line toward the plate. The baserunner on third tagged up the instant the ball hit leather, read the outfielder's throw, and saw it was strong and on-line. The third base coach read the same thing and held the runner. Smart play \u2014 a run scoring on a sacrifice fly is only valuable if you actually score. Running into the tag wastes the out.",
@@ -4259,7 +4259,7 @@ const STADIUM_MILESTONES=[
   {games:200,label:"Fireworks",desc:"Fireworks on perfect answers!",icon:"🎆"},
   {games:330,label:"Legend Stadium",desc:"Golden border + Legend title!",icon:"👑"},
 ];
-const DEFAULT = {pts:0,str:0,bs:0,gp:0,co:0,ps:{},achs:[],cl:[],ds:0,lastDay:null,todayPlayed:0,todayDate:null,sp:0,isPro:false,onboarded:false,soundOn:true,recentWrong:[],dailyDone:false,dailyDate:null,weeklyDone:null,streakFreezes:0,survivalBest:0,ageGroup:"11-12",displayName:"",teamCode:"",teamName:"",seasonGame:0,seasonCorrect:0,seasonComplete:false,fieldTheme:"default",avatarJersey:0,avatarCap:0,avatarBat:0,season:1,proPlan:null,proPurchaseDate:null,proExpiry:null,lastStreakFreezeDate:null,wrongCounts:{},posGrad:{},funnel:[],hist:{},posPlayed:{},firstPlayDate:null,lastPlayDate:null,sessionCount:0,tutorialDone:false,promoCode:null,promoActivatedDate:null,masteryShown:[],masteryData:{concepts:{},errorPatterns:{},sessionHistory:[]},qualitySignals:{},flaggedScenarios:{},explanationLog:{},gapDetectionCache:null,lastWrongConceptTag:null,aiHistory:[],aiMetrics:{correct:0,total:0,flagged:0,scores:[]},hcMetrics:{correct:0,total:0,flagged:0},activePath:null};
+const DEFAULT = {pts:0,str:0,bs:0,gp:0,co:0,ps:{},achs:[],cl:[],ds:0,lastDay:null,todayPlayed:0,todayDate:null,sp:0,isPro:false,onboarded:false,soundOn:true,recentWrong:[],dailyDone:false,dailyDate:null,weeklyDone:null,streakFreezes:0,survivalBest:0,ageGroup:"11-12",displayName:"",teamCode:"",teamName:"",seasonGame:0,seasonCorrect:0,seasonComplete:false,fieldTheme:"default",avatarJersey:0,avatarCap:0,avatarBat:0,season:1,proPlan:null,proPurchaseDate:null,proExpiry:null,lastStreakFreezeDate:null,wrongCounts:{},posGrad:{},funnel:[],hist:{},posPlayed:{},firstPlayDate:null,lastPlayDate:null,sessionCount:0,tutorialDone:false,promoCode:null,promoActivatedDate:null,masteryShown:[],masteryData:{concepts:{},errorPatterns:{},sessionHistory:[]},qualitySignals:{},flaggedScenarios:{},explanationLog:{},gapDetectionCache:null,lastWrongConceptTag:null,aiHistory:[],aiMetrics:{correct:0,total:0,flagged:0,scores:[]},hcMetrics:{correct:0,total:0,flagged:0},activePath:null,sitMastery:{}};
 
 // Streak flame visual — grows with daily streak length
 function getFlame(ds){
@@ -12958,17 +12958,21 @@ export default function App(){
               <p style={{color:"#9ca3af",fontSize:12,lineHeight:1.5,maxWidth:300,margin:"0 auto"}}>One game situation. Multiple positions. See the play from every angle and think like a whole team.</p>
             </div>
             <div style={{display:"flex",flexDirection:"column",gap:8}}>
-              {SITUATION_SETS.map(set=>{const done=set.questions.every(q=>stats.cl.includes(q.id));return(
-                <div key={set.id} onClick={()=>startSituation(set)} style={{background:`linear-gradient(135deg,${set.color}10,${set.color}05)`,border:`1px solid ${set.color}25`,borderRadius:14,padding:"14px 16px",cursor:"pointer",display:"flex",alignItems:"center",gap:12,transition:"transform .15s",position:"relative",overflow:"hidden"}}>
+              {SITUATION_SETS.map(set=>{const done=set.questions.every(q=>stats.cl.includes(q.id));const sm=stats.sitMastery?.[set.id];const bg=sm?.bestGrade;const gradeBadge={S:{emoji:"⭐",color:"#f59e0b",border:"rgba(245,158,11,.3)"},A:{emoji:"A",color:"#22c55e",border:"rgba(34,197,94,.3)"},B:{emoji:"B",color:"#3b82f6",border:"rgba(59,130,246,.3)"},C:{emoji:"C",color:"#f59e0b",border:"rgba(245,158,11,.3)"},D:{emoji:"D",color:"#6b7280",border:"rgba(107,114,128,.3)"}};const badge=bg?gradeBadge[bg]:null;return(
+                <div key={set.id} onClick={()=>startSituation(set)} style={{background:`linear-gradient(135deg,${set.color}10,${set.color}05)`,border:`1px solid ${badge&&bg==="S"?badge.border:set.color+"25"}`,borderRadius:14,padding:"14px 16px",cursor:"pointer",display:"flex",alignItems:"center",gap:12,transition:"transform .15s",position:"relative",overflow:"hidden"}}>
                   <div style={{fontSize:28,flexShrink:0}}>{set.emoji}</div>
                   <div style={{flex:1,minWidth:0}}>
-                    <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:15,color:set.color,letterSpacing:1,marginBottom:2}}>{set.title}</div>
+                    <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:2}}>
+                      <span style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:15,color:set.color,letterSpacing:1}}>{set.title}</span>
+                      {badge&&<span style={{background:`${badge.color}15`,border:`1px solid ${badge.border}`,borderRadius:5,padding:"0 5px",fontSize:10,fontWeight:800,color:badge.color,lineHeight:"18px"}}>{badge.emoji}</span>}
+                    </div>
                     <div style={{fontSize:10,color:"#9ca3af",lineHeight:1.4,marginBottom:4}}>{set.desc}</div>
-                    <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
+                    <div style={{display:"flex",alignItems:"center",gap:4,flexWrap:"wrap"}}>
                       {set.questions.map(q=><span key={q.id} style={{background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.06)",borderRadius:5,padding:"1px 6px",fontSize:9,color:"#9ca3af"}}>{POS_META[q.pos]?.emoji} {POS_META[q.pos]?.label}</span>)}
+                      <span style={{fontSize:9,color:"#6b7280",marginLeft:4}}>{sm?`Played ${sm.attempts}x`:"New!"}</span>
                     </div>
                   </div>
-                  {done&&<div style={{position:"absolute",top:8,right:10,fontSize:14}}>✅</div>}
+                  {done&&!badge&&<div style={{position:"absolute",top:8,right:10,fontSize:14}}>✅</div>}
                   <div style={{color:set.color,fontSize:18,flexShrink:0}}>▶</div>
                 </div>
               )})}
@@ -13019,8 +13023,15 @@ export default function App(){
           const total=sitResults.length;const correct=sitResults.filter(r=>r.correct).length;
           const pct=total>0?Math.round((correct/total)*100):0;
           const totalXp=sitResults.reduce((s,r)=>s+r.xp,0);
-          const grade=pct>=90?"A+":pct>=80?"A":pct>=70?"B":pct>=60?"C":pct>=50?"D":"F";
-          const gradeColor=pct>=80?"#22c55e":pct>=60?"#f59e0b":"#ef4444";
+          const grade=pct===100?"S":pct>=80?"A":pct>=60?"B":pct>=40?"C":"D";
+          const gradeColor=grade==="S"?"#f59e0b":pct>=80?"#22c55e":pct>=60?"#f59e0b":"#ef4444";
+          // Track sitMastery (one-time per render, keyed by sitSet.id)
+          if(sitSet&&!stats.sitMastery?.[sitSet.id]?.lastPlayed||Date.now()-(stats.sitMastery?.[sitSet.id]?.lastPlayed||0)>2000){
+            const setId=sitSet.id;const prev=stats.sitMastery?.[setId]||{bestGrade:null,attempts:0,grades:[],perfectCount:0,lastPlayed:null};
+            const gradeRank={S:5,A:4,B:3,C:2,D:1};const newBest=!prev.bestGrade||gradeRank[grade]>gradeRank[prev.bestGrade]?grade:prev.bestGrade;
+            const newMastery={bestGrade:newBest,attempts:prev.attempts+1,grades:[...prev.grades.slice(-9),grade],perfectCount:prev.perfectCount+(pct===100?1:0),lastPlayed:Date.now()};
+            if(!prev.lastPlayed||Date.now()-prev.lastPlayed>2000){setStats(p=>({...p,sitMastery:{...p.sitMastery,[setId]:newMastery}}))}
+          }
           return(<div style={{textAlign:"center",padding:"30px 0"}}>
             <div style={{fontSize:52,marginBottom:6}}>🏟️</div>
             <h2 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:28,letterSpacing:2,color:sitSet.color,marginBottom:4}}>SITUATION COMPLETE</h2>
