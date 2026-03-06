@@ -4808,19 +4808,42 @@ SCOPE: Manager decides pitching changes, positioning, steal signals, IBB, sac si
 // Position-specific scenario topic guidance \u2014 tells AI WHAT to create scenarios about
 // Few-shot examples for AI scenario generation — one per position category
 const AI_FEW_SHOT_EXAMPLES = {
-  pitcher: '{"title":"Full Count Jam","diff":2,"description":"Bottom of the 6th, runner on 2nd with 1 out. The count is full on a .280 hitter who likes to chase low. Your catcher sets up low and away. What should the pitcher do?","situation":{"inning":"Bot 6","outs":1,"count":"3-2","runners":[2],"score":[4,3]},"options":["Throw a slider low and away to get the chase","Come inside with a fastball to change his eye level","Throw a changeup to keep him off-balance","Throw a fastball right down the middle to challenge him"],"best":0,"explanations":["With a full count and a hitter who chases low, the slider low and away plays to your advantage. If he chases, it is a strikeout. If he takes, it is close enough that you might get the call. The runner on 2nd means a hit scores a run, so getting this out is critical.","Coming inside with a fastball can work, but this hitter has been sitting on inside pitches all game. You are giving him something in his power zone with the game on the line.","A changeup on a full count is risky because if you miss your spot, it hangs in the zone. The margin for error is too thin with a runner in scoring position and a 1-run lead.","Throwing a fastball down the middle on a full count to a decent hitter is asking for trouble. He is locked in and looking for something to drive, especially with a runner on 2nd."],"rates":[82,50,35,15],"concept":"Full count pitch selection with RISP: exploit the batter\'s weakness while minimizing damage.","anim":"strike"}',
-  fielder: '{"title":"Gap Ball Communication","diff":2,"description":"Top of the 4th, runner on 1st with 1 out. The batter lines a sinking drive into the left-center gap. Both you and the left fielder are converging on the ball. What should the center fielder do?","situation":{"inning":"Top 4","outs":1,"count":"-","runners":[1],"score":[2,1]},"options":["Call off the left fielder and take charge of the ball","Let the left fielder take it since he is closer","Stay silent and sprint for the ball","Pull up and cover behind the left fielder in case he misses"],"best":0,"explanations":["Center fielder has priority on all fly balls and line drives in the gap. By calling off the left fielder early and loudly, you prevent a collision and get the better angle on the sinking liner. This limits the runner to staying at 1st.","Deferring to the left fielder breaks the priority rule. CF always has priority because you are coming in on the ball with better momentum and angle. Letting LF take it increases collision risk and often leads to a worse catch attempt.","Never stay silent on a converging play. Without communication, both fielders may pull up or both may dive, leading to the ball dropping for extra bases. The runner on 1st would score easily.","Pulling up leaves the left fielder alone on a tough sinking liner. If this were a ball clearly in his zone, backing up makes sense, but on a gap ball, CF takes charge first and LF backs up."],"rates":[85,40,15,45],"concept":"Center field priority: CF calls off corner outfielders on gap balls to prevent collisions and make the cleanest play.","anim":"catch"}',
-  batter: '{"title":"Runner on Third, One Out","diff":1,"description":"Bottom of the 8th, tied game. Runner on 3rd with 1 out and the infield is playing in. The pitcher throws a fastball up in the zone. What should the batter do?","situation":{"inning":"Bot 8","outs":1,"count":"1-0","runners":[3],"score":[3,3]},"options":["Try to hit a ground ball through the drawn-in infield","Swing for the fences to win it with a home run","Hit a fly ball deep enough to score the runner on a sacrifice fly","Take the pitch and wait for a better one"],"best":2,"explanations":["A ground ball through a drawn-in infield sounds good in theory, but ground balls can turn into double plays. With 1 out and the go-ahead run on 3rd, the risk of a DP ending the inning is too high compared to the reliable sac fly.","Swinging for the fences is low-percentage hitting. You only need one run to take the lead, and a strikeout or pop-up wastes the opportunity. Play for the run you need, not the run that looks impressive.","With a runner on 3rd and 1 out in a tied game, your job is to get that run home. A fly ball to the outfield scores the runner on a tag-up. The infield is drawn in, so they cannot cut off the run at home on a grounder. A sac fly is the highest-percentage play here.","Taking the pitch is not terrible on 1-0, but this fastball is hittable and you have a clear mission: get the ball in the air. Waiting risks falling behind in the count and losing your chance at a sacrifice fly."],"rates":[45,20,88,35],"concept":"Situational hitting with runner on 3rd: elevate the ball for a sacrifice fly to score the tying or go-ahead run.","anim":"hit"}',
-  baserunner: '{"title":"Secondary Lead Read","diff":2,"description":"Top of the 5th, you are on 1st base with 0 outs. The batter swings and hits a sharp ground ball toward the shortstop. What should the baserunner do?","situation":{"inning":"Top 5","outs":0,"count":"-","runners":[1],"score":[1,2]},"options":["Run hard to 2nd — you must go on a ground ball with 0 outs","Stop and retreat to 1st to avoid the double play","Freeze and watch the play develop before committing","Run halfway and decide based on whether the shortstop fields it cleanly"],"best":0,"explanations":["With 0 outs and a force at 2nd, you MUST run on a ground ball. You are forced — there is no option to stay. Running hard gives you the best chance to beat the throw to 2nd and break up the double play, or at least make the relay to 1st difficult.","You cannot retreat to 1st on a ground ball when you are forced. The fielder can simply throw to 2nd for the force out. Going back guarantees the out and possibly sets up an easier double play.","Freezing as a forced runner on a ground ball is a baserunning error. You lose valuable time and make the double play easy for the defense. On ground balls with a force, you go immediately.","Running halfway is for fly balls, not ground balls. On a grounder with a force play, hesitation lets the defense turn a routine double play. Commit to running hard the moment the ball hits the ground."],"rates":[85,10,20,40],"concept":"Forced runner reads: on ground balls with a force in effect, run immediately — there is no hold or retreat option.","anim":"advance"}',
-  manager: '{"title":"Third Time Through the Order","diff":3,"description":"Top of the 7th, your team leads 4-2. Your starter has 95 pitches and is facing the 3-hole hitter for the 3rd time. He gave up a double to this batter last time. The bullpen has a fresh reliever with a plus slider. What should the manager do?","situation":{"inning":"Top 7","outs":0,"count":"-","runners":[],"score":[4,2]},"options":["Let the starter face this batter, then go to the pen","Pull the starter and bring in the reliever","Leave the starter in — he has earned the chance to finish","Call for an intentional walk to set up the double play"],"best":1,"explanations":["Letting the starter face one more batter sounds like a compromise, but you already know the matchup is bad — he gave up a double last time. Why risk a lead-off baserunner in a 2-run game? The reliever is fresh and has the better weapon.","Data shows batters hit roughly .030 higher the third time through the order. Your starter already gave up a double to this hitter, and at 95 pitches fatigue compounds the TTO penalty. A fresh reliever with a plus slider gives you the best chance to protect a 2-run lead in the 7th.","Loyalty to the starter ignores the analytics. The TTO effect is real and well-documented. With a 2-run lead in the 7th, protecting the lead takes priority over rewarding effort. Your bullpen is rested.","An intentional walk with nobody on and 0 outs is almost never correct. You would be putting the leadoff runner on base for free, raising run expectancy from 0.50 to 0.88. That is giving away nearly half a run with no strategic benefit."],"rates":[50,82,30,15],"concept":"TTO effect and bullpen management: batters improve the third time through, making a fresh reliever the higher-percentage play in close games.","anim":"freeze"}'
+  pitcher: [
+    '{"title":"Full Count Jam","diff":2,"description":"Bottom of the 6th, runner on 2nd with 1 out. The count is full on a .280 hitter who likes to chase low. Your catcher sets up low and away. What should the pitcher do?","situation":{"inning":"Bot 6","outs":1,"count":"3-2","runners":[2],"score":[4,3]},"options":["Throw a slider low and away to get the chase","Come inside with a fastball to change his eye level","Throw a changeup to keep him off-balance","Throw a fastball right down the middle to challenge him"],"best":0,"explanations":["With a full count and a hitter who chases low, the slider low and away plays to your advantage. If he chases, it is a strikeout. If he takes, it is close enough that you might get the call. The runner on 2nd means a hit scores a run, so getting this out is critical.","Coming inside with a fastball can work, but this hitter has been sitting on inside pitches all game. You are giving him something in his power zone with the game on the line.","A changeup on a full count is risky because if you miss your spot, it hangs in the zone. The margin for error is too thin with a runner in scoring position and a 1-run lead.","Throwing a fastball down the middle on a full count to a decent hitter is asking for trouble. He is locked in and looking for something to drive, especially with a runner on 2nd."],"rates":[82,50,35,15],"concept":"Full count pitch selection with RISP: exploit the batter\'s weakness while minimizing damage.","anim":"strike"}',
+    '{"title":"Big Lead at First","diff":2,"description":"Top of the 3rd, runner on 1st with 0 outs. The runner is taking a big lead and your catcher signals for a pickoff. You are pitching from the stretch. What should the pitcher do?","situation":{"inning":"Top 3","outs":0,"count":"1-1","runners":[1],"score":[2,1]},"options":["Make a quick pickoff throw to first base to keep the runner honest","Step off the rubber every time before throwing over","Quick-pitch the batter to catch the runner leaning","Ignore the runner and just focus on the hitter"],"best":0,"explanations":["A quick pickoff move keeps the runner close without wasting time. You vary your looks and holds, and when the runner gets too far off, you snap a throw over. This controls the running game while keeping your focus on the batter.","Stepping off the rubber every time is too predictable and kills your tempo. The runner times your step-off and gets a bigger jump. A good pickoff move from the rubber is faster and keeps the runner guessing.","Quick-pitching can backfire — if you rush, you lose command, and the umpire might call an illegal pitch. The runner on 1st is the immediate problem, and a pickoff is the direct solution.","Ignoring a runner with a big lead is an invitation to steal. Once he takes 2nd, a single scores him. Controlling the running game is part of your job on the mound."],"rates":[85,50,30,15],"concept":"Pickoff mechanics: keep the runner close with quick, varied looks to control the running game without disrupting your pitching rhythm.","anim":"freeze"}',
+    '{"title":"Leadoff Hitter, First Pitch","diff":1,"description":"Bottom of the 1st inning, nobody on, no outs. You are starting the game on the mound. The leadoff hitter steps in. Your catcher gives the sign for a fastball. What should you throw?","situation":{"inning":"Bot 1","outs":0,"count":"0-0","runners":[],"score":[0,0]},"options":["Throw a strike — get ahead in the count right away","Nibble at the corner trying for a perfect pitch","Start with a changeup to surprise the hitter","Throw as hard as you can, wherever it goes"],"best":0,"explanations":["Getting ahead 0-1 is huge. Batters hit about .230 when behind 0-1 versus .350 when ahead 1-0. A first-pitch strike sets the tone and puts you in control of the at-bat. You do not need to be perfect — just get it in the zone.","Nibbling wastes pitches. If you miss, you are behind 1-0 and the hitter is sitting on a fastball. The difference between 0-1 and 1-0 is one of the biggest edges in baseball. Throw strikes early.","A changeup on the first pitch of the game is risky. The hitter is not timed up to your fastball yet, so the changeup loses its deception. Set up your off-speed stuff by establishing the fastball first.","Throwing as hard as you can with no thought about location is how you fall behind. Velocity matters less than command. A well-located 85 beats a wild 95 every time."],"rates":[88,45,25,10],"concept":"First-pitch strike: getting ahead in the count gives the pitcher a massive statistical advantage for the rest of the at-bat.","anim":"strike"}'
+  ],
+  fielder: [
+    '{"title":"Gap Ball Communication","diff":2,"description":"Top of the 4th, runner on 1st with 1 out. The batter lines a sinking drive into the left-center gap. Both you and the left fielder are converging on the ball. What should the center fielder do?","situation":{"inning":"Top 4","outs":1,"count":"-","runners":[1],"score":[2,1]},"options":["Call off the left fielder and take charge of the ball","Let the left fielder take it since he is closer","Stay silent and sprint for the ball","Pull up and cover behind the left fielder in case he misses"],"best":0,"explanations":["Center fielder has priority on all fly balls and line drives in the gap. By calling off the left fielder early and loudly, you prevent a collision and get the better angle on the sinking liner. This limits the runner to staying at 1st.","Deferring to the left fielder breaks the priority rule. CF always has priority because you are coming in on the ball with better momentum and angle. Letting LF take it increases collision risk and often leads to a worse catch attempt.","Never stay silent on a converging play. Without communication, both fielders may pull up or both may dive, leading to the ball dropping for extra bases. The runner on 1st would score easily.","Pulling up leaves the left fielder alone on a tough sinking liner. If this were a ball clearly in his zone, backing up makes sense, but on a gap ball, CF takes charge first and LF backs up."],"rates":[85,40,15,45],"concept":"Center field priority: CF calls off corner outfielders on gap balls to prevent collisions and make the cleanest play.","anim":"catch"}',
+    '{"title":"Relay Position","diff":2,"description":"Bottom of the 5th, runner on 1st with 0 outs. The batter drives a ball into the left-center gap for extra bases. The runner from 1st is rounding 2nd and heading for 3rd. You are the shortstop. What should you do?","situation":{"inning":"Bot 5","outs":0,"count":"-","runners":[1],"score":[3,2]},"options":["Sprint out to be the relay man between the outfielder and third base","Run to cover second base since the runner already passed it","Stay near your normal position and wait for a throw","Back up the left fielder in case he bobbles the ball"],"best":0,"explanations":["On an extra-base hit to the left side, the shortstop is the relay man. You sprint to line up between the outfielder and 3rd base, giving the outfielder a clear target. A good relay keeps the runner at 3rd and prevents extra bases.","Covering 2nd is the second baseman\'s job on this play. The runner already passed 2nd, so standing there does nothing. Your job is to be the relay and give the outfielder someone to throw to.","Staying near your position leaves a huge gap in the relay. Without a cutoff, the outfielder has to throw all the way to 3rd or home — the ball bounces and the runner scores easily.","Backing up the outfielder puts you out of the play entirely. The outfielder will field the ball — your job is to be where the throw needs to go, not where the ball already is."],"rates":[85,50,20,10],"concept":"Shortstop relay responsibilities: on extra-base hits to the left side, SS lines up as relay between outfielder and the target base.","anim":"throwHome"}',
+    '{"title":"Bunt Charge","diff":2,"description":"Top of the 3rd, runner on 2nd with 0 outs. The batter squares around to bunt. You are playing third base. What should you do?","situation":{"inning":"Top 3","outs":0,"count":"1-0","runners":[2],"score":[1,1]},"options":["Crash hard toward home, field the bunt, throw to first","Stay back at third in case the runner tries to advance","Only charge if the bunt goes toward the third-base line","Let the pitcher and catcher handle it"],"best":0,"explanations":["With a runner on 2nd and 0 outs, the bunt is a sacrifice to move the runner to 3rd. Your job is to crash hard, field the bunt quickly, and throw to 1st for the out. You give up the advance to 3rd but get the sure out — that is the correct tradeoff.","Staying back lets the bunt die in the grass for a hit. Nobody fields it, and now you have runners on 1st and 3rd with 0 outs instead of a runner on 3rd with 1 out. The advance to 3rd was going to happen anyway.","Waiting to see where the bunt goes wastes time. On a sacrifice bunt, the third baseman charges immediately — hesitation means the batter beats the throw. You read bunt and go.","The pitcher and catcher have their own responsibilities on the bunt. The third baseman is the primary fielder on bunts toward the left side. Doing nothing is the worst choice here."],"rates":[85,45,30,10],"concept":"Third base bunt defense: crash hard on sacrifice bunts to get the sure out at first, accepting the runner\'s advance.","anim":"bunt"}'
+  ],
+  batter: [
+    '{"title":"Runner on Third, One Out","diff":1,"description":"Bottom of the 8th, tied game. Runner on 3rd with 1 out and the infield is playing in. The pitcher throws a fastball up in the zone. What should the batter do?","situation":{"inning":"Bot 8","outs":1,"count":"1-0","runners":[3],"score":[3,3]},"options":["Try to hit a ground ball through the drawn-in infield","Swing for the fences to win it with a home run","Hit a fly ball deep enough to score the runner on a sacrifice fly","Take the pitch and wait for a better one"],"best":2,"explanations":["A ground ball through a drawn-in infield sounds good in theory, but ground balls can turn into double plays. With 1 out and the go-ahead run on 3rd, the risk of a DP ending the inning is too high compared to the reliable sac fly.","Swinging for the fences is low-percentage hitting. You only need one run to take the lead, and a strikeout or pop-up wastes the opportunity. Play for the run you need, not the run that looks impressive.","With a runner on 3rd and 1 out in a tied game, your job is to get that run home. A fly ball to the outfield scores the runner on a tag-up. The infield is drawn in, so they cannot cut off the run at home on a grounder. A sac fly is the highest-percentage play here.","Taking the pitch is not terrible on 1-0, but this fastball is hittable and you have a clear mission: get the ball in the air. Waiting risks falling behind in the count and losing your chance at a sacrifice fly."],"rates":[45,20,88,35],"concept":"Situational hitting with runner on 3rd: elevate the ball for a sacrifice fly to score the tying or go-ahead run.","anim":"hit"}',
+    '{"title":"Protect the Plate","diff":1,"description":"Top of the 7th, runner on 2nd with 2 outs. The count is 1-2 and the pitcher has been mixing speeds well. A breaking ball comes in that looks borderline low. What should the batter do?","situation":{"inning":"Top 7","outs":2,"count":"1-2","runners":[2],"score":[2,3]},"options":["Swing at it — with 2 strikes you have to protect the plate","Take it and hope the umpire calls it a ball","Swing for the fences in case it hangs up","Step out of the box to reset"],"best":0,"explanations":["With 2 strikes and 2 outs, your approach changes completely. You shorten up and fight off anything close. A called third strike ends the inning and leaves the tying run stranded. Fouling it off keeps the at-bat alive and gives you another chance.","Taking a borderline pitch with 2 strikes is risky. If the umpire rings you up, the inning is over. With a runner on 2nd and your team trailing, you cannot afford to go down looking. Protect the plate.","Swinging for the fences with 2 strikes is how you strike out. With 2 outs, you need to get the ball in play. A long swing on a breaking ball usually means a whiff. Shorten up and make contact.","Stepping out wastes time and does not change the count. You still have to deal with the pitch. With 2 strikes and 2 outs, stalling is not a strategy."],"rates":[85,45,15,10],"concept":"Two-strike approach: with 2 strikes, shorten your swing and protect the plate — contact is more valuable than power.","anim":"strike"}',
+    '{"title":"Hitter\'s Count Advantage","diff":2,"description":"Bottom of the 4th, runner on 1st with 1 out. The count is 2-0 and the pitcher has been struggling with his command. What should the batter do?","situation":{"inning":"Bot 4","outs":1,"count":"2-0","runners":[1],"score":[1,2]},"options":["Swing at anything close — a strike is coming","Sit on your pitch and drive it if it comes","Take the pitch to try to get to 3-0","Bunt the runner over to second"],"best":1,"explanations":["Swinging at anything close is not using your count advantage. At 2-0, the pitcher needs to throw a strike. You can be selective and look for YOUR pitch in YOUR zone. Do not bail him out by chasing.","At 2-0, you own the at-bat. The pitcher has to come to you. Pick one zone and one pitch type, and if you get it, drive it. If you do not get it, take it to 3-0 or 2-1 — both are still good counts. This is hitting smart.","Taking to get to 3-0 is too passive. At 2-0 the pitcher is throwing a hittable pitch — probably a fastball over the plate. You are giving up a great pitch to hit just to work the count. Aggressive on your pitch, not passive.","Bunting with a 2-0 count gives away your biggest advantage as a hitter. The pitcher is on the ropes with his command, and you are sacrificing the chance to drive the ball. Save the bunt for pitcher\'s counts."],"rates":[30,85,50,10],"concept":"Count leverage: at 2-0 or 3-1, sit on your pitch and drive it — the pitcher has to come to you.","anim":"hit"}'
+  ],
+  baserunner: [
+    '{"title":"Secondary Lead Read","diff":2,"description":"Top of the 5th, you are on 1st base with 0 outs. The batter swings and hits a sharp ground ball toward the shortstop. What should the baserunner do?","situation":{"inning":"Top 5","outs":0,"count":"-","runners":[1],"score":[1,2]},"options":["Run hard to 2nd — you must go on a ground ball with 0 outs","Stop and retreat to 1st to avoid the double play","Freeze and watch the play develop before committing","Run halfway and decide based on whether the shortstop fields it cleanly"],"best":0,"explanations":["With 0 outs and a force at 2nd, you MUST run on a ground ball. You are forced — there is no option to stay. Running hard gives you the best chance to beat the throw to 2nd and break up the double play, or at least make the relay to 1st difficult.","You cannot retreat to 1st on a ground ball when you are forced. The fielder can simply throw to 2nd for the force out. Going back guarantees the out and possibly sets up an easier double play.","Freezing as a forced runner on a ground ball is a baserunning error. You lose valuable time and make the double play easy for the defense. On ground balls with a force, you go immediately.","Running halfway is for fly balls, not ground balls. On a grounder with a force play, hesitation lets the defense turn a routine double play. Commit to running hard the moment the ball hits the ground."],"rates":[85,10,20,40],"concept":"Forced runner reads: on ground balls with a force in effect, run immediately — there is no hold or retreat option.","anim":"advance"}',
+    '{"title":"Tag Up Decision","diff":1,"description":"Bottom of the 6th, you are on 3rd base with 1 out. The batter hits a medium-deep fly ball to center field. The center fielder is camped under it. What should the baserunner do?","situation":{"inning":"Bot 6","outs":1,"count":"-","runners":[3],"score":[2,3]},"options":["Tag up on the base and sprint home when the ball is caught","Start running on contact toward home","Go halfway between 3rd and home to see what happens","Stay on 3rd — do not risk it with only 1 out"],"best":0,"explanations":["With 1 out and a medium-deep fly ball, you tag up at 3rd and go on the catch. Your team is trailing by 1 run, so this tying run is critical. A good tag and hard sprint beats most center field throws. You score the tying run.","Running on contact is wrong on a fly ball. If the ball is caught, you are an easy double play — the outfielder throws to 3rd and you are out. You have to wait for the catch before going.","Going halfway is a common mistake. If the ball is caught, you cannot get back to 3rd fast enough. If the ball drops, you should score easily from 3rd anyway. Halfway helps nobody.","Staying on 3rd with 1 out wastes a great scoring chance. You are trailing by a run, and tag-up on a medium-deep fly is one of the safest ways to score. Playing it too safe here costs your team."],"rates":[88,15,30,50],"concept":"Tag-up fundamentals: on a fly ball with less than 2 outs, tag the base and run when the fielder catches it to advance or score.","anim":"score"}',
+    '{"title":"Steal or Stay","diff":2,"description":"Top of the 4th, you are on 1st base with 1 out. Your team leads by 1 run. The pitcher has a slow move to home and the catcher has a weaker arm. The coach gives you the green light. What should you do?","situation":{"inning":"Top 4","outs":1,"count":"1-1","runners":[1],"score":[3,2]},"options":["Wait for the right pitch and go — read the pitcher\'s first move","Take off on the first pitch no matter what","Stay at first — do not risk it with a 1-run lead","Take a big lead and draw a pickoff throw"],"best":0,"explanations":["You have the green light, a slow pitcher, and a weak arm behind the plate. But smart baserunners pick their pitch — read the pitcher\'s first move to home, get a good jump, and go. Timing your jump is the difference between safe and out.","Going on the first pitch no matter what is reckless. What if it is a pitchout? What if the pitcher quick-slides? You need to read the situation, not just run blindly. A good steal is timed, not random.","Staying at first ignores all the advantages you have. The pitcher is slow, the catcher\'s arm is average, and your coach gave you the green light. Steals need about 72% success to break even, and you have great odds here.","Drawing a pickoff throw is a delay tactic, not a steal strategy. You already have the green light. Over-thinking it lets the pitcher get comfortable. Read his move, get your jump, and go."],"rates":[85,25,50,20],"concept":"Steal decision-making: read the pitcher\'s move, time your jump, and go when the situation favors you.","anim":"steal"}',
+    '{"title":"Reading the Pitcher\'s First Move","diff":2,"description":"Bottom of the 6th, your team trails 3-4. You are on first base with 1 out and a 2-1 count on the batter. The pitcher has been slow to home plate all game — his delivery takes about 1.5 seconds. Your coach gave you the steal sign. You are watching the pitcher come set. What should the baserunner do?","situation":{"inning":"Bot 6","outs":1,"count":"2-1","runners":[1],"score":[3,4]},"options":["Take your normal lead and break for second the moment the pitcher lifts his front leg","Extend your lead to 14 feet and get a great jump by reading the pitcher\'s first move to home","Shorten your lead and hold — wait for a better count to steal","Take a walking lead and break late, hoping the catcher won\'t expect it"],"best":1,"explanations":["Breaking on the leg lift is too early — some pitchers lift and still throw over to first. With 1 out in the 6th and your team trailing by one, getting picked off would be devastating. You need to read his first move toward home, not just any movement.","With a 1.5-second delivery and the steal sign on, you have a great chance — but only if you read the pitcher correctly. Extend your lead to challenge him, then key on his first move toward home plate. In a 2-1 count, the pitcher is more likely to throw a fastball to avoid falling behind 3-1, which means a longer time to second. This is the highest-percentage steal technique.","Your coach gave you the steal sign — holding goes against the play call. In a one-run game in the 6th with 1 out, a steal of second puts you in scoring position where a single ties it. The 2-1 count favors this attempt because the pitcher will likely throw a fastball.","A walking lead looks clever but actually hurts your jump. The crossover step from a standard athletic stance gets you to top speed faster than a walking start. With a 1.5-second delivery, you have time — but only with a proper first step, not a shuffle."],"rates":[45,85,25,35],"concept":"Reading the pitcher\'s first move to home plate gives you the best stolen base jump because it confirms the pitch is coming, unlike guessing on leg lift alone.","anim":"steal"}'
+  ],
+  manager: [
+    '{"title":"Third Time Through the Order","diff":3,"description":"Top of the 7th, your team leads 4-2. Your starter has 95 pitches and is facing the 3-hole hitter for the 3rd time. He gave up a double to this batter last time. The bullpen has a fresh reliever with a plus slider. What should the manager do?","situation":{"inning":"Top 7","outs":0,"count":"-","runners":[],"score":[4,2]},"options":["Let the starter face this batter, then go to the pen","Pull the starter and bring in the reliever","Leave the starter in — he has earned the chance to finish","Call for an intentional walk to set up the double play"],"best":1,"explanations":["Letting the starter face one more batter sounds like a compromise, but you already know the matchup is bad — he gave up a double last time. Why risk a lead-off baserunner in a 2-run game? The reliever is fresh and has the better weapon.","Data shows batters hit roughly .030 higher the third time through the order. Your starter already gave up a double to this hitter, and at 95 pitches fatigue compounds the TTO penalty. A fresh reliever with a plus slider gives you the best chance to protect a 2-run lead in the 7th.","Loyalty to the starter ignores the analytics. The TTO effect is real and well-documented. With a 2-run lead in the 7th, protecting the lead takes priority over rewarding effort. Your bullpen is rested.","An intentional walk with nobody on and 0 outs is almost never correct. You would be putting the leadoff runner on base for free, raising run expectancy from 0.50 to 0.88. That is giving away nearly half a run with no strategic benefit."],"rates":[50,82,30,15],"concept":"TTO effect and bullpen management: batters improve the third time through, making a fresh reliever the higher-percentage play in close games.","anim":"freeze"}',
+    '{"title":"Infield In or Back","diff":2,"description":"Bottom of the 5th, runner on 3rd with 1 out. Your team leads 3-2. The batter is a contact hitter. Should you play the infield in or at normal depth?","situation":{"inning":"Bot 5","outs":1,"count":"-","runners":[3],"score":[3,2]},"options":["Play infield in to cut off the run at the plate","Play normal depth and concede the run on a grounder","Play halfway — split the difference","Bring the corners in and keep the middle back"],"best":2,"explanations":["Infield in cuts off the tying run but gives up a lot of range. Ground balls that would be outs at normal depth become hits. With 1 out in the 5th and only a 1-run lead, giving up hits to prevent one run is a bad tradeoff this early.","Playing normal depth concedes the run on any ground ball, tying the game. With a 1-run lead and a runner 90 feet away, you want SOME chance to get the runner at home. Completely giving up is too passive.","Halfway depth gives you a shot at the runner on a slow grounder while keeping enough range to field most ground balls. It is the best compromise in the 5th inning — you are not desperate enough for full infield in, but you want a chance.","Corners in and middle back creates a confusing alignment. Your infielders need to be on the same page. A hybrid setup like this leads to miscommunication and gaps in coverage."],"rates":[35,30,82,50],"concept":"Defensive positioning: infield depth depends on the inning, score, and how much you can afford to trade range for cutting off a run.","anim":"freeze"}',
+    '{"title":"Steal Sign Decision","diff":2,"description":"Top of the 6th, runner on 1st with 0 outs. Your team trails 2-1. Your fastest runner is on base and the pitcher has a slow delivery. The cleanup hitter is at bat. Should you call for the steal?","situation":{"inning":"Top 6","outs":0,"count":"1-0","runners":[1],"score":[1,2]},"options":["Give the steal sign — your runner has the speed and the pitcher is slow","Hold the runner — let the cleanup hitter drive him in","Call for a hit-and-run to protect the runner","Call for a sacrifice bunt to move the runner to 2nd"],"best":0,"explanations":["Your fastest runner against a slow delivery is a high-percentage steal. Getting him to 2nd with 0 outs means a single scores the tying run. The cleanup hitter can still drive him in from 2nd, but now a single ties it instead of needing an extra-base hit.","Holding the runner is safe but passive. If the cleanup hitter grounds into a double play, you lose the runner and the momentum. Getting the runner to 2nd first eliminates the DP and puts pressure on the defense.","A hit-and-run is riskier than a straight steal here. If the batter misses, your runner is hung out to dry. With the pitcher\'s slow delivery, a clean steal is the higher-percentage play.","A sacrifice bunt with the cleanup hitter is wasting your best bat. You are giving up an out from your best hitter to move a runner 90 feet. The steal gets the same result without costing an out."],"rates":[82,50,35,15],"concept":"Steal strategy: when speed, pitcher delivery, and game situation all favor the steal, take the extra base without giving up an out.","anim":"steal"}',
+    '{"title":"Third Time Through — Pull or Stay","diff":2,"description":"Top of the 7th, your team leads 5-3. Your starter has thrown 78 pitches and just gave up a double to lead off the inning. He has been strong — 6 innings, 3 runs — but this is his third time through the order and the last 2 batters hit the ball hard. Your best setup man is warm in the bullpen. The #4 hitter is up next. What should the manager do?","situation":{"inning":"Top 7","outs":0,"count":"-","runners":[2],"score":[5,3]},"options":["Leave the starter in — he has earned the right to pitch out of this jam","Make a mound visit to settle him down, then see how he handles the next batter","Pull the starter now and bring in the setup man with the runner on second","Have the starter intentionally walk the #4 hitter to set up a double play"],"best":2,"explanations":["Your starter has been great, but the data is clear: batters hit about 30 points higher the third time through the lineup. He just gave up a hard double to start the inning, and the previous two batters also hit the ball hard. Loyalty to a pitcher who earned it is one of the most common managerial mistakes — the game situation matters more than rewarding effort.","A mound visit buys time, but it does not fix the third-time-through-the-order effect. The #4 hitter has already seen your starter\'s best stuff twice. The mound visit delay might actually give the hitter more time to prepare. With a 2-run lead and nobody out, you cannot afford to let this inning snowball.","This is the textbook move. Your starter did his job — 6 strong innings. But three hard-hit balls signals his stuff is flattening out. The third-time-through-the-order penalty is real: batters see velocity and movement better each time. Bringing in the setup man with fresh stuff gives you the best chance to hold the 2-run lead with nobody out and a runner on second.","Intentionally walking the #4 hitter puts the go-ahead run on base with nobody out. Even if it sets up a double play, you are giving the other team a free baserunner. IBBs are almost always wrong — especially with no outs, where the DP does not end the inning."],"rates":[30,40,85,15],"concept":"Batters hit significantly better the third time through the order because they have adapted to the pitcher\'s stuff, so bringing in a reliever when hard contact starts is better than loyalty to the starter.","anim":"freeze"}'
+  ]
 }
 function getAIFewShot(position, targetConcept = null, difficulty = 2) {
-  // Primary: position-matched few-shot
-  const primary = ["pitcher","catcher"].includes(position) ? AI_FEW_SHOT_EXAMPLES.pitcher
+  // Primary: position-matched few-shot (randomly selected from pool)
+  const pool = ["pitcher","catcher"].includes(position) ? AI_FEW_SHOT_EXAMPLES.pitcher
     : ["firstBase","secondBase","shortstop","thirdBase","leftField","centerField","rightField"].includes(position) ? AI_FEW_SHOT_EXAMPLES.fielder
     : position === "batter" || position === "counts" ? AI_FEW_SHOT_EXAMPLES.batter
     : position === "baserunner" ? AI_FEW_SHOT_EXAMPLES.baserunner
     : AI_FEW_SHOT_EXAMPLES.manager
+  const primary = Array.isArray(pool) ? pool[Math.floor(Math.random() * pool.length)] : pool
 
   // Secondary: pick from handcrafted scenarios for this position (condensed)
   const pool = (SCENARIOS[position] || []).filter(s => s.diff === difficulty || !targetConcept)
@@ -4935,9 +4958,41 @@ RELAY on extra-base hits LEFT side (LF line, LF-CF gap, deep CF) \u2014 you are 
 CUTOFF on ALL throws to 3B (runner going 1st to 3rd from any OF).
 Cover 3B when 3B goes out as cutoff. Cover 2B on steals (vs RHB).`,
 }
-function getAIMap(position) {
+// Concept-to-map relevance: inject only the one map that matters for this concept
+const CONCEPT_MAP_MATCH = {
+  'cutoff-roles': 'CUTOFF_RELAY_MAP', 'cutoff-alignment': 'CUTOFF_RELAY_MAP',
+  'relay-double-cut': 'CUTOFF_RELAY_MAP',
+  'bunt-defense': 'BUNT_DEFENSE_MAP', 'sacrifice-bunt': 'BUNT_DEFENSE_MAP',
+  'first-third': 'FIRST_THIRD_MAP',
+  'backup-duties': 'BACKUP_MAP',
+  'rundown-mechanics': 'RUNDOWN_MAP',
+  'double-play-turn': 'DP_POSITIONING_MAP', 'dp-positioning': 'DP_POSITIONING_MAP',
+  'hit-and-run': 'HIT_RUN_MAP',
+  'pickoff-mechanics': 'PICKOFF_MAP',
+  'pitch-clock-strategy': 'PITCH_CLOCK_MAP',
+  'wild-pitch-coverage': 'WP_PB_MAP',
+  'squeeze-play': 'SQUEEZE_MAP',
+  'infield-fly': 'INFIELD_FLY_MAP',
+  'of-communication': 'OF_COMMUNICATION_MAP',
+  'fly-ball-priority': 'POPUP_PRIORITY_MAP',
+  'obstruction-interference': 'OBSTRUCTION_INTERFERENCE_MAP',
+  'tag-up': 'TAGUP_SACRIFICE_FLY_MAP',
+  'ibb-strategy': 'INTENTIONAL_WALK_MAP',
+  'line-guarding': 'LEGAL_SHIFT_MAP',
+  'secondary-lead': 'BASERUNNER_READS_MAP',
+  'lead-distance': 'BASERUNNER_READS_MAP',
+}
+
+function getAIMap(position, targetConcept) {
+  // If we have a target concept with a matching map, use ONLY that map
+  if (targetConcept) {
+    const conceptMapKey = CONCEPT_MAP_MATCH[targetConcept]
+    if (conceptMapKey && KNOWLEDGE_MAPS[conceptMapKey]) return `KEY REFERENCE:\n${KNOWLEDGE_MAPS[conceptMapKey]}`
+    // Concept has no relevant map — skip map injection entirely (less noise)
+    return ""
+  }
+  // Fallback: no concept specified — use position-based selection (original behavior)
   if (AI_SCOPED_MAPS[position]) return `KEY REFERENCE:\n${AI_SCOPED_MAPS[position]}`
-  // Rotate among relevant maps for positions with bias risk
   const pool = AI_MAP_ROTATION[position]
   const key = pool ? pool[Math.floor(Math.random() * pool.length)] : AI_MAP_PRIORITY[position]
   return key && KNOWLEDGE_MAPS[key] ? `KEY REFERENCE:\n${KNOWLEDGE_MAPS[key]}` : ""
@@ -5682,6 +5737,9 @@ const REAL_GAME_SITUATIONS = {
     { setup: "Runner on third, ground ball to the right side, less than 2 outs", real_decision: "If the ball gets through, you score. If it's fielded, read the play", why_real: "Ground ball to the right side with runner on third is the sac fly equivalent for infield", common_mistake: "Auto-running home on every grounder — depends on where it's hit", source: "Coaching consensus" },
     { setup: "Runner on first, pitcher has been slow to the plate", real_decision: "Get a bigger secondary lead, look for the steal sign", why_real: "Slow delivery = bigger window. But you still need the sign from the dugout", common_mistake: "Having the runner independently decide to steal without the sign", source: "Pro Baseball Insider" },
     { setup: "Runner on second, two outs, single to left", real_decision: "You're running on contact with 2 outs — score standing up", why_real: "With 2 outs you run on anything. Single from second scores you easily", common_mistake: "Making the runner 'decide' whether to score on a clean single with 2 outs", source: "Retrosheet play-by-play" },
+    { setup: "Runner on 2nd, 1 out, ground ball to shortstop", real_decision: "Hold at 2nd — SS is looking at you and the throw to first is routine. Advance only on ball hit to right side or through the infield.", common_mistake: "AI has runner always advance on ground balls regardless of where ball is hit", source: "Coaching consensus" },
+    { setup: "Runner on 1st, 0 outs, fly ball to medium-depth center", real_decision: "Tag up but don't go — medium CF fly is not deep enough to advance. Return to 1st after the catch.", common_mistake: "AI has runner tag up and advance on every fly ball, even shallow ones", source: "Coaching consensus" },
+    { setup: "Runner on 3rd, line drive hit to left fielder", real_decision: "Freeze immediately — if the liner is caught, you need to be on the bag. Only score if it drops and you can read it cleanly.", common_mistake: "AI has runner break for home on contact instead of freezing on line drives", source: "Pro Baseball Insider" },
   ],
   manager: [
     { setup: "Starter has faced the lineup 3 times, pitch count at 90", real_decision: "Get the bullpen ready — TTO effect means batters are timing him", why_real: "Third-time-through, batting average jumps ~30 points. It's data-backed", common_mistake: "Ignoring pitch count and TTO in favor of 'feel'", source: "Baseball Prospectus TTO data" },
@@ -5690,6 +5748,9 @@ const REAL_GAME_SITUATIONS = {
     { setup: "Runner on first, 1 out, batter has been hitting well", real_decision: "Let him hit — don't bunt away an out with a hot hitter", why_real: "Bunting a good hitter is giving away an at-bat", common_mistake: "Auto-bunting in 'bunt situations' without considering who's batting", source: "FanGraphs RE24" },
     { setup: "Opposing team's best hitter comes up with first base open", real_decision: "Only walk him if the on-deck hitter is significantly worse AND force at home matters", why_real: "IBB puts the go-ahead run on base. It's rarely correct", common_mistake: "Walking good hitters reflexively", source: "The Book (Tango et al.)" },
     { setup: "Defensive alignment with a pull-heavy left-handed hitter", real_decision: "Shade the defense toward right side, but keep 2 infielders on each side (2023+ rules)", why_real: "Full shifts are banned. You can shade but can't overload one side", common_mistake: "Using banned pre-2023 shift strategies", source: "MLB 2023 rule changes" },
+    { setup: "Starter at 90 pitches in the 7th, 2-run lead, facing bottom of order", real_decision: "Let him face the 7-8-9 hitters if he's sharp. Save the bullpen for the top of the order in the 8th.", common_mistake: "AI pulls starter based on pitch count alone without considering opponent, game state, or bullpen usage", source: "Pitching analytics consensus" },
+    { setup: "Down 1 run, runner on 1st, 0 outs, weak hitter up", real_decision: "Sacrifice bunt is justified here — weak hitter, need 1 run, move runner to scoring position with better hitters coming up.", common_mistake: "AI always says 'bunting lowers RE24' without considering that RE24 analysis changes when the batter is weak and only 1 run is needed", source: "The Book (Tango et al.)" },
+    { setup: "Tie game, bottom 9th, runners on 2nd and 3rd, 1 out, their cleanup hitter up", real_decision: "Intentional walk to load the bases — sets up force at home and double play. The cleanup hitter is their most dangerous bat.", common_mistake: "AI says IBB is always wrong, but with 2nd+3rd occupied and 1 out, loading bases for the force/DP is textbook", source: "The Book (Tango et al.)" },
   ],
 };
 
@@ -5753,16 +5814,16 @@ const DECISION_WINDOWS = {
     on_base: "After reaching base: leadoff, reading pitcher, next play awareness",
   },
   baserunner: {
-    pre_pitch: "Before the pitch: lead distance, reading pitcher, steal decision",
-    pitch_in_flight: "Pitch is thrown: secondary lead, jump timing, go/no-go",
-    after_contact: "Ball is hit: read off bat, advance/hold, tag up decision",
-    between_pitches: "Between pitches: adjusting lead, reading defense, signals",
+    pre_pitch: "Before the pitch: lead distance, steal attempt, positioning, read the pitcher's move",
+    on_contact: "React to ball off bat — freeze on line drive, advance on ground ball, read fly ball depth",
+    after_catch: "Tag-up decision, advance or hold after outfielder catches fly ball",
+    between_pitches: "Adjust lead, read catcher's signs, evaluate count for steal opportunity",
   },
   manager: {
-    pre_game: "Before the game: lineup, matchups, game plan",
-    pre_pitch: "Before each pitch: defensive alignment, steal/bunt signs, pitchout",
-    in_play: "During the play: no decisions (players execute)",
-    between_plays: "Between plays: pitching changes, pinch hitters, defensive subs, reviews",
+    between_batters: "Pitching changes, defensive substitutions, positioning shifts, mound visits",
+    before_pitch: "Steal sign, bunt sign, hit-and-run sign, pitchout call",
+    between_innings: "Bullpen warm-up decisions, pinch-hitter prep, lineup card adjustments",
+    during_at_bat: "Intentional walk signal, mound visit timing, defensive alignment mid-AB",
   },
   infielder: {
     pre_pitch: "Before the pitch: positioning, depth, ready position, anticipation",
@@ -7044,43 +7105,68 @@ function formatBrainStats(position, age, stats) {
 }
 
 // Level 1.2: Format Brain analytical data for AI prompt injection
-function formatBrainForAI(position, situation) {
+// Concept-to-data relevance: only inject brain data sections relevant to the target concept
+const CONCEPT_DATA_RELEVANCE = {
+  re24: ['bunt-re24', 'steal-breakeven', 'ibb-strategy', 'scoring-probability', 'win-probability', 'situational-hitting', 'sacrifice-bunt', 'squeeze-play'],
+  counts: ['count-leverage', 'two-strike-approach', 'first-pitch-strike', 'pitch-sequencing', 'pitch-calling', 'catcher-framing'],
+  steal: ['steal-breakeven', 'secondary-lead', 'lead-distance', 'steal-window', 'pickoff-mechanics'],
+  bunt: ['bunt-re24', 'squeeze-play', 'bunt-defense', 'sacrifice-bunt'],
+  pitchType: ['pitch-sequencing', 'count-leverage', 'pitch-calling', 'pitch-recognition'],
+  tto: ['times-through-order', 'platoon-advantage', 'pitch-count-mgmt', 'bullpen-management'],
+  scoringProb: ['scoring-probability', 'situational-hitting', 'tag-up', 'squeeze-play', 'sacrifice-bunt', 'ibb-strategy'],
+  winProb: ['win-probability', 'ibb-strategy', 'times-through-order', 'bullpen-management']
+}
+
+function formatBrainForAI(position, situation, targetConcept) {
   const parts = []
+  // Determine which data sections are relevant to the target concept
+  // If no targetConcept, include everything (backward compatibility)
+  const includeRE24 = !targetConcept || CONCEPT_DATA_RELEVANCE.re24.includes(targetConcept)
+  const includeCounts = !targetConcept || CONCEPT_DATA_RELEVANCE.counts.includes(targetConcept)
+  const includeSteal = !targetConcept || CONCEPT_DATA_RELEVANCE.steal.includes(targetConcept)
+  const includeBunt = !targetConcept || CONCEPT_DATA_RELEVANCE.bunt.includes(targetConcept)
+  const includePitchType = !targetConcept || CONCEPT_DATA_RELEVANCE.pitchType.includes(targetConcept)
+  const includeTTO = !targetConcept || CONCEPT_DATA_RELEVANCE.tto.includes(targetConcept)
+  const includeScoringProb = !targetConcept || CONCEPT_DATA_RELEVANCE.scoringProb.includes(targetConcept)
+  const includeWinProb = !targetConcept || CONCEPT_DATA_RELEVANCE.winProb.includes(targetConcept)
+
   // RE24 top states
-  const re = BRAIN.stats.RE24
-  if (re) parts.push("RE24 (runs expected): " + ["---","1--","-2-","--3","12-","1-3","-23","123"].map(key => {
-    const row = re[key]
-    if (!row) return null
-    const label = key === "---" ? "empty" : (key[0]==="1"?"R1 ":"")+(key[1]==="2"?"R2 ":"")+(key[2]==="3"?"R3":"")
-    return `${label.trim()}: 0out=${row[0]}, 1out=${row[1]}, 2out=${row[2]}`
-  }).filter(Boolean).join("; "))
+  if (includeRE24) {
+    const re = BRAIN.stats.RE24
+    if (re) parts.push("RE24 (runs expected): " + ["---","1--","-2-","--3","12-","1-3","-23","123"].map(key => {
+      const row = re[key]
+      if (!row) return null
+      const label = key === "---" ? "empty" : (key[0]==="1"?"R1 ":"")+(key[1]==="2"?"R2 ":"")+(key[2]==="3"?"R3":"")
+      return `${label.trim()}: 0out=${row[0]}, 1out=${row[1]}, 2out=${row[2]}`
+    }).filter(Boolean).join("; "))
+  }
   // Count data if relevant
-  if (["pitcher","catcher","batter","counts"].includes(position) && situation?.count && situation.count !== "-") {
+  if (includeCounts && ["pitcher","catcher","batter","counts"].includes(position) && situation?.count && situation.count !== "-") {
     const cd = BRAIN.stats.countData?.[situation.count]
     if (cd) parts.push(`Count ${situation.count}: BA=${cd.ba}, edge=${cd.edge}, label="${cd.label}"`)
   }
   // Steal data for baserunner/manager/catcher
-  if (["baserunner","manager","catcher","pitcher"].includes(position)) {
+  if (includeSteal && ["baserunner","manager","catcher","pitcher"].includes(position)) {
     const s = BRAIN.stats.stealBreakEven
     if (s) parts.push(`Steal break-even by outs: 0out=${s[0]*100}%, 1out=${s[1]*100}%, 2out=${s[2]*100}%`)
   }
   // Bunt data for batter/manager
-  if (["batter","manager","pitcher"].includes(position)) {
+  if (includeBunt && ["batter","manager","pitcher"].includes(position)) {
     const bd = BRAIN.stats.buntDelta
     if (bd) parts.push("Bunt delta (RE change): " + Object.entries(bd).map(([k,v]) => `${k}=${v>0?"+":""}${v}`).join(", "))
   }
   // TTO for manager/pitcher/catcher
-  if (["manager","pitcher","catcher"].includes(position) && BRAIN.stats.ttoEffect) {
+  if (includeTTO && ["manager","pitcher","catcher"].includes(position) && BRAIN.stats.ttoEffect) {
     const tto = BRAIN.stats.ttoEffect
     parts.push(`TTO effect (BA penalty): 1st=${tto[0]}pts, 2nd=${tto[1]}pts, 3rd=${tto[2]}pts`)
   }
   // Scoring probability
-  if (BRAIN.stats.scoringProb) {
+  if (includeScoringProb && BRAIN.stats.scoringProb) {
     const sp = BRAIN.stats.scoringProb
     parts.push("Scoring prob: " + Object.entries(sp).map(([k,v]) => `${k}: 0out=${v[0]}%, 1out=${v[1]}%, 2out=${v[2]}%`).join("; "))
   }
   // Win probability for manager
-  if (position === "manager" && BRAIN.stats.winProbability?.byInningScore && situation?.inning) {
+  if (includeWinProb && position === "manager" && BRAIN.stats.winProbability?.byInningScore && situation?.inning) {
     const inn = parseInt(situation.inning.replace(/\D/g,"")) || 5
     const diff = (situation.score?.[0]||0) - (situation.score?.[1]||0)
     const diffKey = diff > 3 ? "+3" : diff < -3 ? "-3" : (diff >= 0 ? "+" : "") + diff
@@ -7088,7 +7174,7 @@ function formatBrainForAI(position, situation) {
     if (wp) parts.push(`Win prob (inn ${inn}, diff ${diffKey}): ${wp}%`)
   }
   // Pitch type data for pitcher/catcher/batter
-  if (["pitcher","catcher","batter","counts"].includes(position) && BRAIN.stats.pitchTypeData?.types) {
+  if (includePitchType && ["pitcher","catcher","batter","counts"].includes(position) && BRAIN.stats.pitchTypeData?.types) {
     const ptd = BRAIN.stats.pitchTypeData.types
     parts.push("Pitch types: " + Object.entries(ptd).slice(0,5).map(([k,v]) => `${k}: velo=${v.velo||"?"}mph, wOBA=${v.woba||"?"}, rv/100=${v.rv100||"?"}`).join("; "))
   }
@@ -7294,6 +7380,44 @@ const QUALITY_FIREWALL = {
 
       return null
     },
+    // Check 6: Situation-action contradiction — game state makes action impossible
+    situationActionContradiction(scenario) {
+      const outs = scenario.situation?.outs
+      const best = (scenario.options?.[scenario.best] || '').toLowerCase()
+      const allText = (scenario.options || []).join(' ').toLowerCase() + ' ' + (scenario.explanations || []).join(' ').toLowerCase()
+      const sit = scenario.situation || {}
+      if (outs === 2 && /double\s*play|turn\s*two|6-4-3|4-6-3/.test(allText)) return "Situation contradiction: double play impossible with 2 outs"
+      if (outs === 2 && /sacrifice\s*bunt|sac\s*bunt/.test(best)) return "Situation contradiction: sacrifice bunt pointless with 2 outs"
+      if (outs === 2 && /tag\s*up|tagging\s*up/.test(best)) return "Situation contradiction: tag-up wrong framing with 2 outs (should be run on contact)"
+      if (outs === 2 && /infield\s*fly/.test(allText)) return "Situation contradiction: infield fly rule only applies with < 2 outs"
+      if (outs === 2 && /steal|stolen\s*base/.test(best)) {
+        const score = sit.score || []
+        if (Array.isArray(score) && score.length === 2 && Math.abs((score[0]||0) - (score[1]||0)) >= 3) {
+          return "Situation contradiction: steal with 2 outs and 3+ run lead is pointless"
+        }
+      }
+      return null
+    },
+    // Check 7: Position principle contradiction — best answer violates position rules
+    principleContradiction(scenario, position) {
+      if (!position) return null
+      const best = (scenario.options?.[scenario.best] || '').toLowerCase()
+      const bestExpl = (scenario.explanations?.[scenario.best] || '').toLowerCase()
+      const combined = best + ' ' + bestExpl
+      if (position === 'pitcher' && /cutoff|relay|cut.?off/.test(combined)) return "Principle contradiction: pitcher should never be the cutoff or relay man"
+      if (position === 'centerField' && /defer|let.*fielder|give\s*way/.test(combined)) return "Principle contradiction: center fielder has priority — should never defer to corner OF"
+      if (position === 'catcher' && /cover\s*(first|second|third|2nd|3rd|1st)\s*base/.test(combined)) return "Principle contradiction: catcher should not leave home to cover a base"
+      if (position === 'baserunner' && /yell|signal|direct|tell.*fielder|wave/.test(combined)) return "Principle contradiction: baserunner cannot direct the defense"
+      return null
+    },
+    // Check 8: Option action diversity — all options start with same verb
+    optionActionDiversity(scenario) {
+      const options = scenario.options || []
+      if (options.length !== 4) return null
+      const verbs = options.map(o => (o || '').split(' ')[0].toLowerCase().replace(/[^a-z]/g, ''))
+      if (new Set(verbs).size === 1 && verbs[0].length > 0) return "Option diversity: all 4 options start with the same verb '" + verbs[0] + "'"
+      return null
+    },
   },
 
   // --- TIER 2: Warnings (flag for review but don't reject) ---
@@ -7394,20 +7518,20 @@ const QUALITY_FIREWALL = {
   },
 
   // Run all checks on a scenario. Returns { pass, tier1Fails, tier2Warns, tier3Suggestions }
-  validate(scenario) {
+  validate(scenario, position) {
     const tier1Fails = []
     const tier2Warns = []
     const tier3Suggestions = []
     for (const [name, fn] of Object.entries(this.tier1)) {
-      const result = fn(scenario)
+      const result = fn(scenario, position || null)
       if (result) tier1Fails.push({ check: name, message: result })
     }
     for (const [name, fn] of Object.entries(this.tier2)) {
-      const result = fn(scenario)
+      const result = fn(scenario, position || null)
       if (result) tier2Warns.push({ check: name, message: result })
     }
     for (const [name, fn] of Object.entries(this.tier3)) {
-      const result = fn(scenario)
+      const result = fn(scenario, position || null)
       if (result) tier3Suggestions.push({ check: name, message: result })
     }
     return {
@@ -7516,12 +7640,27 @@ function gradeScenario(scenario, position) {
     const sentences = (e.match(/[.!?]+/g) || []).length
     if (sentences < 2) { score -= 5; deductions.push(`explanation_${i}_few_sentences`) }
     // Check for generic explanations (no situation reference)
-    if (e && !/\d/.test(e) && !/inning|out|runner|score|count|lead|trail|tied/i.test(e)) {
+    if (e && !/\d/.test(e) && !/inning|out|runner|score|count|lead|trail|tied|timing|momentum|speed|lead|jump|read|pitcher|catcher|delivery|pickoff/i.test(e)) {
       score -= 3; deductions.push(`explanation_${i}_too_generic`)
     }
   })
 
-  // 2b. Best explanation must argue FOR the best option (not against another option)
+  // 2b. Best explanation must reference at least 2 situation elements
+  if (scenario.best !== undefined && expls[scenario.best]) {
+    const bestExplLower = (expls[scenario.best] || '').toLowerCase()
+    const sitRefs = [
+      /\bout(s)?\b/.test(bestExplLower),
+      /inning|frame/.test(bestExplLower),
+      /score|lead|trail|tie|ahead|behind/.test(bestExplLower),
+      /runner|base|first|second|third|home/.test(bestExplLower),
+      /count|strike|ball|0-|1-|2-|3-/.test(bestExplLower),
+    ].filter(Boolean).length
+    if (sitRefs < 2) {
+      score -= 8; deductions.push('best_explanation_lacks_situation_refs')
+    }
+  }
+
+  // 2c. Best explanation must argue FOR the best option (not against another option)
   if (scenario.best !== undefined && expls[scenario.best]) {
     const bestExpl = expls[scenario.best].toLowerCase()
     const bestOpt = (scenario.options?.[scenario.best] || "").toLowerCase()
@@ -7590,6 +7729,12 @@ function gradeScenario(scenario, position) {
   const hasPre = (scenario.options || []).some(o => preActionWords.test(o))
   const hasPost = (scenario.options || []).some(o => postActionWords.test(o))
   if (hasPre && hasPost) { score -= 15; deductions.push("options_mix_decision_moments") }
+
+  // 4e. All options start with the same verb → lack of strategic diversity
+  const optVerbs = (scenario.options || []).map(o => (o || '').split(' ')[0].toLowerCase())
+  if (optVerbs.length === 4 && new Set(optVerbs).size === 1) {
+    score -= 15; deductions.push('all_options_same_verb')
+  }
 
   // ═══════════════════════════════════════════════════════════════
   // SECTION 5: SITUATION CONSISTENCY
@@ -7682,7 +7827,7 @@ function gradeScenario(scenario, position) {
     score -= 15; deductions.push("weak_concept")
   }
   // Concept should explain WHY, not just what
-  if (scenario.concept && !/because|so that|in order to|to prevent|to maximize|to minimize|which means/i.test(scenario.concept)) {
+  if (scenario.concept && !/because|so that|in order to|to prevent|to maximize|to minimize|which means|allowing|lets you|gives you|means|ensures|prevents|avoids|risks/i.test(scenario.concept)) {
     score -= 5; deductions.push("concept_missing_why")
   }
 
@@ -7696,7 +7841,7 @@ function gradeScenario(scenario, position) {
   // Last sentence should set up decision moment
   if (scenario.description) {
     const lastSentence = scenario.description.split(/[.!?]\s+/).filter(Boolean).pop() || ""
-    if (!/what should|what do you|how should|your move|you need to|the decision/i.test(lastSentence)) {
+    if (!/what should|what do you|how should|your move|you need to|the decision|what.*play|next move|your call|what.*call/i.test(lastSentence)) {
       score -= 5; deductions.push("description_missing_decision_prompt")
     }
   }
@@ -7810,9 +7955,9 @@ const KNOWLEDGE_BASE = {
     return maps
   },
 
-  // Get Brain data relevant to a situation
-  getBrainDataForSituation(position, situation) {
-    return formatBrainForAI(position, situation || {})
+  // Get Brain data relevant to a situation (concept-filtered to reduce prompt noise)
+  getBrainDataForSituation(position, situation, targetConcept) {
+    return formatBrainForAI(position, situation || {}, targetConcept || null)
   },
 
   // Get position principles (all tiers)
@@ -8130,9 +8275,358 @@ const CONCEPT_SITUATIONS = {
   "obstruction-interference": { runners: [1], outs: 1 },
 }
 
+// Position-specific concept weight multipliers: bread-and-butter concepts get 3x, secondary get 2-2.5x
+const CONCEPT_FUNDAMENTAL_WEIGHTS = {
+  pitcher: {
+    'first-pitch-strike': 3, 'count-leverage': 2.5, 'pitch-sequencing': 2,
+    'pickoff-mechanics': 2, 'wild-pitch-coverage': 2, 'backup-duties': 1.5,
+    'pitch-count-mgmt': 1.5, 'pitch-clock-strategy': 1
+  },
+  catcher: {
+    'catcher-framing': 3, 'count-leverage': 2.5, 'wild-pitch-coverage': 3,
+    'first-third': 2, 'dropped-third-strike': 2, 'cutoff-roles': 1.5,
+    'pickoff-mechanics': 1.5, 'steal-breakeven': 1.5
+  },
+  firstBase: {
+    'cutoff-roles': 3, 'force-vs-tag': 2.5, 'bunt-defense': 2.5,
+    'double-play-turn': 2, 'backup-duties': 2, 'dp-positioning': 1.5
+  },
+  secondBase: {
+    'double-play-turn': 3, 'dp-positioning': 2.5, 'cutoff-roles': 2.5,
+    'fly-ball-priority': 2, 'bunt-defense': 2, 'relay-double-cut': 2,
+    'rundown-mechanics': 1.5
+  },
+  shortstop: {
+    'cutoff-roles': 3, 'relay-double-cut': 3, 'double-play-turn': 3,
+    'fly-ball-priority': 2.5, 'bunt-defense': 2, 'force-vs-tag': 2,
+    'dp-positioning': 1.5
+  },
+  thirdBase: {
+    'bunt-defense': 3, 'cutoff-roles': 2.5, 'line-guarding': 2,
+    'fly-ball-priority': 2, 'force-vs-tag': 2, 'dp-positioning': 1.5,
+    'relay-double-cut': 1.5
+  },
+  leftField: {
+    'fly-ball-priority': 3, 'backup-duties': 2.5, 'cutoff-roles': 2.5,
+    'of-communication': 2, 'relay-double-cut': 2, 'tag-up': 1.5
+  },
+  centerField: {
+    'fly-ball-priority': 3, 'of-communication': 3, 'cutoff-roles': 2.5,
+    'backup-duties': 2, 'relay-double-cut': 1.5
+  },
+  rightField: {
+    'backup-duties': 3, 'cutoff-roles': 3, 'fly-ball-priority': 2.5,
+    'of-communication': 2, 'relay-double-cut': 2, 'tag-up': 1.5
+  },
+  batter: {
+    'two-strike-approach': 3, 'count-leverage': 3, 'situational-hitting': 2.5,
+    'first-pitch-strike': 2, 'hit-and-run': 1.5, 'bunt-re24': 1
+  },
+  baserunner: {
+    'tag-up': 3, 'force-vs-tag': 3, 'secondary-lead': 2.5,
+    'steal-breakeven': 2, 'scoring-probability': 2, 'lead-distance': 2,
+    'rundown-mechanics': 1.5
+  },
+  manager: {
+    'dp-positioning': 2.5, 'first-third': 2.5, 'platoon-advantage': 2,
+    'times-through-order': 2, 'ibb-strategy': 1.5, 'line-guarding': 1.5,
+    'bunt-re24': 1.5
+  },
+  famous: {},
+  rules: {},
+  counts: {
+    'count-leverage': 3, 'two-strike-approach': 2.5, 'first-pitch-strike': 2.5,
+    'pitch-sequencing': 2
+  }
+}
+
+// Coaching closers: position-specific lines appended to short AI explanations instead of boilerplate
+const COACHING_CLOSERS = {
+  pitcher: [
+    "Every pitch is a chess move — think about what the batter expects.",
+    "Your job on the mound is to control the tempo and keep batters guessing.",
+    "Trust your stuff and let your defense work behind you.",
+    "Stay ahead in the count and you control the at-bat.",
+    "The best pitchers make the batter put the ball where the defense is.",
+    "Don't try to be perfect — just hit your spots and compete."
+  ],
+  catcher: [
+    "You're the quarterback of the defense — every decision starts with you.",
+    "Think one play ahead: where's the throw going if the runner breaks?",
+    "Stay low, stay ready, and trust your arm.",
+    "Good catchers control the running game before the steal attempt.",
+    "Frame it, block it, throw it — that's the job every pitch.",
+    "Talk to your pitcher. Keep him confident and focused."
+  ],
+  firstBase: [
+    "First base is about footwork and focus — one play at a time.",
+    "Stretch saves outs. A good pick saves runs.",
+    "When you hold a runner, you're changing the whole game.",
+    "Know where the throw is going before the ball is hit.",
+    "Good first basemen make tough throws look easy."
+  ],
+  secondBase: [
+    "The middle of the diamond is where games are won.",
+    "Quick feet and a quick release — that's the double play.",
+    "Know the runner's speed before the pitch. It changes everything.",
+    "Cover your area and trust your partner to cover his.",
+    "Positioning is half the play. Be in the right spot before the pitch."
+  ],
+  shortstop: [
+    "Shortstop is the captain of the infield. Own every ground ball.",
+    "Line up your relay and let your arm do the work.",
+    "On a double play, catch it clean first — speed comes from your hands, not rushing.",
+    "Know the situation before every pitch. Where's your throw going?",
+    "The best shortstops make the routine play every single time."
+  ],
+  thirdBase: [
+    "Third base is all about reactions — be ready before the pitch.",
+    "On a bunt, crash hard and trust your arm.",
+    "The hot corner demands quick decisions — read the ball off the bat.",
+    "Know when to charge and when to stay back. Situation tells you.",
+    "A strong throw from deep third saves a lot of hits."
+  ],
+  leftField: [
+    "Hit the cutoff man. Every time. No exceptions.",
+    "Back up third on every play you can get to.",
+    "Read the ball off the bat — your first step decides everything.",
+    "Line drives in the gap test your routes. Practice them.",
+    "A good left fielder keeps doubles from becoming triples."
+  ],
+  centerField: [
+    "You're the boss of the outfield. Call for everything you can get to.",
+    "Back up every throw — be the last line of defense.",
+    "Your first step on fly balls is the most important step in the game.",
+    "Communication is half the job. Talk to your corners.",
+    "A good center fielder covers for everyone and complains about nothing."
+  ],
+  rightField: [
+    "Right field has the longest throw in the game — hit your cutoff.",
+    "Your throw to third base can change the whole inning.",
+    "Read the ball off the bat and take a good angle.",
+    "Back up first on every infield throw you can get to.",
+    "A strong, accurate arm in right field is a weapon."
+  ],
+  batter: [
+    "The best hitters think before the pitch, not during it.",
+    "Know what you're looking for before you step in the box.",
+    "A good at-bat isn't always a hit — it's making the pitcher work.",
+    "With two strikes, your job changes. Protect the plate.",
+    "Situation tells you what kind of swing to take. Listen to it.",
+    "The pitcher's job is to get you out. Your job is to not help him."
+  ],
+  baserunner: [
+    "Smart baserunning wins more games than fast baserunning.",
+    "Read the situation before you commit — you can't undo a bad jump.",
+    "The best baserunners make their decisions before the pitch.",
+    "Know the outfielder's arm before you test it.",
+    "Never make the first or third out at third base.",
+    "Your coach is your eyes. Trust the signs."
+  ],
+  manager: [
+    "Good managers put their players in positions to succeed.",
+    "Every decision has a tradeoff. The best choice isn't always obvious.",
+    "Think two innings ahead. What does this move set up?",
+    "Trust your preparation. The numbers help, but the game tells you more.",
+    "Matchups matter. Put the right player in the right spot at the right time."
+  ],
+  famous: [
+    "The greats made good decisions look easy — but they all started by learning the basics.",
+    "Study the legends and you'll see: fundamentals never go out of style."
+  ],
+  rules: [
+    "Knowing the rules gives you an edge. Use them.",
+    "The best players know the rulebook as well as they know their swing."
+  ],
+  counts: [
+    "The count changes everything. Know your advantage.",
+    "Every count has a story. Learn to read it.",
+    "Ahead or behind — the count tells you what to do next."
+  ]
+}
+
+// Option archetypes: structural hints for AI option generation (25 top position+concept combos)
+const OPTION_ARCHETYPES = {
+  'shortstop:cutoff-roles': {
+    moment: 'Extra-base hit to left side, runner advancing',
+    correct: 'Sprint to relay position between OF and home',
+    kid_mistake: 'Run to cover 2B instead of being the relay',
+    sounds_smart: 'Back up another fielder',
+    clearly_wrong: 'Stay near position and wait'
+  },
+  'shortstop:double-play-turn': {
+    moment: 'Ground ball to left side, runner on first',
+    correct: 'Field cleanly, make quick transfer, throw to first on the turn',
+    kid_mistake: 'Rush the throw without securing the ball first',
+    sounds_smart: 'Hold the ball and take the sure out at first',
+    clearly_wrong: 'Try to tag the runner instead of using the force'
+  },
+  'shortstop:relay-double-cut': {
+    moment: 'Ball hit to deep outfield gap, runners moving',
+    correct: 'Line up as relay between OF and target base',
+    kid_mistake: 'Go to the nearest base to cover',
+    sounds_smart: 'Call off the other middle infielder to take the relay',
+    clearly_wrong: 'Run toward the outfielder to help'
+  },
+  'catcher:catcher-framing': {
+    moment: 'Ahead in count, runner on base',
+    correct: 'Call pitch based on hitter weakness + count advantage',
+    kid_mistake: 'Just call fastball because we\'re ahead',
+    sounds_smart: 'Pitch out to check the runner',
+    clearly_wrong: 'Throw whatever the pitcher wants regardless of situation'
+  },
+  'catcher:steal-breakeven': {
+    moment: 'Runner on first showing steal signs',
+    correct: 'Call pitchout or fastball up, quick release to second',
+    kid_mistake: 'Wait to see if runner actually goes',
+    sounds_smart: 'Signal for pickoff instead of preparing the throw-through',
+    clearly_wrong: 'Ignore the runner and focus only on the batter'
+  },
+  'catcher:first-third': {
+    moment: 'Runners on 1st and 3rd, runner on 1st breaks for 2nd',
+    correct: 'Look runner back at 3rd, throw through to 2B',
+    kid_mistake: 'Throw directly to 2B without checking 3rd runner',
+    sounds_smart: 'Pump fake and hold the ball',
+    clearly_wrong: 'Throw to 3rd base'
+  },
+  'pitcher:first-pitch-strike': {
+    moment: 'New batter stepping in, no runners',
+    correct: 'Attack the zone with a strike to get ahead',
+    kid_mistake: 'Nibble the corner trying to be too perfect',
+    sounds_smart: 'Start with off-speed to surprise the hitter',
+    clearly_wrong: 'Throw as hard as possible regardless of location'
+  },
+  'pitcher:count-leverage': {
+    moment: 'Ahead in count with runners on',
+    correct: 'Expand the zone — make the hitter chase',
+    kid_mistake: 'Groove a fastball to avoid a walk',
+    sounds_smart: 'Waste a pitch way outside',
+    clearly_wrong: 'Just throw strikes down the middle'
+  },
+  'pitcher:pickoff-mechanics': {
+    moment: 'Runner with a big lead, pitcher in stretch',
+    correct: 'Quick look, use pickoff move to keep runner close',
+    kid_mistake: 'Step off the rubber every time (wastes tempo)',
+    sounds_smart: 'Quick-pitch the batter to catch the runner leaning',
+    clearly_wrong: 'Ignore the runner and just pitch'
+  },
+  'batter:two-strike-approach': {
+    moment: 'Two strikes, runner in scoring position',
+    correct: 'Shorten up, protect the plate, focus on contact',
+    kid_mistake: 'Still swing for the fences with 2 strikes',
+    sounds_smart: 'Take a pitch to see what the pitcher throws',
+    clearly_wrong: 'Try to bunt for a hit with 2 strikes'
+  },
+  'batter:count-leverage': {
+    moment: 'Hitter\'s count (2-0 or 3-1), runner on base',
+    correct: 'Sit on your pitch — look for something to drive',
+    kid_mistake: 'Swing at anything because it might be a strike',
+    sounds_smart: 'Take the pitch and wait for an even better count',
+    clearly_wrong: 'Try to bunt for a sacrifice'
+  },
+  'batter:situational-hitting': {
+    moment: 'Runner on 3rd, less than 2 outs, need 1 run',
+    correct: 'Focus on getting the ball in play to the right side or in the air',
+    kid_mistake: 'Try to hit a home run to score the runner easily',
+    sounds_smart: 'Bunt the runner home (wrong with less than 2 outs in most situations)',
+    clearly_wrong: 'Wait for a walk to load the bases'
+  },
+  'baserunner:tag-up': {
+    moment: 'Runner on 3rd, fly ball to medium-deep outfield',
+    correct: 'Tag up on the catch, read the throw, score',
+    kid_mistake: 'Start running on contact instead of tagging',
+    sounds_smart: 'Go halfway and see what happens',
+    clearly_wrong: 'Stay at third no matter what'
+  },
+  'baserunner:force-vs-tag': {
+    moment: 'Runner on 2nd, ground ball to short',
+    correct: 'Know whether it\'s a force or tag situation and react accordingly',
+    kid_mistake: 'Run to the next base regardless of where the ball is hit',
+    sounds_smart: 'Stay at the base to avoid being doubled off',
+    clearly_wrong: 'Run back to the previous base'
+  },
+  'baserunner:secondary-lead': {
+    moment: 'Runner on first, pitch is being delivered',
+    correct: 'Take secondary lead as pitch crosses plate, read the result',
+    kid_mistake: 'Stand on the base until the ball is hit',
+    sounds_smart: 'Take a huge primary lead instead of a controlled secondary',
+    clearly_wrong: 'Start running to second on the pitch'
+  },
+  'baserunner:steal-breakeven': {
+    moment: 'Runner on 1st, close game, catcher has strong arm',
+    correct: 'Check the breakeven math — need 70%+ success rate to attempt',
+    kid_mistake: 'I\'m fast so I should steal',
+    sounds_smart: 'Wait for a passed ball or wild pitch instead',
+    clearly_wrong: 'Steal on the first pitch no matter what'
+  },
+  'firstBase:cutoff-roles': {
+    moment: 'Runner on 1st, pitcher in stretch',
+    correct: 'Hold runner close, give target, react to batted ball after pitch',
+    kid_mistake: 'Play behind the runner (too far from bag)',
+    sounds_smart: 'Crowd the runner to intimidate them',
+    clearly_wrong: 'Move to fielding position before the pitch'
+  },
+  'firstBase:bunt-defense': {
+    moment: 'Bunt situation, runner on 1st or 1st and 2nd',
+    correct: 'Charge on the bunt, field, and make the right throw based on situation',
+    kid_mistake: 'Stay back at the bag instead of charging',
+    sounds_smart: 'Always throw to 2nd for the lead runner',
+    clearly_wrong: 'Wait for the ball to come to you'
+  },
+  'secondBase:double-play-turn': {
+    moment: 'Ground ball to the right side, runner on first',
+    correct: 'Get to the bag, receive throw, make quick turn to first',
+    kid_mistake: 'Stand on the base and wait for the ball to come',
+    sounds_smart: 'Cheat toward second early before the pitch',
+    clearly_wrong: 'Go to first base to try to beat the runner'
+  },
+  'thirdBase:bunt-defense': {
+    moment: 'Bunt situation, runner on 1st or 2nd',
+    correct: 'Crash hard, bare-hand if needed, throw to the right base',
+    kid_mistake: 'Wait back at third in case the runner advances',
+    sounds_smart: 'Only charge on a bunt toward the third-base line',
+    clearly_wrong: 'Stay back and let the pitcher and catcher handle it'
+  },
+  'centerField:fly-ball-priority': {
+    moment: 'Fly ball between CF and corner outfielder',
+    correct: 'Call for it — center fielder has priority over corners',
+    kid_mistake: 'Defer to the corner outfielder who called first',
+    sounds_smart: 'Both go for it and figure it out at the last second',
+    clearly_wrong: 'Assume the other fielder will get it'
+  },
+  'centerField:backup-duties': {
+    moment: 'Ball hit to right side of infield',
+    correct: 'Sprint in to back up the throw to first base',
+    kid_mistake: 'Stay in center field position',
+    sounds_smart: 'Back up second base instead',
+    clearly_wrong: 'Watch the play and react only if there\'s an error'
+  },
+  'leftField:cutoff-roles': {
+    moment: 'Base hit to left, runner rounding second',
+    correct: 'Hit the cutoff man chest-high on the correct line',
+    kid_mistake: 'Throw all the way to third or home (skipping cutoff)',
+    sounds_smart: 'Hold the ball to keep the trailing runner at first',
+    clearly_wrong: 'Lob it in casually'
+  },
+  'rightField:cutoff-roles': {
+    moment: 'Single to right, runner on 2nd heading home',
+    correct: 'Hit the cutoff man on the line to home plate',
+    kid_mistake: 'Try to throw all the way home from right field',
+    sounds_smart: 'Throw to third to prevent the batter from advancing',
+    clearly_wrong: 'Hold the ball and run it in'
+  },
+  'manager:times-through-order': {
+    moment: 'Starter tiring in 6th, pitch count rising, lead narrowing',
+    correct: 'Monitor pitch count + effectiveness, have bullpen ready, make change at right time',
+    kid_mistake: 'Leave the starter in because he started the game',
+    sounds_smart: 'Pull him immediately at first sign of trouble',
+    clearly_wrong: 'Wait until the starter gives up the lead'
+  }
+}
+
 // Concept priority weights: higher = more likely to be selected
 function getConceptWeight(tag, conceptData, playerMasteryData, position) {
-  let weight = 10 // base weight
+  let weight = 10 * (CONCEPT_FUNDAMENTAL_WEIGHTS[position]?.[tag] || 1) // base weight scaled by position fundamentals
 
   const mastery = playerMasteryData.concepts?.[tag]
   const concept = conceptData || BRAIN.concepts[tag]
@@ -8246,11 +8740,12 @@ function planScenario(position, stats, conceptsLearned = [], recentWrong = [], t
   // 3. Select reference scenarios
   const exampleScenarios = KNOWLEDGE_BASE.getScenariosByConceptAndPosition(position, selectedConcept, 3)
 
-  // 4. Select relevant knowledge maps
-  const knowledgeMaps = KNOWLEDGE_BASE.getKnowledgeMapsForPosition(position)
+  // 4. Select relevant knowledge map (concept-specific, not all maps)
+  const relevantMapKey = CONCEPT_MAP_MATCH[selectedConcept]
+  const knowledgeMaps = relevantMapKey && KNOWLEDGE_MAPS[relevantMapKey] ? { [relevantMapKey]: KNOWLEDGE_MAPS[relevantMapKey] } : {}
 
-  // 5. Get Brain data
-  const brainData = KNOWLEDGE_BASE.getBrainDataForSituation(position, {})
+  // 5. Get Brain data (concept-filtered to reduce prompt noise)
+  const brainData = KNOWLEDGE_BASE.getBrainDataForSituation(position, {}, selectedConcept)
 
   // 6. Get avoid patterns from deduplication
   const recentAI = aiHistory.filter(h => h.position === position).slice(-10)
@@ -8370,7 +8865,58 @@ AUDIT CHECKLIST (verify before responding):
 - Every explanation references the SPECIFIC game situation
 - Best answer index (0-3) should vary — do NOT always make the best answer index 0 or 1`
 
-  const qualityRules = scoreRules + descriptionStyle + positionBoundaries + auditInstruction
+  const yellowOptionRule = `
+CRITICAL OPTION RULE: At least ONE wrong option must be "acceptable but not optimal" (rate 45-65).
+This is the YELLOW option — something a decent player might do that isn't terrible but isn't the best play.
+DO NOT make all 3 wrong options obviously terrible. Real baseball decisions involve choosing between
+two reasonable options, not picking the one sane choice among three absurd ones.`
+
+  const explanationRules = `
+EXPLANATION RULES:
+- Wrong answer explanations must say what SPECIFICALLY goes wrong (e.g., "the runner advances to third" NOT "this could lead to problems")
+- Best answer explanation must name the POSITIVE OUTCOME (e.g., "you cut down the lead runner" NOT "this maintains defensive pressure")
+- BANNED PHRASES (never use): "this decision has real consequences", "maintaining defensive pressure", "this could lead to", "this approach fails by", "this action allows you to", "in this situation", "real consequences for the game", "based on the current situation"
+- Write like a COACH talking to a player after the play: "Here's why that works..." or "The problem with that is..."
+- Every explanation must be 1-3 sentences. No more. Short and specific beats long and vague.`
+
+  const voiceExamples = `
+EXPLANATION VOICE (follow GOOD, never write like BAD):
+GOOD: "You throw to the cutoff man because he's lined up with home — if you try to throw all the way home from deep center, the ball bounces and the trail runner takes third. Trust the relay."
+BAD: "Throwing to the cutoff man is the correct decision as it maintains proper relay alignment and prevents defensive breakdowns that could allow additional baserunner advancement."
+
+GOOD: "With two strikes, you choke up and protect the plate. Swinging for the fence here means you're probably striking out, and the runner on third is counting on you to put it in play."
+BAD: "In a two-strike situation with runners in scoring position, adopting a shortened swing approach maximizes contact probability while maintaining situational awareness of baserunner positioning."
+
+GOOD: "The problem with throwing to second here is the runner on third scores easily. You just traded an out for a run. Bad deal."
+BAD: "This approach fails by prioritizing the secondary baserunner while neglecting the immediate scoring threat, resulting in a suboptimal defensive outcome."`
+
+  const qualityRules = scoreRules + descriptionStyle + positionBoundaries + auditInstruction + yellowOptionRule + explanationRules + voiceExamples
+
+  // Option archetype injection
+  const archetypeKey = `${position}:${targetConcept || ''}`
+  const archetype = OPTION_ARCHETYPES[archetypeKey]
+  const archetypeSection = archetype ? `
+OPTION BLUEPRINT (use as structural guide, NOT literal text):
+Typical moment: ${archetype.moment}
+Option A (correct fundamental): ${archetype.correct}
+Option B (common kid mistake): ${archetype.kid_mistake}
+Option C (sounds smart but wrong here): ${archetype.sounds_smart}
+Option D (clearly wrong): ${archetype.clearly_wrong}
+Generate specific game language — do NOT copy these hints word-for-word.
+` : ''
+
+  // ═══════════════════════════════════════════════════════════════
+  // WRONG OPTION DESIGN (structural guide for mistake types)
+  // ═══════════════════════════════════════════════════════════════
+  const wrongOptionDesign = `
+WRONG OPTION DESIGN:
+Each wrong option should represent a DIFFERENT type of mistake:
+1. BEGINNER MISTAKE — What someone who doesn't know the concept would try. This is the most common error coaches see in young players. Rate: 15-30.
+2. EXPERIENCED PLAYER'S MISTAKE — Sounds smart but is wrong in THIS specific situation. This is where real learning happens — the player has to think about WHY it's wrong even though it sounds reasonable. Rate: 45-60.
+3. PANIC REACTION — What happens when a player freezes, rushes, or doesn't think before acting. Rate: 10-25.
+
+The EXPERIENCED PLAYER'S MISTAKE (option 2) is the most important. It's what separates a good scenario from a mediocre one. If you can't think of a plausible-sounding wrong answer, the scenario concept probably isn't rich enough.
+`
 
   // ═══════════════════════════════════════════════════════════════
   // TIER 2: BASEBALL KNOWLEDGE (data to inform the correct answer)
@@ -8435,7 +8981,7 @@ AUDIT CHECKLIST (verify before responding):
   // Randomize template values to prevent patterns (matches standard pipeline)
   const tv = getRandomTemplateValues()
 
-  return `${tier1}${qualityRules}${topicsSection}${tier2}${tier3}${fewShotSection}${avoidText}${contextSection}${voiceSection}${patchSection}${errorReinforcement}
+  return `${tier1}${qualityRules}${archetypeSection}${tier3}${fewShotSection}${wrongOptionDesign}${topicsSection}${tier2}${avoidText}${contextSection}${voiceSection}${patchSection}${errorReinforcement}
 
 NOW: Generate ONE scenario as a JSON object with this EXACT structure:
 {
@@ -8510,6 +9056,18 @@ function gradeAgentScenario(scenario, plan) {
   if (brainWarning) {
     grade.score -= 15
     agentDeductions.push("brain_contradiction: " + brainWarning)
+  }
+
+  // All wrong options too obviously wrong (all < 30)
+  const wrongRates = scenario.rates?.filter((_, i) => i !== scenario.best) || []
+  if (wrongRates.every(r => r < 30)) {
+    grade.score -= 10
+    agentDeductions.push('all_wrong_too_obvious')
+  }
+  // No yellow option (45-65 range among wrong answers)
+  if (!wrongRates.some(r => r >= 45 && r <= 65)) {
+    grade.score -= 5
+    agentDeductions.push('no_yellow_option')
   }
 
   grade.agentDeductions = agentDeductions
@@ -8600,7 +9158,7 @@ async function generateWithAgentPipeline(position, stats, conceptsLearned, recen
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "grok-3-mini",
+        model: "grok-4",
         max_tokens: 2500,
         temperature: aiTemp,
         messages: [
@@ -8613,7 +9171,7 @@ async function generateWithAgentPipeline(position, stats, conceptsLearned, recen
 
     const response = await Promise.race([
       fetch(AI_PROXY_URL, fetchOpts),
-      new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 65000))
+      new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 45000))
     ])
 
     if (!response.ok) throw new Error(`API ${response.status}`)
@@ -8659,25 +9217,32 @@ async function generateWithAgentPipeline(position, stats, conceptsLearned, recen
         const minIdx = scenario.rates.indexOf(Math.min(...scenario.rates))
         scenario.rates[minIdx] = Math.max(10, scenario.rates[scenario.best] - 50)
       }
-      // Ensure worst rate <= 40
-      scenario.rates = scenario.rates.map((r, i) => i !== scenario.best && r > 40 ? Math.min(40, r) : r)
+      // Ensure worst rate <= 40 (but don't touch yellow options 45-65)
+      scenario.rates = scenario.rates.map((r, i) => {
+        if (i === scenario.best) return r
+        if (r >= 45 && r <= 65) return r  // preserve yellow options
+        return r > 40 ? Math.min(40, r) : r
+      })
+      // Ensure at least one yellow option (45-65 range) among wrong answers
+      const yellowExists = scenario.rates.some((r, i) => i !== scenario.best && r >= 45 && r <= 65)
+      if (!yellowExists) {
+        const wrongIdxs = scenario.rates.map((r, i) => ({r, i})).filter(x => x.i !== scenario.best).sort((a,b) => b.r - a.r)
+        if (wrongIdxs.length > 0) {
+          scenario.rates[wrongIdxs[0].i] = 50 + Math.floor(Math.random() * 10) // 50-59
+        }
+      }
     }
 
-    // Auto-fix: Pad short explanations to avoid -12 deduction per explanation
-    // grok-3-mini frequently generates brief explanations that fail length checks
-    // The standard pipeline doesn't penalize for this (no gradeScenario gate)
+    // Auto-fix: Replace short explanations with coaching closers instead of boilerplate
     if (scenario.explanations && scenario.explanations.length === 4) {
       scenario.explanations = scenario.explanations.map((expl, i) => {
-        if (!expl) return "This choice affects the game outcome based on the current situation."
-        // If explanation is too short (< 40 chars), it gets -12 deduction
-        // If < 2 sentences, it gets -8 deduction. Ensure at least 2 sentences.
+        if (!expl) return "This choice affects how the play unfolds."
         const sentences = (expl.match(/[.!?]+/g) || []).length
         if (expl.length < 40 || sentences < 2) {
-          const sit = scenario.situation || {}
-          const outsText = sit.outs !== undefined ? `with ${sit.outs} out${sit.outs !== 1 ? 's' : ''}` : ""
-          const innText = sit.inning ? `in the ${sit.inning} of the inning` : ""
-          const suffix = ` In this situation ${outsText} ${innText}, this decision has real consequences for the game.`.trim()
-          return expl.endsWith('.') || expl.endsWith('!') || expl.endsWith('?') ? expl + suffix : expl + '.' + suffix
+          const closers = COACHING_CLOSERS[plan.position] || COACHING_CLOSERS.batter
+          const closer = closers[Math.floor(Math.random() * closers.length)]
+          const cleanExpl = expl.endsWith('.') || expl.endsWith('!') || expl.endsWith('?') ? expl : expl + '.'
+          return `${cleanExpl} ${closer}`
         }
         return expl
       })
@@ -8867,6 +9432,33 @@ async function generateAIScenario(position, stats, conceptsLearned = [], recentW
     if (recentTitleWords.size > 0) {
       weakAreas.push(`TITLE DIVERSITY \u2014 do NOT use these words in your title: ${[...recentTitleWords].join(", ")}. Choose a completely different angle, situation, and title.`)
     }
+    // Manager topic rotation — force diversity across manager's broad action space
+    if (position === "manager") {
+      const MANAGER_TOPIC_ROTATION = [
+        "pitching change timing (TTO effect, pitch count, fatigue signs)",
+        "defensive positioning (infield in, DP depth, guarding the line)",
+        "sacrifice bunt decision (RE24 analysis — when it helps vs hurts)",
+        "intentional walk decision (when IBB is justified vs harmful)",
+        "pinch hitter matchup (lefty/righty splits, platoon advantage)",
+        "stolen base green light (break-even rate, game context)",
+        "bullpen management (closer usage, matchup reliever, long man)",
+        "mound visit timing (buy time vs calm pitcher vs signal bullpen)",
+        "defensive substitution (late-game defense-first move)",
+        "first-and-third defense call (throw through vs cut vs hold)"
+      ]
+      // Pick topic with fewest recent AI plays
+      const recentTopicCounts = {}
+      MANAGER_TOPIC_ROTATION.forEach(t => { recentTopicCounts[t] = 0 })
+      recentAI.forEach(h => {
+        const title = (h.title || "").toLowerCase()
+        MANAGER_TOPIC_ROTATION.forEach(t => {
+          const topicWords = t.split(/[^a-z]+/i).filter(w => w.length > 3)
+          if (topicWords.some(w => title.includes(w.toLowerCase()))) recentTopicCounts[t]++
+        })
+      })
+      const leastUsedTopic = MANAGER_TOPIC_ROTATION.reduce((best, t) => (recentTopicCounts[t] || 0) < (recentTopicCounts[best] || 0) ? t : best)
+      weakAreas.push(`MANDATORY TOPIC: Create a scenario about ${leastUsedTopic}. This topic has been underrepresented in recent scenarios.`)
+    }
   }
 
   const diffTarget = posAcc > 75 ? 3 : posAcc > 50 ? 2 : 1;
@@ -8910,7 +9502,7 @@ async function generateAIScenario(position, stats, conceptsLearned = [], recentW
   } catch {}
 
   // Sprint 5: Condensed AI prompt for speed + Sprint 6: Scoped context for quality
-  const aiMapText = getAIMap(position)
+  const aiMapText = getAIMap(position, targetConcept)
   const teachCtx = getTeachingContext(position, conceptsLearned, stats.ageGroup||"11-12")
   const masteredStr = conceptsLearned.length > 0 ? " Mastered: " + conceptsLearned.slice(-8).join(", ") + "." : ""
   const topicsText = AI_SCENARIO_TOPICS[position] || ""
@@ -8956,7 +9548,7 @@ ${bibleConfig.useBible !== false ? "DETAILED PRINCIPLES: " + (BIBLE_PRINCIPLES[p
 
 ${aiMapText}
 
-${brainConfig.brainLevel !== "minimal" ? formatBrainForAI(position, {count: null, inning: "", score: []}) : ""}
+${brainConfig.brainLevel !== "minimal" ? formatBrainForAI(position, {count: null, inning: "", score: []}, targetConcept) : ""}
 
 AUDIT: All 4 options must be actions THIS position performs at the SAME decision point. The scenario TITLE must describe something this position does (not another position's job). Best answer=coaching consensus backed by modern analytics. rates[best] MUST be highest. score=[HOME,AWAY].${errorReinforcement}
 POSITION-ACTION BOUNDARIES: ${(() => {
@@ -8977,6 +9569,24 @@ POSITION-ACTION BOUNDARIES: ${(() => {
   return POS_ACTIONS[position] || POS_ACTIONS.manager;
 })()}
 NEVER give this position options that belong to another position. Fielders do NOT call IBBs, shift the defense, call for pitchouts, or make pitching changes. Baserunner CANNOT "yell at pitcher", "call a play", "signal the batter". If a game event removes all meaningful decisions from a position, do NOT create a scenario about that event.
+${position === "baserunner" ? `
+BASERUNNER OPTION STRUCTURE: Every option must be a physical running/positioning action the baserunner takes:
+- Lead distance: "Take an aggressive 15-foot lead" / "Shorten your lead to 8 feet"
+- Steal/hold: "Break for [base] on the pitcher's first move" / "Hold at [base]"
+- Tag-up: "Tag up and sprint to [next base] after the catch" / "Hold at [base] after the catch"
+- Read the ball: "Freeze on the line drive, then advance if it drops" / "Break immediately on contact"
+- Secondary lead: "Get your secondary lead and read the ball off the bat"
+NEVER include: yelling, signaling, calling plays, or any action where the baserunner communicates to others.
+You MUST specify which base the runner is on in the description. Options must be consistent with that base.
+IMPORTANT: Your response must be ONLY valid JSON starting with { and ending with }. No markdown fences, no explanation text.` : ""}${position === "manager" ? `
+MANAGER OPTION STRUCTURE: Every option must be a concrete managerial decision:
+- Pitching: "Pull the starter and bring in [reliever type]" / "Leave the starter in for one more batter"
+- Defense: "Play the infield in to cut off the run" / "Play at normal depth"
+- Signs: "Give the steal sign" / "Call for a sacrifice bunt" / "Put on the hit-and-run"
+- Personnel: "Send up a pinch hitter" / "Make a defensive substitution"
+NEVER include: vague options like "make a smart move", "trust your instincts", or "see what happens".
+Each option must be a DIFFERENT type of decision when possible (don't make all 4 about pitching changes).
+IMPORTANT: Your response must be ONLY valid JSON starting with { and ending with }. No markdown fences, no explanation text.` : ""}
 ${analyticsRules}
 ${flaggedAvoidText}${realGameFeelText}${promptPatchText}
 
@@ -9003,7 +9613,7 @@ count format: "B-S" (0-3 balls, 0-2 strikes) or "-". runners: [] empty, [1]=1st,
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "grok-3-mini",
+        model: "grok-4",
         max_tokens: 2500,
         temperature: aiTemp,
         messages: [
@@ -9056,7 +9666,7 @@ COMMON MISTAKES TO AVOID:
     const _aiT0 = Date.now()
     const response = await Promise.race([
       fetch(AI_PROXY_URL, fetchOpts),
-      new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 65000))
+      new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 45000))
     ]);
     const _aiFetchMs = Date.now() - _aiT0
 
@@ -9293,7 +9903,7 @@ COMMON MISTAKES TO AVOID:
     }
 
     // QUALITY_FIREWALL \u2014 run all automated checks
-    const fwResult = QUALITY_FIREWALL.validate(scenario)
+    const fwResult = QUALITY_FIREWALL.validate(scenario, position)
     if (!fwResult.pass) {
       const failMsg = fwResult.tier1Fails.map(f => f.message).join("; ")
       console.warn("[BSM] AI scenario rejected by QUALITY_FIREWALL:", failMsg)
@@ -9396,7 +10006,9 @@ COMMON MISTAKES TO AVOID:
           const shared = newKw.filter(w => rKw.includes(w)).length
           return shared / Math.min(newKw.length, Math.max(rKw.length, 1)) > 0.5
         }).length
-        if (overlapCount >= 3) {
+        // Manager titles are more abstract — require higher overlap threshold to avoid false positives
+        const stalenessThreshold = position === "manager" ? 4 : 3
+        if (overlapCount >= stalenessThreshold) {
           console.warn("[BSM] AI scenario rejected: topic staleness — title keywords overlap with", overlapCount, "recent scenarios")
           throw new Error("Duplicate: topic staleness (" + overlapCount + " keyword overlaps)")
         }
@@ -9412,6 +10024,7 @@ COMMON MISTAKES TO AVOID:
     try {
       const grade = gradeScenario(scenario, position);
       scenario.qualityGrade = grade.score;
+      console.log(`[BSM Grade] ${position}: score=${grade.score}/100, pass=${grade.pass}, deductions=[${grade.deductions.join(', ')}]`)
       if (grade.score > 0) {
         fetch(WORKER_BASE + "/analytics/scenario-grade", {
           method: "POST",
@@ -9419,8 +10032,13 @@ COMMON MISTAKES TO AVOID:
           body: JSON.stringify({ scenario_id: scenario.id, position, score: grade.score, pass: grade.pass, deductions: grade.deductions, source: "standard" })
         }).catch(() => {});
       }
-      // Upload to community pool if quality is high enough
-      if (grade.score >= 80) {
+      // Upload to community pool — dynamic threshold: lower bar for underserved positions
+      const poolStats = getLocalPoolStats(position)
+      const serverCount = _serverPoolCounts?.[position] || 0
+      const combinedCount = (poolStats?.count || 0) + serverCount
+      const clientPoolThreshold = combinedCount < 3 ? 65 : 75
+      console.log(`[BSM Pool Gate] ${position}: grade=${grade.score}, threshold=${clientPoolThreshold}, poolCount=${combinedCount}`)
+      if (grade.score >= clientPoolThreshold) {
         submitToServerPool(scenario, position, grade.score / 10, scenario.auditScore || 0)
       }
     } catch (e) { /* non-critical */ }
@@ -9447,7 +10065,7 @@ Respond with ONLY JSON: {"score":3,"realistic":3,"options":3,"coach":3,"tone":3,
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              model: "grok-3-mini",
+              model: "grok-4",
               max_tokens: 200,
               temperature: 0.2,
               messages: [
@@ -9556,6 +10174,19 @@ function getRandomTemplateValues() {
 
 // Module-level recent title tracking (survives across React renders, unlike aiHistory)
 const _recentAITitles = []
+
+// Pool stats helpers for dynamic quality thresholds
+let _serverPoolCounts = {}
+try {
+  fetch(WORKER_BASE + "/scenario-pool/stats")
+    .then(r => r.json()).then(d => { _serverPoolCounts = d.counts || {} }).catch(() => {})
+} catch {}
+function getLocalPoolStats(position) {
+  try {
+    const pool = JSON.parse(localStorage.getItem('bsm_local_pool') || '{}')
+    return { count: (pool[position] || []).length }
+  } catch { return { count: 0 } }
+}
 
 // ═══════════════════════════════════════════════════════════════
 // generateAISituation — creates multi-position situation sets via AI
@@ -9757,12 +10388,13 @@ OPTION RULES:
 
 POSITION BOUNDARIES: Each position can ONLY do actions that position actually performs. Pitcher ≠ cutoff/relay. Fielders ≠ IBB/pitching changes. Baserunner ≠ calling plays.`;
 
+  const _t0 = Date.now();
   try {
     const fetchOpts = {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "grok-3-mini",
+        model: "grok-4",
         max_tokens: 4000,
         temperature: 0.4,
         messages: [
@@ -9772,11 +10404,10 @@ POSITION BOUNDARIES: Each position can ONLY do actions that position actually pe
       })
     };
     if (signal) fetchOpts.signal = signal;
-
-    const _t0 = Date.now();
+    console.log("[BSM] AI Situation fetch starting, positions:", selectedPos.join(","), "model: grok-4");
     const response = await Promise.race([
       fetch(AI_PROXY_URL, fetchOpts),
-      new Promise((_, rej) => setTimeout(() => rej(new Error("Timeout")), 65000))
+      new Promise((_, rej) => setTimeout(() => rej(new Error("Timeout")), 45000))
     ]);
     const _ms = Date.now() - _t0;
 
@@ -9855,7 +10486,7 @@ POSITION BOUNDARIES: Each position can ONLY do actions that position actually pe
 
       // Run QUALITY_FIREWALL on individual question
       try {
-        const fwResult = QUALITY_FIREWALL.validate(q);
+        const fwResult = QUALITY_FIREWALL.validate(q, q.pos);
         if (!fwResult.pass) {
           console.warn("[BSM] AI Sit Q" + qi + " firewall fail:", fwResult.tier1Fails.map(f => f.message).join("; "));
           continue; // skip this question
@@ -9936,8 +10567,13 @@ POSITION BOUNDARIES: Each position can ONLY do actions that position actually pe
     return finalSet;
   } catch (err) {
     const msg = err.message || "";
-    console.error("[BSM] AI Situation generation failed:", msg);
-    reportError("ai_situation", msg, { positions: selectedPos.join(",") });
+    const elapsed = Date.now() - _t0;
+    if (err.name === "AbortError") {
+      console.warn("[BSM] AI Situation aborted after " + elapsed + "ms (likely timeout)");
+    } else {
+      console.error("[BSM] AI Situation generation failed after " + elapsed + "ms:", msg);
+    }
+    reportError("ai_situation", msg, { positions: selectedPos.join(","), elapsed });
     return null;
   }
 }
@@ -10040,8 +10676,12 @@ async function fetchFromServerPool(position, difficulty, conceptTag, excludeIds 
 }
 
 function submitToServerPool(scenario, position, qualityScore, auditScore) {
-  // Non-blocking — fire and forget
-  if ((qualityScore || 0) < 8.0) return // only submit quality scenarios
+  // Non-blocking — fire and forget (worker enforces dynamic quality gate per position pool size)
+  if ((qualityScore || 0) < 7.5) {
+    console.log("[BSM Pool] Skipped — quality too low:", qualityScore, "for", position)
+    return
+  }
+  console.log("[BSM Pool] Submitting to server pool:", position, "score:", qualityScore, "title:", scenario.title)
   fetch(WORKER_BASE + "/scenario-pool/submit", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -10053,9 +10693,10 @@ function submitToServerPool(scenario, position, qualityScore, auditScore) {
       source: "ai"
     })
   }).then(r => r.json()).then(data => {
-    if (data.status === "added") console.log("[BSM Pool] Contributed to server pool:", scenario.title)
-    else if (data.status === "duplicate_updated") console.log("[BSM Pool] Updated existing pool entry:", scenario.title)
-  }).catch(() => {})
+    if (data.status === "added") console.log("[BSM Pool] Added to server pool:", scenario.title, "score:", qualityScore)
+    else if (data.status === "duplicate_updated") console.log("[BSM Pool] Updated existing:", scenario.title)
+    else console.log("[BSM Pool] Rejected:", JSON.stringify(data))
+  }).catch(err => console.warn("[BSM Pool] Submit failed:", err.message))
 }
 
 function reportPoolFeedback(poolId, correct, flagged = false) {
@@ -13565,8 +14206,8 @@ export default function App(){
             {stats.isPro?<>{!explainMore&&!explainLoading&&<button onClick={async()=>{
               setExplainLoading(true);
               try{
-                const _ec=new AbortController();const _et=setTimeout(()=>_ec.abort(),15000);
-                const res=await fetch(AI_PROXY_URL,{method:"POST",headers:{"Content-Type":"application/json"},signal:_ec.signal,body:JSON.stringify({model:"grok-4-1-fast",messages:[{role:"system",content:"You are a baseball coach explaining concepts to young players (ages 8-18). Keep it clear, engaging, and under 100 words. Use specific examples."},{role:"user",content:`Explain this baseball concept in more depth: "${od.concept}". The player ${od.isOpt?"got this right":"got this wrong"} in a ${POS_META[pos]?.label||pos} scenario. Give a deeper explanation with a real-game example.`}],max_tokens:200,temperature:0.5})});
+                const _ec=new AbortController();const _et=setTimeout(()=>_ec.abort(),45000);
+                const res=await fetch(AI_PROXY_URL,{method:"POST",headers:{"Content-Type":"application/json"},signal:_ec.signal,body:JSON.stringify({model:"grok-4",messages:[{role:"system",content:"You are a baseball coach explaining concepts to young players (ages 8-18). Keep it clear, engaging, and under 100 words. Use specific examples."},{role:"user",content:`Explain this baseball concept in more depth: "${od.concept}". The player ${od.isOpt?"got this right":"got this wrong"} in a ${POS_META[pos]?.label||pos} scenario. Give a deeper explanation with a real-game example.`}],max_tokens:200,temperature:0.5})});
                 clearTimeout(_et);
                 if(!res.ok)throw new Error("API "+res.status);
                 const d=await res.json();
@@ -13901,7 +14542,7 @@ export default function App(){
             {stats.isPro&&!aiSitLoading&&<button onClick={async()=>{
               setAiSitLoading(true);snd.play('tap');
               const ctrl=new AbortController();aiSitAbortRef.current=ctrl;
-              const timeout=setTimeout(()=>{ctrl.abort();setAiSitLoading(false);setToast({e:"⏰",n:"Timed Out",d:"Couldn't create a situation right now. Try a handcrafted one!"});setTimeout(()=>setToast(null),4000)},55000);
+              const timeout=setTimeout(()=>{ctrl.abort();setAiSitLoading(false);setToast({e:"⏰",n:"Timed Out",d:"Couldn't create a situation right now. Try a handcrafted one!"});setTimeout(()=>setToast(null),4000)},45000);
               try{
                 const result=await generateAISituation(stats,ctrl.signal);
                 clearTimeout(timeout);
