@@ -1303,7 +1303,7 @@ async function handleAIProxy(request, env, cors) {
   }
   const body = await request.text();
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 60000);
+  const timeout = setTimeout(() => controller.abort(), 75000);
   try {
     const t0 = Date.now();
     const xaiResponse = await fetch("https://api.x.ai/v1/chat/completions", {
@@ -1336,8 +1336,8 @@ async function handleAIProxy(request, env, cors) {
   } catch (e) {
     clearTimeout(timeout);
     if (e.name === "AbortError") {
-      console.error("[BSM Worker] xAI timeout after 60s");
-      return jsonResponse({ error: { message: "xAI API timeout (60s)", type: "timeout" } }, 504, cors);
+      console.error("[BSM Worker] xAI timeout after 75s");
+      return jsonResponse({ error: { message: "xAI API timeout (75s)", type: "timeout" } }, 504, cors);
     }
     console.error("[BSM Worker] xAI fetch error:", e.message);
     return jsonResponse({ error: { message: e.message, type: "fetch_error" } }, 502, cors);
@@ -1461,6 +1461,39 @@ async function handleFeedbackScenario(request, env, cors) {
         ON CONFLICT(scenario_id) DO UPDATE SET flag_count = flag_count + 1, flagged_at = excluded.flagged_at
       `).bind(scenario_id, position, new Date().toISOString()).run();
     } catch { /* legacy table may not exist */ }
+
+    // Real-time prompt patch: if 3+ flags for this position+category in last 7 days, auto-create patch
+    try {
+      const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000
+      const flagCount = await env.DB.prepare(
+        'SELECT COUNT(*) as cnt FROM scenario_feedback WHERE position = ? AND flag_category = ? AND created_at > ?'
+      ).bind(position, flag_category, sevenDaysAgo).first()
+
+      if (flagCount?.cnt >= 3) {
+        const existingPatch = await env.DB.prepare(
+          'SELECT id FROM prompt_patches WHERE position = ? AND trigger_type = ? AND active = 1 AND expires_at > ?'
+        ).bind(position, flag_category, Date.now()).first()
+
+        if (!existingPatch) {
+          const PATCH_TEMPLATES = {
+            confusing_text: `QUALITY ALERT for ${position}: Recent player feedback reports confusing explanations. Write SHORT, CLEAR sentences. Start explanations with "You..." or "The problem with..." NO filler phrases. NO abstract language. Be specific about what happens on the field.`,
+            wrong_answer: `ACCURACY ALERT for ${position}: Recent player feedback reports incorrect best answers. Double-check that the best option follows standard coaching consensus. Verify the game situation makes the answer possible.`,
+            unrealistic: `REALISM ALERT for ${position}: Recent player feedback reports unrealistic game situations. Ensure the scenario could actually happen in a real game. Check that outs, runners, score, and inning are consistent.`,
+            too_easy_hard: `DIFFICULTY ALERT for ${position}: Recent data shows scenarios are too easy or too hard. Make wrong options more plausible. Include at least one "sounds smart but wrong" option rated 45-60.`,
+            wrong_position: `ROLE ALERT for ${position}: Recent player feedback says scenarios ask this position to do another position's job. Every option must be an action THIS position performs.`,
+          }
+          const patchText = PATCH_TEMPLATES[flag_category] || `QUALITY ALERT for ${position}: Multiple player flags (${flag_category}). Review and improve scenario quality.`
+          const thirtyDays = 30 * 24 * 60 * 60 * 1000
+          await env.DB.prepare(
+            'INSERT INTO prompt_patches (position, patch_text, trigger_type, confidence, expires_at, active, created_at, updated_at) VALUES (?, ?, ?, 0.5, ?, 1, ?, ?)'
+          ).bind(position, patchText, flag_category, Date.now() + thirtyDays, Date.now(), Date.now()).run()
+          console.log(`[BSM Feedback] Auto-created prompt patch for ${position}:${flag_category} (${flagCount.cnt} flags)`)
+        }
+      }
+    } catch (e) {
+      console.warn("[BSM Feedback] Prompt patch auto-generation failed:", e.message)
+    }
+
     return jsonResponse({ ok: true }, 200, cors);
   } catch (e) {
     return jsonResponse({ error: String(e) }, 500, cors);
@@ -1614,6 +1647,47 @@ async function handleScenarioGrade(request, env, cors) {
 // Community Scenario Pool — shared across all users
 // ============================================================================
 
+// Extract a concept tag from free-text concept description via keyword matching
+function extractConceptTag(conceptText) {
+  if (!conceptText) return ''
+  const TAG_MAP = {
+    'steal': 'steal-window',
+    'pickoff': 'pickoff-mechanics',
+    'pick.?off': 'pickoff-mechanics',
+    'first.?pitch': 'first-pitch-strike',
+    'count': 'count-leverage',
+    'relay': 'relay-double-cut',
+    'cutoff': 'cutoff-alignment',
+    'cut.?off': 'cutoff-alignment',
+    'backup': 'backup-duties',
+    'back.?up': 'backup-duties',
+    'bunt': 'bunt-defense',
+    'double.?play': 'double-play-turn',
+    'force': 'force-vs-tag',
+    'tag.?up': 'tag-up-rules',
+    'fly.?ball': 'fly-ball-priority',
+    'pitch.?clock': 'pitch-clock-strategy',
+    'two.?strike': 'two-strike-approach',
+    '2.?strike': 'two-strike-approach',
+    'situational': 'situational-hitting',
+    'pitch.?call': 'pitch-calling',
+    'pitch.?sequence': 'pitch-sequencing',
+    'hold': 'holding-runners',
+    'squeeze': 'squeeze-play',
+    'hit.?and.?run': 'hit-and-run',
+    'rundown': 'rundown',
+    'sacrifice': 'sacrifice-bunt',
+    'infield.?fly': 'infield-fly-rule',
+    'ibb': 'ibb-strategy',
+    'intentional': 'ibb-strategy',
+  }
+  const lc = conceptText.toLowerCase()
+  for (const [pattern, tag] of Object.entries(TAG_MAP)) {
+    if (new RegExp(pattern, 'i').test(lc)) return tag
+  }
+  return ''
+}
+
 // POST /scenario-pool/submit — contribute a quality AI scenario to the shared pool
 async function handlePoolSubmit(request, env, cors) {
   try {
@@ -1624,9 +1698,15 @@ async function handlePoolSubmit(request, env, cors) {
       return jsonResponse({ error: "Missing scenario, position, or title" }, 400, cors);
     }
 
-    // Quality gate: only accept scenarios scoring >= 8.0
-    if ((quality_score || 0) < 8.0) {
-      return jsonResponse({ error: "Quality score too low for pool", min: 8.0, got: quality_score }, 400, cors);
+    // Quality gate: dynamic threshold based on pool size for this position
+    // Underserved positions (< 3 scenarios) get a lower gate to bootstrap the pool
+    const poolCount = await env.DB.prepare(
+      'SELECT COUNT(*) as cnt FROM scenario_pool WHERE position = ? AND retired = 0'
+    ).bind(position).first()
+    const qualityGate = (poolCount?.cnt || 0) < 3 ? 7.5 : 8.0
+
+    if ((quality_score || 0) < qualityGate) {
+      return jsonResponse({ error: "Quality score too low for pool", min: qualityGate, got: quality_score, pool_size: poolCount?.cnt || 0 }, 400, cors);
     }
 
     // Generate stable pool ID from content hash (prevents exact duplicates)
@@ -1668,7 +1748,7 @@ async function handlePoolSubmit(request, env, cors) {
       position,
       scenario.diff || 2,
       scenario.concept || "",
-      scenario.conceptTag || "",
+      scenario.conceptTag || extractConceptTag(scenario.concept || ""),
       scenario.title,
       JSON.stringify(cleanScenario),
       quality_score || 0,
@@ -2278,6 +2358,24 @@ export default {
         return await handlePoolStats(request, env, cors);
       } catch {
         return jsonResponse({ error: "Server error" }, 500, cors);
+      }
+    }
+
+    // Backfill concept_tag for existing pool scenarios with empty tags
+    if (path === "/scenario-pool/backfill-tags" && request.method === "POST") {
+      try {
+        const rows = await env.DB.prepare('SELECT id, concept FROM scenario_pool WHERE concept_tag = "" OR concept_tag IS NULL').all()
+        let updated = 0
+        for (const row of (rows.results || [])) {
+          const tag = extractConceptTag(row.concept)
+          if (tag) {
+            await env.DB.prepare('UPDATE scenario_pool SET concept_tag = ? WHERE id = ?').bind(tag, row.id).run()
+            updated++
+          }
+        }
+        return jsonResponse({ ok: true, scanned: (rows.results || []).length, updated }, 200, cors)
+      } catch (e) {
+        return jsonResponse({ error: e.message }, 500, cors)
       }
     }
 

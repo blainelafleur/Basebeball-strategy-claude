@@ -4844,44 +4844,8 @@ function getAIFewShot(position, targetConcept = null, difficulty = 2) {
     : position === "baserunner" ? AI_FEW_SHOT_EXAMPLES.baserunner
     : AI_FEW_SHOT_EXAMPLES.manager
   const primary = Array.isArray(pool) ? pool[Math.floor(Math.random() * pool.length)] : pool
-
-  // Secondary: pick from handcrafted scenarios for this position (condensed)
-  const hcPool = (SCENARIOS[position] || []).filter(s => s.diff === difficulty || !targetConcept)
-  let secondary = null
-  if (targetConcept && hcPool.length > 0) {
-    // Find a scenario matching the target concept
-    const conceptMatch = hcPool.find(s => s.concept && s.concept.toLowerCase().includes(targetConcept.toLowerCase()))
-    if (conceptMatch) {
-      secondary = JSON.stringify({
-        title: conceptMatch.title, diff: conceptMatch.diff,
-        description: conceptMatch.description,
-        situation: conceptMatch.situation,
-        options: conceptMatch.options, best: conceptMatch.best,
-        explanations: conceptMatch.explanations,
-        rates: conceptMatch.rates, concept: conceptMatch.concept, anim: conceptMatch.anim || "strike"
-      })
-    }
-  }
-  // Tertiary: a different difficulty example from the pool
-  let tertiary = null
-  if (hcPool.length > 3) {
-    const diffMatch = hcPool.find(s => s.diff !== difficulty && s.id !== (secondary ? JSON.parse(secondary).title : ""))
-    if (diffMatch) {
-      tertiary = JSON.stringify({
-        title: diffMatch.title, diff: diffMatch.diff,
-        description: diffMatch.description,
-        situation: diffMatch.situation,
-        options: diffMatch.options, best: diffMatch.best,
-        explanations: diffMatch.explanations,
-        rates: diffMatch.rates, concept: diffMatch.concept, anim: diffMatch.anim || "strike"
-      })
-    }
-  }
-
-  let result = primary
-  if (secondary) result += "\n\nADDITIONAL EXAMPLE (concept-matched):\n" + secondary
-  if (tertiary) result += "\n\nADDITIONAL EXAMPLE (different difficulty):\n" + tertiary
-  return result
+  // Single few-shot example to keep prompt size manageable for Grok latency
+  return primary
 }
 
 const AI_SCENARIO_TOPICS = {
@@ -9171,7 +9135,7 @@ async function generateWithAgentPipeline(position, stats, conceptsLearned, recen
 
     const response = await Promise.race([
       fetch(AI_PROXY_URL, fetchOpts),
-      new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 45000))
+      new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 75000))
     ])
 
     if (!response.ok) throw new Error(`API ${response.status}`)
@@ -9666,7 +9630,7 @@ COMMON MISTAKES TO AVOID:
     const _aiT0 = Date.now()
     const response = await Promise.race([
       fetch(AI_PROXY_URL, fetchOpts),
-      new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 45000))
+      new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 75000))
     ]);
     const _aiFetchMs = Date.now() - _aiT0
 
@@ -12128,7 +12092,7 @@ export default function App(){
       }
       const _aiHist=stats.aiHistory||[]
       const _aiStartMs=Date.now()
-      const AI_BUDGET=65000
+      const AI_BUDGET=90000
       // Sprint 5: Try pre-cached scenario first for instant load
       let ctrl=null
       let result=consumeCachedAI(p)
