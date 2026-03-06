@@ -63,7 +63,7 @@ Lines 8800-12200:   Main App() component (game state, UI, all screens)
 - **Pro tier**: Unlimited plays, AI scenarios, all themes/avatar, streak freeze, 2x XP
 
 ## AI Integration
-- Uses xAI Grok (`grok-4-1-fast`) via Cloudflare Worker proxy
+- Uses xAI Grok (`grok-4`) via Cloudflare Worker proxy
 - Worker URL: `AI_PROXY_URL` constant in index.jsx
 - Sends player context: level, position accuracy, mastered concepts, recent wrong answers
 - Real-time X search removed (xAI deprecated the tool API)

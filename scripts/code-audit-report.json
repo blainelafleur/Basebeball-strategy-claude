@@ -1,0 +1,32 @@
+{
+  "timestamp": "2026-03-04T17:50:56.023Z",
+  "verdict": "🟡 NEEDS ATTENTION",
+  "fileSize": "1701 KB",
+  "lineCount": 12208,
+  "scenarioCount": 621,
+  "errors": [],
+  "warnings": [
+    "Documented scenario count (330) differs from actual (621)",
+    "Could not find AI_PROXY_URL constant",
+    "25 console.log statements found (consider removing for production)",
+    "DEFAULT state may be missing fields: lv, xp",
+    "Potentially unreferenced: proGate (only 1 occurrence)",
+    "Potentially unreferenced: getRelevantMaps (only 1 occurrence)",
+    "Potentially unreferenced: getRelevantAudits (only 1 occurrence)",
+    "Potentially unreferenced: getMatchupData (only 1 occurrence)",
+    "Potentially unreferenced: getAIQualityStats (only 1 occurrence)",
+    "... and 2 more potentially unreferenced functions"
+  ],
+  "info": [
+    "Stripe Payment Links found: 2 ✓",
+    "  Line 7317: console.log(\"[BSM Session] Using learning path:\", activePath.name, \"progress:\", ",
+    "  Line 7347: console.log(\"[BSM Session] Planned\", plan.length, \"scenarios for\", position + \":",
+    "  Line 7670: console.log(\"[BSM Agent] Calibration patch applied:\", match.adjustment, match.co",
+    "  Line 7674: console.log(\"[BSM Agent] Plan:\", plan.teachingGoal, \"concept:\", plan.targetConce",
+    "  Line 7721: console.log(\"[BSM Agent] Grade:\", grade.score, \"pass:\", grade.pass, \"deductions:",
+    "No TODO/FIXME/HACK comments ✓",
+    "Animation types used in scenarios: strikeout, strike, groundout, doubleplay, flyout, safe, catch, walk, bunt, hit, throwHome, advance, steal, freeze, score, rundown",
+    "All 15 position arrays present ✓",
+    "File size: 1701 KB ✓"
+  ]
+}

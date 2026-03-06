@@ -1243,10 +1243,10 @@ DATA REFERENCE: {formatBrainStats(position)}
 - `explanations[i]` explains ONLY `options[i]`. Best answer explanation starts positive. Wrong answers explain WHY they fail.
 
 ### API Configuration
-- Model: `grok-4-1-fast` (xAI Grok)
+- Model: `grok-4` (xAI Grok — flagship)
 - Temperature: `0.4` (low for factual accuracy)
-- Max tokens: `1000`
-- Timeout: `25000ms` (25 seconds)
+- Max tokens: `1500`
+- Timeout: `45000ms` (45 seconds)
 - Proxy: Cloudflare Worker at `AI_PROXY_URL`
 
 ### Post-Generation Validation
