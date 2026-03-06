@@ -9087,7 +9087,7 @@ async function flushLearningBatch() {
 // ============================================================================
 // Level 3.7: Agent Pipeline with Shadow Mode
 // ============================================================================
-async function generateWithAgentPipeline(position, stats, conceptsLearned, recentWrong, signal, targetConcept, aiHistory, flaggedAvoidText = "", previousScenario = null) {
+async function generateWithAgentPipeline(position, stats, conceptsLearned, recentWrong, signal, targetConcept, aiHistory, flaggedAvoidText = "", previousScenario = null, timeoutMs = 75000) {
   // Stage 1: Plan
   const plan = planScenario(position, stats, conceptsLearned, recentWrong, targetConcept, aiHistory)
   if (flaggedAvoidText) plan.flaggedAvoidText = flaggedAvoidText
@@ -9135,7 +9135,7 @@ async function generateWithAgentPipeline(position, stats, conceptsLearned, recen
 
     const response = await Promise.race([
       fetch(AI_PROXY_URL, fetchOpts),
-      new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 75000))
+      new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), Math.max(10000, timeoutMs)))
     ])
 
     if (!response.ok) throw new Error(`API ${response.status}`)
@@ -9278,7 +9278,8 @@ function getActiveABConfigs(sessionHash) {
   return configs
 }
 
-async function generateAIScenario(position, stats, conceptsLearned = [], recentWrong = [], signal = null, targetConcept = null, aiHistory = [], previousScenario = null) {
+async function generateAIScenario(position, stats, conceptsLearned = [], recentWrong = [], signal = null, targetConcept = null, aiHistory = [], previousScenario = null, budgetMs = 75000) {
+  const _aiFlowStart = Date.now()
   // Self-Learning AI: Fetch semantic feedback patterns + prompt patches (replaces old ID-based injection)
   let flaggedAvoidText = ""
   let promptPatchText = ""
@@ -9361,13 +9362,16 @@ async function generateAIScenario(position, stats, conceptsLearned = [], recentW
   try {
     const abConfigs = getActiveABConfigs(stats.sessionHash || "")
     const agentConfig = abConfigs.agent_pipeline || {}
-    if (agentConfig.useAgent) {
-      console.log("[BSM] Trying agent pipeline (A/B variant: agent)")
-      const agentResult = await generateWithAgentPipeline(position, stats, conceptsLearned, recentWrong, signal, targetConcept, aiHistory, flaggedAvoidText + realGameFeelText + promptPatchText, previousScenario)
+    const agentBudget = budgetMs - (Date.now() - _aiFlowStart) - 2000
+    if (agentConfig.useAgent && agentBudget >= 10000) {
+      console.log("[BSM] Trying agent pipeline (A/B variant: agent, budget:", Math.round(agentBudget / 1000) + "s)")
+      const agentResult = await generateWithAgentPipeline(position, stats, conceptsLearned, recentWrong, signal, targetConcept, aiHistory, flaggedAvoidText + realGameFeelText + promptPatchText, previousScenario, Math.min(75000, agentBudget))
       if (agentResult && agentResult.scenario) {
         return { scenario: agentResult.scenario, abVariants: { pipeline: "agent", grade: agentResult.agentGrade?.score } }
       }
       console.log("[BSM] Agent pipeline returned null, falling back to standard")
+    } else if (agentConfig.useAgent) {
+      console.log("[BSM] Skipping agent pipeline — insufficient budget:", Math.round(agentBudget / 1000) + "s")
     }
   } catch (agentErr) {
     console.warn("[BSM] Agent pipeline error, falling back:", agentErr.message)
@@ -9628,9 +9632,15 @@ COMMON MISTAKES TO AVOID:
     if (signal) fetchOpts.signal = signal;
 
     const _aiT0 = Date.now()
+    const stdBudget = budgetMs - (Date.now() - _aiFlowStart) - 2000
+    if (stdBudget < 10000) {
+      console.warn("[BSM] Skipping standard pipeline — insufficient budget:", Math.round(stdBudget / 1000) + "s")
+      return { error: "timeout" }
+    }
+    console.log("[BSM] Standard pipeline budget:", Math.round(stdBudget / 1000) + "s")
     const response = await Promise.race([
       fetch(AI_PROXY_URL, fetchOpts),
-      new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 75000))
+      new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), Math.min(75000, stdBudget)))
     ]);
     const _aiFetchMs = Date.now() - _aiT0
 
@@ -12092,13 +12102,13 @@ export default function App(){
       }
       const _aiHist=stats.aiHistory||[]
       const _aiStartMs=Date.now()
-      const AI_BUDGET=90000
+      const AI_BUDGET=160000
       // Sprint 5: Try pre-cached scenario first for instant load
       let ctrl=null
       let result=consumeCachedAI(p)
       if(!result){
         ctrl=new AbortController();abortRef.current=ctrl;
-        result=await generateAIScenario(p,stats,stats.cl||[],stats.recentWrong||[],ctrl.signal,concept,_aiHist,lastAiScenarioRef.current);
+        result=await generateAIScenario(p,stats,stats.cl||[],stats.recentWrong||[],ctrl.signal,concept,_aiHist,lastAiScenarioRef.current,AI_BUDGET);
         // Retry up to 2x on quality/parse failures if time remains (Fix 8)
         const RETRYABLE_ERRORS=["parse","role-violation","rate-mismatch","quality-firewall","consistency-violation","api"]
         let retries=0
@@ -12110,7 +12120,7 @@ export default function App(){
           ctrl=new AbortController();abortRef.current=ctrl;
           console.log("[BSM] AI retry #" + retries + " (" + result.error + "), " + Math.round(remaining/1000) + "s remaining...");
           // Pass concept on retry so pedagogical targeting isn't lost
-          result=await generateAIScenario(p,stats,stats.cl||[],stats.recentWrong||[],ctrl.signal,concept,_aiHist,lastAiScenarioRef.current);
+          result=await generateAIScenario(p,stats,stats.cl||[],stats.recentWrong||[],ctrl.signal,concept,_aiHist,lastAiScenarioRef.current,remaining);
         }
       }
       console.log("[BSM] AI total flow took " + (Date.now()-_aiStartMs) + "ms")
