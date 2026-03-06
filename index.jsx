@@ -4837,15 +4837,41 @@ const AI_FEW_SHOT_EXAMPLES = {
   ]
 }
 function getAIFewShot(position, targetConcept = null, difficulty = 2) {
-  // Primary: position-matched few-shot (randomly selected from pool)
+  // Concept-family mapping for matching few-shot examples to target concepts
+  const CONCEPT_FAMILIES = {
+    baserunning: ['steal-breakeven','steal-timing','lead-distance','tag-up','force-advance','baserunning-aggression','secondary-lead','force-vs-tag'],
+    defense: ['cutoff-roles','relay-alignment','backup-responsibilities','dp-positioning','infield-positioning','of-depth-arm-value','relay-double-cut','fly-ball-priority','bunt-defense','holding-runners','double-play-turn'],
+    pitching: ['pitch-selection','count-leverage','pitch-sequencing','pitch-location','first-pitch-strike','pickoff-mechanics','pitch-calling'],
+    batting: ['count-hitting','situational-hitting','hit-and-run','bunt-strategy','sacrifice-situations','two-strike-approach'],
+    management: ['bullpen-management','lineup-strategy','defensive-substitution','pinch-hit-timing','pitching-change','steal-window','first-third']
+  }
+  // Primary: position-matched few-shot pool
   const pool = ["pitcher","catcher"].includes(position) ? AI_FEW_SHOT_EXAMPLES.pitcher
     : ["firstBase","secondBase","shortstop","thirdBase","leftField","centerField","rightField"].includes(position) ? AI_FEW_SHOT_EXAMPLES.fielder
     : position === "batter" || position === "counts" ? AI_FEW_SHOT_EXAMPLES.batter
     : position === "baserunner" ? AI_FEW_SHOT_EXAMPLES.baserunner
     : AI_FEW_SHOT_EXAMPLES.manager
-  const primary = Array.isArray(pool) ? pool[Math.floor(Math.random() * pool.length)] : pool
-  // Single few-shot example to keep prompt size manageable for Grok latency
-  return primary
+  if (!Array.isArray(pool) || pool.length === 0) return pool || ''
+  // If targetConcept provided, try to find a concept-family match
+  if (targetConcept) {
+    const targetFamily = Object.entries(CONCEPT_FAMILIES).find(([, tags]) => tags.some(t => targetConcept.includes(t) || t.includes(targetConcept)))?.[0]
+    if (targetFamily) {
+      const familyKeywords = CONCEPT_FAMILIES[targetFamily]
+      const matches = pool.filter(ex => {
+        const lower = ex.toLowerCase()
+        return familyKeywords.some(kw => lower.includes(kw.replace(/-/g, ' ')) || lower.includes(kw))
+      })
+      if (matches.length > 0) {
+        const picked = matches[Math.floor(Math.random() * matches.length)]
+        console.log("[BSM] Few-shot selected: concept-family match (" + targetFamily + ") for target:", targetConcept)
+        return picked
+      }
+    }
+  }
+  // Fallback: random from position pool
+  const picked = pool[Math.floor(Math.random() * pool.length)]
+  console.log("[BSM] Few-shot selected: random for target:", targetConcept || "any")
+  return picked
 }
 
 const AI_SCENARIO_TOPICS = {
@@ -7569,7 +7595,7 @@ const ANNUAL_UPDATE_CHECKLIST = {
 // ============================================================================
 // Level 2.2: SCENARIO GRADER — Benchmark system (grades any scenario)
 // ============================================================================
-function gradeScenario(scenario, position) {
+function gradeScenario(scenario, position, targetConcept = null) {
   let score = 100
   const deductions = []
 
@@ -7821,7 +7847,17 @@ function gradeScenario(scenario, position) {
     score -= 10; deductions.push("jargon_in_options")
   }
 
-  return { score: Math.max(0, score), deductions, pass: score >= 65 }
+  // SECTION 10: CONCEPT TARGET MATCH
+  if (targetConcept && scenario.conceptTag) {
+    if (scenario.conceptTag === targetConcept) {
+      score += 3; deductions.push('concept_target_match_+3')
+    } else {
+      score -= 3; deductions.push('concept_drift_from_target')
+    }
+    console.log("[BSM Grade] Concept target:", targetConcept, "got:", scenario.conceptTag, scenario.conceptTag === targetConcept ? "(match +3)" : "(drift -3)")
+  }
+
+  return { score: Math.max(0, Math.min(100, score)), deductions, pass: score >= 65 }
 }
 
 // ============================================================================
@@ -8969,7 +9005,7 @@ count format: "B-S" (0-3 balls, 0-2 strikes) or "-". runners: [] empty, [1]=1st,
 // Level 3.5: Grader Agent — Validates generated scenario against quality checklist
 // ============================================================================
 function gradeAgentScenario(scenario, plan) {
-  const grade = gradeScenario(scenario, plan.position)
+  const grade = gradeScenario(scenario, plan.position, plan.targetConcept)
 
   // Additional agent-specific checks
   const agentDeductions = []
@@ -9036,11 +9072,11 @@ function gradeAgentScenario(scenario, plan) {
 
   grade.agentDeductions = agentDeductions
   grade.score = Math.max(0, grade.score)
-  // Pass threshold: 45 after normalization (auto-fixes already applied before grading).
-  // Note: standard pipeline doesn't gate on gradeScenario at all — it uses QUALITY_FIREWALL.
-  // Previously this was 60, but that was grading RAW scenarios (pre-fix), causing ~83% fail rate.
-  // With auto-fixes applied first, a score of 45+ means the content quality is passable.
-  grade.pass = grade.score >= 45
+  // Pass threshold: 55 after normalization (auto-fixes already applied before grading).
+  // Note: standard pipeline gates on QUALITY_FIREWALL separately; this is the agent pipeline grade.
+  // Raised from 45→55: auto-fixes are now applied before grading, so raw-score inflation is gone.
+  // Still 10pts below standard pipeline's 65 because agent scenarios get additional Grade tool validation.
+  grade.pass = grade.score >= 55
   return grade
 }
 
@@ -9367,7 +9403,9 @@ async function generateAIScenario(position, stats, conceptsLearned = [], recentW
       console.log("[BSM] Trying agent pipeline (A/B variant: agent, budget:", Math.round(agentBudget / 1000) + "s)")
       const agentResult = await generateWithAgentPipeline(position, stats, conceptsLearned, recentWrong, signal, targetConcept, aiHistory, flaggedAvoidText + realGameFeelText + promptPatchText, previousScenario, Math.min(75000, agentBudget))
       if (agentResult && agentResult.scenario) {
-        return { scenario: agentResult.scenario, abVariants: { pipeline: "agent", grade: agentResult.agentGrade?.score } }
+        const _agScore = agentResult.agentGrade?.score || 0
+        console.log(`[BSM Quality] position=${position} concept=${agentResult.scenario.conceptTag || agentResult.scenario.concept || 'unknown'} source=agent grade=${_agScore} pass=${_agScore >= 55} cacheHit=false elapsed=${Date.now() - _aiFlowStart}ms`)
+        return { scenario: agentResult.scenario, abVariants: { pipeline: "agent", grade: _agScore } }
       }
       console.log("[BSM] Agent pipeline returned null, falling back to standard")
     } else if (agentConfig.useAgent) {
@@ -9492,6 +9530,19 @@ async function generateAIScenario(position, stats, conceptsLearned = [], recentW
   const isOffensive = ["batter","baserunner"].includes(position);
   const isDefensive = ["pitcher","catcher","firstBase","secondBase","shortstop","thirdBase","leftField","centerField","rightField"].includes(position);
   const tv2 = getRandomTemplateValues()
+  // Standard pipeline archetype injection (matches agent pipeline's OPTION BLUEPRINT)
+  const _stdArchKey = `${position}:${targetConcept || ''}`
+  const _stdArchetype = OPTION_ARCHETYPES?.[_stdArchKey]
+  if (_stdArchetype) console.log("[BSM] Standard pipeline using archetype for", _stdArchKey)
+  const _stdArchBlock = _stdArchetype ? `
+OPTION BLUEPRINT (structural guide, NOT literal text — create your own scenario but follow this option structure):
+Moment: ${_stdArchetype.moment}
+Option A (correct fundamental): ${_stdArchetype.correct}
+Option B (common kid mistake): ${_stdArchetype.kid_mistake}
+Option C (sounds smart but wrong here): ${_stdArchetype.sounds_smart}
+Option D (clearly wrong): ${_stdArchetype.clearly_wrong}
+Generate specific game language — do NOT copy these hints word-for-word.
+` : ''
   const prompt = `Create a baseball strategy scenario for position: ${position}.
 THE QUESTION MUST ASK: "What should the ${position.replace(/([A-Z])/g,' $1').trim().toLowerCase()} do?" All 4 options must be physical actions or decisions that ONLY this position makes.
 
@@ -9557,7 +9608,7 @@ Each option must be a DIFFERENT type of decision when possible (don't make all 4
 IMPORTANT: Your response must be ONLY valid JSON starting with { and ending with }. No markdown fences, no explanation text.` : ""}
 ${analyticsRules}
 ${flaggedAvoidText}${realGameFeelText}${promptPatchText}
-
+${_stdArchBlock}
 EXAMPLE of a high-quality scenario (match this quality level):
 ${getAIFewShot(position, targetConcept, diffTarget)}
 
@@ -9996,9 +10047,10 @@ COMMON MISTAKES TO AVOID:
 
     // Level 2.2: Grade scenario quality and optionally report to server
     try {
-      const grade = gradeScenario(scenario, position);
+      const grade = gradeScenario(scenario, position, targetConcept);
       scenario.qualityGrade = grade.score;
       console.log(`[BSM Grade] ${position}: score=${grade.score}/100, pass=${grade.pass}, deductions=[${grade.deductions.join(', ')}]`)
+      console.log(`[BSM Quality] position=${position} concept=${scenario.conceptTag || scenario.concept || 'unknown'} source=standard grade=${grade.score} pass=${grade.pass} cacheHit=false elapsed=${Date.now() - _aiFlowStart}ms`)
       if (grade.score > 0) {
         fetch(WORKER_BASE + "/analytics/scenario-grade", {
           method: "POST",
@@ -10010,7 +10062,7 @@ COMMON MISTAKES TO AVOID:
       const poolStats = getLocalPoolStats(position)
       const serverCount = _serverPoolCounts?.[position] || 0
       const combinedCount = (poolStats?.count || 0) + serverCount
-      const clientPoolThreshold = combinedCount < 3 ? 65 : 75
+      const clientPoolThreshold = combinedCount < 5 ? 65 : 75
       console.log(`[BSM Pool Gate] ${position}: grade=${grade.score}, threshold=${clientPoolThreshold}, poolCount=${combinedCount}`)
       if (grade.score >= clientPoolThreshold) {
         submitToServerPool(scenario, position, grade.score / 10, scenario.auditScore || 0)
@@ -10649,13 +10701,17 @@ async function fetchFromServerPool(position, difficulty, conceptTag, excludeIds 
   }
 }
 
+const UNDERSERVED_POSITIONS = ['secondBase','shortstop','thirdBase','firstBase','rightField','manager','rules','famous','counts']
 function submitToServerPool(scenario, position, qualityScore, auditScore) {
   // Non-blocking — fire and forget (worker enforces dynamic quality gate per position pool size)
-  if ((qualityScore || 0) < 7.5) {
-    console.log("[BSM Pool] Skipped — quality too low:", qualityScore, "for", position)
+  const poolGate = UNDERSERVED_POSITIONS.includes(position) ? 6.5 : 7.5
+  if ((qualityScore || 0) < poolGate) {
+    console.log("[BSM Pool] Skipped — quality too low:", qualityScore, "gate:", poolGate, "for", position)
     return
   }
   console.log("[BSM Pool] Submitting to server pool:", position, "score:", qualityScore, "title:", scenario.title)
+  const poolCtrl = new AbortController()
+  const poolTimeout = setTimeout(() => poolCtrl.abort(), 10000)
   fetch(WORKER_BASE + "/scenario-pool/submit", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -10665,12 +10721,20 @@ function submitToServerPool(scenario, position, qualityScore, auditScore) {
       quality_score: qualityScore,
       audit_score: auditScore || 0,
       source: "ai"
+    }),
+    signal: poolCtrl.signal
+  }).then(r => {
+    clearTimeout(poolTimeout)
+    if (r.ok) r.json().then(data => {
+      if (data.status === "added") console.log("[BSM Pool] Added to server pool:", scenario.title, "score:", qualityScore)
+      else if (data.status === "duplicate_updated") console.log("[BSM Pool] Updated existing:", scenario.title)
+      else console.log("[BSM Pool] Rejected:", JSON.stringify(data))
     })
-  }).then(r => r.json()).then(data => {
-    if (data.status === "added") console.log("[BSM Pool] Added to server pool:", scenario.title, "score:", qualityScore)
-    else if (data.status === "duplicate_updated") console.log("[BSM Pool] Updated existing:", scenario.title)
-    else console.log("[BSM Pool] Rejected:", JSON.stringify(data))
-  }).catch(err => console.warn("[BSM Pool] Submit failed:", err.message))
+    else r.json().then(j => console.warn("[BSM Pool] Server rejected:", j.error, "min:", j.min, "got:", j.got)).catch(() => console.warn("[BSM Pool] Server error:", r.status))
+  }).catch(err => {
+    clearTimeout(poolTimeout)
+    console.warn("[BSM Pool] Submission failed:", err.message)
+  })
 }
 
 function reportPoolFeedback(poolId, correct, flagged = false) {
@@ -10682,47 +10746,56 @@ function reportPoolFeedback(poolId, correct, flagged = false) {
   }).catch(() => {})
 }
 
-// Sprint 5: AI pre-generation cache \u2014 fetch next scenario in background
-const _aiCache = { scenario: null, position: null, fetching: false, controller: null }
-async function prefetchAIScenario(position, stats, conceptsLearned, recentWrong, aiHistory) {
-  if (_aiCache.fetching) return
+// Sprint 5: AI pre-generation cache \u2014 unified into aiCacheRef (passed from App)
+let _prefetchController = null
+async function prefetchAIScenario(position, stats, conceptsLearned, recentWrong, aiHistory, lastScenario = null, targetConcept = null, cacheRef = null) {
+  if (!cacheRef?.current) return
+  if (cacheRef.current.fetching) return
   // Save existing cache for different position to local pool before overwriting
-  if (_aiCache.scenario && _aiCache.position && _aiCache.position !== position) {
-    saveToLocalPool(_aiCache.scenario.scenario, _aiCache.position)
-    _aiCache.scenario = null
-    _aiCache.position = null
+  const existingPositions = Object.keys(cacheRef.current.scenarios || {})
+  for (const pos of existingPositions) {
+    if (pos !== position && cacheRef.current.scenarios[pos]?.scenario) {
+      saveToLocalPool(cacheRef.current.scenarios[pos].scenario.scenario, pos)
+      cacheRef.current.scenarios[pos] = null
+    }
   }
-  if (_aiCache.scenario && _aiCache.position === position) return // already cached for this position
-  _aiCache.fetching = true
-  _aiCache.controller = new AbortController()
+  if (cacheRef.current.scenarios[position]?.scenario) return // already cached for this position
+  cacheRef.current.fetching = true
+  _prefetchController = new AbortController()
   try {
-    console.log("[BSM] Pre-fetching AI scenario for", position)
-    const result = await generateAIScenario(position, stats, conceptsLearned, recentWrong, _aiCache.controller.signal, null, aiHistory)
+    console.log("[BSM] Pre-fetch using independent budget: 100s, targeting concept:", targetConcept || "any")
+    const result = await generateAIScenario(position, stats, conceptsLearned, recentWrong, _prefetchController.signal, targetConcept, aiHistory, lastScenario, 100000)
     if (result.scenario) {
-      _aiCache.scenario = result
-      _aiCache.position = position
+      cacheRef.current.scenarios[position] = { scenario: result, timestamp: Date.now() }
       console.log("[BSM] AI scenario pre-cached:", result.scenario.title)
     }
   } catch (e) {
     console.warn("[BSM] Pre-fetch failed:", e.message)
   } finally {
-    _aiCache.fetching = false
-    _aiCache.controller = null
+    cacheRef.current.fetching = false
+    _prefetchController = null
   }
 }
-function consumeCachedAI(position) {
-  if (_aiCache.scenario && _aiCache.position === position) {
-    const cached = _aiCache.scenario
-    _aiCache.scenario = null
-    _aiCache.position = null
-    console.log("[BSM] Using pre-cached AI scenario:", cached.scenario?.title)
-    return cached
+function consumeCachedAI(position, cacheRef = null) {
+  if (!cacheRef?.current) return null
+  const cached = cacheRef.current.scenarios?.[position]
+  if (cached?.scenario) {
+    // Discard if older than 5 minutes
+    if (cached.timestamp && (Date.now() - cached.timestamp) > 300000) {
+      cacheRef.current.scenarios[position] = null
+      console.log("[BSM] Discarded stale pre-cached scenario for", position, "(age:", Math.round((Date.now() - cached.timestamp) / 1000) + "s)")
+      return null
+    }
+    const entry = cached.scenario
+    cacheRef.current.scenarios[position] = null
+    console.log("[BSM] Consuming pre-cached scenario for " + position + ": " + (entry.scenario?.title || "unknown"))
+    return entry
   }
+  console.log("[BSM] No pre-cached scenario available for", position)
   return null
 }
 function cancelPrefetch() {
-  if (_aiCache.controller) { _aiCache.controller.abort(); _aiCache.controller = null }
-  _aiCache.fetching = false
+  if (_prefetchController) { _prefetchController.abort(); _prefetchController = null }
 }
 
 // Sound
@@ -11410,7 +11483,7 @@ export default function App(){
   const aiFailRef=useRef({consecutive:0,cooldownUntil:0});
   const outcomeStartRef=useRef(0);
   // Sprint 2.3: AI pre-generation cache
-  const aiCacheRef=useRef({scenarios:{},generating:false,lastGenTime:0});
+  const aiCacheRef=useRef({scenarios:{},generating:false,lastGenTime:0,fetching:false});
   const lastScRef=useRef(null);
   lastScRef.current=sc?.id||null;
   const conceptTargetRef=useRef(null); // Set by "Recommended for You" click to target a specific concept
@@ -11961,25 +12034,29 @@ export default function App(){
     console.log('[BSM] startGame',{pos:p,forceAI,unseen:unseen.length,allExhausted,isPro:stats.isPro});
 
     const triggerPrefetch = (position) => {
-      if (!stats.isPro) return
-      // Small delay so current scenario renders first
+      // Prefetch is free (no play count consumed) — allow for any user in AI flow
+      // All call sites are inside doAI, so this only fires after AI scenarios
       setTimeout(() => {
-        if (!_aiCache.fetching && !_aiCache.scenario) {
-          prefetchAIScenario(position, stats, stats.cl || [], stats.recentWrong || [], stats.aiHistory || [])
+        if (!aiCacheRef.current.fetching && !aiCacheRef.current.scenarios[position]?.scenario) {
+          const nextConcept = sessionPlanRef.current?.[0]?.concept || null
+          prefetchAIScenario(position, stats, stats.cl || [], stats.recentWrong || [], stats.aiHistory || [], lastAiScenarioRef.current, nextConcept, aiCacheRef)
         }
-      }, 2000)
+      }, 500)
     }
 
     // Local helper: AI generation with loading, abort, retry, cooldown, fallback
     const doAI=async()=>{
       // Pillar 6B: Prime calibration cache (non-blocking)
       getCalibrationData().catch(()=>{})
-      // Sprint 2.3: Check pre-generation cache first
-      const cachedResult=aiCacheRef.current.scenarios[p]
-      if(cachedResult?.scenario && !_servedScenarioTitles.has(cachedResult.scenario.title)){
-        delete aiCacheRef.current.scenarios[p]
+      // Sprint 2.3: Check unified pre-generation cache first
+      const cachedEntry=aiCacheRef.current.scenarios?.[p]
+      const cachedResult=cachedEntry?.scenario // unwrap {scenario, timestamp} wrapper
+      const cacheAge=cachedEntry?.timestamp?(Date.now()-cachedEntry.timestamp):0
+      const cacheStale=cacheAge>300000 // 5 minutes
+      if(cachedResult?.scenario && !cacheStale && !_servedScenarioTitles.has(cachedResult.scenario.title)){
+        aiCacheRef.current.scenarios[p]=null
         const cachedSc=cachedResult.scenario
-        console.log("[BSM] Using pre-cached AI scenario:", cachedSc.title)
+        console.log("[BSM] Consuming pre-cached scenario for " + p + ": " + cachedSc.title + " (age: " + Math.round(cacheAge/1000) + "s)")
         setAiMode(true);setScreen("play")
         aiFailRef.current.consecutive=0;aiFailRef.current.cooldownUntil=0
         // BUG 7: Track analytics with A/B variants from cached result
@@ -11999,10 +12076,10 @@ export default function App(){
         cachedSc.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80)})
         triggerPrefetch(p)
         return
-      } else if (cachedResult?.scenario) {
-        // Pre-cached scenario has already-served title — discard it
-        delete aiCacheRef.current.scenarios[p]
-        console.log("[BSM] Discarded pre-cached duplicate:", cachedResult.scenario.title)
+      } else if (cachedResult?.scenario || cacheStale) {
+        // Pre-cached scenario has already-served title or is stale — discard it
+        aiCacheRef.current.scenarios[p]=null
+        console.log("[BSM] Discarded pre-cached scenario:", cacheStale ? "stale" : "duplicate title", cachedResult?.scenario?.title || "")
       }
       // Tier 1: Check local scenario pool
       const maxDiffForPos = (AGE_GROUPS.find(a=>a.id===stats.ageGroup)||AGE_GROUPS[2]).maxDiff
@@ -12103,9 +12180,9 @@ export default function App(){
       const _aiHist=stats.aiHistory||[]
       const _aiStartMs=Date.now()
       const AI_BUDGET=160000
-      // Sprint 5: Try pre-cached scenario first for instant load
+      // Sprint 5: Try pre-cached scenario first for instant load (unified cache)
       let ctrl=null
-      let result=consumeCachedAI(p)
+      let result=consumeCachedAI(p, aiCacheRef)
       if(!result){
         ctrl=new AbortController();abortRef.current=ctrl;
         result=await generateAIScenario(p,stats,stats.cl||[],stats.recentWrong||[],ctrl.signal,concept,_aiHist,lastAiScenarioRef.current,AI_BUDGET);
@@ -12290,9 +12367,10 @@ export default function App(){
     const o={cat,isOpt,exp:expArr[idx],bestExp:expArr[sc.best],bestOpt:sc.options[sc.best],concept:sc.concept,pts,chosen:sc.options[idx],rate,anim:sc.anim,speedBonus,timeLeft:timer,explDepth:_ed,chosenIdx:idx,bestIdx:sc.best};
     setOd(o);setExplDepthLayer(0);
     outcomeStartRef.current=Date.now();
-    // Sprint 5: Pre-fetch next AI scenario while player reads explanation
-    if(stats.isPro&&aiMode&&!speedMode&&!survivalMode&&!realGameMode&&!aiCacheRef.current.scenarios[pos]&&!_aiCache.fetching&&!_aiCache.scenario){
-      prefetchAIScenario(pos,stats,stats.cl||[],stats.recentWrong||[],stats.aiHistory||[])
+    // Sprint 5: Pre-fetch next AI scenario while player reads explanation (unified cache, concept-aware)
+    if(aiMode&&!speedMode&&!survivalMode&&!realGameMode&&!aiCacheRef.current.scenarios?.[pos]?.scenario&&!aiCacheRef.current.fetching){
+      const nextConcept=sessionPlanRef.current?.[0]?.concept||null
+      prefetchAIScenario(pos,stats,stats.cl||[],stats.recentWrong||[],stats.aiHistory||[],lastAiScenarioRef.current,nextConcept,aiCacheRef)
     }
     // Track speed round result
     if(speedMode)setSpeedRound(sr=>sr?{...sr,results:[...sr.results,{isOpt,pts,speedBonus,timeLeft:timer,concept:sc.concept,pos}]}:sr);

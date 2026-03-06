@@ -1303,7 +1303,7 @@ async function handleAIProxy(request, env, cors) {
   }
   const body = await request.text();
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 75000);
+  const timeout = setTimeout(() => controller.abort(), 90000);
   try {
     const t0 = Date.now();
     const xaiResponse = await fetch("https://api.x.ai/v1/chat/completions", {
@@ -1699,11 +1699,11 @@ async function handlePoolSubmit(request, env, cors) {
     }
 
     // Quality gate: dynamic threshold based on pool size for this position
-    // Underserved positions (< 3 scenarios) get a lower gate to bootstrap the pool
+    // Underserved positions (< 5 scenarios) get a lower gate to bootstrap the pool
     const poolCount = await env.DB.prepare(
       'SELECT COUNT(*) as cnt FROM scenario_pool WHERE position = ? AND retired = 0'
     ).bind(position).first()
-    const qualityGate = (poolCount?.cnt || 0) < 3 ? 7.5 : 8.0
+    const qualityGate = (poolCount?.cnt || 0) < 5 ? 6.5 : 7.5
 
     if ((quality_score || 0) < qualityGate) {
       return jsonResponse({ error: "Quality score too low for pool", min: qualityGate, got: quality_score, pool_size: poolCount?.cnt || 0 }, 400, cors);
