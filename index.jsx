@@ -4846,11 +4846,11 @@ function getAIFewShot(position, targetConcept = null, difficulty = 2) {
   const primary = Array.isArray(pool) ? pool[Math.floor(Math.random() * pool.length)] : pool
 
   // Secondary: pick from handcrafted scenarios for this position (condensed)
-  const pool = (SCENARIOS[position] || []).filter(s => s.diff === difficulty || !targetConcept)
+  const hcPool = (SCENARIOS[position] || []).filter(s => s.diff === difficulty || !targetConcept)
   let secondary = null
-  if (targetConcept && pool.length > 0) {
+  if (targetConcept && hcPool.length > 0) {
     // Find a scenario matching the target concept
-    const conceptMatch = pool.find(s => s.concept && s.concept.toLowerCase().includes(targetConcept.toLowerCase()))
+    const conceptMatch = hcPool.find(s => s.concept && s.concept.toLowerCase().includes(targetConcept.toLowerCase()))
     if (conceptMatch) {
       secondary = JSON.stringify({
         title: conceptMatch.title, diff: conceptMatch.diff,
@@ -4864,8 +4864,8 @@ function getAIFewShot(position, targetConcept = null, difficulty = 2) {
   }
   // Tertiary: a different difficulty example from the pool
   let tertiary = null
-  if (pool.length > 3) {
-    const diffMatch = pool.find(s => s.diff !== difficulty && s.id !== (secondary ? JSON.parse(secondary).title : ""))
+  if (hcPool.length > 3) {
+    const diffMatch = hcPool.find(s => s.diff !== difficulty && s.id !== (secondary ? JSON.parse(secondary).title : ""))
     if (diffMatch) {
       tertiary = JSON.stringify({
         title: diffMatch.title, diff: diffMatch.diff,
