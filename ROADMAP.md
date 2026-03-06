@@ -2,7 +2,7 @@
 
 ## Context
 
-**Where We Are:** A polished educational baseball game — 584 handcrafted scenarios across 15 categories, SVG field with 10 themes, avatar customization, season mode, coach mascot, survival/speed/daily modes, AI scenarios via xAI Grok + Cloudflare Worker proxy — running as a single-file React app (`index.jsx`, ~12,200 lines) on Cloudflare Pages. Free tier gives 8 plays/day with a well-designed limit screen and Daily Diamond always free. Pro gating, upgrade panel, and Stripe Payment Links are implemented. BRAIN knowledge system (v2.4.0) includes QUALITY_FIREWALL, CONSISTENCY_RULES, 7 knowledge maps, POS_PRINCIPLES, and Living Document System. Stickiness features (parent reports, coach mode, session recap, practice recommendations, onboarding) are complete. Preparing for soft launch to 20-50 coaches/families.
+**Where We Are:** A polished educational baseball game — 584 handcrafted scenarios across 15 categories, SVG field with 10 themes, avatar customization, season mode, coach mascot, survival/speed/daily modes, AI scenarios via xAI Grok (`grok-4`) + Cloudflare Worker proxy — running as a single-file React app (`index.jsx`, ~12,200 lines) on Cloudflare Pages. Free tier gives 8 plays/day with Daily Diamond always free. Pro gating, upgrade panel, and Stripe Payment Links are implemented. BRAIN knowledge system (v2.4.0) includes QUALITY_FIREWALL, CONSISTENCY_RULES, 21 knowledge maps, POS_PRINCIPLES, 48 concepts with prerequisite graph, and Living Document System. Self-learning AI system with semantic feedback patterns, prompt patches, real game feel injection, agent pipeline with A/B testing (9 configs), unified pre-cache, and budget-aware timeouts (90s budget, 55s worker). Stickiness features (parent reports, coach mode, session recap, practice recommendations, onboarding) are complete. Preparing for soft launch to 20-50 coaches/families.
 
 **The Strategy:** Soft launch the current single-file app to validate with real users. Then build production infrastructure (user accounts, server-side auth). Then grow with social features and coach tools.
 
@@ -143,10 +143,14 @@ Hardened Phase 2 implementation after audit revealed critical gaps.
 ### 2.5.6 Documentation Refresh — DONE
 - Updated CLAUDE.md, ROADMAP.md, MEMORY.md to match current codebase
 
-### 2.5.7 AI Response Time Optimization — TODO
-- Current AI scenario generation takes noticeably long (~5-10s)
-- Investigate: reduce prompt size, try smaller/faster model, pre-generate during idle, cache common positions
-- Consider streaming response to show partial progress
+### 2.5.7 AI Response Time Optimization — DONE
+- Unified AI pre-cache with concept-aware prefetch (background generation)
+- Agent pipeline with plan→generate→grade stages and OPTION_ARCHETYPES
+- Self-learning AI: semantic feedback patterns, prompt patches, real game feel injection
+- Budget-aware pipeline: 90s AI_BUDGET, 55s worker timeout, setup fetches excluded from clock
+- `skipAgent` parameter for prefetch (standard pipeline only, faster)
+- Trimmed agent system message 60%, capped brain data at 500 chars, flagged patterns at 3
+- 9 A/B test configs for continuous AI quality improvement
 
 ### Accepted Risks (Until Phase 3)
 - `isPro` in localStorage can be spoofed — fix with server-side auth
@@ -217,6 +221,60 @@ Built the knowledge engine that powers scenario quality, AI validation, and adap
 - ~~CONSISTENCY_RULES produce false positives (23/23 in audit)~~ — FIXED: 0 false positives (Sprint 1.4)
 - ~~AI scenarios not persisted~~ — FIXED: aiHistory in localStorage (Sprint 1.5/2.1)
 - ~~AI has zero memory between generations~~ — FIXED: history, scoring, caching, dedup (Sprint 2)
+
+---
+
+## Phase 2.93: "Self-Learning AI" — COMPLETE
+
+Built a closed-loop AI improvement system that learns from player feedback and self-audits.
+
+### 2.93.1 Rich Flagging UI — DONE
+- Players can flag AI scenarios with category (wrong answer, unrealistic, wrong position, confusing, too easy/hard) + optional comment
+- Flags stored in D1 `ai_feedback` table via worker endpoint
+
+### 2.93.2 Semantic Feedback Patterns — DONE
+- `/feedback-patterns` endpoint aggregates flags by category/position
+- Injected into AI prompt as avoidance patterns (capped at 3 per generation)
+
+### 2.93.3 Dynamic Prompt Patches — DONE
+- `/prompt-patches` endpoint serves auto-generated quality patches from accumulated data
+- Injected after avoidance patterns in AI prompt
+
+### 2.93.4 Real Game Feel — DONE
+- `REAL_GAME_SITUATIONS` constant (12 position keys) with real coaching scenarios
+- `DECISION_WINDOWS` enforces same-moment options
+- `COACHING_VOICE` tone guidance for natural explanations
+
+### 2.93.5 Self-Audit & Prompt Patches — DONE
+- Closed-loop: player flags → pattern detection → prompt patches → better AI output
+
+---
+
+## Phase 2.94: "AI Pipeline Hardening" — COMPLETE
+
+Hardened the AI generation pipeline for reliability and quality.
+
+### 2.94.1 Agent Pipeline — DONE
+- Plan→Generate→Grade architecture with `generateWithAgentPipeline()`
+- `OPTION_ARCHETYPES` (25 entries) for structural guidance
+- `QUALITY_FIREWALL` grading (10 Tier 1 checks) with score threshold
+- Auto-normalization before grading (rates, runners, outs, count)
+
+### 2.94.2 A/B Testing Framework — DONE
+- 9 active configs: ai_temperature, ai_system_prompt, bible_injection, brain_data_level, few_shot_count, agent_pipeline, coach_persona, session_planner, explanation_depth
+- Deterministic hash-based bucket assignment, tracked in analytics
+
+### 2.94.3 Pre-Cache System — DONE
+- Unified AI scenario cache with concept-aware prefetch
+- `skipAgent=true` for prefetch (standard pipeline only, faster)
+- Local pool fallback for cross-position scenario reuse
+- 5-minute cache expiry, consume-on-use
+
+### 2.94.4 Budget & Timeout Fixes — DONE
+- AI_BUDGET: 90s (down from 160s)
+- Worker timeout: 55s (down from 90s)
+- Setup network calls (feedback-patterns, prompt-patches) excluded from budget clock
+- Agent system message trimmed 60%, brain data capped at 500 chars
 
 ---
 
@@ -294,12 +352,12 @@ Autonomous release preparation. See `AUTONOMOUS_RELEASE_PLAN.md` for detailed ta
 - Payment links, Pro activation, promo codes, conversion funnel (10+ touchpoints) all verified in code
 - Manual browser testing of Stripe checkout still needed
 
-### Deploy & Launch — PENDING
-- Push to GitHub + deploy Worker
-- Generate 25 promo codes for testers
-- Pre-launch QA sweep on production
-- Documentation sync (in progress)
-- Soft launch go/no-go checklist
+### Deploy & Launch — IN PROGRESS
+- Push to GitHub + deploy Worker — DONE (worker deployed with 55s timeout)
+- Generate 25 promo codes for testers — PENDING
+- Pre-launch QA sweep on production — PENDING
+- Documentation sync — DONE (all docs updated to current state)
+- Soft launch go/no-go checklist — PENDING
 
 ---
 

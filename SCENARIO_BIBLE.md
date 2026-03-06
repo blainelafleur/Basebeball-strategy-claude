@@ -1,6 +1,6 @@
 # Baseball Strategy Master — Scenario Quality & Knowledge Framework
 
-> The 539+ scenarios are the core product. Every scenario must teach correct baseball strategy backed by authoritative sources. This document defines WHAT knowledge to teach, WHERE it comes from, and HOW to verify it.
+> The 584 scenarios are the core product. Every scenario must teach correct baseball strategy backed by authoritative sources. This document defines WHAT knowledge to teach, WHERE it comes from, and HOW to verify it.
 
 ---
 
@@ -1532,25 +1532,25 @@ Run the Quality Checklist before finalizing.
 
 ---
 
-## Scenario Counts (394 total)
+## Scenario Counts (584 total)
 
 | Position | Count | Notes |
 |----------|-------|-------|
-| pitcher | 59 | |
-| batter | 58 | |
-| baserunner | 57 | |
-| manager | 58 | |
-| catcher | 30 | |
-| shortstop | 16 | |
-| centerField | 16 | |
-| secondBase | 15 | |
-| thirdBase | 15 | |
-| leftField | 15 | |
-| firstBase | 14 | |
-| rightField | 15 | |
-| famous | 10 | |
-| rules | 8 | |
-| counts | 8 | |
+| pitcher | 62 | |
+| catcher | 40 | |
+| firstBase | 31 | |
+| secondBase | 26 | |
+| shortstop | 27 | |
+| thirdBase | 26 | |
+| leftField | 25 | |
+| centerField | 27 | |
+| rightField | 25 | |
+| batter | 59 | |
+| baserunner | 68 | |
+| manager | 79 | |
+| famous | 21 | |
+| rules | 40 | |
+| counts | 28 | |
 
 ---
 

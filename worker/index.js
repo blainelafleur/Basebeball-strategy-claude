@@ -1303,7 +1303,7 @@ async function handleAIProxy(request, env, cors) {
   }
   const body = await request.text();
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 90000);
+  const timeout = setTimeout(() => controller.abort(), 55000);
   try {
     const t0 = Date.now();
     const xaiResponse = await fetch("https://api.x.ai/v1/chat/completions", {

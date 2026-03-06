@@ -1,13 +1,13 @@
 # Baseball Strategy Master — Brain & AI Knowledge System Reference
 
-> This document extracts the entire in-code knowledge system from `index.jsx` into a readable reference. It covers the BRAIN constant, all 19 knowledge maps, POS_PRINCIPLES, coach line system, AI prompt template, role violations, and Brain API functions. Use this alongside `SCENARIO_BIBLE.md` to reason about, expand, and verify the knowledge system.
+> This document extracts the entire in-code knowledge system from `index.jsx` into a readable reference. It covers the BRAIN constant, all 21 knowledge maps, POS_PRINCIPLES, coach line system, AI prompt template, role violations, and Brain API functions. Use this alongside `SCENARIO_BIBLE.md` to reason about, expand, and verify the knowledge system.
 
 ---
 
 ## Table of Contents
 
 1. [POS_PRINCIPLES — Position-Specific Principles](#1-pos_principles--position-specific-principles)
-2. [Knowledge Maps (19 Authoritative Maps)](#2-knowledge-maps-19-authoritative-maps)
+2. [Knowledge Maps (21 Authoritative Maps)](#2-knowledge-maps-21-authoritative-maps)
 3. [Map Relevance & Audit System](#3-map-relevance--audit-system)
 4. [BRAIN Constant — Centralized Knowledge Engine](#4-brain-constant--centralized-knowledge-engine)
 5. [Brain API — Pure Utility Functions](#5-brain-api--pure-utility-functions)
@@ -69,7 +69,7 @@ These are injected directly into every AI-generated scenario prompt. They define
 
 ---
 
-## 2. Knowledge Maps (19 Authoritative Maps)
+## 2. Knowledge Maps (21 Authoritative Maps)
 
 These are the "non-negotiable" reference tables injected into AI prompts based on position relevance. They define correct defensive assignments that must never be contradicted.
 

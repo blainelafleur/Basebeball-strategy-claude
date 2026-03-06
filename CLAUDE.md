@@ -32,7 +32,7 @@ Lines 11-2800:      SCENARIOS object (584 handcrafted scenarios across 15 catego
 Lines 2800-2870:    Position metadata, field themes, achievements
 Lines 2870-2920:    DEFAULT state object, position suggestions, difficulty graduation
 Lines 2920-3050:    Helper functions: sound system, spaced repetition
-Lines 3050-3160:    Knowledge maps (cutoff/relay, bunt, first-third, backup, rundown, DP, hit-run)
+Lines 3050-3160:    Knowledge maps (21 maps: cutoff/relay, bunt, first-third, backup, rundown, DP, hit-run, pickoff, pitch clock, WP/PB, squeeze, infield fly, OF communication, popup priority, obstruction/interference, tag-up, pitching change, IBB, legal shift, baserunner reads, pre-pitch positioning)
 Lines 3160-3440:    BRAIN constant (RE24, count data, concepts, coaching) + Brain API functions
 Lines 3440-3610:    generateAIScenario() — AI scenario generation via xAI Grok
 Lines 3610-3700:    Sound system, helper utilities
@@ -63,14 +63,21 @@ Lines 8800-12200:   Main App() component (game state, UI, all screens)
 - **Pro tier**: Unlimited plays, AI scenarios, all themes/avatar, streak freeze, 2x XP
 
 ## AI Integration
-- Uses xAI Grok (`grok-4`) via Cloudflare Worker proxy
-- Worker URL: `AI_PROXY_URL` constant in index.jsx
-- Sends player context: level, position accuracy, mastered concepts, recent wrong answers
-- Real-time X search removed (xAI deprecated the tool API)
+- Uses xAI Grok (`grok-4` flagship) via Cloudflare Worker proxy
+- Worker URL: `AI_PROXY_URL` constant in index.jsx (worker timeout: 55s)
+- AI_BUDGET: 90s total for AI generation (setup network calls excluded from clock)
+- **Agent pipeline**: Plan→Generate→Grade architecture with `generateWithAgentPipeline()`, 25 OPTION_ARCHETYPES, QUALITY_FIREWALL grading (10 Tier 1 checks)
+- **Standard pipeline**: Direct xAI call with full prompt (position rules, brain data, knowledge maps, few-shot example)
+- **Pre-cache**: Unified AI scenario cache with concept-aware prefetch (`skipAgent=true` for speed), local pool fallback
+- **Self-learning**: Semantic feedback patterns + dynamic prompt patches from D1, real game feel injection, coaching voice guidance, decision windows
+- **A/B testing**: 9 active configs (ai_temperature, ai_system_prompt, bible_injection, brain_data_level, few_shot_count, agent_pipeline, coach_persona, session_planner, explanation_depth)
+- 21 knowledge maps conditionally injected into AI prompts by position relevance
+- 48 concepts in BRAIN.concepts with prerequisite graph, age minimums, difficulty levels
+- ROLE_VIOLATIONS regex validation, CONSISTENCY_RULES cross-checks
 - Triggers: "AI Coach's Challenge" button (Pro only) or when scenarios exhausted
 - Purple "AI" badge shown during AI-generated scenarios
-- 15-second timeout with cancel button and fallback to handcrafted
-- JSON validation on AI response — falls back gracefully on invalid output
+- Fallback to handcrafted on timeout, parse error, role violation, or quality failure
+- Automatic retry (up to 2x) on retryable errors if budget remains
 
 ## Field Visualization
 - SVG-based, fan-shaped broadcast angle
@@ -122,6 +129,36 @@ famous:21  rules:40  counts:28
 - **Adjust AI behavior**: Edit generateAIScenario() and the system prompt
 - **Update AI proxy**: Edit `worker/index.js`, deploy with `cd worker && npx wrangler deploy`
 - **Preview locally**: `npx serve .` then open localhost:3000/preview
+
+## Living Document Protocol — MANDATORY
+
+After ANY significant code change, update the relevant documentation. These are living documents that must stay current with the codebase.
+
+**After adding/removing scenarios:**
+- Update scenario counts in: `SCENARIO_BIBLE.md` (counts table), `CLAUDE.md` (scenario counts block), `BSM_PROJECT_CONTEXT.md` (position counts table)
+
+**After changing AI generation (prompts, timeouts, pipelines):**
+- Update: `CLAUDE.md` (AI Integration section), `BSM_PROJECT_CONTEXT.md` (Section 7 state snapshot), `ROADMAP.md` (relevant phase)
+
+**After adding/modifying knowledge maps or BRAIN data:**
+- Update: `BRAIN_KNOWLEDGE_SYSTEM.md` (maps section, TOC count), `CLAUDE.md` (knowledge maps line), `BSM_PROJECT_CONTEXT.md` (maps count)
+
+**After completing a roadmap phase or major feature:**
+- Update: `ROADMAP.md` (mark phase DONE, add details), `BSM_PROJECT_CONTEXT.md` (Section 8 priorities)
+
+**After changing worker endpoints or timeouts:**
+- Update: `CLAUDE.md` (AI Integration section), `BSM_PROJECT_CONTEXT.md` (tech gotchas)
+
+**Quick reference — what to update where:**
+
+| Change | CLAUDE.md | SCENARIO_BIBLE.md | BSM_PROJECT_CONTEXT.md | ROADMAP.md | BRAIN_KNOWLEDGE.md |
+|--------|-----------|-------------------|----------------------|------------|-------------------|
+| Scenarios added/removed | Counts | Counts table | Position counts | Phase notes | — |
+| AI pipeline change | AI section | — | Section 7 + gotchas | Phase notes | — |
+| Knowledge map added | Maps line | — | Maps count | — | TOC + section |
+| BRAIN data change | — | — | — | — | Relevant section |
+| New feature/phase | — | — | Priorities | Phase status | — |
+| Worker change | AI section | — | Gotchas | — | — |
 
 ## GitHub
 - Repo: https://github.com/blainelafleur/Basebeball-strategy-claude

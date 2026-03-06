@@ -1,6 +1,6 @@
 # ⚾ Baseball Strategy Master — Project Intelligence Brief
 **For new conversations, Claude Code sessions, and Cowork automation tasks**
-*Version 2.4 · March 2026*
+*Version 2.5 · March 2026*
 
 ---
 
@@ -32,6 +32,8 @@ Two documents are the authoritative source of truth for all content decisions. S
 | `index.jsx` | The entire frontend app — scenarios, AI generation, coach system, UI — in a single React file. Never edit without reading SCENARIO_BIBLE first. |
 | `worker/index.js` | Cloudflare Worker backend: authentication, Stripe webhooks, AI proxy, D1 database queries. |
 | `scripts/validate-scenarios.js` | Automated quality checker. Run before and after adding scenarios to catch structural errors. |
+| `ROADMAP.md` | Master project roadmap with all phases and their status. |
+| `CLAUDE.md` | Codebase architecture, file structure, and editing instructions for Claude. |
 
 ---
 
@@ -145,29 +147,41 @@ Which other maps, positions, or scenarios does this touch? Does any existing sce
 
 ---
 
-## 7. Current State Snapshot (Version 2.4)
+## 7. Current State Snapshot (Version 2.5)
 
 | Item | Status |
 |------|--------|
-| Handcrafted scenarios | 539 across 15 position categories (as of v2.4.0, 2026-02-27) |
-| AI generation | Live via xAI Grok (grok-4-1-fast) through Cloudflare Worker proxy |
-| Knowledge maps | 7 maps integrated into AI prompt (cutoff/relay, fly ball priority, count leverage, RE24, steal break-even, age gates, coach voices) |
-| Quality firewall | 10 automated checks (3 tiers: hard fails, warnings, suggestions) run on every AI-generated scenario |
-| Playtesting | Underway — two-page overview doc exists for distribution to playtesters |
-| Remote assistant | Active — content production only (scenarios, stats, coach lines). No code, design, or business decisions. |
+| Handcrafted scenarios | 584 across 15 position categories |
+| AI generation | Live via xAI Grok (`grok-4` flagship) through Cloudflare Worker proxy |
+| Knowledge maps | 21 authoritative maps integrated into AI prompt (cutoff/relay, bunt defense, first-third, backup, rundown, DP positioning, hit-run, pickoff, pitch clock, WP/PB, squeeze, infield fly, OF communication, popup priority, obstruction/interference, tag-up/sac fly, pitching change, IBB, legal shift, baserunner reads, pre-pitch positioning) |
+| Quality firewall | 10 Tier 1 checks + Tier 2/3 checks run on every AI-generated scenario |
+| Agent pipeline | A/B tested AI generation with plan→generate→grade stages, OPTION_ARCHETYPES, QUALITY_FIREWALL grading |
+| Self-learning AI | Semantic feedback patterns, prompt patches, real game feel injection, coaching voice, decision windows |
+| Pre-cache system | Unified AI scenario cache with concept-aware prefetch, local pool fallback, skipAgent for speed |
+| A/B testing | 9 active configs: ai_temperature, ai_system_prompt, bible_injection, brain_data_level, few_shot_count, agent_pipeline, coach_persona, session_planner, explanation_depth |
+| AI budget | 90s total (worker timeout 55s), setup fetches excluded from budget clock |
 | BRAIN version | 2.4.0 — see KNOWLEDGE_CHANGELOG in index.jsx for full history |
+| BRAIN concepts | 48 concept tags with prerequisite graph, age minimums, difficulty levels |
 
-### Positions by Scenario Count (Thinly Covered = Priority for Expansion)
+### Positions by Scenario Count (584 total)
 
 | Position | Count | Notes |
 |----------|-------|-------|
-| Pitcher | 59+ | Rich — not a priority |
-| Batter | 58+ | Rich — not a priority |
-| Manager | 58+ | Rich — not a priority |
-| Catcher | 30+ | Decent — targeted expansion helpful |
-| Shortstop | 16+ | ⚠️ Thin — HIGH priority for expansion |
-| Center Field | 16+ | ⚠️ Thin — HIGH priority for expansion |
-| 2B / 1B / 3B / LF / RF | 14–15 each | ⚠️ Thin — HIGH priority for expansion |
+| Manager | 79 | Rich |
+| Baserunner | 68 | Rich |
+| Pitcher | 62 | Rich |
+| Batter | 59 | Rich |
+| Catcher | 40 | Solid |
+| Rules | 40 | Solid |
+| FirstBase | 31 | Good |
+| Counts | 28 | Good |
+| Shortstop | 27 | Good |
+| CenterField | 27 | Good |
+| SecondBase | 26 | Good |
+| ThirdBase | 26 | Good |
+| LeftField | 25 | Good |
+| RightField | 25 | Good |
+| Famous | 21 | Good |
 
 ---
 
@@ -175,11 +189,11 @@ Which other maps, positions, or scenarios does this touch? Does any existing sce
 
 | Order | Task | Context |
 |-------|------|---------|
-| 1 | Situational Mastery Scenario Clusters | Next in the 20-prompt Phase 2 sequence (Prompts 13–16 range). Creates clusters of scenarios that teach the same concept from multiple positions. |
-| 2 | Corner + Secondary Position Expansion | 80+ new scenarios planned for SS, 2B, 1B, 3B, LF, RF. Remote assistant drafts; Blaine audits against SCENARIO_BIBLE. |
-| 3 | Famous Plays Database | ~50 historical MLB plays coded as scenarios. Remote assistant does research; code integration is Claude's job. |
-| 4 | Playtester Feedback Integration | As feedback arrives, prioritize: broken scenarios first, then confusing explanations, then balance/difficulty. |
-| 5 | Cowork Automation (Exploring) | Potential use of Cowork to give Claude direct file access and send instructions to Windsurf, streamlining remaining Phase 2 prompts. |
+| 1 | Soft Launch & Production Testing | Deploy to Cloudflare Pages, generate promo codes, pre-launch QA sweep, validate Stripe checkout flow |
+| 2 | AI Reliability Monitoring | Monitor AI generation success rate post-fixes (90s budget, 55s worker timeout, skipAgent prefetch, trimmed prompts) |
+| 3 | User Accounts (Phase 2.7) | Cloudflare D1 accounts, email auth, progress sync, claim existing localStorage data |
+| 4 | COPPA Compliance (Phase 4.4) | Deadline: April 22, 2026 — neutral age gate, parent consent, deletion endpoint, privacy policy |
+| 5 | Coach Dashboard (Phase 4.2) | Team tier for travel ball coaches — requires backend from Phase 2.7/3 |
 
 ---
 
@@ -210,7 +224,9 @@ The remote assistant (based in the Philippines) contributes content production w
 | Relay/cutoff assignment errors | Most common content error. ALWAYS cross-check CUTOFF_RELAY_MAP before assigning cutoff roles in any scenario, regardless of position being written. |
 | Score perspective in AI scenarios | Most common AI generation bug. score=[HOME,AWAY]. Bot inning = HOME team bats. Verify every score reference before accepting a generated scenario. |
 | Coach lines with no context | Generic lines like "Perfect call, slugger!" are filler. Every line must teach or genuinely encourage with specificity. |
-| Prompt too long → AI timeout | grok-4-1-fast with a 10,000+ char prompt was timing out (50% failure rate). Prompt reduction to ~1,500 chars for the user message fixed response time. |
+| Prompt too long → AI timeout | grok-4 with bloated prompts (4,000-6,000+ tokens) causes >90s response times. Fixed: trimmed agent system message 60%, capped brain data at 500 chars, capped flagged patterns at 3, worker timeout 55s, AI_BUDGET 90s. |
+| Setup eats AI budget | Feedback-patterns and prompt-patches D1 fetches were counted in AI budget, consuming 25-27s. Fixed: moved `_aiFlowStart` to after setup calls complete. |
+| Prefetch blocks on agent pipeline | Pre-cache was running the full agent pipeline (plan→generate→grade), burning 100s for background work. Fixed: `skipAgent=true` parameter sends prefetch straight to standard pipeline. |
 
 ---
 

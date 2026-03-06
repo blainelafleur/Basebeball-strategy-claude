@@ -9162,7 +9162,7 @@ async function generateWithAgentPipeline(position, stats, conceptsLearned, recen
         max_tokens: 2500,
         temperature: aiTemp,
         messages: [
-          { role: "system", content: "You are the smartest, most experienced baseball coach in the world. You have coached at every level from tee-ball to MLB. You know the fundamentals cold. You teach concepts the way a patient coach explains them on the field — concrete, specific, grounded in real baseball.\n\nYou create training scenarios for Baseball Strategy Master, a strategy-teaching app for kids 6-18.\n\nOUTPUT: Respond with ONLY a valid JSON object. No markdown, no code fences, no text outside the JSON.\n\nGOLDEN RULE: Every scenario teaches ONE baseball concept. The concept drives everything — the situation setup, the 4 options, the correct answer, and every explanation. If an option does not relate to the concept being taught, replace it with one that does.\n\nEXPLANATION RULES (most important — players learn from explanations):\n- Each explanation: 2-4 sentences.\n- BEST answer explanation: Name the action → state WHY it is correct in THIS specific game situation (reference score, inning, outs, runners, count) → state the POSITIVE RESULT.\n- WRONG answer explanations: Name the action → state WHY it fails in THIS situation with concrete consequences → teach what makes it wrong.\n- Write from the player's perspective: \"you\", \"your team\", \"your runner\" — never \"the offense\" or \"the batting team.\"\n- NEVER use jargon like RE24, OBP, wOBA, xBA in descriptions or options. Stats go in explDepth.data only.\n- EVERY explanation must reference the SPECIFIC game situation. No generic explanations ever.\n\nOPTION RULES:\n- All 4 options happen at the SAME decision moment. Never mix \"before the pitch\" with \"after the ball is hit.\"\n- Each option is a SPECIFIC, CONCRETE action (not \"make the right play\" or \"do something smart\").\n- Options must be STRATEGICALLY DISTINCT — not 4 variations of the same action.\n- At least one option should be a common MISTAKE that a young player would actually make — this is how kids learn.\n- No near-duplicates. If two options describe essentially the same action with different wording, replace one.\n\nSITUATION RULES:\n- outs: 0, 1, or 2 (never 3).\n- count: valid format \"B-S\" where balls 0-3, strikes 0-2. Use \"-\" only if count is irrelevant.\n- runners: array of occupied bases [1], [1,3], [1,2,3], or [] for empty. Must match the description exactly.\n- score: [HOME, AWAY]. Home team bats in \"Bot\" half. If description says \"trailing 4-3\" and it is Bot inning, score must be [3,4] not [4,3].\n- The LAST sentence of the description MUST set up the exact decision moment.\n\nVARY EVERYTHING: Different count, runner configuration, inning (1-9), and score each time. The best answer should NOT always be option index 0 or 1 — distribute across 0-3.\n\nPOSITION BOUNDARIES: The scenario MUST only include actions that the selected position actually performs on the field. A center fielder does not call pitches. A batter does not position the defense. A pitcher does not decide the batting order.\n\nCOMMON MISTAKES TO AVOID:\n- Best explanation argues for the wrong option.\n- Score math is wrong (e.g., \"one-run game\" when the difference is 2 runs).\n- Combining two actions in one option (\"Wave off CF but also back up the throw\").\n- Options that no real player would ever consider.\n- Description says one thing but situation object says another." },
+          { role: "system", content: "You are the world's most experienced baseball coach, teaching kids 6-18 via Baseball Strategy Master.\n\nOUTPUT: Respond with ONLY valid JSON. No markdown, no code fences, no text outside JSON.\n\nGOLDEN RULE: Every scenario teaches ONE baseball concept that drives the situation, options, correct answer, and explanations.\n\nEXPLANATION RULES:\n- 2-4 sentences each. BEST: action → WHY correct in THIS situation → positive result. WRONG: action → WHY it fails → concrete consequences.\n- Player perspective (\"you\", \"your team\"). No jargon (RE24/OBP/wOBA) in descriptions/options — stats in explDepth.data only.\n- EVERY explanation must reference the specific game situation.\n\nOPTION RULES:\n- All 4 at the SAME decision moment. Each specific and concrete. Strategically distinct. Include one common kid mistake. No near-duplicates.\n\nPOSITION BOUNDARIES: Only actions this position actually performs. score=[HOME,AWAY]. Home bats in Bot half. outs: 0-2. count: \"B-S\" or \"-\". runners must match description." },
           { role: "user", content: agentPrompt }
         ]
       })
@@ -9314,9 +9314,8 @@ function getActiveABConfigs(sessionHash) {
   return configs
 }
 
-async function generateAIScenario(position, stats, conceptsLearned = [], recentWrong = [], signal = null, targetConcept = null, aiHistory = [], previousScenario = null, budgetMs = 75000) {
-  const _aiFlowStart = Date.now()
-  // Self-Learning AI: Fetch semantic feedback patterns + prompt patches (replaces old ID-based injection)
+async function generateAIScenario(position, stats, conceptsLearned = [], recentWrong = [], signal = null, targetConcept = null, aiHistory = [], previousScenario = null, budgetMs = 75000, skipAgent = false) {
+  // Setup phase — network calls not counted in AI budget
   let flaggedAvoidText = ""
   let promptPatchText = ""
   let realGameFeelText = ""
@@ -9338,7 +9337,7 @@ async function generateAIScenario(position, stats, conceptsLearned = [], recentW
       if (patterns.length > 0) {
         const CATEGORY_LABELS = { wrong_answer: "WRONG ANSWER", unrealistic: "UNREALISTIC", wrong_position: "WRONG POSITION", confusing_text: "CONFUSING", too_easy_hard: "DIFFICULTY" }
         flaggedAvoidText = "\nAVOID THESE PATTERNS — players flagged these issues in AI scenarios:\n" +
-          patterns.slice(0, 5).map(p => {
+          patterns.slice(0, 3).map(p => {
             const label = CATEGORY_LABELS[p.flag_category] || p.flag_category
             const titles = p.sample_titles ? ` Titles: ${p.sample_titles.slice(0, 80)}` : ""
             const comments = p.sample_comments ? ` Players said: ${p.sample_comments.slice(0, 100)}` : ""
@@ -9394,12 +9393,15 @@ async function generateAIScenario(position, stats, conceptsLearned = [], recentW
     console.warn("[BSM] Real game feel injection failed:", e.message)
   }
 
+  // Budget starts HERE — only counts actual AI generation time (setup network calls excluded)
+  const _aiFlowStart = Date.now()
+
   // Level 3.7: Agent pipeline A/B test — shadow mode
   try {
     const abConfigs = getActiveABConfigs(stats.sessionHash || "")
     const agentConfig = abConfigs.agent_pipeline || {}
     const agentBudget = budgetMs - (Date.now() - _aiFlowStart) - 2000
-    if (agentConfig.useAgent && agentBudget >= 10000) {
+    if (!skipAgent && agentConfig.useAgent && agentBudget >= 10000) {
       console.log("[BSM] Trying agent pipeline (A/B variant: agent, budget:", Math.round(agentBudget / 1000) + "s)")
       const agentResult = await generateWithAgentPipeline(position, stats, conceptsLearned, recentWrong, signal, targetConcept, aiHistory, flaggedAvoidText + realGameFeelText + promptPatchText, previousScenario, Math.min(75000, agentBudget))
       if (agentResult && agentResult.scenario) {
@@ -9408,6 +9410,8 @@ async function generateAIScenario(position, stats, conceptsLearned = [], recentW
         return { scenario: agentResult.scenario, abVariants: { pipeline: "agent", grade: _agScore } }
       }
       console.log("[BSM] Agent pipeline returned null, falling back to standard")
+    } else if (skipAgent) {
+      console.log("[BSM] Pre-fetch using standard pipeline only (skipAgent)")
     } else if (agentConfig.useAgent) {
       console.log("[BSM] Skipping agent pipeline — insufficient budget:", Math.round(agentBudget / 1000) + "s")
     }
@@ -9567,7 +9571,7 @@ ${bibleConfig.useBible !== false ? "DETAILED PRINCIPLES: " + (BIBLE_PRINCIPLES[p
 
 ${aiMapText}
 
-${brainConfig.brainLevel !== "minimal" ? formatBrainForAI(position, {count: null, inning: "", score: []}, targetConcept) : ""}
+${brainConfig.brainLevel !== "minimal" ? (formatBrainForAI(position, {count: null, inning: "", score: []}, targetConcept) || "").slice(0, 500) : ""}
 
 AUDIT: All 4 options must be actions THIS position performs at the SAME decision point. The scenario TITLE must describe something this position does (not another position's job). Best answer=coaching consensus backed by modern analytics. rates[best] MUST be highest. score=[HOME,AWAY].${errorReinforcement}
 POSITION-ACTION BOUNDARIES: ${(() => {
@@ -10764,7 +10768,7 @@ async function prefetchAIScenario(position, stats, conceptsLearned, recentWrong,
   _prefetchController = new AbortController()
   try {
     console.log("[BSM] Pre-fetch using independent budget: 100s, targeting concept:", targetConcept || "any")
-    const result = await generateAIScenario(position, stats, conceptsLearned, recentWrong, _prefetchController.signal, targetConcept, aiHistory, lastScenario, 100000)
+    const result = await generateAIScenario(position, stats, conceptsLearned, recentWrong, _prefetchController.signal, targetConcept, aiHistory, lastScenario, 100000, true)
     if (result.scenario) {
       cacheRef.current.scenarios[position] = { scenario: result, timestamp: Date.now() }
       console.log("[BSM] AI scenario pre-cached:", result.scenario.title)
@@ -12179,7 +12183,7 @@ export default function App(){
       }
       const _aiHist=stats.aiHistory||[]
       const _aiStartMs=Date.now()
-      const AI_BUDGET=160000
+      const AI_BUDGET=90000
       // Sprint 5: Try pre-cached scenario first for instant load (unified cache)
       let ctrl=null
       let result=consumeCachedAI(p, aiCacheRef)
