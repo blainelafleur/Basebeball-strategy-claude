@@ -28,6 +28,8 @@ binding = "DB"
 database_name = "bsm-accounts"
 database_id = "362f65bf-8f77-47fc-a8bf-1f1ee9c11f5b"
 
-# Level 2.1: Weekly AI quality report — Mondays at 6am UTC
+# Cron triggers:
+# - Weekly AI quality report + prompt patches: Mondays at 6am UTC
+# - Daily batch scenario generation: every day at 6am UTC
 [triggers]
-crons = ["0 6 * * 1"]
+crons = ["0 6 * * *"]

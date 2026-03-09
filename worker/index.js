@@ -100,6 +100,27 @@ const PBKDF2_ITERATIONS = 100_000;
 // );
 // CREATE INDEX IF NOT EXISTS idx_ab_test ON ab_results(test_id, variant_id);
 
+// Prompt versioning — track prompt composition and correlate with quality
+// CREATE TABLE IF NOT EXISTS prompt_versions (
+//   id INTEGER PRIMARY KEY AUTOINCREMENT,
+//   scenario_id TEXT,
+//   position TEXT,
+//   prompt_hash TEXT,
+//   system_message_length INTEGER,
+//   user_message_length INTEGER,
+//   injected_patches INTEGER DEFAULT 0,
+//   injected_calibration INTEGER DEFAULT 0,
+//   injected_error_patterns INTEGER DEFAULT 0,
+//   injected_audit_insights INTEGER DEFAULT 0,
+//   generation_grade REAL,
+//   pipeline TEXT DEFAULT 'standard',
+//   temperature REAL,
+//   model TEXT DEFAULT 'grok-4',
+//   timestamp INTEGER
+// );
+// CREATE INDEX IF NOT EXISTS idx_prompt_hash ON prompt_versions(prompt_hash);
+// CREATE INDEX IF NOT EXISTS idx_pv_position ON prompt_versions(position);
+
 // Community Scenario Pool — shared across all users
 // CREATE TABLE IF NOT EXISTS scenario_pool (
 //   id TEXT PRIMARY KEY,
@@ -121,8 +142,16 @@ const PBKDF2_ITERATIONS = 100_000;
 //   contributed_by TEXT,
 //   created_at INTEGER NOT NULL,
 //   last_served_at INTEGER,
-//   retired INTEGER DEFAULT 0
+//   retired INTEGER DEFAULT 0,
+//   generation_grade REAL DEFAULT NULL,
+//   tier TEXT DEFAULT 'new',
+//   scenario_signature TEXT DEFAULT ''
 // );
+// -- Migration: ALTER TABLE scenario_pool ADD COLUMN generation_grade REAL DEFAULT NULL;
+// -- Migration: ALTER TABLE scenario_pool ADD COLUMN tier TEXT DEFAULT 'new';
+// -- Migration: CREATE INDEX IF NOT EXISTS idx_pool_tier ON scenario_pool(tier);
+// -- Migration: ALTER TABLE scenario_pool ADD COLUMN scenario_signature TEXT DEFAULT '';
+// -- Migration: CREATE INDEX IF NOT EXISTS idx_pool_signature ON scenario_pool(scenario_signature);
 // CREATE INDEX IF NOT EXISTS idx_pool_position ON scenario_pool(position);
 // CREATE INDEX IF NOT EXISTS idx_pool_pos_diff ON scenario_pool(position, difficulty);
 // CREATE INDEX IF NOT EXISTS idx_pool_concept ON scenario_pool(concept_tag);
@@ -1303,7 +1332,7 @@ async function handleAIProxy(request, env, cors) {
   }
   const body = await request.text();
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 55000);
+  const timeout = setTimeout(() => controller.abort(), 120000);
   try {
     const t0 = Date.now();
     const xaiResponse = await fetch("https://api.x.ai/v1/chat/completions", {
@@ -1325,22 +1354,22 @@ async function handleAIProxy(request, env, cors) {
         : "xai_server_error";
       return jsonResponse({
         error: { message: `xAI API error: ${xaiResponse.status}`, type: errType, status: xaiResponse.status, detail: errBody.slice(0, 300) }
-      }, xaiResponse.status, { ...cors, "X-XAI-Elapsed": String(elapsed) });
+      }, xaiResponse.status, { ...cors, "X-XAI-Elapsed": String(elapsed), "X-XAI-Timeout": "120000" });
     }
     console.log(`[BSM Worker] xAI responded ${xaiResponse.status} in ${elapsed}ms`);
     // Stream response through directly — no buffering
     return new Response(xaiResponse.body, {
       status: xaiResponse.status,
-      headers: { ...cors, "Content-Type": "application/json", "X-XAI-Elapsed": String(elapsed) },
+      headers: { ...cors, "Content-Type": "application/json", "X-XAI-Elapsed": String(elapsed), "X-XAI-Timeout": "120000" },
     });
   } catch (e) {
     clearTimeout(timeout);
     if (e.name === "AbortError") {
-      console.error("[BSM Worker] xAI timeout after 75s");
-      return jsonResponse({ error: { message: "xAI API timeout (75s)", type: "timeout" } }, 504, cors);
+      console.error("[BSM Worker] xAI timeout after 120s");
+      return jsonResponse({ error: { message: "xAI API timeout (120s)", type: "timeout" } }, 504, { ...cors, "X-XAI-Timeout": "120000" });
     }
     console.error("[BSM Worker] xAI fetch error:", e.message);
-    return jsonResponse({ error: { message: e.message, type: "fetch_error" } }, 502, cors);
+    return jsonResponse({ error: { message: e.message, type: "fetch_error" } }, 502, { ...cors, "X-XAI-Timeout": "120000" });
   }
 }
 
@@ -1560,6 +1589,84 @@ async function handleAIAudit(request, env, cors) {
   }
 }
 
+// POST /analytics/prompt-version — store prompt metadata for quality correlation
+async function handlePromptVersion(request, env, cors) {
+  const db = env.DB
+  if (!db) return jsonResponse({ error: "No database configured" }, 500, cors)
+  try {
+    const body = await request.json()
+    await db.prepare(`
+      INSERT INTO prompt_versions (scenario_id, position, prompt_hash, system_message_length, user_message_length, injected_patches, injected_calibration, injected_error_patterns, injected_audit_insights, generation_grade, pipeline, temperature, model, timestamp)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).bind(
+      body.scenarioId || '', body.position || '', body.promptHash || '',
+      body.systemMessageLength || 0, body.userMessageLength || 0,
+      body.injectedPatches || 0, body.injectedCalibration || 0,
+      body.injectedErrorPatterns || 0, body.injectedAuditInsights || 0,
+      body.generationGrade || 0, body.pipeline || 'standard',
+      body.temperature || 0.4, body.model || 'grok-4', Date.now()
+    ).run()
+    return jsonResponse({ ok: true }, 200, cors)
+  } catch (e) {
+    return jsonResponse({ error: e.message }, 500, cors)
+  }
+}
+
+// GET /analytics/audit-insights — aggregate weak spots from self-audit scores
+async function handleAuditInsights(request, env, cors) {
+  const db = env.DB
+  if (!db) return jsonResponse({ error: "No database configured" }, 500, cors)
+  try {
+    const url = new URL(request.url)
+    const position = url.searchParams.get("position")
+    const days = parseInt(url.searchParams.get("days") || "30")
+    const since = Date.now() - days * 24 * 60 * 60 * 1000
+
+    const query = position
+      ? `SELECT position,
+              COUNT(*) as audit_count,
+              ROUND(AVG(score), 2) as avg_score,
+              MIN(score) as min_score,
+              ROUND(AVG(realistic), 2) as avg_realistic,
+              ROUND(AVG(options_quality), 2) as avg_options,
+              ROUND(AVG(coach_accuracy), 2) as avg_coach,
+              ROUND(AVG(tone), 2) as avg_tone,
+              GROUP_CONCAT(DISTINCT fix_suggestion) as feedback_samples
+         FROM ai_audits
+         WHERE created_at > ? AND position = ?
+         GROUP BY position
+         HAVING audit_count >= 3 AND avg_score < 3.5
+         ORDER BY avg_score ASC
+         LIMIT 10`
+      : `SELECT position,
+              COUNT(*) as audit_count,
+              ROUND(AVG(score), 2) as avg_score,
+              MIN(score) as min_score,
+              ROUND(AVG(realistic), 2) as avg_realistic,
+              ROUND(AVG(options_quality), 2) as avg_options,
+              ROUND(AVG(coach_accuracy), 2) as avg_coach,
+              ROUND(AVG(tone), 2) as avg_tone,
+              GROUP_CONCAT(DISTINCT fix_suggestion) as feedback_samples
+         FROM ai_audits
+         WHERE created_at > ?
+         GROUP BY position
+         HAVING audit_count >= 3 AND avg_score < 3.5
+         ORDER BY avg_score ASC
+         LIMIT 20`
+
+    const results = position
+      ? await db.prepare(query).bind(since, position).all()
+      : await db.prepare(query).bind(since).all()
+
+    return jsonResponse({
+      weakSpots: results.results || [],
+      queriedAt: new Date().toISOString()
+    }, 200, cors)
+  } catch (e) {
+    return jsonResponse({ error: e.message }, 500, cors)
+  }
+}
+
 // GET /prompt-patches — fetch active prompt patches for a position
 async function handleGetPromptPatches(request, env, cors) {
   const url = new URL(request.url);
@@ -1688,11 +1795,35 @@ function extractConceptTag(conceptText) {
   return ''
 }
 
+// Semantic signature for near-duplicate detection
+function computeScenarioSignature(scenario, position) {
+  const concept = scenario.conceptTag || scenario.concept || ''
+  const inningBucket = (() => {
+    const inn = scenario.situation?.inning || ''
+    const num = parseInt(inn.replace(/\D/g, '')) || 5
+    if (num <= 3) return 'early'
+    if (num <= 6) return 'mid'
+    return 'late'
+  })()
+  const scoreDiff = (() => {
+    const score = scenario.situation?.score || [0, 0]
+    const diff = score[0] - score[1]
+    if (diff > 2) return 'blowout-lead'
+    if (diff > 0) return 'close-lead'
+    if (diff === 0) return 'tied'
+    if (diff > -3) return 'close-trail'
+    return 'blowout-trail'
+  })()
+  const runners = (scenario.situation?.runners || []).sort().join('')
+  const outs = scenario.situation?.outs ?? ''
+  return `${position}|${concept}|${inningBucket}|${outs}|${scoreDiff}|${runners}`
+}
+
 // POST /scenario-pool/submit — contribute a quality AI scenario to the shared pool
 async function handlePoolSubmit(request, env, cors) {
   try {
     const body = await request.json();
-    const { scenario, position, quality_score, audit_score, source } = body;
+    const { scenario, position, quality_score, audit_score, source, generation_grade } = body;
 
     if (!scenario || !position || !scenario.title) {
       return jsonResponse({ error: "Missing scenario, position, or title" }, 400, cors);
@@ -1718,9 +1849,41 @@ async function handlePoolSubmit(request, env, cors) {
     const existing = await env.DB.prepare("SELECT id FROM scenario_pool WHERE id = ?").bind(poolId).first();
     if (existing) {
       // Update quality score if new score is higher
-      await env.DB.prepare("UPDATE scenario_pool SET quality_score = MAX(quality_score, ?), audit_score = MAX(audit_score, ?) WHERE id = ?")
-        .bind(quality_score || 0, audit_score || 0, poolId).run();
+      await env.DB.prepare("UPDATE scenario_pool SET quality_score = MAX(quality_score, ?), audit_score = MAX(audit_score, ?), generation_grade = COALESCE(MAX(generation_grade, ?), ?) WHERE id = ?")
+        .bind(quality_score || 0, audit_score || 0, generation_grade || 0, generation_grade || 0, poolId).run();
       return jsonResponse({ status: "duplicate_updated", id: poolId }, 200, cors);
+    }
+
+    // Semantic dedup: reject near-identical scenarios unless significantly better quality
+    const signature = computeScenarioSignature(scenario, position)
+    if (signature) {
+      try {
+        const sigMatch = await env.DB.prepare(`
+          SELECT id, quality_score, tier FROM scenario_pool
+          WHERE scenario_signature = ? AND retired = 0 AND tier IN ('gold', 'validated')
+          ORDER BY quality_score DESC LIMIT 1
+        `).bind(signature).first()
+
+        if (sigMatch) {
+          const newQuality = quality_score || generation_grade || 7.0
+          if (newQuality < sigMatch.quality_score * 1.10) {
+            console.log(`[BSM Pool] Semantic duplicate rejected: "${scenario.title}" matches ${sigMatch.id} (sig: ${signature})`)
+            return jsonResponse({
+              status: "duplicate_signature",
+              existingId: sigMatch.id,
+              existingQuality: sigMatch.quality_score,
+              existingTier: sigMatch.tier,
+              signature
+            }, 200, cors)
+          }
+          // New scenario is significantly better — retire the old one
+          await env.DB.prepare("UPDATE scenario_pool SET tier = 'replaced', retired = 1 WHERE id = ?").bind(sigMatch.id).run()
+          console.log(`[BSM Pool] Replacing ${sigMatch.id} (quality ${sigMatch.quality_score}) with better scenario (quality ${newQuality})`)
+        }
+      } catch (sigErr) {
+        // Non-blocking — if signature check fails, allow the insert
+        console.warn("[BSM Pool] Signature check failed:", sigErr.message)
+      }
     }
 
     // Strip fields that shouldn't be in the pool (user-specific data)
@@ -1741,8 +1904,8 @@ async function handlePoolSubmit(request, env, cors) {
     };
 
     await env.DB.prepare(`
-      INSERT INTO scenario_pool (id, position, difficulty, concept, concept_tag, title, scenario_json, quality_score, audit_score, source, contributed_by, created_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO scenario_pool (id, position, difficulty, concept, concept_tag, title, scenario_json, quality_score, audit_score, source, contributed_by, created_at, generation_grade, scenario_signature)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).bind(
       poolId,
       position,
@@ -1755,7 +1918,9 @@ async function handlePoolSubmit(request, env, cors) {
       audit_score || 0,
       source || "ai",
       "anonymous",
-      Date.now()
+      Date.now(),
+      generation_grade || null,
+      signature || ""
     ).run();
 
     console.log(`[BSM Pool] New scenario added: "${scenario.title}" (${position}, quality: ${quality_score})`);
@@ -1781,9 +1946,9 @@ async function handlePoolFetch(request, env, cors) {
       return jsonResponse({ error: "position required" }, 400, cors);
     }
 
-    // Build query — prioritize: high quality, low flag rate, concept match
+    // Build query — prioritize: gold > validated > new, then quality, concept match
     let query = `
-      SELECT id, scenario_json, quality_score, audit_score, times_served, correct_rate
+      SELECT id, scenario_json, quality_score, audit_score, times_served, correct_rate, tier
       FROM scenario_pool
       WHERE position = ? AND difficulty = ? AND retired = 0
         AND (times_served < 10 OR flag_rate < 0.10)
@@ -1801,12 +1966,13 @@ async function handlePoolFetch(request, env, cors) {
       params.push(...excludeTitles);
     }
 
-    // Prefer concept match if provided
+    // Prefer concept match if provided; always prioritize tier (gold > validated > new)
+    const tierOrder = `CASE COALESCE(tier, 'new') WHEN 'gold' THEN 1 WHEN 'validated' THEN 2 WHEN 'new' THEN 3 ELSE 4 END`
     if (conceptTag) {
-      query += ` ORDER BY CASE WHEN concept_tag = ? THEN 0 ELSE 1 END, quality_score DESC, RANDOM()`;
+      query += ` ORDER BY CASE WHEN concept_tag = ? THEN 0 ELSE 1 END, ${tierOrder}, quality_score DESC, RANDOM()`;
       params.push(conceptTag);
     } else {
-      query += ` ORDER BY quality_score DESC, RANDOM()`;
+      query += ` ORDER BY ${tierOrder}, quality_score DESC, RANDOM()`;
     }
 
     query += ` LIMIT ?`;
@@ -1829,6 +1995,7 @@ async function handlePoolFetch(request, env, cors) {
         sc.isAI = true;
         sc.isPooled = true;
         sc.poolQuality = r.quality_score;
+        sc.poolTier = r.tier || "new";
         return sc;
       } catch { return null; }
     }).filter(Boolean);
@@ -1858,12 +2025,123 @@ async function handlePoolFeedback(request, env, cors) {
     if (flagged) {
       await env.DB.prepare("UPDATE scenario_pool SET times_flagged = times_flagged + 1 WHERE id = ?").bind(pool_id).run();
       // Auto-retire if flagged too many times
-      await env.DB.prepare("UPDATE scenario_pool SET retired = 1 WHERE id = ? AND times_flagged >= 3 AND times_served >= 5 AND CAST(times_flagged AS REAL) / times_served > 0.15").bind(pool_id).run();
+      await env.DB.prepare("UPDATE scenario_pool SET retired = 1, tier = 'retired' WHERE id = ? AND times_flagged >= 3 AND times_served >= 5 AND CAST(times_flagged AS REAL) / times_served > 0.15").bind(pool_id).run();
     }
 
     return jsonResponse({ status: "ok" }, 200, cors);
   } catch (e) {
     return jsonResponse({ error: e.message }, 500, cors);
+  }
+}
+
+// POST /scenario-pool/promote — run tier promotion/demotion lifecycle
+async function handlePoolPromotion(env) {
+  const db = env.DB
+  if (!db) return { error: "No database configured" }
+  try {
+    // Promote: new → validated (5+ serves, <15% flag rate)
+    const promoted = await db.prepare(`
+      UPDATE scenario_pool SET tier = 'validated'
+      WHERE tier = 'new' AND retired = 0
+        AND times_served >= 5
+        AND (CAST(times_flagged AS REAL) / MAX(times_served, 1)) < 0.15
+    `).run()
+
+    // Promote: validated → gold (50+ serves, >35% correct rate, quality >= 8.0, <10% flag rate)
+    const golded = await db.prepare(`
+      UPDATE scenario_pool SET tier = 'gold'
+      WHERE tier = 'validated' AND retired = 0
+        AND times_served >= 50
+        AND (CAST(times_correct AS REAL) / MAX(times_served, 1)) > 0.35
+        AND (CAST(times_flagged AS REAL) / MAX(times_served, 1)) < 0.10
+        AND quality_score >= 8.0
+    `).run()
+
+    // Demote/retire: 10+ serves and flag rate > 15%
+    const retired = await db.prepare(`
+      UPDATE scenario_pool SET tier = 'retired', retired = 1
+      WHERE retired = 0
+        AND times_served >= 10
+        AND (CAST(times_flagged AS REAL) / MAX(times_served, 1)) > 0.15
+    `).run()
+
+    // Demote gold → validated if flag rate crept above 10%
+    const demoted = await db.prepare(`
+      UPDATE scenario_pool SET tier = 'validated'
+      WHERE tier = 'gold' AND retired = 0
+        AND times_served >= 50
+        AND (CAST(times_flagged AS REAL) / MAX(times_served, 1)) >= 0.10
+    `).run()
+
+    return {
+      promoted: promoted.meta?.changes || 0,
+      golded: golded.meta?.changes || 0,
+      retired: retired.meta?.changes || 0,
+      demoted: demoted.meta?.changes || 0,
+      timestamp: new Date().toISOString()
+    }
+  } catch (e) {
+    return { error: e.message }
+  }
+}
+
+// GET /scenario-pool/quality-audit — join generation grades with player feedback to find mismatches
+async function handlePoolQualityAudit(request, env, cors) {
+  const db = env.DB
+  if (!db) return jsonResponse({ error: "No database configured" }, 500, cors)
+  try {
+    const url = new URL(request.url)
+    const position = url.searchParams.get("position")
+
+    let query = `
+      SELECT p.id, p.position, p.concept_tag as concept, p.quality_score as pool_quality,
+             p.generation_grade,
+             p.times_served as served_count, p.times_correct as correct_count, p.times_flagged as flagged_count,
+             CASE WHEN p.times_served > 0
+               THEN ROUND(100.0 * p.times_flagged / p.times_served, 1)
+               ELSE 0 END as flag_rate,
+             CASE WHEN p.times_served > 0
+               THEN ROUND(100.0 * p.times_correct / p.times_served, 1)
+               ELSE 0 END as accuracy_rate,
+             g.quality_score as generation_grade_reported
+      FROM scenario_pool p
+      LEFT JOIN scenario_grades g ON p.id = g.scenario_id
+      WHERE p.retired = 0 AND p.times_served >= 5`
+    const params = []
+
+    if (position) {
+      query += ` AND p.position = ?`
+      params.push(position)
+    }
+
+    query += ` ORDER BY flag_rate DESC LIMIT 50`
+
+    const results = await db.prepare(query).bind(...params).all()
+    const rows = results.results || []
+
+    // Use whichever grade source is available: pool's generation_grade or grades table
+    const enriched = rows.map(r => ({
+      ...r,
+      best_grade: r.generation_grade || r.generation_grade_reported || r.pool_quality || 0
+    }))
+
+    // Mismatches: high generation score + high flag rate = prompt/grading problem
+    const mismatches = enriched.filter(r =>
+      r.best_grade > 7 && r.flag_rate > 10
+    )
+
+    // Retire candidates: persistently flagged or never answered correctly
+    const retireCandidates = enriched.filter(r => r.flag_rate > 15 || r.accuracy_rate < 20)
+
+    return jsonResponse({
+      all: enriched,
+      mismatches,
+      retireCandidates,
+      total: enriched.length,
+      queriedAt: new Date().toISOString()
+    }, 200, cors)
+  } catch (e) {
+    return jsonResponse({ error: e.message }, 500, cors)
   }
 }
 
@@ -1890,6 +2168,58 @@ async function handlePoolStats(request, env, cors) {
     }, 200, cors);
   } catch (e) {
     return jsonResponse({ error: e.message }, 500, cors);
+  }
+}
+
+// GET /knowledge-base/coverage — coverage matrix of validated scenarios by position/concept/difficulty
+async function handleKBCoverage(request, env, cors) {
+  const db = env.DB
+  if (!db) return jsonResponse({ error: "No database configured" }, 500, cors)
+  try {
+    const poolCoverage = await db.prepare(`
+      SELECT position, concept_tag as concept, difficulty,
+             COUNT(*) as pool_count,
+             ROUND(AVG(quality_score), 2) as avg_quality,
+             SUM(CASE WHEN times_served >= 50 AND quality_score >= 8.0
+                  AND (CAST(times_flagged AS REAL) / MAX(times_served, 1)) < 0.15
+                  THEN 1 ELSE 0 END) as gold_count,
+             SUM(CASE WHEN times_served >= 5
+                  AND (CAST(times_flagged AS REAL) / MAX(times_served, 1)) < 0.15
+                  THEN 1 ELSE 0 END) as validated_count,
+             MAX(created_at) as last_generated
+      FROM scenario_pool
+      WHERE retired = 0
+      GROUP BY position, concept_tag, difficulty
+      ORDER BY position, concept_tag, difficulty
+    `).all()
+
+    const rows = poolCoverage.results || []
+
+    const positions = ["pitcher","catcher","firstBase","secondBase","shortstop","thirdBase",
+                       "leftField","centerField","rightField","batter","baserunner","manager"]
+    const difficulties = [1, 2, 3]
+    const concepts = [...new Set(rows.map(r => r.concept).filter(Boolean))]
+
+    const totalCells = positions.length * concepts.length * difficulties.length
+    const coveredCells = rows.filter(r => r.pool_count > 0).length
+    const goldCells = rows.filter(r => r.gold_count > 0).length
+
+    return jsonResponse({
+      coverage: rows,
+      summary: {
+        totalPossibleCells: totalCells,
+        coveredCells,
+        goldCells,
+        coveragePercent: totalCells > 0 ? Math.round(100 * coveredCells / totalCells) : 0,
+        goldPercent: totalCells > 0 ? Math.round(100 * goldCells / totalCells) : 0,
+        positions: positions.length,
+        uniqueConcepts: concepts.length,
+        difficulties: difficulties.length
+      },
+      queriedAt: new Date().toISOString()
+    }, 200, cors)
+  } catch (e) {
+    return jsonResponse({ error: e.message }, 500, cors)
   }
 }
 
@@ -2038,14 +2368,252 @@ async function handleABResults(request, env, cors) {
   }
 }
 
+// GET /analytics/ab-results — analyze A/B test results with winner detection
+async function handleABAnalysis(request, env, cors) {
+  const db = env.DB;
+  if (!db) return jsonResponse({ error: "No database configured" }, 500, cors);
+  try {
+    const url = new URL(request.url);
+    const testId = url.searchParams.get("test_id");
+    const days = parseInt(url.searchParams.get("days") || "30");
+    const since = Date.now() - days * 24 * 60 * 60 * 1000;
+
+    const query = testId
+      ? `SELECT test_id, variant_id, metric,
+              COUNT(*) as sample_size,
+              ROUND(AVG(value), 4) as avg_value,
+              ROUND(SUM(value), 2) as total_value,
+              MIN(timestamp) as first_seen,
+              MAX(timestamp) as last_seen
+         FROM ab_results
+         WHERE timestamp > ? AND test_id = ?
+         GROUP BY test_id, variant_id, metric
+         ORDER BY test_id, metric, avg_value DESC`
+      : `SELECT test_id, variant_id, metric,
+              COUNT(*) as sample_size,
+              ROUND(AVG(value), 4) as avg_value,
+              ROUND(SUM(value), 2) as total_value,
+              MIN(timestamp) as first_seen,
+              MAX(timestamp) as last_seen
+         FROM ab_results
+         WHERE timestamp > ?
+         GROUP BY test_id, variant_id, metric
+         ORDER BY test_id, metric, avg_value DESC`;
+
+    const results = testId
+      ? await db.prepare(query).bind(since, testId).all()
+      : await db.prepare(query).bind(since).all();
+
+    const tests = {};
+    for (const row of (results.results || [])) {
+      if (!tests[row.test_id]) tests[row.test_id] = { metrics: {} };
+      if (!tests[row.test_id].metrics[row.metric]) tests[row.test_id].metrics[row.metric] = [];
+      tests[row.test_id].metrics[row.metric].push(row);
+    }
+
+    const analysis = Object.entries(tests).map(([tid, data]) => {
+      const metricAnalysis = Object.entries(data.metrics).map(([metric, variants]) => {
+        const sorted = variants.sort((a, b) => b.avg_value - a.avg_value);
+        const winner = sorted[0];
+        const runnerUp = sorted[1];
+        const totalSamples = variants.reduce((s, v) => s + v.sample_size, 0);
+        const isSignificant = variants.every(v => v.sample_size >= 50);
+        return {
+          metric,
+          winner: winner?.variant_id,
+          winnerAvg: winner?.avg_value,
+          runnerUpAvg: runnerUp?.avg_value,
+          lift: runnerUp ? ((winner.avg_value - runnerUp.avg_value) / Math.max(runnerUp.avg_value, 0.001) * 100).toFixed(1) + "%" : "N/A",
+          totalSamples,
+          isSignificant,
+          variants
+        };
+      });
+      return { testId: tid, metrics: metricAnalysis };
+    });
+
+    return jsonResponse({ analysis, queriedAt: new Date().toISOString(), dayRange: days }, 200, cors);
+  } catch (e) {
+    return jsonResponse({ error: e.message }, 500, cors);
+  }
+}
+
 // --- Level 2.1: Weekly Cron Trigger for AI Quality Aggregation ---
 // Runs every Monday at 6am UTC. Creates weekly_ai_report entries in D1.
 // Identifies: degraded concepts (<40% correct), too-easy concepts (>90%), high flag-rate positions (>5%).
 
+// POST /admin/batch-generate — generate scenarios for coverage gaps (admin or cron)
+async function handleBatchGenerate(env, options = {}) {
+  const db = env.DB
+  if (!db) return { error: "No database configured" }
+  if (!env.XAI_API_KEY) return { error: "XAI_API_KEY not configured" }
+
+  const batchSize = Math.min(options.count || 10, 25)
+  const targetPosition = options.position || null
+
+  const positions = targetPosition ? [targetPosition] :
+    ["pitcher","catcher","firstBase","secondBase","shortstop","thirdBase",
+     "leftField","centerField","rightField","batter","baserunner","manager"]
+
+  // Find positions with lowest pool counts
+  const poolCounts = await db.prepare(`
+    SELECT position, COUNT(*) as count
+    FROM scenario_pool WHERE retired = 0
+    GROUP BY position
+  `).all()
+
+  const countMap = {}
+  for (const r of (poolCounts.results || [])) countMap[r.position] = r.count
+
+  // Sort positions by lowest coverage first
+  const sortedPositions = [...positions].sort((a, b) => (countMap[a] || 0) - (countMap[b] || 0))
+
+  const results = []
+
+  for (let i = 0; i < batchSize; i++) {
+    const position = sortedPositions[i % sortedPositions.length]
+    const diffTarget = (i % 3) + 1
+    const posLabel = position.replace(/([A-Z])/g, ' $1').trim().toLowerCase()
+
+    try {
+      const controller = new AbortController()
+      const timeout = setTimeout(() => controller.abort(), 60000)
+
+      const response = await fetch("https://api.x.ai/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${env.XAI_API_KEY}`,
+        },
+        signal: controller.signal,
+        body: JSON.stringify({
+          model: "grok-4",
+          max_tokens: 2500,
+          temperature: 0.5,
+          messages: [
+            { role: "system", content: `You are the world's most experienced baseball coach, teaching kids ages 6-18 via Baseball Strategy Master. OUTPUT: Respond with ONLY valid JSON — no markdown, no explanation. GOLDEN RULE: Every scenario teaches ONE clear baseball concept. EXPLANATION RULES: 2-4 sentences each. BEST explanation: the action + WHY it's correct + the positive result. WRONG explanations: the action + WHY it fails + consequences. Use player perspective ("you"). OPTION RULES: All 4 options happen at the SAME decision moment. Each must be specific, concrete, and strategically distinct. Include one common mistake kids make. POSITION BOUNDARIES: Only actions the ${posLabel} actually performs. score=[HOME,AWAY]. outs: 0-2. count: "B-S" or "-". runners array must match description.` },
+            { role: "user", content: `Create a baseball strategy scenario for position: ${position}, difficulty ${diffTarget}/3.
+THE QUESTION: "What should the ${posLabel} do?"
+All 4 options must be actions ONLY this position makes.
+Return ONLY valid JSON: {"title":"Short Title","diff":${diffTarget},"description":"2-3 sentence scenario","situation":{"inning":"Bot 5","outs":1,"count":"1-1","runners":[],"score":[2,3]},"options":["A","B","C","D"],"best":0,"explanations":["Why A","Why B","Why C","Why D"],"rates":[85,55,25,15],"concept":"One-sentence lesson","conceptTag":"concept-tag","anim":"freeze"}
+The best option must have the highest rate (>=70). Include one yellow option (45-65). conceptTag should be a kebab-case tag like "steal-window" or "cutoff-alignment".` }
+          ]
+        })
+      })
+      clearTimeout(timeout)
+
+      if (!response.ok) {
+        results.push({ position, diff: diffTarget, status: "api_error", code: response.status })
+        continue
+      }
+
+      const data = await response.json()
+      const text = data.choices?.[0]?.message?.content || ""
+
+      // Parse and validate
+      const cleaned = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
+      let scenario
+      try {
+        scenario = JSON.parse(cleaned)
+      } catch (parseErr) {
+        results.push({ position, diff: diffTarget, status: "parse_error", error: parseErr.message })
+        continue
+      }
+
+      // Structural validation
+      const issues = []
+      if (!scenario.title) issues.push("missing title")
+      if (!Array.isArray(scenario.options) || scenario.options.length !== 4) issues.push("need 4 options")
+      if (typeof scenario.best !== "number" || scenario.best < 0 || scenario.best > 3) issues.push("invalid best")
+      if (!Array.isArray(scenario.explanations) || scenario.explanations.length !== 4) issues.push("need 4 explanations")
+      if (!Array.isArray(scenario.rates) || scenario.rates.length !== 4) issues.push("need 4 rates")
+      if (scenario.rates && scenario.rates[scenario.best] < 70) issues.push("best rate < 70")
+      if (!scenario.description) issues.push("missing description")
+      if (!scenario.situation) issues.push("missing situation")
+
+      if (issues.length > 0) {
+        results.push({ position, diff: diffTarget, status: "validation_failed", title: scenario.title || "?", issues })
+        continue
+      }
+
+      // Generate pool ID via content hash
+      const hashInput = `${position}:${scenario.title}:${scenario.concept || ""}:${(scenario.options || []).join("|")}`
+      const hashBuffer = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(hashInput))
+      const poolId = "batch_" + Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, "0")).join("").slice(0, 16)
+
+      // Check for duplicate
+      const existing = await db.prepare("SELECT id FROM scenario_pool WHERE id = ?").bind(poolId).first()
+      if (existing) {
+        results.push({ position, diff: diffTarget, status: "duplicate", title: scenario.title, id: poolId })
+        continue
+      }
+
+      // Clean and insert
+      const cleanScenario = {
+        title: scenario.title, diff: scenario.diff || diffTarget, description: scenario.description,
+        situation: scenario.situation, options: scenario.options, best: scenario.best,
+        explanations: scenario.explanations, rates: scenario.rates,
+        concept: scenario.concept || "", conceptTag: scenario.conceptTag || extractConceptTag(scenario.concept || ""),
+        anim: scenario.anim || "freeze"
+      }
+
+      const batchSignature = computeScenarioSignature(scenario, position)
+
+      // Semantic dedup for batch: skip if gold/validated with same signature exists
+      if (batchSignature) {
+        try {
+          const sigMatch = await db.prepare(`
+            SELECT id FROM scenario_pool
+            WHERE scenario_signature = ? AND retired = 0 AND tier IN ('gold', 'validated')
+            LIMIT 1
+          `).bind(batchSignature).first()
+          if (sigMatch) {
+            results.push({ position, diff: diffTarget, status: "duplicate_signature", title: scenario.title, matchedId: sigMatch.id })
+            continue
+          }
+        } catch { /* non-blocking */ }
+      }
+
+      await db.prepare(`
+        INSERT INTO scenario_pool (id, position, difficulty, concept, concept_tag, title, scenario_json, quality_score, audit_score, source, contributed_by, created_at, scenario_signature)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, 'batch', 'cron', ?, ?)
+      `).bind(
+        poolId, position, cleanScenario.diff,
+        cleanScenario.concept, cleanScenario.conceptTag,
+        cleanScenario.title, JSON.stringify(cleanScenario),
+        7.0, Date.now(), batchSignature || ""
+      ).run()
+
+      results.push({ position, diff: diffTarget, status: "success", title: scenario.title, concept: cleanScenario.conceptTag || cleanScenario.concept, id: poolId })
+      console.log(`[BSM Batch] Generated: "${scenario.title}" (${position}, diff ${diffTarget})`)
+
+    } catch (fetchErr) {
+      results.push({ position, diff: (i % 3) + 1, status: "fetch_error", error: fetchErr.message })
+    }
+  }
+
+  const summary = {
+    generated: results.filter(r => r.status === "success").length,
+    failed: results.filter(r => r.status !== "success").length,
+    duplicates: results.filter(r => r.status === "duplicate").length,
+    results,
+    timestamp: new Date().toISOString()
+  }
+  console.log(`[BSM Batch] Complete: ${summary.generated} generated, ${summary.failed} failed, ${summary.duplicates} duplicates`)
+  return summary
+}
+
 async function handleScheduled(event, env) {
   const now = Date.now()
   const weekAgo = now - 7 * 24 * 60 * 60 * 1000
+  const isMonday = new Date(now).getUTCDay() === 1
 
+  // Weekly report + prompt patches only run on Mondays
+  if (!isMonday) {
+    console.log("[BSM Cron] Skipping weekly report/patches (not Monday). Running batch generation only.")
+  }
+
+  if (isMonday) {
   try {
     // 1. Aggregate difficulty data from last 7 days
     const diffData = await env.DB.prepare(`
@@ -2131,7 +2699,7 @@ async function handleScheduled(event, env) {
     console.error("[BSM Cron] Weekly aggregation failed:", e.message)
   }
 
-  // --- Phase D: Generate prompt patches from accumulated data ---
+  // --- Phase D: Generate prompt patches from accumulated data (weekly) ---
   try {
     const positions = ["pitcher","catcher","firstBase","secondBase","shortstop","thirdBase","leftField","centerField","rightField","batter","baserunner","manager"];
     const patchWeekAgo = now - 7 * 24 * 60 * 60 * 1000;
@@ -2269,6 +2837,23 @@ async function handleScheduled(event, env) {
   } catch (e) {
     console.error("[BSM Cron] Prompt patch generation failed:", e.message)
   }
+  } // end isMonday
+
+  // --- Phase E: Batch scenario generation to fill coverage gaps (daily) ---
+  try {
+    const batchResult = await handleBatchGenerate(env, { count: 6 })
+    console.log(`[BSM Cron] Batch generation: ${batchResult.generated || 0} new scenarios, ${batchResult.failed || 0} failed`)
+  } catch (e) {
+    console.error("[BSM Cron] Batch generation failed:", e.message)
+  }
+
+  // --- Phase F: Pool tier promotion/demotion (daily) ---
+  try {
+    const promoResult = await handlePoolPromotion(env)
+    console.log(`[BSM Cron] Pool promotion: ${promoResult.promoted || 0} promoted, ${promoResult.golded || 0} golded, ${promoResult.demoted || 0} demoted, ${promoResult.retired || 0} retired`)
+  } catch (e) {
+    console.error("[BSM Cron] Pool promotion failed:", e.message)
+  }
 }
 
 // --- Router ---
@@ -2360,6 +2945,33 @@ export default {
         return jsonResponse({ error: "Server error" }, 500, cors);
       }
     }
+    if (path === "/scenario-pool/quality-audit" && request.method === "GET") {
+      try {
+        return await handlePoolQualityAudit(request, env, cors);
+      } catch {
+        return jsonResponse({ error: "Server error" }, 500, cors);
+      }
+    }
+    if (path === "/scenario-pool/promote" && request.method === "POST") {
+      const adminKey = request.headers.get("X-Admin-Key");
+      if (!adminKey || adminKey !== env.ADMIN_KEY) {
+        return jsonResponse({ error: "Unauthorized" }, 401, cors);
+      }
+      try {
+        const result = await handlePoolPromotion(env);
+        return jsonResponse(result, result.error ? 500 : 200, cors);
+      } catch (e) {
+        return jsonResponse({ error: e.message }, 500, cors);
+      }
+    }
+
+    if (path === "/knowledge-base/coverage" && request.method === "GET") {
+      try {
+        return await handleKBCoverage(request, env, cors);
+      } catch {
+        return jsonResponse({ error: "Server error" }, 500, cors);
+      }
+    }
 
     // Backfill concept_tag for existing pool scenarios with empty tags
     if (path === "/scenario-pool/backfill-tags" && request.method === "POST") {
@@ -2418,6 +3030,25 @@ export default {
       }
     }
 
+    if (path === "/analytics/audit-insights" && request.method === "GET") {
+      try {
+        return await handleAuditInsights(request, env, cors);
+      } catch {
+        return jsonResponse({ error: "Server error" }, 500, cors);
+      }
+    }
+
+    if (path === "/analytics/prompt-version" && request.method === "POST") {
+      if (!checkRateLimit(`analytics:${ip}`, RATE_LIMIT_ANALYTICS)) {
+        return jsonResponse({ ok: false, error: "Rate limited" }, 429, cors);
+      }
+      try {
+        return await handlePromptVersion(request, env, cors);
+      } catch {
+        return jsonResponse({ ok: false }, 500, cors);
+      }
+    }
+
     if (path === "/analytics/scenario-grade" && request.method === "POST") {
       if (!checkRateLimit(`analytics:${ip}`, RATE_LIMIT_ANALYTICS)) {
         return jsonResponse({ ok: false, error: "Rate limited" }, 429, cors);
@@ -2462,6 +3093,14 @@ export default {
       }
       try {
         return await handleABResults(request, env, cors);
+      } catch {
+        return jsonResponse({ error: "Server error" }, 500, cors);
+      }
+    }
+
+    if (path === "/analytics/ab-results" && request.method === "GET") {
+      try {
+        return await handleABAnalysis(request, env, cors);
       } catch {
         return jsonResponse({ error: "Server error" }, 500, cors);
       }
@@ -2597,6 +3236,23 @@ export default {
         }
       }
       return new Response("Method not allowed", { status: 405, headers: cors });
+    }
+
+    if (path === "/admin/batch-generate" && request.method === "POST") {
+      const adminKey = request.headers.get("X-Admin-Key");
+      if (!adminKey || adminKey !== env.ADMIN_KEY) {
+        return jsonResponse({ error: "Unauthorized" }, 401, cors);
+      }
+      try {
+        const body = await request.json().catch(() => ({}));
+        const result = await handleBatchGenerate(env, {
+          count: Math.min(body.count || 10, 25),
+          position: body.position || null
+        });
+        return jsonResponse(result, result.error ? 500 : 200, cors);
+      } catch (e) {
+        return jsonResponse({ error: e.message }, 500, cors);
+      }
     }
 
     if (!checkRateLimit(`ai:${ip}`, RATE_LIMIT_AI)) {

@@ -6407,30 +6407,30 @@ function detectErrorPatterns(masteryData, sessionHistory) {
   const patterns = [];
   const buntPicks = recent.filter(h => h.choiceText?.toLowerCase().includes('bunt')).length;
   if (buntPicks >= 5 && buntPicks / recent.length > 0.35)
-    patterns.push({ key:'always-bunts', label:'Always Bunts', conceptGap:'bunt-re24', aiInstruction:'Include a scenario where bunting is CLEARLY wrong (costs 0.23 RE). Correct answer is swing away.' });
+    patterns.push({ key:'always-bunts', type:'always_picks', label:'Always Bunts', concept:'bunt-re24', conceptGap:'bunt-re24', alwaysPick:'bunt', aiInstruction:'Include a scenario where bunting is CLEARLY wrong (costs 0.23 RE). Correct answer is swing away.' });
   const stealOpp = recent.filter(h => h.conceptTag === 'steal-breakeven').length;
   const stealPicks = recent.filter(h => h.choiceText?.toLowerCase().includes('steal')).length;
   if (stealOpp >= 3 && stealPicks === 0)
-    patterns.push({ key:'never-steals', label:'Never Steals', conceptGap:'steal-breakeven', aiInstruction:'Create obvious steal: fast runner, slow catcher, 3-1 count. Make steal the unambiguously correct answer.' });
+    patterns.push({ key:'never-steals', type:'never_picks', label:'Never Steals', concept:'steal-breakeven', conceptGap:'steal-breakeven', neverPick:'steal', aiInstruction:'Create obvious steal: fast runner, slow catcher, 3-1 count. Make steal the unambiguously correct answer.' });
   const countScens = recent.filter(h => h.countContext);
   const pcWrong = countScens.filter(h => h.countContext === 'pitcher' && !h.correct).length;
   if (countScens.length >= 4 && pcWrong / countScens.length > 0.5)
-    patterns.push({ key:'count-blindness', label:'Count Blindness', conceptGap:'count-leverage', aiInstruction:'Create scenario where 0-2 count is the central factor. Wrong answer explicitly ignores count.' });
+    patterns.push({ key:'count-blindness', type:'concept_blind', label:'Count Blindness', concept:'count-leverage', conceptGap:'count-leverage', aiInstruction:'Create scenario where 0-2 count is the central factor. Wrong answer explicitly ignores count.' });
   const posErr = recent.filter(h => !h.correct && (h.errorType === 'role-confusion' || h.conceptTag?.includes('cutoff'))).length;
   if (posErr >= 3)
-    patterns.push({ key:'position-confusion', label:'Position Confusion', conceptGap:'cutoff-roles', aiInstruction:'Simple cutoff scenario, one clear correct fielder. All wrong answers use wrong fielder.' });
+    patterns.push({ key:'position-confusion', type:'concept_blind', label:'Position Confusion', concept:'cutoff-roles', conceptGap:'cutoff-roles', aiInstruction:'Simple cutoff scenario, one clear correct fielder. All wrong answers use wrong fielder.' });
   const ftErr = recent.filter(h => !h.correct && h.conceptTag === 'force-vs-tag').length;
   if (ftErr >= 2)
-    patterns.push({ key:'force-tag-confusion', label:'Force/Tag Confusion', conceptGap:'force-vs-tag', aiInstruction:'Scenario where runner is NOT forced. Tag vs. touch decision. Force-play option is plausible wrong answer.' });
+    patterns.push({ key:'force-tag-confusion', type:'concept_blind', label:'Force/Tag Confusion', concept:'force-vs-tag', conceptGap:'force-vs-tag', aiInstruction:'Scenario where runner is NOT forced. Tag vs. touch decision. Force-play option is plausible wrong answer.' });
   const prErr = recent.filter(h => !h.correct && h.conceptTag === 'fly-ball-priority').length;
   if (prErr >= 2)
-    patterns.push({ key:'priority-inversion', label:'Priority Inversion', conceptGap:'fly-ball-priority', aiInstruction:'Infielder trying to call off outfielder. Correct answer: outfielder takes the ball. Unambiguous.' });
+    patterns.push({ key:'priority-inversion', type:'concept_blind', label:'Priority Inversion', concept:'fly-ball-priority', conceptGap:'fly-ball-priority', aiInstruction:'Infielder trying to call off outfielder. Correct answer: outfielder takes the ball. Unambiguous.' });
   const re24Scens = recent.filter(h => ['bunt-re24','steal-breakeven'].includes(h.conceptTag));
   if (re24Scens.length >= 4 && re24Scens.filter(h => !h.correct).length / re24Scens.length > 0.6)
-    patterns.push({ key:'re24-resistance', label:'RE24 Resistance', conceptGap:'bunt-re24', aiInstruction:'Stark RE24 contrast — bunt costs 0.23 runs. Show the numbers explicitly. Make data impossible to ignore.' });
+    patterns.push({ key:'re24-resistance', type:'concept_blind', label:'RE24 Resistance', concept:'bunt-re24', conceptGap:'bunt-re24', aiInstruction:'Stark RE24 contrast — bunt costs 0.23 runs. Show the numbers explicitly. Make data impossible to ignore.' });
   const lgScens = recent.filter(h => h.lateClose);
   if (lgScens.length >= 3 && lgScens.filter(h => !h.correct).length / lgScens.length > 0.6)
-    patterns.push({ key:'late-game-blindness', label:'Late-Game Blindness', conceptGap:'win-probability', aiInstruction:'Late-game scenario where RE24 and WP diverge. Correct answer uses WP logic, not RE24.' });
+    patterns.push({ key:'late-game-blindness', type:'concept_blind', label:'Late-Game Blindness', concept:'win-probability', conceptGap:'win-probability', aiInstruction:'Late-game scenario where RE24 and WP diverge. Correct answer uses WP logic, not RE24.' });
   return patterns;
 }
 // Level 1.4: Track AI vs handcrafted scenario quality separately
@@ -8621,6 +8621,353 @@ const OPTION_ARCHETYPES = {
     kid_mistake: 'Leave the starter in because he started the game',
     sounds_smart: 'Pull him immediately at first sign of trouble',
     clearly_wrong: 'Wait until the starter gives up the lead'
+  },
+  // --- Cutoff/relay for all positions ---
+  'secondBase:cutoff-roles': {
+    moment: 'Single to right-center, runner rounding second toward third',
+    correct: 'Move to relay position between CF/RF and third base',
+    kid_mistake: 'Stay near second base and cover the bag',
+    sounds_smart: 'Let shortstop take the relay since he has a stronger arm',
+    clearly_wrong: 'Run toward the outfielder to help field the ball'
+  },
+  'thirdBase:cutoff-roles': {
+    moment: 'Extra-base hit to left, runner coming from first toward home',
+    correct: 'Position near third to receive cutoff throw, redirect to home if needed',
+    kid_mistake: 'Stay on the bag waiting for a tag play',
+    sounds_smart: 'Cut the ball off and hold it regardless of the runner',
+    clearly_wrong: 'Run out toward left field to back up'
+  },
+  'pitcher:cutoff-roles': {
+    moment: 'Ball hit to right field gap, runner scoring from second',
+    correct: 'Sprint to back up home plate in case of overthrow',
+    kid_mistake: 'Stand on the mound and watch the play develop',
+    sounds_smart: 'Run to be the cutoff man between outfield and home',
+    clearly_wrong: 'Cover first base'
+  },
+  'catcher:cutoff-roles': {
+    moment: 'Double to left-center, relay throw coming to home plate',
+    correct: 'Set up in front of the plate, give the cutoff man a clear target, call for cut or let it through',
+    kid_mistake: 'Stand behind the plate instead of positioning up the line',
+    sounds_smart: 'Move up the third-base line to cut the distance on the throw',
+    clearly_wrong: 'Leave the plate to back up third base'
+  },
+  'centerField:cutoff-roles': {
+    moment: 'Base hit to center, runner on first trying to score',
+    correct: 'Hit the cutoff man chest-high on the line to home plate',
+    kid_mistake: 'Throw directly to home trying to gun down the runner',
+    sounds_smart: 'Hold the ball to prevent the batter from taking second',
+    clearly_wrong: 'Throw to second base to keep the batter at first'
+  },
+  'manager:cutoff-roles': {
+    moment: 'Opponent hits a gap double with runner on first, close game',
+    correct: 'Have your team execute the relay — cutoff man in line, pitcher backing up home',
+    kid_mistake: 'Yell for the outfielder to throw home no matter what',
+    sounds_smart: 'Concede the run and hold the batter at second',
+    clearly_wrong: 'Let the players figure it out on their own'
+  },
+  // --- Bunt defense for all positions ---
+  'pitcher:bunt-defense': {
+    moment: 'Sacrifice bunt situation, runner on first, less than 2 outs',
+    correct: 'Field your area, check the lead runner, throw to the right base based on bunt speed',
+    kid_mistake: 'Always throw to first for the easy out',
+    sounds_smart: 'Let the corner infielders handle every bunt',
+    clearly_wrong: 'Stay on the mound and cover the pitching area only'
+  },
+  'catcher:bunt-defense': {
+    moment: 'Runner on second, bunt in front of the plate',
+    correct: 'Pounce on the ball, check the runner at third, make the smart throw',
+    kid_mistake: 'Always throw to first because it\'s the easiest play',
+    sounds_smart: 'Yell for the pitcher to field it even if you\'re closer',
+    clearly_wrong: 'Stay at the plate and let the pitcher handle everything'
+  },
+  'secondBase:bunt-defense': {
+    moment: 'Sacrifice bunt, runner on first, second baseman covering',
+    correct: 'Break toward first base to cover the bag on the throw',
+    kid_mistake: 'Charge toward the bunt like a corner infielder',
+    sounds_smart: 'Stay at normal depth and cover second base',
+    clearly_wrong: 'Stand and watch to see where the ball goes first'
+  },
+  'shortstop:bunt-defense': {
+    moment: 'Bunt with runner on second, shortstop covering',
+    correct: 'Break to cover third base as the third baseman charges',
+    kid_mistake: 'Charge the bunt from shortstop position',
+    sounds_smart: 'Stay at shortstop depth to cover a hard bunt past the charging fielders',
+    clearly_wrong: 'Cover second base'
+  },
+  'manager:bunt-defense': {
+    moment: 'Opponent bunting with runners on first and second, nobody out',
+    correct: 'Call the right bunt defense — wheel play or rotation based on the situation',
+    kid_mistake: 'Have everyone stay in normal positions',
+    sounds_smart: 'Crash all corner infielders regardless of runner speed',
+    clearly_wrong: 'Ignore the bunt threat and play straight up'
+  },
+  // --- Pitcher-specific concepts ---
+  'pitcher:pitch-calling': {
+    moment: 'Full count, runner on third, two outs, tie game',
+    correct: 'Go with your best pitch — need a strike or quality chase pitch',
+    kid_mistake: 'Aim for the corner and walk the batter',
+    sounds_smart: 'Throw a changeup because the hitter expects fastball',
+    clearly_wrong: 'Just throw it down the middle to avoid walking in a run'
+  },
+  'pitcher:pitch-count-awareness': {
+    moment: 'Pitcher at 85 pitches in the 6th, getting through lineup third time',
+    correct: 'Work efficiently — get ahead early to keep pitch count manageable',
+    kid_mistake: 'Keep throwing max effort because the game is close',
+    sounds_smart: 'Start nibbling corners to get weak contact',
+    clearly_wrong: 'Ignore pitch count and try to finish the game yourself'
+  },
+  'pitcher:holding-runners': {
+    moment: 'Fast runner on first, one out, left-handed pitcher',
+    correct: 'Vary hold times in the set, use slide step, make runner respect the pickoff',
+    kid_mistake: 'Throw to first every time from the stretch',
+    sounds_smart: 'Quick-pitch the batter to eliminate the running game',
+    clearly_wrong: 'Pitch from the windup to throw harder'
+  },
+  'pitcher:pitching-from-stretch': {
+    moment: 'Runners on base, pitcher working from the stretch',
+    correct: 'Come set, check runners, deliver with consistent mechanics from the stretch',
+    kid_mistake: 'Rush the delivery to keep runners from stealing',
+    sounds_smart: 'Use a slide step on every pitch',
+    clearly_wrong: 'Pitch from the windup anyway for better velocity'
+  },
+  // --- Catcher-specific concepts ---
+  'catcher:blocking': {
+    moment: 'Runner on third, 1-2 count, breaking ball in the dirt',
+    correct: 'Drop to knees, smother the ball in front of you, keep the runner at third',
+    kid_mistake: 'Try to catch it cleanly instead of blocking',
+    sounds_smart: 'Backhand stab at the ball to try to frame it as a strike',
+    clearly_wrong: 'Turn your head and flinch away from the pitch'
+  },
+  'catcher:throw-to-base': {
+    moment: 'Runner stealing second on a fastball, right-handed batter',
+    correct: 'Receive, quick transfer, throw to the shortstop side of second base',
+    kid_mistake: 'Stand up fully before throwing, losing precious time',
+    sounds_smart: 'Throw behind the runner to first base to catch him off guard',
+    clearly_wrong: 'Lob the ball to second because the batter is in the way'
+  },
+  'catcher:pitchout': {
+    moment: 'Runners on first and third, count is 1-1, runner showing steal signs',
+    correct: 'Call pitchout — catch the ball standing, quick throw to second while checking third',
+    kid_mistake: 'Just receive the pitch normally and hope to throw him out',
+    sounds_smart: 'Call pickoff to first instead to keep the runner close',
+    clearly_wrong: 'Ignore the runner and focus only on framing the next pitch'
+  },
+  'catcher:pitch-calling': {
+    moment: 'Power hitter up, 0-1 count, nobody on, pitcher has a good slider',
+    correct: 'Set up off-speed down and away after starting with a fastball — change the eye level',
+    kid_mistake: 'Keep calling fastballs because the pitcher throws hard',
+    sounds_smart: 'Go back-door slider on the first pitch off-speed',
+    clearly_wrong: 'Let the pitcher throw whatever he wants'
+  },
+  // --- Batter-specific concepts ---
+  'batter:hit-and-run': {
+    moment: 'Runner on first, 1-1 count, contact hitter at the plate',
+    correct: 'Protect the runner — swing at anything close to put the ball in play',
+    kid_mistake: 'Take the pitch if it\'s a ball, even though the runner is going',
+    sounds_smart: 'Try to hit behind the runner to the right side every time',
+    clearly_wrong: 'Swing as hard as possible for extra bases'
+  },
+  'batter:sacrifice-bunt': {
+    moment: 'Runner on second, nobody out, close game, need to advance the runner',
+    correct: 'Square early, bunt toward first-base side, accept the out to move the runner to third',
+    kid_mistake: 'Pull back and swing because the pitch looks hittable',
+    sounds_smart: 'Push bunt for a hit instead of sacrificing',
+    clearly_wrong: 'Bunt the ball hard back to the pitcher'
+  },
+  'batter:first-pitch-strike': {
+    moment: 'First pitch of the at-bat, fastball over the plate',
+    correct: 'Be aggressive on a hittable first pitch — best pitch you might see all at-bat',
+    kid_mistake: 'Always take the first pitch no matter what',
+    sounds_smart: 'Take it to see what the pitcher has today',
+    clearly_wrong: 'Swing at it even if it\'s clearly outside the zone'
+  },
+  'batter:hitters-count': {
+    moment: '3-1 count, runner on second, two outs',
+    correct: 'Look for your pitch in a hittable zone — you have the advantage',
+    kid_mistake: 'Swing at everything because you don\'t want to strike out',
+    sounds_smart: 'Take the pitch and try to work a walk',
+    clearly_wrong: 'Bunt to advance the runner'
+  },
+  // --- Baserunner-specific concepts ---
+  'baserunner:steal-window': {
+    moment: 'Runner on first, pitcher slow to the plate, catcher has average arm',
+    correct: 'Time the pitcher\'s delivery — go on first move when read confirms slow time to plate',
+    kid_mistake: 'Just take off running when you feel like it',
+    sounds_smart: 'Wait for a breaking ball in the dirt to run',
+    clearly_wrong: 'Steal on a pitchout'
+  },
+  'baserunner:lead-distance': {
+    moment: 'Runner on first, right-handed pitcher, one out',
+    correct: 'Take an aggressive but safe primary lead — 3 steps, crossover back on pickoff',
+    kid_mistake: 'Take a tiny lead and stand flat-footed',
+    sounds_smart: 'Take the biggest lead possible to get a better jump',
+    clearly_wrong: 'Lead off in foul territory to avoid being hit by a batted ball'
+  },
+  'baserunner:first-to-third': {
+    moment: 'Runner on first, single to right field, two outs',
+    correct: 'Read the ball off the bat, round second hard, look for the coach\'s signal to advance to third',
+    kid_mistake: 'Stop at second base because that\'s the next base',
+    sounds_smart: 'Always go to third on a single to right',
+    clearly_wrong: 'Wait at first to make sure the ball drops before running'
+  },
+  'baserunner:tag-up-rules': {
+    moment: 'Runner on second, fly ball to medium left field, one out',
+    correct: 'Go back and tag, advance to third after the catch if the throw goes home',
+    kid_mistake: 'Go halfway between second and third',
+    sounds_smart: 'Tag up and try to score from second on every fly ball',
+    clearly_wrong: 'Run to third as soon as the ball is hit in the air'
+  },
+  'baserunner:pickoff-mechanics': {
+    moment: 'Runner on first, left-handed pitcher, close game',
+    correct: 'Watch the pitcher\'s front foot — if it goes toward home, take your secondary; if it comes to first, get back',
+    kid_mistake: 'Watch the pitcher\'s head instead of the front foot',
+    sounds_smart: 'Take a shorter lead against lefties so you never get picked off',
+    clearly_wrong: 'Turn and watch the catcher instead of the pitcher'
+  },
+  // --- Manager-specific concepts ---
+  'manager:pitching-change': {
+    moment: 'Starter gave up back-to-back singles, pitch count at 95, 7th inning of a 2-run lead',
+    correct: 'Go to the bullpen — fresh arm to protect the lead with matchup advantage',
+    kid_mistake: 'Leave him in because he\'s your best pitcher',
+    sounds_smart: 'Pull him only after he gives up another hit',
+    clearly_wrong: 'Wait until the tying run scores to make a change'
+  },
+  'manager:intentional-walk': {
+    moment: 'Runner on second, two outs, their best hitter up, first base open',
+    correct: 'Walk the dangerous hitter to set up a force at any base and face a weaker batter',
+    kid_mistake: 'Never walk anyone — make them earn it',
+    sounds_smart: 'Pitch carefully to the hitter instead of an intentional walk',
+    clearly_wrong: 'Walk the batter to load the bases with their cleanup hitter on deck'
+  },
+  'manager:defensive-positioning': {
+    moment: 'Late innings, one-run lead, runner on third, less than two outs',
+    correct: 'Bring the infield in to cut off the run at the plate',
+    kid_mistake: 'Play at normal depth because that\'s where we always play',
+    sounds_smart: 'Play halfway — compromise between cutting the run and turning a double play',
+    clearly_wrong: 'Play deep for the double play and concede the run'
+  },
+  'manager:pinch-hitter': {
+    moment: 'Trailing by one in the 7th, pitcher\'s spot due up, runners on base',
+    correct: 'Send up your best available pinch hitter to maximize this scoring chance',
+    kid_mistake: 'Let the pitcher hit because he\'s pitching well',
+    sounds_smart: 'Save the pinch hitter for a later, more critical at-bat',
+    clearly_wrong: 'Have the pitcher bunt even though you\'re trailing'
+  },
+  'manager:steal-sign': {
+    moment: 'Runner on first, fast runner, pitcher slow to plate, one out',
+    correct: 'Put the steal sign on — the matchup favors your runner against this battery',
+    kid_mistake: 'Steal every time a fast runner is on base regardless of situation',
+    sounds_smart: 'Wait for a 2-strike count so the catcher has to hold the ball',
+    clearly_wrong: 'Never steal because it\'s too risky'
+  },
+  'manager:bunt-defense': {
+    moment: 'Opponent has runner on second, nobody out, weak hitter up, expecting bunt',
+    correct: 'Call the bunt rotation — 3B and 1B crash, SS covers 3B, 2B covers 1B',
+    kid_mistake: 'Just tell the corner infielders to charge without a plan',
+    sounds_smart: 'Have all four infielders play in to field the bunt',
+    clearly_wrong: 'Play normal defense and react when you see the bunt'
+  },
+  // --- Infield positions for double-play ---
+  'firstBase:double-play-turn': {
+    moment: 'Ground ball to first, runner on first, less than two outs',
+    correct: 'Field the ball, throw to second for the force, get back to the bag for the return throw',
+    kid_mistake: 'Just step on first and hold the ball for one out',
+    sounds_smart: 'Throw to second and run to cover the pitcher\'s area',
+    clearly_wrong: 'Try to tag the runner going to second yourself'
+  },
+  'thirdBase:double-play-turn': {
+    moment: 'Hard grounder to third, bases loaded, one out',
+    correct: 'Step on third for the force, fire to first for the double play',
+    kid_mistake: 'Throw home for the force because the run matters most',
+    sounds_smart: 'Throw to second to start a 5-4-3 around-the-horn double play',
+    clearly_wrong: 'Tag the runner coming from second and then throw to first'
+  },
+  // --- Outfield backup duties ---
+  'leftField:backup-duties': {
+    moment: 'Ground ball to shortstop, runner on first',
+    correct: 'Sprint in to back up any throw to third base',
+    kid_mistake: 'Stay in left field position and watch the play',
+    sounds_smart: 'Back up second base on the throw from shortstop',
+    clearly_wrong: 'Run toward the infield to help field the ball'
+  },
+  'rightField:backup-duties': {
+    moment: 'Bunt play, throw going to first base',
+    correct: 'Sprint in to back up the throw to first base',
+    kid_mistake: 'Stay in right field position and watch',
+    sounds_smart: 'Back up second base in case of an overthrow at first',
+    clearly_wrong: 'Run toward home plate to back up the catcher'
+  },
+  // --- Outfield communication/priority ---
+  'leftField:fly-ball-priority': {
+    moment: 'Fly ball in the left-center gap, you and center fielder converging',
+    correct: 'Defer to center fielder if they call it — CF has priority over corners',
+    kid_mistake: 'Both keep running for the ball without communicating',
+    sounds_smart: 'Call it loudly since you got there first',
+    clearly_wrong: 'Peel off without anyone calling the ball'
+  },
+  'rightField:fly-ball-priority': {
+    moment: 'High fly ball in right-center, both RF and CF converging',
+    correct: 'Listen for CF\'s call — center fielder has priority, yield if they call it',
+    kid_mistake: 'Keep running hard even after CF calls you off',
+    sounds_smart: 'Always take it since it\'s on your side of the field',
+    clearly_wrong: 'Stop running and assume CF will get it without a call'
+  },
+  // --- Additional key concepts ---
+  'shortstop:force-vs-tag': {
+    moment: 'Runner on second, ground ball to short, no force at third',
+    correct: 'Recognize the tag play — field and throw to first for the sure out, or tag the runner if in the baseline',
+    kid_mistake: 'Throw to third expecting a force out',
+    sounds_smart: 'Run the ball to third to tag the base',
+    clearly_wrong: 'Throw home even though no one is heading there'
+  },
+  'firstBase:holding-runners': {
+    moment: 'Runner on first, pitcher in stretch, close game',
+    correct: 'Hold the runner on the bag, give the pitcher a good target for pickoffs',
+    kid_mistake: 'Play behind the runner in normal fielding position',
+    sounds_smart: 'Stand directly on the bag so the runner can\'t get a lead',
+    clearly_wrong: 'Move toward second base to be ready for a ground ball'
+  },
+  'secondBase:steal-breakeven': {
+    moment: 'Runner on first attempting a steal, throw coming from catcher',
+    correct: 'Cover the bag, straddle it, receive the throw and apply a quick tag',
+    kid_mistake: 'Stand behind the base and wait for the ball',
+    sounds_smart: 'Position on the outfield side of the bag regardless of the throw',
+    clearly_wrong: 'Charge toward home to cut off the throw'
+  },
+  'thirdBase:tag-up-rules': {
+    moment: 'Runner on third tagging up, fly ball caught in medium outfield',
+    correct: 'Straddle the bag and watch the runner\'s foot — make sure they tag before advancing',
+    kid_mistake: 'Watch the outfielder catch the ball instead of watching the runner\'s foot',
+    sounds_smart: 'Stand behind the bag blocking the runner from leaving early',
+    clearly_wrong: 'Leave the bag to go receive the relay throw'
+  },
+  'pitcher:balk-rule': {
+    moment: 'Runners on base, pitcher starting from the set position',
+    correct: 'Come to a complete stop in the set, don\'t flinch or make deceptive moves',
+    kid_mistake: 'Rock or sway in the set position without realizing it\'s a balk',
+    sounds_smart: 'Skip the set position and quick-pitch to catch runners off guard',
+    clearly_wrong: 'Fake a throw to first without stepping off the rubber'
+  },
+  'catcher:wild-pitch-passed-ball': {
+    moment: 'Runner on third, pitch bounces in the dirt past the catcher',
+    correct: 'Find the ball immediately, get to it, turn and throw or check the runner',
+    kid_mistake: 'Chase the ball with your back to the runner',
+    sounds_smart: 'Let the pitcher cover home while you retrieve the ball',
+    clearly_wrong: 'Stay at the plate and hope the ball stays nearby'
+  },
+  'manager:mound-visit': {
+    moment: 'Pitcher struggling, walks the leadoff batter, looks shaky',
+    correct: 'Make a mound visit to settle the pitcher, review the plan, buy bullpen time',
+    kid_mistake: 'Immediately pull the pitcher after one walk',
+    sounds_smart: 'Save the mound visit for a more critical situation later',
+    clearly_wrong: 'Yell instructions from the dugout instead of going out'
+  },
+  'baserunner:squeeze-play': {
+    moment: 'Runner on third, one out, suicide squeeze is on',
+    correct: 'Break for home as the pitcher starts the delivery — commit fully regardless of pitch location',
+    kid_mistake: 'Wait to see if the batter makes contact before running',
+    sounds_smart: 'Read the pitch first and only go if it\'s a good bunt',
+    clearly_wrong: 'Start running before the pitcher comes set'
   }
 }
 
@@ -9275,6 +9622,26 @@ async function generateWithAgentPipeline(position, stats, conceptsLearned, recen
     _recentAITitles.push({ title: (scenario.title || "").toLowerCase(), position })
     if (_recentAITitles.length > 20) _recentAITitles.shift()
 
+    // Log prompt version for agent pipeline (non-blocking)
+    try {
+      const _pvSysLen = JSON.parse(fetchOpts.body).messages?.[0]?.content?.length || 0
+      const _pvHash = btoa(agentPrompt.slice(0, 200)).slice(0, 40)
+      fetch(WORKER_BASE + "/analytics/prompt-version", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          scenarioId: scenario.id, position, promptHash: _pvHash,
+          systemMessageLength: _pvSysLen, userMessageLength: agentPrompt.length,
+          injectedPatches: flaggedAvoidText.includes("QUALITY PATCHES") ? 1 : 0,
+          injectedCalibration: plan.promptPatch ? 1 : 0,
+          injectedErrorPatterns: flaggedAvoidText.includes("ERROR PATTERN") ? 1 : 0,
+          injectedAuditInsights: flaggedAvoidText.includes("WEAK SPOTS") ? 1 : 0,
+          generationGrade: grade.score || 0,
+          pipeline: "agent", temperature: aiTemp
+        })
+      }).catch(() => {})
+    } catch {}
+
     return { scenario, agentGrade: grade, plan }
   } catch (err) {
     console.warn("[BSM Agent] Pipeline failed:", err.message)
@@ -9319,8 +9686,9 @@ async function generateAIScenario(position, stats, conceptsLearned = [], recentW
   let flaggedAvoidText = ""
   let promptPatchText = ""
   let realGameFeelText = ""
+  let auditInsightText = ""
   try {
-    const [patternRes, patchRes] = await Promise.all([
+    const [patternRes, patchRes, auditRes] = await Promise.all([
       Promise.race([
         fetch(`${WORKER_BASE}/feedback-patterns?position=${encodeURIComponent(position)}&since=30`),
         new Promise((_, rej) => setTimeout(() => rej(new Error("pattern-timeout")), 3000))
@@ -9328,6 +9696,10 @@ async function generateAIScenario(position, stats, conceptsLearned = [], recentW
       Promise.race([
         fetch(`${WORKER_BASE}/prompt-patches?position=${encodeURIComponent(position)}&limit=3`),
         new Promise((_, rej) => setTimeout(() => rej(new Error("patch-timeout")), 2000))
+      ]).catch(() => null),
+      Promise.race([
+        fetch(`${WORKER_BASE}/analytics/audit-insights?position=${encodeURIComponent(position)}&days=30`),
+        new Promise((_, rej) => setTimeout(() => rej(new Error("audit-timeout")), 2000))
       ]).catch(() => null),
     ])
     // Semantic avoidance from feedback patterns
@@ -9357,8 +9729,27 @@ async function generateAIScenario(position, stats, conceptsLearned = [], recentW
         console.log("[BSM] Injected", patches.length, "prompt patches for", position)
       }
     }
+    // Audit insights — weak spots from self-audit scores
+    if (auditRes?.ok) {
+      const auditData = await auditRes.json()
+      const weakSpots = auditData.weakSpots || []
+      if (weakSpots.length > 0) {
+        const dimLabels = { avg_realistic: "realism", avg_options: "option quality", avg_coach: "coach accuracy", avg_tone: "tone" }
+        auditInsightText = "\nAI QUALITY WEAK SPOTS (from self-audit — these scored poorly, improve them):\n" +
+          weakSpots.slice(0, 3).map(w => {
+            const worstDim = ["avg_realistic","avg_options","avg_coach","avg_tone"]
+              .filter(d => w[d] != null)
+              .sort((a, b) => (w[a] || 5) - (w[b] || 5))[0]
+            const dimNote = worstDim ? ` Weakest dimension: ${dimLabels[worstDim]} (${w[worstDim]}/5).` : ""
+            const feedback = w.feedback_samples ? ` Fix suggestions: ${w.feedback_samples.slice(0, 120)}` : ""
+            return `- ${w.position}: avg audit ${w.avg_score}/5 over ${w.audit_count} scenarios.${dimNote}${feedback}`
+          }).join("\n") +
+          "\nFocus on improving these specific quality dimensions."
+        console.log("[BSM] Injected", weakSpots.length, "audit weak spots for", position)
+      }
+    }
   } catch (err) {
-    console.warn("[BSM] Feedback/patch fetch failed (non-blocking):", err.message)
+    console.warn("[BSM] Feedback/patch/audit fetch failed (non-blocking):", err.message)
   }
 
   // Phase C: Real game feel context injection
@@ -9396,6 +9787,25 @@ async function generateAIScenario(position, stats, conceptsLearned = [], recentW
   // Budget starts HERE — only counts actual AI generation time (setup network calls excluded)
   const _aiFlowStart = Date.now()
 
+  // Calibration injection for standard pipeline (matching agent pipeline behavior)
+  let calibrationText = ""
+  try {
+    const calData = _calibrationCache.data || await getCalibrationData()
+    if (calData && calData.length > 0) {
+      const relevantCal = calData.filter(c => c.position === position || !c.position)
+      const conceptMatch = targetConcept ? relevantCal.find(c => c.concept === targetConcept) : null
+      const positionMatches = relevantCal.filter(c => c.position === position).slice(0, 3)
+      if (conceptMatch) {
+        calibrationText = conceptMatch.adjustment === "too_hard"
+          ? `\nCALIBRATION: "${conceptMatch.concept}" has ${conceptMatch.correctRate}% accuracy across all players. This is very hard — make the correct answer more learnable. Use a clearer scenario and more instructive explanation.`
+          : `\nCALIBRATION: "${conceptMatch.concept}" has ${conceptMatch.correctRate}% accuracy. This is too easy — add nuance. Include a tempting distractor that requires deeper understanding.`
+      } else if (positionMatches.length > 0) {
+        calibrationText = "\nPOSITION CALIBRATION DATA:\n" +
+          positionMatches.map(c => `- "${c.concept}": ${c.correctRate}% accuracy (${c.adjustment})`).join("\n")
+      }
+    }
+  } catch (e) { /* non-blocking */ }
+
   // Level 3.7: Agent pipeline A/B test — shadow mode
   try {
     const abConfigs = getActiveABConfigs(stats.sessionHash || "")
@@ -9403,7 +9813,7 @@ async function generateAIScenario(position, stats, conceptsLearned = [], recentW
     const agentBudget = budgetMs - (Date.now() - _aiFlowStart) - 2000
     if (!skipAgent && agentConfig.useAgent && agentBudget >= 10000) {
       console.log("[BSM] Trying agent pipeline (A/B variant: agent, budget:", Math.round(agentBudget / 1000) + "s)")
-      const agentResult = await generateWithAgentPipeline(position, stats, conceptsLearned, recentWrong, signal, targetConcept, aiHistory, flaggedAvoidText + realGameFeelText + promptPatchText, previousScenario, Math.min(75000, agentBudget))
+      const agentResult = await generateWithAgentPipeline(position, stats, conceptsLearned, recentWrong, signal, targetConcept, aiHistory, flaggedAvoidText + realGameFeelText + promptPatchText + auditInsightText, previousScenario, Math.min(75000, agentBudget))
       if (agentResult && agentResult.scenario) {
         const _agScore = agentResult.agentGrade?.score || 0
         console.log(`[BSM Quality] position=${position} concept=${agentResult.scenario.conceptTag || agentResult.scenario.concept || 'unknown'} source=agent grade=${_agScore} pass=${_agScore >= 55} cacheHit=false elapsed=${Date.now() - _aiFlowStart}ms`)
@@ -9417,6 +9827,13 @@ async function generateAIScenario(position, stats, conceptsLearned = [], recentW
     }
   } catch (agentErr) {
     console.warn("[BSM] Agent pipeline error, falling back:", agentErr.message)
+  }
+
+  // Budget gate: skip standard pipeline if agent ate most of the budget
+  const remainingBudget = budgetMs - (Date.now() - _aiFlowStart)
+  if (remainingBudget < 20000) {
+    console.log("[BSM] Insufficient budget for standard pipeline after agent: " + Math.round(remainingBudget / 1000) + "s remaining, skipping to fallback")
+    return { scenario: null, error: "timeout" }
   }
 
   const lvl = getLvl(stats.pts);
@@ -9495,8 +9912,18 @@ async function generateAIScenario(position, stats, conceptsLearned = [], recentW
   if (_learning.length > 0) masteryPrompt += `\nLEARNING CONCEPTS (due for review): ${_learning.slice(0,3).map(c=>c.tag).join(', ')}.`;
   if (_masteredTags.length > 0) masteryPrompt += `\nMASTERED (avoid over-testing): ${_masteredTags.join(', ')}.`;
   if (_errorPatterns.length > 0) {
-    const p = _errorPatterns[0];
-    masteryPrompt += `\nACTIVE ERROR PATTERN: "${p.label}" — ${p.aiInstruction}`;
+    const patternDetails = _errorPatterns.slice(0, 3).map(p => {
+      let instruction = `DETECTED PATTERN: "${p.label}" — ${p.aiInstruction}`
+      if (p.type === 'always_picks') {
+        instruction += ` The player always picks "${p.alwaysPick}" for ${p.concept} scenarios. Create a scenario where "${p.alwaysPick}" is clearly the WRONG choice and explain why the correct alternative is better in this specific situation.`
+      } else if (p.type === 'never_picks') {
+        instruction += ` The player never considers "${p.neverPick}" for ${p.concept}. Create a scenario where "${p.neverPick}" IS the correct choice.`
+      } else if (p.type === 'concept_blind') {
+        instruction += ` The player consistently fails "${p.concept}" scenarios. Scaffold the difficulty — create a clear, approachable version of this concept with an especially helpful explanation.`
+      }
+      return instruction
+    }).join("\n")
+    masteryPrompt += `\n\nERROR PATTERN REMEDIATION (highest priority):\n${patternDetails}`
   }
 
   // Dynamic prompt reinforcement from error history
@@ -9563,7 +9990,7 @@ DESCRIPTION STYLE: Write descriptions as if explaining a game situation to a you
 ${topicsText}
 
 PLAYER: Level ${lvl.n}, ${posStats.p} games at ${posAcc}% accuracy, difficulty ${diffTarget}/3.${masteredStr}${ageAdaptiveText}
-${weakAreas.length > 0 ? weakAreas.join(" ") : ""}${masteryPrompt}${teachCtx}
+${weakAreas.length > 0 ? weakAreas.join(" ") : ""}${masteryPrompt}${teachCtx}${calibrationText}
 
 POSITION RULES: ${AI_POS_PRINCIPLES[position] || POS_PRINCIPLES[position] || "Use general baseball knowledge."}
 
@@ -9611,7 +10038,7 @@ NEVER include: vague options like "make a smart move", "trust your instincts", o
 Each option must be a DIFFERENT type of decision when possible (don't make all 4 about pitching changes).
 IMPORTANT: Your response must be ONLY valid JSON starting with { and ending with }. No markdown fences, no explanation text.` : ""}
 ${analyticsRules}
-${flaggedAvoidText}${realGameFeelText}${promptPatchText}
+${flaggedAvoidText}${realGameFeelText}${promptPatchText}${auditInsightText}
 ${_stdArchBlock}
 EXAMPLE of a high-quality scenario (match this quality level):
 ${getAIFewShot(position, targetConcept, diffTarget)}
@@ -9688,7 +10115,7 @@ COMMON MISTAKES TO AVOID:
 
     const _aiT0 = Date.now()
     const stdBudget = budgetMs - (Date.now() - _aiFlowStart) - 2000
-    if (stdBudget < 10000) {
+    if (stdBudget < 20000) {
       console.warn("[BSM] Skipping standard pipeline — insufficient budget:", Math.round(stdBudget / 1000) + "s")
       return { error: "timeout" }
     }
@@ -10069,7 +10496,7 @@ COMMON MISTAKES TO AVOID:
       const clientPoolThreshold = combinedCount < 5 ? 65 : 75
       console.log(`[BSM Pool Gate] ${position}: grade=${grade.score}, threshold=${clientPoolThreshold}, poolCount=${combinedCount}`)
       if (grade.score >= clientPoolThreshold) {
-        submitToServerPool(scenario, position, grade.score / 10, scenario.auditScore || 0)
+        submitToServerPool(scenario, position, grade.score / 10, scenario.auditScore || 0, grade.score)
       }
     } catch (e) { /* non-critical */ }
 
@@ -10137,6 +10564,26 @@ Respond with ONLY JSON: {"score":3,"realistic":3,"options":3,"coach":3,"tone":3,
     // Track title for module-level dedup (survives across React renders)
     _recentAITitles.push({ title: (scenario.title || "").toLowerCase(), position })
     if (_recentAITitles.length > 20) _recentAITitles.shift()
+
+    // Log prompt version for optimization analysis (non-blocking)
+    try {
+      const _pvSysLen = JSON.parse(fetchOpts.body).messages?.[0]?.content?.length || 0
+      const _pvHash = btoa(prompt.slice(0, 200)).slice(0, 40)
+      fetch(WORKER_BASE + "/analytics/prompt-version", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          scenarioId: scenario.id, position, promptHash: _pvHash,
+          systemMessageLength: _pvSysLen, userMessageLength: prompt.length,
+          injectedPatches: promptPatchText ? 1 : 0,
+          injectedCalibration: calibrationText ? 1 : 0,
+          injectedErrorPatterns: _errorPatterns.length > 0 ? 1 : 0,
+          injectedAuditInsights: auditInsightText ? 1 : 0,
+          generationGrade: scenario.qualityGrade || 0,
+          pipeline: "standard", temperature: aiTemp
+        })
+      }).catch(() => {})
+    } catch {}
 
     return { scenario, abVariants };
   } catch (err) {
@@ -10640,6 +11087,16 @@ function getLocalPool() {
   } catch { return [] }
 }
 
+// Circuit breaker for AI calls — prevents repeated slow/failed calls from degrading UX
+function getCircuitBreaker() {
+  try {
+    return JSON.parse(sessionStorage.getItem("bsm_circuit_breaker") || '{"responseTimes":[],"failures":0,"openUntil":0}')
+  } catch { return { responseTimes: [], failures: 0, openUntil: 0 } }
+}
+function updateCircuitBreaker(cb) {
+  try { sessionStorage.setItem("bsm_circuit_breaker", JSON.stringify(cb)) } catch {}
+}
+
 function saveToLocalPool(scenario, position) {
   try {
     const pool = getLocalPool()
@@ -10706,14 +11163,14 @@ async function fetchFromServerPool(position, difficulty, conceptTag, excludeIds 
 }
 
 const UNDERSERVED_POSITIONS = ['secondBase','shortstop','thirdBase','firstBase','rightField','manager','rules','famous','counts']
-function submitToServerPool(scenario, position, qualityScore, auditScore) {
+function submitToServerPool(scenario, position, qualityScore, auditScore, generationGrade) {
   // Non-blocking — fire and forget (worker enforces dynamic quality gate per position pool size)
   const poolGate = UNDERSERVED_POSITIONS.includes(position) ? 6.5 : 7.5
   if ((qualityScore || 0) < poolGate) {
     console.log("[BSM Pool] Skipped — quality too low:", qualityScore, "gate:", poolGate, "for", position)
     return
   }
-  console.log("[BSM Pool] Submitting to server pool:", position, "score:", qualityScore, "title:", scenario.title)
+  console.log("[BSM Pool] Submitting to server pool:", position, "score:", qualityScore, "grade:", generationGrade, "title:", scenario.title)
   const poolCtrl = new AbortController()
   const poolTimeout = setTimeout(() => poolCtrl.abort(), 10000)
   fetch(WORKER_BASE + "/scenario-pool/submit", {
@@ -10724,7 +11181,8 @@ function submitToServerPool(scenario, position, qualityScore, auditScore) {
       position,
       quality_score: qualityScore,
       audit_score: auditScore || 0,
-      source: "ai"
+      source: "ai",
+      generation_grade: generationGrade || null
     }),
     signal: poolCtrl.signal
   }).then(r => {
@@ -10766,9 +11224,18 @@ async function prefetchAIScenario(position, stats, conceptsLearned, recentWrong,
   if (cacheRef.current.scenarios[position]?.scenario) return // already cached for this position
   cacheRef.current.fetching = true
   _prefetchController = new AbortController()
+  const promise = generateAIScenario(position, stats, conceptsLearned, recentWrong, _prefetchController.signal, targetConcept, aiHistory, lastScenario, 100000, true)
+  // Store in-flight promise so doAI can await it instead of launching a duplicate call
+  if (!cacheRef.current.inFlightPromise) cacheRef.current.inFlightPromise = {}
+  cacheRef.current.inFlightPromise[position] = promise
+  promise.finally(() => {
+    if (cacheRef.current.inFlightPromise?.[position] === promise) {
+      delete cacheRef.current.inFlightPromise[position]
+    }
+  })
   try {
     console.log("[BSM] Pre-fetch using independent budget: 100s, targeting concept:", targetConcept || "any")
-    const result = await generateAIScenario(position, stats, conceptsLearned, recentWrong, _prefetchController.signal, targetConcept, aiHistory, lastScenario, 100000, true)
+    const result = await promise
     if (result.scenario) {
       cacheRef.current.scenarios[position] = { scenario: result, timestamp: Date.now() }
       console.log("[BSM] AI scenario pre-cached:", result.scenario.title)
@@ -12138,6 +12605,19 @@ export default function App(){
       }
 
       // Tier 3: Fresh AI generation (existing code continues below)
+      // Circuit breaker check — skip AI if response times too slow or repeated failures
+      const _cb=getCircuitBreaker()
+      if(Date.now()<_cb.openUntil){
+        const _cbSec=Math.round((_cb.openUntil-Date.now())/1000)
+        console.log("[BSM] Circuit breaker OPEN — skipping AI, serving from pool/handcrafted. Reopens in",_cbSec,"s")
+        setAiMode(false);setAiFallback(true);
+        const s=getSmartRecycle(p,src,lastScId);
+        setHist(h=>({...h,[p]:[...(h[p]||[]),s.id].slice(-src.length)}));
+        setSc(s);setScreen("play");
+        s.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80);});
+        setTimeout(()=>{setToast({e:"⚡",n:"AI Coach Warming Up",d:"Using curated scenarios while AI resets."});setTimeout(()=>setToast(null),3500)},300);
+        return;
+      }
       // Cooldown check — skip AI if recent repeated failures
       if(Date.now()<aiFailRef.current.cooldownUntil){
         const mins=Math.ceil((aiFailRef.current.cooldownUntil-Date.now())/60000);
@@ -12187,6 +12667,22 @@ export default function App(){
       // Sprint 5: Try pre-cached scenario first for instant load (unified cache)
       let ctrl=null
       let result=consumeCachedAI(p, aiCacheRef)
+      // Check if pre-fetch is already in flight for this position
+      if(!result){
+        const inFlight=aiCacheRef.current?.inFlightPromise?.[p]
+        if(inFlight){
+          console.log("[BSM] Pre-fetch in flight for",p,"— awaiting instead of duplicate call")
+          try{
+            const prefetchResult=await Promise.race([
+              inFlight,
+              new Promise((_,rej)=>setTimeout(()=>rej(new Error("prefetch-wait-timeout")),30000))
+            ])
+            if(prefetchResult?.scenario)result=prefetchResult
+          }catch(e){
+            console.log("[BSM] Pre-fetch await failed:",e.message,"— proceeding with fresh call")
+          }
+        }
+      }
       if(!result){
         ctrl=new AbortController();abortRef.current=ctrl;
         result=await generateAIScenario(p,stats,stats.cl||[],stats.recentWrong||[],ctrl.signal,concept,_aiHist,lastAiScenarioRef.current,AI_BUDGET);
@@ -12196,7 +12692,7 @@ export default function App(){
         while(!result?.scenario&&retries<2){
           const retryable=result?.error&&RETRYABLE_ERRORS.includes(result.error)
           const remaining=AI_BUDGET-(Date.now()-_aiStartMs)
-          if(!retryable||remaining<8000)break
+          if(!retryable||remaining<20000)break
           retries++
           ctrl=new AbortController();abortRef.current=ctrl;
           console.log("[BSM] AI retry #" + retries + " (" + result.error + "), " + Math.round(remaining/1000) + "s remaining...");
@@ -12209,6 +12705,17 @@ export default function App(){
       setAiLoading(false);
       if(result?.scenario){
         aiFailRef.current.consecutive=0;aiFailRef.current.cooldownUntil=0;
+        // Circuit breaker: record success + response time
+        const _cbS=getCircuitBreaker()
+        const _elapsed=Date.now()-_aiStartMs
+        _cbS.responseTimes=[..._cbS.responseTimes.slice(-4),_elapsed]
+        _cbS.failures=0;_cbS.openUntil=0
+        const _avgTime=_cbS.responseTimes.reduce((a,b)=>a+b,0)/_cbS.responseTimes.length
+        if(_cbS.responseTimes.length>=3&&_avgTime>50000){
+          _cbS.openUntil=Date.now()+5*60*1000
+          console.warn("[BSM] Circuit breaker OPENED — avg response time",Math.round(_avgTime/1000),"s")
+        }
+        updateCircuitBreaker(_cbS)
         lastAiScenarioRef.current=result.scenario; // Track for connected arcs
         console.log("[BSM] AI scenario accepted:", result.scenario.title);
         // Sprint 4.2+4.3: Track AI scenario generation success with A/B variants
@@ -12238,6 +12745,14 @@ export default function App(){
         triggerPrefetch(p)
       } else {
         aiFailRef.current.consecutive++;
+        // Circuit breaker: record failure
+        const _cbF=getCircuitBreaker()
+        _cbF.failures++
+        if(_cbF.failures>=2){
+          _cbF.openUntil=Date.now()+10*60*1000
+          console.warn("[BSM] Circuit breaker OPENED — 2 consecutive failures")
+        }
+        updateCircuitBreaker(_cbF)
         // Sprint 4.2: Track AI scenario failure
         trackAnalyticsEvent("ai_scenario_failed",{pos:p,error:result?.error||"unknown",consecutive:aiFailRef.current.consecutive},{ageGroup:stats.ageGroup,isPro:stats.isPro});
         if(aiFailRef.current.consecutive>=3){
