@@ -29,7 +29,7 @@ database_name = "bsm-accounts"
 database_id = "362f65bf-8f77-47fc-a8bf-1f1ee9c11f5b"
 
 # Cron triggers:
+# - Daily batch scenario generation + pool promotion: every day at 6am UTC
 # - Weekly AI quality report + prompt patches: Mondays at 6am UTC
-# - Daily batch scenario generation: every day at 6am UTC
 [triggers]
-crons = ["0 6 * * *"]
+crons = ["0 6 * * *", "0 6 * * 1"]

@@ -6920,7 +6920,7 @@ function enrichFeedback(scenario, choiceIdx, situation, playerAge, masteryData) 
   }
   return insights.slice(0, 3);
 }
-function getSmartCoachLine(cat, situation, position, streak, isPro, stats, currentWrongStreak) {
+function getSmartCoachLine(cat, situation, position, streak, isPro, stats, currentWrongStreak, concept = null) {
   // Coach voice style for line adaptation
   const voiceStyle = stats ? getCoachVoice(stats)?.lineStyle : null
   const ws = currentWrongStreak || 0
@@ -6974,11 +6974,30 @@ function getSmartCoachLine(cat, situation, position, streak, isPro, stats, curre
       const _isDefPos = ["pitcher","catcher","firstBase","secondBase","shortstop","thirdBase","leftField","centerField","rightField"].includes(position);
       const COACH_PERSPECTIVE = {"dp-situation":"defense","pitchers-count":"defense","fatigue-warning":"defense","first-pitch-value":"defense","framing-window":"defense","wp-pb-alert":"defense","pickoff-window":"defense","lead-protect":"defense","squeeze-alert":"defense","line-guard-moment":"defense","hitters-count":"offense","three-oh-take":"offense","two-strike-danger":"offense","comeback":"offense","risp":"offense","scoring-chance":"offense","steal-risky":"offense","two-out-steal":"offense","steal-window":"offense","tag-up-math":"offense","advance-rate":"offense","squeeze-moment":"offense"};
       const _okPerspective = (k) => { const p=COACH_PERSPECTIVE[k]; return !p || p==="both" || (p==="offense"&&!_isDefPos) || (p==="defense"&&!_isOffPos) || position==="manager"; };
-      // Pick the most relevant situational line
+      // Concept-aware key selection: prefer a coach line matching the scenario's concept
       let key = null, vars = {};
-      if (runners.length === 3) { key = "bases-loaded"; vars = {re24: re24.toFixed(2)}; }
-      else if (pressure >= 75 && innNum >= 7) { key = "high-leverage"; }
-      else if (runners.includes(1) && outs < 2 && !runners.includes(3)) { key = "dp-situation"; }
+      if (concept) {
+        const cl = (concept + " " + (situation?.conceptTag || "")).toLowerCase()
+        if (/pickoff|throw.over|hold.?runner|big.?lead/.test(cl)) key = "pickoff-window"
+        else if (/steal|stolen.?base|steal.?window/.test(cl)) { if (runners.length > 0) { key = "steal-window"; vars = {window:"3.4", verdict:"tight"}; } }
+        else if (/squeeze/.test(cl)) key = runners.includes(3) ? "squeeze-moment" : "squeeze-alert"
+        else if (/bunt|sacrifice/.test(cl) && !(/squeeze/.test(cl))) key = "bunt-ok"
+        else if (/double.?play|dp|turn.?two/.test(cl)) key = "dp-situation"
+        else if (/pitch.?count|fatigue|bullpen|tto|times.?through/.test(cl)) key = "fatigue-warning"
+        else if (/tag.?up|sac.?fly/.test(cl)) { key = "tag-up-math"; vars = {prob: 85}; }
+        else if (/wild.?pitch|passed.?ball|wp|pb/.test(cl)) key = "wp-pb-alert"
+        else if (/framing|pitch.?frame/.test(cl)) key = "framing-window"
+        else if (/platoon|matchup|handedness/.test(cl)) key = "platoon-matchup"
+        else if (/cutoff|relay|backup/.test(cl) && _isDefPos) key = null // no generic line — let situation cascade handle it
+        else if (/first.?pitch/.test(cl)) key = "first-pitch-value"
+        else if (/hit.?and.?run|hit.?run/.test(cl)) key = null // let situation cascade handle
+        // Perspective filter on concept-selected key
+        if (key && !_okPerspective(key)) key = null
+      }
+      // Fall through to situation-based selection only if concept didn't match
+      if (!key && runners.length === 3) { key = "bases-loaded"; vars = {re24: re24.toFixed(2)}; }
+      else if (!key && pressure >= 75 && innNum >= 7) { key = "high-leverage"; }
+      else if (!key && runners.includes(1) && outs < 2 && !runners.includes(3)) { key = "dp-situation"; }
       else if (ci && ci.edge === "hitter" && cat === "success") { key = "hitters-count"; vars = {count, ba: "."+Math.round(ci.ba*1000), label: ci.label}; }
       else if (ci && ci.edge === "pitcher") { key = "pitchers-count"; vars = {count, ba: "."+Math.round(ci.ba*1000)}; }
       else if (count === "3-2") { key = "full-count"; }
@@ -7253,6 +7272,27 @@ function sanitizeAIResponse(content) {
 }
 
 // ============================================================================
+// Semantic overlap groups — actions that are subsets/prerequisites of each other
+// Used by QUALITY_FIREWALL and gradeScenario to detect non-obvious duplicates
+const SEMANTIC_OVERLAPS = [
+  ["throw over to first", "pick off", "step off the rubber", "check the runner", "throw to first"],
+  ["sacrifice bunt", "bunt the runner over", "lay down a bunt", "push a bunt"],
+  ["throw home", "throw to the plate", "fire home", "throw to home plate"],
+  ["tag up", "advance after the catch", "score on the fly ball", "leave on the catch"],
+  ["steal second", "take off for second", "go on the pitch", "run on the pitch"],
+  ["take the pitch", "don't swing", "hold up", "watch it go by", "let it go"],
+  ["swing away", "look for your pitch", "sit on a fastball", "drive the ball"],
+  ["call time", "step out of the box", "ask for time", "call timeout"],
+  ["intentional walk", "put him on", "walk him", "issue the walk"],
+  ["go to the bullpen", "bring in the reliever", "make a pitching change", "call for the bullpen"],
+  ["cover the bag", "get to the base", "be at the bag", "cover first", "cover second", "cover third"],
+  ["back up the throw", "back up the play", "get behind the throw", "back up home"],
+  ["pitch out", "pitchout", "call a pitchout", "pitch out to the catcher"],
+  ["hold the runner", "keep the runner close", "shorten the lead", "check the runner at first"],
+  ["hit and run", "swing and run", "hit behind the runner"],
+  ["relay the throw", "be the cutoff", "cut the ball", "be the relay man"],
+]
+
 // QUALITY_FIREWALL — Automated checks for every scenario (handcrafted or AI)
 // Tier 1: hard reject | Tier 2: warn + flag | Tier 3: quality suggestions
 // ============================================================================
@@ -7428,10 +7468,11 @@ const QUALITY_FIREWALL = {
       }
       return null
     },
-    // Check 7: Option overlap — two options are too similar
+    // Check 7: Option overlap — two options are too similar (word overlap + semantic overlap)
     optionOverlap(scenario) {
       const opts = scenario.options || []
       if (opts.length !== 4) return null
+      // 7a. Word overlap check
       for (let i = 0; i < 4; i++) {
         for (let j = i + 1; j < 4; j++) {
           const a = opts[i].toLowerCase().replace(/[^a-z\s]/g, "").split(/\s+/)
@@ -7439,6 +7480,17 @@ const QUALITY_FIREWALL = {
           const shared = a.filter(w => w.length > 3 && b.includes(w))
           const overlap = shared.length / Math.min(a.length, b.length)
           if (overlap > 0.7) return "Option overlap: options " + (i+1) + " and " + (j+1) + " share " + Math.round(overlap*100) + "% of significant words"
+        }
+      }
+      // 7b. Semantic overlap — catch actions that are subsets/prerequisites of each other
+      for (const group of SEMANTIC_OVERLAPS) {
+        const matching = []
+        for (let i = 0; i < opts.length; i++) {
+          const optLower = opts[i].toLowerCase()
+          if (group.some(phrase => optLower.includes(phrase))) matching.push(i)
+        }
+        if (matching.length >= 2) {
+          return "Semantic overlap: options " + matching.map(i => i + 1).join(" and ") + " describe related/identical actions (" + group[0] + ")"
         }
       }
       return null
@@ -7688,7 +7740,7 @@ function gradeScenario(scenario, position, targetConcept = null) {
 
   const opts = (scenario.options || []).map(o => (o || "").toLowerCase().replace(/[^a-z\s]/g, ""))
 
-  // 4a. No near-duplicates
+  // 4a. No near-duplicates (word overlap)
   for (let i = 0; i < opts.length; i++) {
     for (let j = i + 1; j < opts.length; j++) {
       const words1 = new Set(opts[i].split(/\s+/).filter(w => w.length > 3))
@@ -7697,6 +7749,13 @@ function gradeScenario(scenario, position, targetConcept = null) {
       const overlap = shared / Math.max(Math.min(words1.size, words2.size), 1)
       if (overlap > 0.6) { score -= 12; deductions.push(`options_${i}_${j}_too_similar`) }
     }
+  }
+
+  // 4a2. No semantic duplicates (actions that are subsets/prerequisites of each other)
+  const rawOpts = (scenario.options || []).map(o => (o || "").toLowerCase())
+  for (const group of SEMANTIC_OVERLAPS) {
+    const matching = rawOpts.map((o, i) => group.some(phrase => o.includes(phrase)) ? i : -1).filter(i => i >= 0)
+    if (matching.length >= 2) { score -= 15; deductions.push(`semantic_overlap_${matching.join("_")}`) }
   }
 
   // 4b. No vague options
@@ -9030,18 +9089,22 @@ function planScenario(position, stats, conceptsLearned = [], recentWrong = [], t
   let teachingGoal = "introduce"
   let selectedConcept = targetConcept
 
-  // Check for prereq gaps
+  // Build position-relevant concept set to filter all paths
+  const positionConcepts = new Set(KNOWLEDGE_BASE.getConceptsForPosition(position).map(c => c.tag))
+
+  // Check for prereq gaps (only if the gap concept is relevant to this position)
   const lastWrongTag = recentWrong.length > 0 ? recentWrong[recentWrong.length - 1] : null
   const prereqGap = lastWrongTag ? getPrereqGap(lastWrongTag, playerMasteryData) : null
-  if (prereqGap) {
+  if (prereqGap && positionConcepts.has(prereqGap.gap)) {
     teachingGoal = "prerequisite"
     selectedConcept = prereqGap.gap
   }
 
-  // Check for degraded concepts
+  // Check for degraded/learning concepts — filtered to this position only
   const dueReview = getDueForReview(playerMasteryData)
-  const degraded = dueReview.filter(c => c.state === 'degraded')
-  const learning = dueReview.filter(c => c.state === 'learning')
+  const degraded = dueReview.filter(c => c.state === 'degraded' && positionConcepts.has(c.tag))
+  const learning = dueReview.filter(c => c.state === 'learning' && positionConcepts.has(c.tag))
+  console.log("[BSM Agent] Plan: filtered " + dueReview.length + " due concepts to " + degraded.length + " degraded + " + learning.length + " learning for " + position)
 
   if (!selectedConcept && degraded.length > 0) {
     teachingGoal = "reinforce"
@@ -9470,7 +9533,7 @@ async function flushLearningBatch() {
 // ============================================================================
 // Level 3.7: Agent Pipeline with Shadow Mode
 // ============================================================================
-async function generateWithAgentPipeline(position, stats, conceptsLearned, recentWrong, signal, targetConcept, aiHistory, flaggedAvoidText = "", previousScenario = null, timeoutMs = 75000) {
+async function generateWithAgentPipeline(position, stats, conceptsLearned, recentWrong, signal, targetConcept, aiHistory, flaggedAvoidText = "", previousScenario = null, timeoutMs = 55000) {
   // Stage 1: Plan
   const plan = planScenario(position, stats, conceptsLearned, recentWrong, targetConcept, aiHistory)
   if (flaggedAvoidText) plan.flaggedAvoidText = flaggedAvoidText
@@ -9509,7 +9572,7 @@ async function generateWithAgentPipeline(position, stats, conceptsLearned, recen
         max_tokens: 2500,
         temperature: aiTemp,
         messages: [
-          { role: "system", content: "You are the world's most experienced baseball coach, teaching kids 6-18 via Baseball Strategy Master.\n\nOUTPUT: Respond with ONLY valid JSON. No markdown, no code fences, no text outside JSON.\n\nGOLDEN RULE: Every scenario teaches ONE baseball concept that drives the situation, options, correct answer, and explanations.\n\nEXPLANATION RULES:\n- 2-4 sentences each. BEST: action → WHY correct in THIS situation → positive result. WRONG: action → WHY it fails → concrete consequences.\n- Player perspective (\"you\", \"your team\"). No jargon (RE24/OBP/wOBA) in descriptions/options — stats in explDepth.data only.\n- EVERY explanation must reference the specific game situation.\n\nOPTION RULES:\n- All 4 at the SAME decision moment. Each specific and concrete. Strategically distinct. Include one common kid mistake. No near-duplicates.\n\nPOSITION BOUNDARIES: Only actions this position actually performs. score=[HOME,AWAY]. Home bats in Bot half. outs: 0-2. count: \"B-S\" or \"-\". runners must match description." },
+          { role: "system", content: "You are the world's most experienced baseball coach, teaching kids 6-18 via Baseball Strategy Master.\n\nOUTPUT: Respond with ONLY valid JSON. No markdown, no code fences, no text outside JSON.\n\nGOLDEN RULE: Every scenario teaches ONE baseball concept that drives the situation, options, correct answer, and explanations.\n\nEXPLANATION RULES:\n- 2-4 sentences each. BEST: action → WHY correct in THIS situation → positive result. WRONG: action → WHY it fails → concrete consequences.\n- Player perspective (\"you\", \"your team\"). No jargon (RE24/OBP/wOBA) in descriptions/options — stats in explDepth.data only.\n- EVERY explanation must reference the specific game situation.\n\nOPTION RULES:\n- All 4 at the SAME decision moment. Each specific and concrete. Strategically distinct. Include one common kid mistake. No near-duplicates.\n- CRITICAL: Each option must be a DISTINCT physical action. If one action is a prerequisite of another (e.g., 'step off the rubber' is part of 'throw over to first'), they are NOT distinct — pick one or the other. Similarly: 'take the pitch' vs 'don't swing', 'sacrifice bunt' vs 'lay down a bunt', 'go to the bullpen' vs 'make a pitching change' are the same action.\n\nPOSITION BOUNDARIES: Only actions this position actually performs. score=[HOME,AWAY]. Home bats in Bot half. outs: 0-2. count: \"B-S\" or \"-\". runners must match description." },
           { role: "user", content: agentPrompt }
         ]
       })
@@ -9811,9 +9874,10 @@ async function generateAIScenario(position, stats, conceptsLearned = [], recentW
     const abConfigs = getActiveABConfigs(stats.sessionHash || "")
     const agentConfig = abConfigs.agent_pipeline || {}
     const agentBudget = budgetMs - (Date.now() - _aiFlowStart) - 2000
-    if (!skipAgent && agentConfig.useAgent && agentBudget >= 10000) {
-      console.log("[BSM] Trying agent pipeline (A/B variant: agent, budget:", Math.round(agentBudget / 1000) + "s)")
-      const agentResult = await generateWithAgentPipeline(position, stats, conceptsLearned, recentWrong, signal, targetConcept, aiHistory, flaggedAvoidText + realGameFeelText + promptPatchText + auditInsightText, previousScenario, Math.min(75000, agentBudget))
+    const agentTimeout = Math.min(55000, agentBudget)
+    if (!skipAgent && agentConfig.useAgent && agentBudget >= agentTimeout && agentBudget >= 45000) {
+      console.log("[BSM] Trying agent pipeline (A/B variant: agent, budget:", Math.round(agentBudget / 1000) + "s, timeout:", Math.round(agentTimeout / 1000) + "s)")
+      const agentResult = await generateWithAgentPipeline(position, stats, conceptsLearned, recentWrong, signal, targetConcept, aiHistory, flaggedAvoidText + realGameFeelText + promptPatchText + auditInsightText, previousScenario, agentTimeout)
       if (agentResult && agentResult.scenario) {
         const _agScore = agentResult.agentGrade?.score || 0
         console.log(`[BSM Quality] position=${position} concept=${agentResult.scenario.conceptTag || agentResult.scenario.concept || 'unknown'} source=agent grade=${_agScore} pass=${_agScore >= 55} cacheHit=false elapsed=${Date.now() - _aiFlowStart}ms`)
@@ -9831,9 +9895,10 @@ async function generateAIScenario(position, stats, conceptsLearned = [], recentW
 
   // Budget gate: skip standard pipeline if agent ate most of the budget
   const remainingBudget = budgetMs - (Date.now() - _aiFlowStart)
-  if (remainingBudget < 20000) {
-    console.log("[BSM] Insufficient budget for standard pipeline after agent: " + Math.round(remainingBudget / 1000) + "s remaining, skipping to fallback")
-    return { scenario: null, error: "timeout" }
+  if (remainingBudget < 65000) {
+    const _errType = signal?.aborted ? "aborted" : "timeout"
+    console.log("[BSM] Insufficient budget for standard pipeline after agent: " + Math.round(remainingBudget / 1000) + "s remaining (need 65s), skipping to fallback" + (signal?.aborted ? " (signal aborted)" : ""))
+    return { scenario: null, error: _errType }
   }
 
   const lvl = getLvl(stats.pts);
@@ -10089,6 +10154,7 @@ OPTION RULES:
 - Options must be STRATEGICALLY DISTINCT — not 4 variations of the same action (e.g., not 4 different pitches for a pitcher scenario, not 4 different throws for a fielder scenario).
 - At least one option should be a common MISTAKE that a young player would actually make — this is how kids learn.
 - No near-duplicates. If two options describe essentially the same action with different wording, replace one.
+- CRITICAL: Each option must be a DISTINCT physical action. If one action is a prerequisite of another (e.g., "step off the rubber" is part of "throw over to first"), they are NOT distinct — pick one or the other. Similarly: "take the pitch" vs "don't swing", "sacrifice bunt" vs "lay down a bunt", "go to the bullpen" vs "make a pitching change" are the same action.
 
 SITUATION RULES:
 - outs: 0, 1, or 2 (never 3).
@@ -10117,7 +10183,7 @@ COMMON MISTAKES TO AVOID:
     const stdBudget = budgetMs - (Date.now() - _aiFlowStart) - 2000
     if (stdBudget < 20000) {
       console.warn("[BSM] Skipping standard pipeline — insufficient budget:", Math.round(stdBudget / 1000) + "s")
-      return { error: "timeout" }
+      return { error: signal?.aborted ? "aborted" : "timeout" }
     }
     console.log("[BSM] Standard pipeline budget:", Math.round(stdBudget / 1000) + "s")
     const response = await Promise.race([
@@ -10599,6 +10665,11 @@ Respond with ONLY JSON: {"score":3,"realistic":3,"options":3,"coach":3,"tone":3,
       : msg.startsWith("Rate-best") ? "rate-mismatch"
       : "parse";
     const detail = msg.startsWith("Parse:") ? msg.slice(7) : msg;
+    // Aborts from navigation are expected — log quietly, skip error reporting
+    if (errType === "aborted") {
+      console.log("[BSM] AI generation aborted (navigation/cancel)");
+      return { scenario: null, error: "aborted" };
+    }
     console.error("[BSM] AI generation failed:", errType, detail);
     // Sprint 4.4: Report AI errors for monitoring
     reportError("ai_" + errType, detail || errType, { position });
@@ -11241,7 +11312,11 @@ async function prefetchAIScenario(position, stats, conceptsLearned, recentWrong,
       console.log("[BSM] AI scenario pre-cached:", result.scenario.title)
     }
   } catch (e) {
-    console.warn("[BSM] Pre-fetch failed:", e.message)
+    if (e.name === 'AbortError' || _prefetchController?.signal?.aborted) {
+      console.log("[BSM] Pre-fetch cancelled (navigation)")
+    } else {
+      console.warn("[BSM] Pre-fetch failed:", e.message)
+    }
   } finally {
     cacheRef.current.fetching = false
     _prefetchController = null
@@ -12663,7 +12738,7 @@ export default function App(){
       }
       const _aiHist=stats.aiHistory||[]
       const _aiStartMs=Date.now()
-      const AI_BUDGET=90000
+      const AI_BUDGET=180000
       // Sprint 5: Try pre-cached scenario first for instant load (unified cache)
       let ctrl=null
       let result=consumeCachedAI(p, aiCacheRef)
@@ -12744,22 +12819,27 @@ export default function App(){
         result.scenario.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80);});
         triggerPrefetch(p)
       } else {
-        aiFailRef.current.consecutive++;
-        // Circuit breaker: record failure
-        const _cbF=getCircuitBreaker()
-        _cbF.failures++
-        if(_cbF.failures>=2){
-          _cbF.openUntil=Date.now()+10*60*1000
-          console.warn("[BSM] Circuit breaker OPENED — 2 consecutive failures")
+        // Don't count user-navigation aborts as failures
+        if(result?.error==="aborted"||ctrl?.signal?.aborted){
+          console.log("[BSM] Abort detected (navigation) — not counting toward circuit breaker")
+          if(ctrl?.signal.aborted)return;
+        } else {
+          aiFailRef.current.consecutive++;
+          // Circuit breaker: record failure
+          const _cbF=getCircuitBreaker()
+          _cbF.failures++
+          if(_cbF.failures>=2){
+            _cbF.openUntil=Date.now()+10*60*1000
+            console.warn("[BSM] Circuit breaker OPENED — 2 consecutive failures")
+          }
+          updateCircuitBreaker(_cbF)
+          // Sprint 4.2: Track AI scenario failure
+          trackAnalyticsEvent("ai_scenario_failed",{pos:p,error:result?.error||"unknown",consecutive:aiFailRef.current.consecutive},{ageGroup:stats.ageGroup,isPro:stats.isPro});
+          if(aiFailRef.current.consecutive>=3){
+            aiFailRef.current.cooldownUntil=Date.now()+5*60*1000;
+            console.warn("[BSM] AI cooldown activated after",aiFailRef.current.consecutive,"consecutive failures");
+          }
         }
-        updateCircuitBreaker(_cbF)
-        // Sprint 4.2: Track AI scenario failure
-        trackAnalyticsEvent("ai_scenario_failed",{pos:p,error:result?.error||"unknown",consecutive:aiFailRef.current.consecutive},{ageGroup:stats.ageGroup,isPro:stats.isPro});
-        if(aiFailRef.current.consecutive>=3){
-          aiFailRef.current.cooldownUntil=Date.now()+5*60*1000;
-          console.warn("[BSM] AI cooldown activated after",aiFailRef.current.consecutive,"consecutive failures");
-        }
-        if(ctrl?.signal.aborted)return; // BUG 4: don't dirty state after cancel/goHome
         setAiMode(false);setAiFallback(true);
         const s=getSmartRecycle(p,src,lastScId);
         setHist(h=>({...h,[p]:[...(h[p]||[]),s.id].slice(-src.length)}));
@@ -12857,7 +12937,7 @@ export default function App(){
     // Track wrong streak for adaptive coaching
     const newWrongStreak=isOpt?0:wrongStreak+1;
     setWrongStreak(newWrongStreak);
-    setFo(cat);setAk(k=>k+1);snd.play(isOpt?'correct':rate>=55?'near':'wrong');setCoachMsg(getSmartCoachLine(cat,sc.situation,pos,isOpt?stats.str+1:0,stats.isPro,stats,newWrongStreak));
+    setFo(cat);setAk(k=>k+1);snd.play(isOpt?'correct':rate>=55?'near':'wrong');setCoachMsg(getSmartCoachLine(cat,sc.situation,pos,isOpt?stats.str+1:0,stats.isPro,stats,newWrongStreak,sc.concept||sc.conceptTag||null));
     // Crowd cheer on perfect answers, jackpot on every 5th streak
     if(isOpt){setTimeout(()=>snd.play('cheer'),300);const newStr=stats.str+1;if(newStr>0&&newStr%5===0)setTimeout(()=>snd.play('jackpot'),500);}
     // Streak break toast when losing 3+ streak

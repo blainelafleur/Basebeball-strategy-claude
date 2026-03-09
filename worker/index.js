@@ -152,6 +152,7 @@ const PBKDF2_ITERATIONS = 100_000;
 // -- Migration: CREATE INDEX IF NOT EXISTS idx_pool_tier ON scenario_pool(tier);
 // -- Migration: ALTER TABLE scenario_pool ADD COLUMN scenario_signature TEXT DEFAULT '';
 // -- Migration: CREATE INDEX IF NOT EXISTS idx_pool_signature ON scenario_pool(scenario_signature);
+// -- Migration: ALTER TABLE scenario_pool ADD COLUMN evolved_from TEXT DEFAULT NULL;
 // CREATE INDEX IF NOT EXISTS idx_pool_position ON scenario_pool(position);
 // CREATE INDEX IF NOT EXISTS idx_pool_pos_diff ON scenario_pool(position, difficulty);
 // CREATE INDEX IF NOT EXISTS idx_pool_concept ON scenario_pool(concept_tag);
@@ -2438,6 +2439,151 @@ async function handleABAnalysis(request, env, cors) {
   }
 }
 
+// --- Scenario Evolution: refresh stale Gold scenarios with accuracy drift ---
+// POST /admin/evolve-scenarios — find Gold scenarios that are too easy (>95%) or too hard (<25%) and generate variants
+async function handleEvolveScenarios(env, options = {}) {
+  const db = env.DB
+  if (!db) return { error: "No database configured" }
+  if (!env.XAI_API_KEY) return { error: "XAI_API_KEY not configured" }
+
+  const maxEvolve = Math.min(options.limit || 5, 10)
+
+  // Find Gold scenarios with accuracy drift (times_served >= 30, correct_rate drifted)
+  let candidates
+  try {
+    candidates = await db.prepare(`
+      SELECT id, position, concept_tag, difficulty, scenario_json, quality_score,
+             times_served, times_correct,
+             ROUND(100.0 * CAST(times_correct AS REAL) / MAX(times_served, 1), 1) as accuracy
+      FROM scenario_pool
+      WHERE tier = 'gold' AND retired = 0 AND times_served >= 30
+        AND (
+          (CAST(times_correct AS REAL) / MAX(times_served, 1)) > 0.95
+          OR (CAST(times_correct AS REAL) / MAX(times_served, 1)) < 0.25
+        )
+      ORDER BY times_served DESC
+      LIMIT ?
+    `).bind(maxEvolve * 2).all()
+  } catch (e) {
+    return { error: "Query failed: " + e.message }
+  }
+
+  const results = []
+  for (const candidate of (candidates.results || []).slice(0, maxEvolve)) {
+    let original
+    try { original = JSON.parse(candidate.scenario_json) } catch { results.push({ id: candidate.id, status: "bad_json" }); continue }
+
+    const isTooEasy = candidate.accuracy > 95
+    const posLabel = candidate.position.replace(/([A-Z])/g, ' $1').trim().toLowerCase()
+    const newDiff = isTooEasy ? Math.min((candidate.difficulty || 2) + 1, 3) : Math.max((candidate.difficulty || 2) - 1, 1)
+
+    const userPrompt = `You are evolving an existing baseball scenario. The original scenario for ${posLabel} about "${candidate.concept_tag || original.conceptTag || original.concept || ''}" has become ${isTooEasy ? 'too easy (95%+ accuracy)' : 'too hard (<25% accuracy)'}.
+
+ORIGINAL SCENARIO:
+Title: ${original.title || ''}
+Description: ${original.description || ''}
+Situation: Inning ${original.situation?.inning || '?'}, ${original.situation?.outs ?? '?'} outs, runners on ${(original.situation?.runners || []).join(', ') || 'none'}, score ${(original.situation?.score || [0,0]).join('-')}
+Options: ${(original.options || []).map((o, i) => `${i}: ${o}`).join(' | ')}
+Best: ${original.best ?? '?'}
+
+CREATE A VARIANT that keeps the same core concept but ${isTooEasy
+  ? 'adds a realistic complication or edge case that requires deeper strategic thinking. Change the game situation (different inning, different score, different runners) to create a scenario where the obvious answer is actually wrong.'
+  : 'simplifies the decision. Make the correct answer more discoverable. Use a game situation where the strategic reasoning is clearer. Provide an especially instructive explanation.'
+}
+
+RULES:
+- Change at least TWO of: inning, score differential, runner configuration, out count.
+- Keep the same position (${posLabel}) and core concept.
+- All 4 options must be actions ONLY this position performs.
+- The best option must have the highest rate (>=70). Include one yellow option (45-65).
+- score=[HOME,AWAY]. If inning starts with "Bot", offensive team is HOME (score[0]).
+
+Return ONLY valid JSON: {"title":"...","diff":${newDiff},"description":"...","situation":{"inning":"...","outs":0,"count":"1-1","runners":[],"score":[0,0]},"options":["A","B","C","D"],"best":0,"explanations":["...","...","...","..."],"rates":[85,55,25,15],"concept":"...","conceptTag":"...","anim":"freeze"}`
+
+    try {
+      const controller = new AbortController()
+      const timeout = setTimeout(() => controller.abort(), 55000)
+
+      const response = await fetch("https://api.x.ai/v1/chat/completions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${env.XAI_API_KEY}` },
+        signal: controller.signal,
+        body: JSON.stringify({
+          model: "grok-4", max_tokens: 2500, temperature: 0.5,
+          messages: [
+            { role: "system", content: `You are the world's most experienced baseball coach, teaching kids ages 6-18 via Baseball Strategy Master. OUTPUT: Respond with ONLY valid JSON — no markdown, no explanation. GOLDEN RULE: Every scenario teaches ONE clear baseball concept. EXPLANATION RULES: 2-4 sentences each. BEST explanation: the action + WHY it's correct + the positive result. WRONG explanations: the action + WHY it fails + consequences. OPTION RULES: All 4 options happen at the SAME decision moment. Each must be specific, concrete, and strategically distinct. POSITION BOUNDARIES: Only actions the ${posLabel} actually performs.` },
+            { role: "user", content: userPrompt }
+          ]
+        })
+      })
+      clearTimeout(timeout)
+
+      if (!response.ok) { results.push({ id: candidate.id, status: "api_error", code: response.status }); continue }
+
+      const data = await response.json()
+      const text = data.choices?.[0]?.message?.content || ""
+      const cleaned = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
+
+      let variant
+      try { variant = JSON.parse(cleaned) } catch (pe) { results.push({ id: candidate.id, status: "parse_error", error: pe.message }); continue }
+
+      // Structural validation
+      const issues = []
+      if (!variant.title) issues.push("missing title")
+      if (!Array.isArray(variant.options) || variant.options.length !== 4) issues.push("need 4 options")
+      if (typeof variant.best !== "number" || variant.best < 0 || variant.best > 3) issues.push("invalid best")
+      if (!Array.isArray(variant.explanations) || variant.explanations.length !== 4) issues.push("need 4 explanations")
+      if (!Array.isArray(variant.rates) || variant.rates.length !== 4) issues.push("need 4 rates")
+      if (variant.rates && variant.rates[variant.best] < 70) issues.push("best rate < 70")
+      if (!variant.description) issues.push("missing description")
+      if (!variant.situation) issues.push("missing situation")
+
+      if (issues.length > 0) { results.push({ id: candidate.id, status: "validation_failed", issues }); continue }
+
+      // Generate pool ID
+      const hashInput = `evolved:${candidate.id}:${variant.title}:${(variant.options || []).join("|")}`
+      const hashBuffer = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(hashInput))
+      const newId = "evolved_" + Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, "0")).join("").slice(0, 16)
+
+      // Check duplicate
+      const dup = await db.prepare("SELECT id FROM scenario_pool WHERE id = ?").bind(newId).first()
+      if (dup) { results.push({ id: candidate.id, status: "duplicate", newId }); continue }
+
+      const conceptTag = variant.conceptTag || candidate.concept_tag || ""
+
+      await db.prepare(`
+        INSERT INTO scenario_pool (id, position, difficulty, concept, concept_tag, title, scenario_json, quality_score, audit_score, source, contributed_by, created_at, evolved_from)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, 'evolved', 'cron', ?, ?)
+      `).bind(
+        newId, candidate.position, variant.diff || newDiff,
+        variant.concept || "", conceptTag,
+        variant.title, JSON.stringify(variant),
+        7.0, Date.now(), candidate.id
+      ).run()
+
+      results.push({
+        id: candidate.id, status: "evolved", newId,
+        reason: isTooEasy ? "too_easy" : "too_hard",
+        oldAccuracy: candidate.accuracy, newDiff,
+        title: variant.title
+      })
+      console.log(`[BSM Evolve] ${isTooEasy ? "Harder" : "Easier"} variant of "${original.title}" → "${variant.title}" (${candidate.position}, ${candidate.accuracy}% accuracy)`)
+
+    } catch (e) {
+      results.push({ id: candidate.id, status: "fetch_error", error: e.message })
+    }
+  }
+
+  const summary = {
+    evolved: results.filter(r => r.status === "evolved").length,
+    failed: results.filter(r => r.status !== "evolved").length,
+    results,
+    timestamp: new Date().toISOString()
+  }
+  console.log(`[BSM Evolve] Complete: ${summary.evolved} evolved, ${summary.failed} failed`)
+  return summary
+}
+
 // --- Level 2.1: Weekly Cron Trigger for AI Quality Aggregation ---
 // Runs every Monday at 6am UTC. Creates weekly_ai_report entries in D1.
 // Identifies: degraded concepts (<40% correct), too-easy concepts (>90%), high flag-rate positions (>5%).
@@ -2615,7 +2761,92 @@ async function handleScheduled(event, env) {
 
   if (isMonday) {
   try {
-    // 1. Aggregate difficulty data from last 7 days
+    const thirtyDays = 30 * 24 * 60 * 60 * 1000
+    const positions = ["pitcher","catcher","firstBase","secondBase","shortstop","thirdBase","leftField","centerField","rightField","batter","baserunner","manager"]
+
+    // ===== Section 1: Aggregate metrics from past 7 days =====
+
+    // 1a. Generation success rate from analytics_events
+    let genSuccessRate = 0, genTotal = 0, genSuccess = 0
+    try {
+      const genAttempts = await env.DB.prepare(`
+        SELECT event_type, COUNT(*) as count FROM analytics_events
+        WHERE event_type IN ('ai_scenario_generated', 'ai_scenario_failed', 'ai_scenario_timeout', 'ai_scenario_fallback')
+        AND created_at > ?
+        GROUP BY event_type
+      `).bind(weekAgo).all()
+      const genMap = {}
+      for (const r of (genAttempts.results || [])) genMap[r.event_type] = r.count
+      genSuccess = genMap["ai_scenario_generated"] || 0
+      genTotal = genSuccess + (genMap["ai_scenario_failed"] || 0) + (genMap["ai_scenario_timeout"] || 0) + (genMap["ai_scenario_fallback"] || 0)
+      genSuccessRate = genTotal > 0 ? Math.round(100 * genSuccess / genTotal) : 0
+    } catch {}
+
+    // 1b. Average quality score from scenario_grades
+    let avgQualityScore = 0, totalGraded = 0
+    try {
+      const qualRes = await env.DB.prepare(`
+        SELECT ROUND(AVG(quality_score), 2) as avg_score, COUNT(*) as count
+        FROM scenario_grades WHERE created_at > ?
+      `).bind(weekAgo).first()
+      if (qualRes) { avgQualityScore = qualRes.avg_score || 0; totalGraded = qualRes.count || 0 }
+    } catch {}
+
+    // 1c. Flag rate by position from scenario_feedback
+    let flagsByPosition = []
+    try {
+      const fbRes = await env.DB.prepare(`
+        SELECT position, flag_category, COUNT(*) as count
+        FROM scenario_feedback WHERE created_at > ?
+        GROUP BY position, flag_category
+        ORDER BY count DESC
+      `).bind(weekAgo).all()
+      // Aggregate by position
+      const posMap = {}
+      for (const r of (fbRes.results || [])) {
+        if (!posMap[r.position]) posMap[r.position] = { position: r.position, total_flags: 0, categories: {} }
+        posMap[r.position].total_flags += r.count
+        posMap[r.position].categories[r.flag_category] = r.count
+      }
+      flagsByPosition = Object.values(posMap).sort((a, b) => b.total_flags - a.total_flags)
+    } catch {}
+
+    // 1d. A/B test results summary from ab_results
+    let abSummary = []
+    try {
+      const abRes = await env.DB.prepare(`
+        SELECT test_id, variant_id, metric,
+          COUNT(*) as samples,
+          ROUND(AVG(value), 3) as avg_value
+        FROM ab_results WHERE timestamp > ?
+        GROUP BY test_id, variant_id, metric
+        ORDER BY test_id, variant_id
+      `).bind(weekAgo).all()
+      abSummary = abRes.results || []
+    } catch {}
+
+    // 1e. Knowledge base coverage delta — new Gold scenarios this week
+    let newGoldCount = 0, totalGold = 0, totalPool = 0
+    try {
+      const goldDelta = await env.DB.prepare(`
+        SELECT COUNT(*) as new_gold FROM scenario_pool
+        WHERE tier = 'gold' AND created_at > ?
+      `).bind(weekAgo).first()
+      newGoldCount = goldDelta?.new_gold || 0
+      const poolStats = await env.DB.prepare(`
+        SELECT
+          COUNT(*) as total,
+          SUM(CASE WHEN tier = 'gold' THEN 1 ELSE 0 END) as gold,
+          SUM(CASE WHEN tier = 'validated' THEN 1 ELSE 0 END) as validated,
+          SUM(CASE WHEN tier = 'new' THEN 1 ELSE 0 END) as new_tier,
+          SUM(CASE WHEN retired = 1 THEN 1 ELSE 0 END) as retired
+        FROM scenario_pool
+      `).first()
+      totalGold = poolStats?.gold || 0
+      totalPool = poolStats?.total || 0
+    } catch {}
+
+    // 1f. Difficulty data (existing — concept-level correct rates)
     const diffData = await env.DB.prepare(`
       SELECT concept, position, difficulty,
         COUNT(*) as attempts,
@@ -2634,21 +2865,7 @@ async function handleScheduled(event, env) {
     const tooHard = allConcepts.filter(r => r.correct_rate < 40)
     const tooEasy = allConcepts.filter(r => r.correct_rate > 90)
 
-    // 2. Aggregate flag data
-    const flagData = await env.DB.prepare(`
-      SELECT position, COUNT(*) as flagged_count, SUM(flag_count) as total_flags
-      FROM flagged_scenarios
-      WHERE flagged_at > ?
-      GROUP BY position
-      ORDER BY total_flags DESC
-    `).bind(weekAgo).all()
-
-    const highFlagPositions = (flagData.results || []).filter(r => {
-      const posTotal = allConcepts.filter(c => c.position === r.position).reduce((sum, c) => sum + c.attempts, 0)
-      return posTotal > 0 && (r.total_flags / posTotal) > 0.05
-    })
-
-    // 3. AI vs HC quality comparison
+    // 1g. AI vs HC quality comparison
     const aiQuality = await env.DB.prepare(`
       SELECT source, COUNT(*) as count, ROUND(AVG(quality_score), 1) as avg_score
       FROM scenario_grades
@@ -2656,7 +2873,7 @@ async function handleScheduled(event, env) {
       GROUP BY source
     `).bind(weekAgo).all()
 
-    // 4. Error trends
+    // 1h. Error trends
     const errorTrend = await env.DB.prepare(`
       SELECT error_type, COUNT(*) as count
       FROM error_logs
@@ -2665,15 +2882,129 @@ async function handleScheduled(event, env) {
       ORDER BY count DESC
     `).bind(weekAgo).all()
 
-    // 5. Store weekly report
+    // ===== Section 2: Identify top 5 worst position/concept combos =====
+    // Combine flag data from scenario_feedback with quality scores from scenario_grades
+    let worstCombos = []
+    try {
+      // Get flag rates by position/concept from scenario_feedback
+      const comboFlags = await env.DB.prepare(`
+        SELECT sf.position, COALESCE(json_extract(sf.scenario_json, '$.conceptTag'), 'unknown') as concept,
+          COUNT(*) as flag_count
+        FROM scenario_feedback sf
+        WHERE sf.created_at > ?
+        GROUP BY sf.position, concept
+        ORDER BY flag_count DESC
+      `).bind(weekAgo).all()
+
+      // Get quality scores by position from scenario_grades
+      const comboQuality = await env.DB.prepare(`
+        SELECT position, ROUND(AVG(quality_score), 2) as avg_quality, COUNT(*) as graded_count
+        FROM scenario_grades
+        WHERE created_at > ?
+        GROUP BY position
+      `).bind(weekAgo).all()
+      const qualityMap = {}
+      for (const r of (comboQuality.results || [])) qualityMap[r.position] = r
+
+      // Get total attempts by position from scenario_difficulty for rate calculation
+      const comboAttempts = await env.DB.prepare(`
+        SELECT position, COUNT(*) as total_attempts
+        FROM scenario_difficulty
+        WHERE created_at > ?
+        GROUP BY position
+      `).bind(weekAgo).all()
+      const attemptMap = {}
+      for (const r of (comboAttempts.results || [])) attemptMap[r.position] = r.total_attempts
+
+      // Score each combo: higher = worse (high flag rate + low quality)
+      for (const r of (comboFlags.results || [])) {
+        const totalAttempts = attemptMap[r.position] || 1
+        const flagRate = Math.round(100 * r.flag_count / totalAttempts)
+        const avgQual = qualityMap[r.position]?.avg_quality || 5.0
+        // Composite badness score: flag rate weight + inverse quality weight
+        const badnessScore = flagRate * 2 + (10 - avgQual) * 10
+        worstCombos.push({
+          position: r.position,
+          concept: r.concept,
+          flag_count: r.flag_count,
+          flag_rate_pct: flagRate,
+          avg_quality: avgQual,
+          sample_size: totalAttempts,
+          badness_score: Math.round(badnessScore * 10) / 10
+        })
+      }
+      worstCombos.sort((a, b) => b.badness_score - a.badness_score)
+      worstCombos = worstCombos.slice(0, 5)
+    } catch (e) {
+      console.error("[BSM Cron] Worst combos analysis failed:", e.message)
+    }
+
+    // ===== Section 3: Auto-generate prompt patches for top 3 worst combos =====
+    let patchesGenerated = 0
+    try {
+      // Get the top feedback categories per position for richer patch text
+      const feedbackDetail = await env.DB.prepare(`
+        SELECT position, flag_category, COUNT(*) as count
+        FROM scenario_feedback WHERE created_at > ?
+        GROUP BY position, flag_category
+        ORDER BY position, count DESC
+      `).bind(weekAgo).all()
+      const feedbackByPos = {}
+      for (const r of (feedbackDetail.results || [])) {
+        if (!feedbackByPos[r.position]) feedbackByPos[r.position] = []
+        feedbackByPos[r.position].push(`${r.flag_category} (${r.count}x)`)
+      }
+
+      for (const combo of worstCombos.slice(0, 3)) {
+        const topFeedback = (feedbackByPos[combo.position] || []).slice(0, 3).join(", ") || "mixed issues"
+        const patchText = `QUALITY ALERT for ${combo.position}/${combo.concept}: ${combo.flag_rate_pct}% flag rate, ${combo.avg_quality} avg quality over ${combo.sample_size} scenarios in the past week. Common issues: ${topFeedback}. REQUIREMENT: Double-check that all options are realistic for this position, explanations reference the specific game situation, and the correct answer has clear strategic reasoning.`
+        const triggerType = `weekly_auto_${combo.concept}`
+
+        // Check if similar patch already exists
+        const existing = await env.DB.prepare(`
+          SELECT id, confidence FROM prompt_patches
+          WHERE position = ? AND trigger_type = ? AND active = 1
+        `).bind(combo.position, triggerType).first()
+
+        if (existing) {
+          const newConf = Math.min(1.0, (existing.confidence || 0.5) + 0.15)
+          await env.DB.prepare(`
+            UPDATE prompt_patches SET confidence = ?, patch_text = ?, updated_at = ?, expires_at = ?
+            WHERE id = ?
+          `).bind(newConf, patchText, now, now + thirtyDays, existing.id).run()
+        } else {
+          const activeCount = await env.DB.prepare(
+            "SELECT COUNT(*) as count FROM prompt_patches WHERE position = ? AND active = 1"
+          ).bind(combo.position).first()
+          if ((activeCount?.count || 0) < 8) {
+            await env.DB.prepare(`
+              INSERT INTO prompt_patches (position, patch_text, trigger_type, confidence, expires_at, active, created_at, updated_at)
+              VALUES (?, ?, ?, 0.8, ?, 1, ?, ?)
+            `).bind(combo.position, patchText, triggerType, now + thirtyDays, now, now).run()
+          }
+        }
+        patchesGenerated++
+      }
+    } catch (e) {
+      console.error("[BSM Cron] Auto-patch generation failed:", e.message)
+    }
+
+    // ===== Section 4: Store the full report =====
     const report = {
-      period_start: weekAgo,
-      period_end: now,
-      total_concepts_tracked: allConcepts.length,
-      too_hard: tooHard.map(r => ({ concept: r.concept, position: r.position, rate: r.correct_rate, attempts: r.attempts })),
-      too_easy: tooEasy.map(r => ({ concept: r.concept, position: r.position, rate: r.correct_rate, attempts: r.attempts })),
-      high_flag_positions: highFlagPositions.map(r => ({ position: r.position, flags: r.total_flags })),
-      ai_quality: aiQuality.results || [],
+      version: 2,
+      period: { start: weekAgo, end: now, start_iso: new Date(weekAgo).toISOString(), end_iso: new Date(now).toISOString() },
+      generation: { success_rate_pct: genSuccessRate, total_attempts: genTotal, successful: genSuccess },
+      quality: { avg_score: avgQualityScore, total_graded: totalGraded, ai_vs_hc: aiQuality.results || [] },
+      flags: { by_position: flagsByPosition, total: flagsByPosition.reduce((s, p) => s + p.total_flags, 0) },
+      ab_testing: abSummary,
+      knowledge_base: { new_gold_this_week: newGoldCount, total_gold: totalGold, total_pool: totalPool },
+      concepts: {
+        total_tracked: allConcepts.length,
+        too_hard: tooHard.map(r => ({ concept: r.concept, position: r.position, rate: r.correct_rate, attempts: r.attempts })),
+        too_easy: tooEasy.map(r => ({ concept: r.concept, position: r.position, rate: r.correct_rate, attempts: r.attempts }))
+      },
+      worst_combos: worstCombos,
+      patches_generated: patchesGenerated,
       error_summary: (errorTrend.results || []).slice(0, 10),
       generated_at: now
     }
@@ -2694,77 +3025,77 @@ async function handleScheduled(event, env) {
       VALUES (?, ?, ?, ?)
     `).bind(weekAgo, now, JSON.stringify(report), now).run()
 
-    console.log(`[BSM Cron] Weekly report generated: ${allConcepts.length} concepts, ${tooHard.length} too hard, ${tooEasy.length} too easy, ${highFlagPositions.length} high-flag positions`)
+    console.log(`[BSM Cron] Weekly report v2: gen ${genSuccessRate}% success (${genTotal} attempts), avg quality ${avgQualityScore}, ${flagsByPosition.length} positions with flags, ${worstCombos.length} worst combos, ${patchesGenerated} patches generated, ${newGoldCount} new gold scenarios`)
+
   } catch (e) {
     console.error("[BSM Cron] Weekly aggregation failed:", e.message)
   }
 
-  // --- Phase D: Generate prompt patches from accumulated data (weekly) ---
+  // --- Phase D: Generate prompt patches from feedback-triggered data (weekly) ---
   try {
-    const positions = ["pitcher","catcher","firstBase","secondBase","shortstop","thirdBase","leftField","centerField","rightField","batter","baserunner","manager"];
-    const patchWeekAgo = now - 7 * 24 * 60 * 60 * 1000;
-    const thirtyDays = 30 * 24 * 60 * 60 * 1000;
+    const patchWeekAgo = now - 7 * 24 * 60 * 60 * 1000
+    const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000
 
     for (const pos of positions) {
       // Check feedback patterns for this position
-      let feedbackPatterns = [];
+      let feedbackPatterns = []
       try {
         const fbRes = await env.DB.prepare(`
           SELECT flag_category, COUNT(*) as count
           FROM scenario_feedback WHERE position = ? AND created_at > ?
           GROUP BY flag_category ORDER BY count DESC
-        `).bind(pos, patchWeekAgo).all();
-        feedbackPatterns = fbRes.results || [];
-      } catch { /* table may not exist */ }
+        `).bind(pos, patchWeekAgo).all()
+        feedbackPatterns = fbRes.results || []
+      } catch {}
 
       // Check audit scores for this position
-      let avgAuditScore = null;
+      let avgAuditScore = null
       try {
         const auditRes = await env.DB.prepare(`
           SELECT ROUND(AVG(score), 1) as avg_score, COUNT(*) as count
           FROM ai_audits WHERE position = ? AND created_at > ?
-        `).bind(pos, patchWeekAgo).first();
-        if (auditRes && auditRes.count >= 3) avgAuditScore = auditRes.avg_score;
-      } catch { /* table may not exist */ }
+        `).bind(pos, patchWeekAgo).first()
+        if (auditRes && auditRes.count >= 3) avgAuditScore = auditRes.avg_score
+      } catch {}
 
       // Check AI error rates
-      let errorCounts = {};
+      let errorCounts = {}
       try {
         const errRes = await env.DB.prepare(`
           SELECT error_type, COUNT(*) as count FROM error_logs
-          WHERE error_type LIKE 'ai_%' AND error_data LIKE ? AND created_at > ?
+          WHERE error_type LIKE 'ai_%' AND error_context LIKE ? AND created_at > ?
           GROUP BY error_type
-        `).bind(`%${pos}%`, patchWeekAgo).all();
-        for (const r of (errRes.results || [])) errorCounts[r.error_type] = r.count;
+        `).bind(`%${pos}%`, patchWeekAgo).all()
+        for (const r of (errRes.results || [])) errorCounts[r.error_type] = r.count
       } catch {}
 
-      const newPatches = [];
+      const newPatches = []
 
       // Trigger: 5+ wrong_answer flags
-      const wrongAnswerFlags = feedbackPatterns.find(p => p.flag_category === "wrong_answer");
+      const wrongAnswerFlags = feedbackPatterns.find(p => p.flag_category === "wrong_answer")
       if (wrongAnswerFlags && wrongAnswerFlags.count >= 5) {
         newPatches.push({
           text: `QUALITY ALERT (${pos}): Recent ${pos} scenarios had ${wrongAnswerFlags.count} "wrong best answer" flags. Double-check that the best answer is what a real coach would teach. Verify the explanation for the best answer specifically argues FOR that option.`,
           trigger: "wrong_answer_flags"
-        });
+        })
       }
 
       // Trigger: 5+ unrealistic flags
-      const unrealisticFlags = feedbackPatterns.find(p => p.flag_category === "unrealistic");
+      const unrealisticFlags = feedbackPatterns.find(p => p.flag_category === "unrealistic")
       if (unrealisticFlags && unrealisticFlags.count >= 5) {
         newPatches.push({
           text: `REALISM ALERT (${pos}): ${unrealisticFlags.count} players flagged recent ${pos} scenarios as unrealistic. Make sure the game situation would actually happen. Use common counts, realistic scores, and real in-game decisions.`,
           trigger: "unrealistic_flags"
-        });
+        })
       }
 
       // Trigger: 5+ wrong_position flags
-      const wrongPosFlags = feedbackPatterns.find(p => p.flag_category === "wrong_position");
+      const wrongPosFlags = feedbackPatterns.find(p => p.flag_category === "wrong_position")
       if (wrongPosFlags && wrongPosFlags.count >= 5) {
         newPatches.push({
           text: `ROLE ALERT (${pos}): ${wrongPosFlags.count} players said recent ${pos} scenarios asked them to do another position's job. Every option must be an action THIS position performs.`,
           trigger: "wrong_position_flags"
-        });
+        })
       }
 
       // Trigger: Low audit score
@@ -2772,7 +3103,7 @@ async function handleScheduled(event, env) {
         newPatches.push({
           text: `AUTHENTICITY ALERT (${pos}): Recent ${pos} scenarios scored ${avgAuditScore}/5 on baseball authenticity. Make the situation feel like a real game — use coaching language, realistic timing, and decisions that matter.`,
           trigger: "low_audit_score"
-        });
+        })
       }
 
       // Trigger: High role-violation error rate
@@ -2780,35 +3111,32 @@ async function handleScheduled(event, env) {
         newPatches.push({
           text: `BOUNDARY ALERT (${pos}): ${errorCounts["ai_role-violation"]} recent role violations. Strictly limit options to actions this position performs. Review the POSITION-ACTION BOUNDARIES section.`,
           trigger: "role_violation_spike"
-        });
+        })
       }
 
       // Apply patches: update existing or create new
       for (const patch of newPatches.slice(0, 5)) {
         try {
-          // Check if similar patch already exists
           const existing = await env.DB.prepare(`
             SELECT id, confidence FROM prompt_patches
             WHERE position = ? AND trigger_type = ? AND active = 1
-          `).bind(pos, patch.trigger).first();
+          `).bind(pos, patch.trigger).first()
 
           if (existing) {
-            // Boost confidence
-            const newConf = Math.min(1.0, (existing.confidence || 0.5) + 0.1);
+            const newConf = Math.min(1.0, (existing.confidence || 0.5) + 0.1)
             await env.DB.prepare(`
               UPDATE prompt_patches SET confidence = ?, patch_text = ?, updated_at = ?, expires_at = ?
               WHERE id = ?
-            `).bind(newConf, patch.text, now, now + thirtyDays, existing.id).run();
+            `).bind(newConf, patch.text, now, now + thirtyDaysMs, existing.id).run()
           } else {
-            // Count active patches for this position
-            const activeCount = await env.DB.prepare(`
-              SELECT COUNT(*) as count FROM prompt_patches WHERE position = ? AND active = 1
-            `).bind(pos).first();
-            if ((activeCount?.count || 0) < 5) {
+            const activeCount = await env.DB.prepare(
+              "SELECT COUNT(*) as count FROM prompt_patches WHERE position = ? AND active = 1"
+            ).bind(pos).first()
+            if ((activeCount?.count || 0) < 8) {
               await env.DB.prepare(`
                 INSERT INTO prompt_patches (position, patch_text, trigger_type, confidence, expires_at, active, created_at, updated_at)
                 VALUES (?, ?, ?, 0.5, ?, 1, ?, ?)
-              `).bind(pos, patch.text, patch.trigger, now + thirtyDays, now, now).run();
+              `).bind(pos, patch.text, patch.trigger, now + thirtyDaysMs, now, now).run()
             }
           }
         } catch {}
@@ -2819,15 +3147,15 @@ async function handleScheduled(event, env) {
         const activePatches = await env.DB.prepare(`
           SELECT id, trigger_type, confidence FROM prompt_patches
           WHERE position = ? AND active = 1
-        `).bind(pos).all();
-        const activeTriggers = new Set(newPatches.map(p => p.trigger));
+        `).bind(pos).all()
+        const activeTriggers = new Set(newPatches.map(p => p.trigger))
         for (const p of (activePatches.results || [])) {
-          if (!activeTriggers.has(p.trigger_type)) {
-            const newConf = Math.max(0, (p.confidence || 0.5) - 0.15);
+          if (!activeTriggers.has(p.trigger_type) && !p.trigger_type.startsWith("weekly_auto_")) {
+            const newConf = Math.max(0, (p.confidence || 0.5) - 0.15)
             if (newConf < 0.2) {
-              await env.DB.prepare("UPDATE prompt_patches SET active = 0, updated_at = ? WHERE id = ?").bind(now, p.id).run();
+              await env.DB.prepare("UPDATE prompt_patches SET active = 0, updated_at = ? WHERE id = ?").bind(now, p.id).run()
             } else {
-              await env.DB.prepare("UPDATE prompt_patches SET confidence = ?, updated_at = ? WHERE id = ?").bind(newConf, now, p.id).run();
+              await env.DB.prepare("UPDATE prompt_patches SET confidence = ?, updated_at = ? WHERE id = ?").bind(newConf, now, p.id).run()
             }
           }
         }
@@ -2853,6 +3181,16 @@ async function handleScheduled(event, env) {
     console.log(`[BSM Cron] Pool promotion: ${promoResult.promoted || 0} promoted, ${promoResult.golded || 0} golded, ${promoResult.demoted || 0} demoted, ${promoResult.retired || 0} retired`)
   } catch (e) {
     console.error("[BSM Cron] Pool promotion failed:", e.message)
+  }
+
+  // --- Phase G: Scenario evolution — refresh stale Gold scenarios (weekly, Monday only) ---
+  if (isMonday) {
+    try {
+      const evolveResult = await handleEvolveScenarios(env, { limit: 3 })
+      console.log(`[BSM Cron] Scenario evolution: ${evolveResult.evolved || 0} evolved, ${evolveResult.failed || 0} failed`)
+    } catch (e) {
+      console.error("[BSM Cron] Scenario evolution failed:", e.message)
+    }
   }
 }
 
@@ -3123,6 +3461,42 @@ export default {
       }
     }
 
+    // GET /admin/weekly-report — retrieve latest comprehensive report (admin)
+    if (path === "/admin/weekly-report" && request.method === "GET") {
+      const adminKey = request.headers.get("X-Admin-Key");
+      if (!adminKey || adminKey !== env.ADMIN_KEY) {
+        return jsonResponse({ error: "Unauthorized" }, 401, cors);
+      }
+      try {
+        const limitParam = url.searchParams.get("limit")
+        const limit = Math.min(Math.max(parseInt(limitParam) || 1, 1), 10)
+        const reports = await env.DB.prepare(
+          "SELECT id, period_start, period_end, report_json, created_at FROM weekly_ai_report ORDER BY created_at DESC LIMIT ?"
+        ).bind(limit).all()
+        const parsed = (reports.results || []).map(r => {
+          const report = JSON.parse(r.report_json || "{}")
+          return {
+            id: r.id,
+            period_start: r.period_start,
+            period_end: r.period_end,
+            period_start_iso: new Date(r.period_start).toISOString(),
+            period_end_iso: new Date(r.period_end).toISOString(),
+            created_at: r.created_at,
+            ...report
+          }
+        })
+        // Also fetch current active patches count
+        let activePatchCount = 0
+        try {
+          const pc = await env.DB.prepare("SELECT COUNT(*) as count FROM prompt_patches WHERE active = 1").first()
+          activePatchCount = pc?.count || 0
+        } catch {}
+        return jsonResponse({ ok: true, reports: parsed, active_patches: activePatchCount }, 200, cors);
+      } catch (e) {
+        return jsonResponse({ ok: false, error: String(e) }, 500, cors);
+      }
+    }
+
     // Sprint 4.1: Stripe webhook (POST, no CORS — Stripe calls directly)
     if (path === "/stripe-webhook" && request.method === "POST") {
       try {
@@ -3248,6 +3622,22 @@ export default {
         const result = await handleBatchGenerate(env, {
           count: Math.min(body.count || 10, 25),
           position: body.position || null
+        });
+        return jsonResponse(result, result.error ? 500 : 200, cors);
+      } catch (e) {
+        return jsonResponse({ error: e.message }, 500, cors);
+      }
+    }
+
+    if (path === "/admin/evolve-scenarios" && request.method === "POST") {
+      const adminKey = request.headers.get("X-Admin-Key");
+      if (!adminKey || adminKey !== env.ADMIN_KEY) {
+        return jsonResponse({ error: "Unauthorized" }, 401, cors);
+      }
+      try {
+        const body = await request.json().catch(() => ({}));
+        const result = await handleEvolveScenarios(env, {
+          limit: Math.min(body.limit || 5, 10)
         });
         return jsonResponse(result, result.error ? 500 : 200, cors);
       } catch (e) {
