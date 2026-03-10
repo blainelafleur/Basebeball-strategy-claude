@@ -12529,16 +12529,21 @@ export default function App(){
   // Smart recycling: when all scenarios seen, prioritize wrong > least-recent > random
   const getSmartRecycle=useCallback((p,src,lastScId)=>{
     const wc=stats.wrongCounts||{};const seen=hist[p]||[];
-    // Priority 1: scenarios the user got wrong (excluding the one just played)
-    const wrong=src.filter(s=>wc[s.id]>0&&s.id!==lastScId);
+    // Exclude scenarios already served this session (prevents back-to-back repeats)
+    const sessionExclude=id=>id!==lastScId&&!_servedScenarioIds.has(id)
+    // Priority 1: scenarios the user got wrong (excluding recently served)
+    const wrong=src.filter(s=>wc[s.id]>0&&sessionExclude(s.id));
     if(wrong.length>0)return wrong[Math.floor(Math.random()*wrong.length)];
     // Priority 2: least-recently-seen — avoid the last half of history
     const recentHalf=seen.slice(-Math.floor(src.length/2));
-    const stale=src.filter(s=>!recentHalf.includes(s.id)&&s.id!==lastScId);
+    const stale=src.filter(s=>!recentHalf.includes(s.id)&&sessionExclude(s.id));
     if(stale.length>0)return stale[Math.floor(Math.random()*stale.length)];
-    // Priority 3: random from full pool (excluding last played)
-    const rest=src.filter(s=>s.id!==lastScId);
-    return rest.length>0?rest[Math.floor(Math.random()*rest.length)]:src[Math.floor(Math.random()*src.length)];
+    // Priority 3: random from full pool (excluding last played + session served)
+    const rest=src.filter(s=>sessionExclude(s.id));
+    if(rest.length>0)return rest[Math.floor(Math.random()*rest.length)];
+    // Priority 4: if all excluded, just avoid lastScId
+    const fallback=src.filter(s=>s.id!==lastScId);
+    return fallback.length>0?fallback[Math.floor(Math.random()*fallback.length)]:src[Math.floor(Math.random()*src.length)];
   },[hist,stats.wrongCounts]);
 
   const getRand=useCallback((p,lastScId)=>{
@@ -12729,6 +12734,8 @@ export default function App(){
         console.log("[BSM] Circuit breaker OPEN — skipping AI, serving from pool/handcrafted. Reopens in",_cbSec,"s")
         setAiMode(false);setAiFallback(true);
         const s=getSmartRecycle(p,src,lastScId);
+        _servedScenarioIds.add(s.id)
+        if(s.title)_servedScenarioTitles.add(s.title)
         setHist(h=>({...h,[p]:[...(h[p]||[]),s.id].slice(-src.length)}));
         setSc(s);setScreen("play");
         s.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80);});
@@ -12741,6 +12748,8 @@ export default function App(){
         const mins=Math.ceil((aiFailRef.current.cooldownUntil-Date.now())/60000);
         setAiMode(false);setAiFallback(true);
         const s=getSmartRecycle(p,src,lastScId);
+        _servedScenarioIds.add(s.id)
+        if(s.title)_servedScenarioTitles.add(s.title)
         setHist(h=>({...h,[p]:[...(h[p]||[]),s.id].slice(-src.length)}));
         setSc(s);setScreen("play");
         s.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80);});
@@ -12889,6 +12898,8 @@ export default function App(){
         console.log("[BSM DEBUG] FALLBACK to handcrafted | position:",p,"| error:",result?.error||"unknown","| consecutiveFailures:",aiFailRef.current.consecutive,"| totalFlowTime:",Date.now()-_aiStartMs+"ms")
         setAiMode(false);setAiFallback(true);
         const s=getSmartRecycle(p,src,lastScId);
+        _servedScenarioIds.add(s.id)
+        if(s.title)_servedScenarioTitles.add(s.title)
         setHist(h=>({...h,[p]:[...(h[p]||[]),s.id].slice(-src.length)}));
         setSc(s);
         s.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80);});
@@ -12913,6 +12924,8 @@ export default function App(){
         setMasteryPos(p);setScreen("home");return;
       }
       const s=getSmartRecycle(p,src,lastScId);
+      _servedScenarioIds.add(s.id)
+      if(s.title)_servedScenarioTitles.add(s.title)
       setHist(h=>({...h,[p]:[...(h[p]||[]),s.id].slice(-src.length)}));
       setSc(s);setScreen("play");
       s.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80);});
