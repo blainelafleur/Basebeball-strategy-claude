@@ -12009,6 +12009,7 @@ export default function App(){
   const[wrongStreak,setWrongStreak]=useState(0); // consecutive wrong answers (reset on correct or position change)
   const[explDepthLayer,setExplDepthLayer]=useState(0); // 0=simple, 1=why, 2=data (progressive explanation depth)
   const[aiFallback,setAiFallback]=useState(false); // true when AI failed and we're showing handcrafted
+  const[aiFallbackBanner,setAiFallbackBanner]=useState(false); // true when forceAI fell back — show encouraging banner
   const[flagOpen,setFlagOpen]=useState(false); // rich flag UI open state
   const[flagComment,setFlagComment]=useState(""); // flag comment text
   const[dailyMode,setDailyMode]=useState(false); // true when playing daily diamond challenge
@@ -12602,7 +12603,7 @@ export default function App(){
   const startGame=useCallback(async(p,forceAI=false)=>{
     if(aiLoading)return;
     if(atLimit){setPanel('limit');return;}
-    snd.play('tap');setPos(p);setChoice(null);setOd(null);setRi(-1);setFo(null);setShowC(false);setLvlUp(null);setShowExp(true);setDailyMode(false);setAiFallback(false);setWrongStreak(0);
+    snd.play('tap');setPos(p);setChoice(null);setOd(null);setRi(-1);setFo(null);setShowC(false);setLvlUp(null);setShowExp(true);setDailyMode(false);setAiFallback(false);setAiFallbackBanner(false);setWrongStreak(0);
 
     const raw=SCENARIOS[p]||[];const pool=raw.filter(s=>s.diff<=maxDiff);const seen=hist[p]||[];
     const src=pool.length>0?pool:raw;
@@ -12908,12 +12909,14 @@ export default function App(){
         setHist(h=>({...h,[p]:[...(h[p]||[]),s.id].slice(-src.length)}));
         setSc(s);
         s.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80);});
-        const errMsg=result?.error==="timeout"?"AI took too long. Using handcrafted."
-          :result?.error==="api"?"AI service error. Using handcrafted."
-          :result?.error==="role-violation"?"AI generated invalid play. Using handcrafted."
-          :result?.error==="rate-mismatch"?"AI scoring error. Using handcrafted."
-          :"AI unavailable. Using a handcrafted scenario.";
-        setTimeout(()=>{setToast({e:"⚠️",n:"AI Unavailable",d:errMsg});setTimeout(()=>setToast(null),3500)},300);
+        // Trigger prefetch so next AI Coach's Challenge has a cached scenario ready
+        triggerPrefetch(p)
+        if(forceAI){
+          setAiFallbackBanner(true)
+          setTimeout(()=>{setToast({e:"⚾",n:"Coach's Pick",d:"AI Coach is prepping your custom scenario — here's a curated challenge in the meantime!"});setTimeout(()=>setToast(null),4000)},300);
+        } else {
+          setTimeout(()=>{setToast({e:"⚠️",n:"AI Warming Up",d:"Here's a curated scenario while AI Coach gets ready!"});setTimeout(()=>setToast(null),3500)},300);
+        }
       }
     };
 
@@ -14770,6 +14773,7 @@ export default function App(){
               {challengePack&&<span style={{background:"rgba(59,130,246,.15)",border:"1px solid rgba(59,130,246,.25)",borderRadius:7,padding:"2px 7px",fontSize:9,fontWeight:700,color:"#3b82f6"}}>⚔️ {(challengePack.round||0)+1}/5</span>}
               {aiMode&&<span style={{background:"rgba(168,85,247,.15)",border:"1px solid rgba(168,85,247,.25)",borderRadius:7,padding:"2px 7px",fontSize:9,fontWeight:700,color:"#a855f7"}}>🤖 AI</span>}
               {aiFallback&&!aiMode&&<span style={{background:"rgba(59,130,246,.12)",border:"1px solid rgba(59,130,246,.2)",borderRadius:7,padding:"2px 7px",fontSize:9,fontWeight:700,color:"#60a5fa"}}>📚 Practice</span>}
+              {aiFallbackBanner&&!aiMode&&<div style={{background:"rgba(139,92,246,.06)",border:"1px solid rgba(139,92,246,.15)",borderRadius:10,padding:"8px 12px",margin:"6px 0",display:"flex",alignItems:"center",justifyContent:"space-between",animation:"sd .35s ease-out"}}><span style={{fontSize:11,color:"#a78bfa"}}>⚾ AI scenario loading in background — next one will be custom!</span><button onClick={()=>setAiFallbackBanner(false)} style={{background:"none",border:"none",color:"#a78bfa",cursor:"pointer",fontSize:14,padding:"0 4px",lineHeight:1}}>✕</button></div>}
               <span style={{fontSize:9,color:DIFF_TAG[(sc.diff||1)-1].c}}>{"⭐".repeat(sc.diff||1)}</span>
               <span style={{background:`${POS_META[pos].color}15`,border:`1px solid ${POS_META[pos].color}25`,borderRadius:7,padding:"2px 7px",fontSize:10,fontWeight:700,color:POS_META[pos].color}}>{POS_META[pos].emoji} {POS_META[pos].label}</span>
             </div>
