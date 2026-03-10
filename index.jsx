@@ -7342,9 +7342,18 @@ const QUALITY_FIREWALL = {
       const exps = scenario.explanations || []
       const best = scenario.best
       if (exps.length !== 4 || typeof best !== "number") return null
-      if (typeof exps[best] === "string" && exps[best].length < 30) return "Explanation too short: best explanation is only " + exps[best].length + " chars (min 30)"
-      const stubIdx = exps.findIndex(e => typeof e === "string" && e.length < 15)
-      if (stubIdx >= 0) return "Explanation too short: option " + (stubIdx+1) + " is only " + exps[stubIdx].length + " chars (min 15)"
+      // Best answer explanation must be at least 40 words (educational depth)
+      if (typeof exps[best] === "string") {
+        const bestWords = exps[best].trim().split(/\s+/).length
+        if (bestWords < 40) return "Explanation too short: best answer explanation is " + bestWords + " words (min 40)"
+      }
+      // All explanations must be at least 25 words
+      for (let i = 0; i < 4; i++) {
+        if (typeof exps[i] === "string") {
+          const words = exps[i].trim().split(/\s+/).length
+          if (words < 25) return "Explanation too short: option " + (i+1) + " is " + words + " words (min 25)"
+        }
+      }
       return null
     },
     // Check 4b: Option distinctness — reject exact duplicates and negation-only variants
@@ -7493,6 +7502,21 @@ const QUALITY_FIREWALL = {
           return "Semantic overlap: options " + matching.map(i => i + 1).join(" and ") + " describe related/identical actions (" + group[0] + ")"
         }
       }
+      return null
+    },
+    // Check 8: Explanation coherence — best answer explanation must reference the chosen option
+    explanationCoherence(scenario) {
+      const opts = scenario.options || []
+      const exps = scenario.explanations || []
+      const best = scenario.best
+      if (opts.length !== 4 || exps.length !== 4 || typeof best !== "number") return null
+      const bestOpt = (opts[best] || "").toLowerCase()
+      const bestExp = (exps[best] || "").toLowerCase()
+      // Extract significant words (4+ chars) from the best option
+      const optWords = bestOpt.replace(/[^a-z\s]/g, "").split(/\s+/).filter(w => w.length >= 4)
+      if (optWords.length === 0) return null
+      const shared = optWords.filter(w => bestExp.includes(w))
+      if (shared.length === 0) return "Explanation coherence: best answer explanation shares no significant words with option text — may describe wrong option"
       return null
     },
     // Check 8a: Situation-description consistency — verify description matches situation object
@@ -9287,7 +9311,8 @@ EXPLANATION RULES:
 - Best answer explanation must name the POSITIVE OUTCOME (e.g., "you cut down the lead runner" NOT "this maintains defensive pressure")
 - BANNED PHRASES (never use): "this decision has real consequences", "maintaining defensive pressure", "this could lead to", "this approach fails by", "this action allows you to", "in this situation", "real consequences for the game", "based on the current situation"
 - Write like a COACH talking to a player after the play: "Here's why that works..." or "The problem with that is..."
-- Every explanation must be 1-3 sentences. No more. Short and specific beats long and vague.`
+- Every explanation must be 1-3 sentences. No more. Short and specific beats long and vague.
+- CRITICAL: Each explanation must specifically argue for or against THAT option. The best answer explanation must clearly state why THIS choice is optimal, not why another option is wrong. Anchor every explanation to the action described in its option text.`
 
   const voiceExamples = `
 EXPLANATION VOICE (follow GOOD, never write like BAD):
@@ -10147,6 +10172,7 @@ EXPLANATION RULES (most important — players learn from explanations):
 - Write from the player's perspective: "you", "your team", "your runner" — never "the offense" or "the batting team."
 - NEVER use jargon like RE24, OBP, wOBA, xBA in descriptions or options. Stats go in explDepth.data only.
 - EVERY explanation must reference the SPECIFIC game situation. No generic explanations ever.
+- CRITICAL: Each explanation must specifically argue for or against THAT option. The best answer explanation must clearly state why THIS choice is optimal, not why another option is wrong. Anchor every explanation to the action described in its option text.
 
 OPTION RULES:
 - All 4 options happen at the SAME decision moment. Never mix "before the pitch" with "after the ball is hit."
