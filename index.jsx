@@ -10725,6 +10725,7 @@ const _recentAITitles = []
 
 // Pool stats helpers for dynamic quality thresholds
 let _serverPoolCounts = {}
+const _serverPoolCheckedThisSession = new Set()
 try {
   fetch(WORKER_BASE + "/scenario-pool/stats")
     .then(r => r.json()).then(d => { _serverPoolCounts = d.counts || {} }).catch(() => {})
@@ -12684,32 +12685,39 @@ export default function App(){
         return
       }
 
-      // Tier 2: Check server community pool
-      console.log("[BSM DEBUG] Tier 2 SERVER POOL attempting fetch for",p,"| diff:",diffForPool,"| poolExcludeIds:",poolExcludeIds.length,"| excludeTitles:",_servedScenarioTitles.size)
-      try {
-        const serverPoolSc = await fetchFromServerPool(p, diffForPool, null, poolExcludeIds, [..._servedScenarioTitles])
-        console.log("[BSM DEBUG] Tier 2 SERVER POOL result:",serverPoolSc?"FOUND: "+serverPoolSc.title:"null (empty or no match)","| id dup:",serverPoolSc?_servedScenarioIds.has(serverPoolSc.id):false,"| title dup:",serverPoolSc?_servedScenarioTitles.has(serverPoolSc.title):false)
-        if (serverPoolSc && !_servedScenarioIds.has(serverPoolSc.id) && !_servedScenarioTitles.has(serverPoolSc.title)) {
-          console.log("[BSM] Using server pool scenario:", serverPoolSc.title)
-          serverPoolSc.isPooled = true
-          setAiMode(true); setScreen("play")
-          aiFailRef.current.consecutive = 0; aiFailRef.current.cooldownUntil = 0
-          trackAnalyticsEvent("ai_scenario_generated", { pos: p, concept: serverPoolSc.conceptTag || "", diff: serverPoolSc.diff, source: "server_pool" }, { ageGroup: stats.ageGroup, isPro: stats.isPro })
-          if (_servedScenarioIds.size > 500) { _servedScenarioIds.clear(); _servedScenarioTitles.clear() }
-          _servedScenarioIds.add(serverPoolSc.id)
-          _servedScenarioTitles.add(serverPoolSc.title)
-          setStats(prev => {
-            const entry = { id: serverPoolSc.id, title: serverPoolSc.title, position: p, diff: serverPoolSc.diff, concept: serverPoolSc.concept, conceptTag: serverPoolSc.conceptTag || null, generatedAt: Date.now(), answered: false, correct: null, chosenIdx: null }
-            const hist = [...(prev.aiHistory || []), entry].slice(-100)
-            return { ...prev, aiHistory: hist }
-          })
-          setSc(serverPoolSc)
-          serverPoolSc.options.forEach((_, i) => { setTimeout(() => setRi(i), 120 + i * 80) })
-          triggerPrefetch(p)
-          return
+      // Tier 2: Check server community pool (skip if no known entries + already checked this session)
+      const _knownPoolCount = _serverPoolCounts?.[p] || 0
+      if (_knownPoolCount === 0 && _serverPoolCheckedThisSession.has(p)) {
+        console.log("[BSM DEBUG] Tier 2 SERVER POOL SKIPPED for",p,"| no entries + already checked this session — saved ~5s latency")
+      } else {
+        _serverPoolCheckedThisSession.add(p)
+        console.log("[BSM DEBUG] Tier 2 SERVER POOL attempting fetch for",p,"| knownPoolCount:",_knownPoolCount,"| diff:",diffForPool,"| poolExcludeIds:",poolExcludeIds.length,"| excludeTitles:",_servedScenarioTitles.size)
+        try {
+          const serverPoolSc = await fetchFromServerPool(p, diffForPool, null, poolExcludeIds, [..._servedScenarioTitles])
+          console.log("[BSM DEBUG] Tier 2 SERVER POOL result:",serverPoolSc?"FOUND: "+serverPoolSc.title:"null (empty or no match)","| id dup:",serverPoolSc?_servedScenarioIds.has(serverPoolSc.id):false,"| title dup:",serverPoolSc?_servedScenarioTitles.has(serverPoolSc.title):false)
+          if (serverPoolSc && !_servedScenarioIds.has(serverPoolSc.id) && !_servedScenarioTitles.has(serverPoolSc.title)) {
+            console.log("[BSM] Using server pool scenario:", serverPoolSc.title)
+            serverPoolSc.isPooled = true
+            _serverPoolCounts[p] = (_serverPoolCounts[p] || 1)
+            setAiMode(true); setScreen("play")
+            aiFailRef.current.consecutive = 0; aiFailRef.current.cooldownUntil = 0
+            trackAnalyticsEvent("ai_scenario_generated", { pos: p, concept: serverPoolSc.conceptTag || "", diff: serverPoolSc.diff, source: "server_pool" }, { ageGroup: stats.ageGroup, isPro: stats.isPro })
+            if (_servedScenarioIds.size > 500) { _servedScenarioIds.clear(); _servedScenarioTitles.clear() }
+            _servedScenarioIds.add(serverPoolSc.id)
+            _servedScenarioTitles.add(serverPoolSc.title)
+            setStats(prev => {
+              const entry = { id: serverPoolSc.id, title: serverPoolSc.title, position: p, diff: serverPoolSc.diff, concept: serverPoolSc.concept, conceptTag: serverPoolSc.conceptTag || null, generatedAt: Date.now(), answered: false, correct: null, chosenIdx: null }
+              const hist = [...(prev.aiHistory || []), entry].slice(-100)
+              return { ...prev, aiHistory: hist }
+            })
+            setSc(serverPoolSc)
+            serverPoolSc.options.forEach((_, i) => { setTimeout(() => setRi(i), 120 + i * 80) })
+            triggerPrefetch(p)
+            return
+          }
+        } catch (e) {
+          console.warn("[BSM DEBUG] Tier 2 SERVER POOL ERROR:", e.message)
         }
-      } catch (e) {
-        console.warn("[BSM DEBUG] Tier 2 SERVER POOL ERROR:", e.message)
       }
 
       // Tier 3: Fresh AI generation (existing code continues below)
