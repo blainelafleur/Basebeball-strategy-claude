@@ -12592,6 +12592,7 @@ export default function App(){
 
     // Local helper: AI generation with loading, abort, retry, cooldown, fallback
     const doAI=async()=>{
+      console.log("[BSM DEBUG] ═══ doAI() START ═══ position:",p,"| forceAI:",forceAI,"| isPro:",stats.isPro,"| servedIds:",_servedScenarioIds.size,"| servedTitles:",_servedScenarioTitles.size,"| cacheKeys:",Object.keys(aiCacheRef.current.scenarios||{}).filter(k=>aiCacheRef.current.scenarios[k]).join(",")||"none")
       // Pillar 6B: Prime calibration cache (non-blocking)
       getCalibrationData().catch(()=>{})
       // Sprint 2.3: Check unified pre-generation cache first
@@ -12599,6 +12600,7 @@ export default function App(){
       const cachedResult=cachedEntry?.scenario // unwrap {scenario, timestamp} wrapper
       const cacheAge=cachedEntry?.timestamp?(Date.now()-cachedEntry.timestamp):0
       const cacheStale=cacheAge>300000 // 5 minutes
+      console.log("[BSM DEBUG] Tier 0 PRE-CACHE check for",p,"| entry exists:",!!cachedEntry,"| scenario exists:",!!cachedResult?.scenario,"| age:",Math.round(cacheAge/1000)+"s","| stale:",cacheStale,"| title already served:",cachedResult?.scenario?_servedScenarioTitles.has(cachedResult.scenario.title):false)
       if(cachedResult?.scenario && !cacheStale && !_servedScenarioTitles.has(cachedResult.scenario.title)){
         aiCacheRef.current.scenarios[p]=null
         const cachedSc=cachedResult.scenario
@@ -12632,7 +12634,10 @@ export default function App(){
       const diffForPool = (stats.ps?.[p]?.p||0) > 0 ? ((stats.ps[p].c/stats.ps[p].p) > 0.75 ? Math.min(3,maxDiffForPos) : (stats.ps[p].c/stats.ps[p].p) > 0.5 ? Math.min(2,maxDiffForPos) : 1) : 1
       const allExcludeIds = [...new Set([...(stats.cl || []), ...(stats.aiHistory || []).map(h => h.id), ..._servedScenarioIds])]
       const poolExcludeIds = allExcludeIds.filter(id => typeof id === "string" && id.startsWith("pool_"))
+      const _localPoolSize = getLocalPool().filter(e => e.position === p).length
+      console.log("[BSM DEBUG] Tier 1 LOCAL POOL check for",p,"| pool size for position:",_localPoolSize,"| diffForPool:",diffForPool,"| excludeIds count:",allExcludeIds.length)
       const localPoolSc = consumeFromLocalPool(p, diffForPool, allExcludeIds)
+      console.log("[BSM DEBUG] Tier 1 LOCAL POOL result:",localPoolSc?"FOUND: "+localPoolSc.title:"null (empty or all excluded)","| title already served:",localPoolSc?_servedScenarioTitles.has(localPoolSc.title):false)
       if (localPoolSc && !_servedScenarioTitles.has(localPoolSc.title)) {
         console.log("[BSM] Using local pool scenario:", localPoolSc.title)
         localPoolSc.isPooled = true
@@ -12654,8 +12659,10 @@ export default function App(){
       }
 
       // Tier 2: Check server community pool
+      console.log("[BSM DEBUG] Tier 2 SERVER POOL attempting fetch for",p,"| diff:",diffForPool,"| poolExcludeIds:",poolExcludeIds.length,"| excludeTitles:",_servedScenarioTitles.size)
       try {
         const serverPoolSc = await fetchFromServerPool(p, diffForPool, null, poolExcludeIds, [..._servedScenarioTitles])
+        console.log("[BSM DEBUG] Tier 2 SERVER POOL result:",serverPoolSc?"FOUND: "+serverPoolSc.title:"null (empty or no match)","| id dup:",serverPoolSc?_servedScenarioIds.has(serverPoolSc.id):false,"| title dup:",serverPoolSc?_servedScenarioTitles.has(serverPoolSc.title):false)
         if (serverPoolSc && !_servedScenarioIds.has(serverPoolSc.id) && !_servedScenarioTitles.has(serverPoolSc.title)) {
           console.log("[BSM] Using server pool scenario:", serverPoolSc.title)
           serverPoolSc.isPooled = true
@@ -12676,12 +12683,13 @@ export default function App(){
           return
         }
       } catch (e) {
-        console.warn("[BSM] Server pool fetch failed, falling through to AI generation:", e.message)
+        console.warn("[BSM DEBUG] Tier 2 SERVER POOL ERROR:", e.message)
       }
 
       // Tier 3: Fresh AI generation (existing code continues below)
       // Circuit breaker check — skip AI if response times too slow or repeated failures
       const _cb=getCircuitBreaker()
+      console.log("[BSM DEBUG] Tier 3 CIRCUIT BREAKER check | open:",Date.now()<_cb.openUntil,"| failures:",_cb.failures,"| openUntil:",_cb.openUntil?new Date(_cb.openUntil).toLocaleTimeString():"none","| avgResponseTime:",_cb.responseTimes.length>0?Math.round(_cb.responseTimes.reduce((a,b)=>a+b,0)/_cb.responseTimes.length/1000)+"s":"no data")
       if(Date.now()<_cb.openUntil){
         const _cbSec=Math.round((_cb.openUntil-Date.now())/1000)
         console.log("[BSM] Circuit breaker OPEN — skipping AI, serving from pool/handcrafted. Reopens in",_cbSec,"s")
@@ -12694,6 +12702,7 @@ export default function App(){
         return;
       }
       // Cooldown check — skip AI if recent repeated failures
+      console.log("[BSM DEBUG] Tier 3 COOLDOWN check | active:",Date.now()<aiFailRef.current.cooldownUntil,"| consecutiveFailures:",aiFailRef.current.consecutive,"| cooldownUntil:",aiFailRef.current.cooldownUntil?new Date(aiFailRef.current.cooldownUntil).toLocaleTimeString():"none")
       if(Date.now()<aiFailRef.current.cooldownUntil){
         const mins=Math.ceil((aiFailRef.current.cooldownUntil-Date.now())/60000);
         setAiMode(false);setAiFallback(true);
@@ -12704,6 +12713,7 @@ export default function App(){
         setTimeout(()=>{setToast({e:"⚠️",n:"AI Resting",d:`AI Coach is resting. Try again in ${mins} min.`});setTimeout(()=>setToast(null),3500)},300);
         return;
       }
+      console.log("[BSM DEBUG] Tier 3 LIVE GENERATION starting for",p,"| all caches/pools empty, circuit breaker closed, no cooldown")
       setAiLoading(true);setAiMode(true);setScreen("play")
       // Session planner: build plan on first AI call for this position, consume items
       const _spAB = getActiveABConfigs(stats.sessionHash || "").session_planner || {}
@@ -12742,6 +12752,7 @@ export default function App(){
       // Sprint 5: Try pre-cached scenario first for instant load (unified cache)
       let ctrl=null
       let result=consumeCachedAI(p, aiCacheRef)
+      console.log("[BSM DEBUG] Tier 3 inner cache check:",result?"HIT":"MISS","| inFlight:",!!aiCacheRef.current?.inFlightPromise?.[p])
       // Check if pre-fetch is already in flight for this position
       if(!result){
         const inFlight=aiCacheRef.current?.inFlightPromise?.[p]
@@ -12759,6 +12770,7 @@ export default function App(){
         }
       }
       if(!result){
+        console.log("[BSM DEBUG] Tier 3 calling generateAIScenario |",p,"| concept:",concept||"none","| budget:",AI_BUDGET/1000+"s","| aiHistory length:",_aiHist.length)
         ctrl=new AbortController();abortRef.current=ctrl;
         result=await generateAIScenario(p,stats,stats.cl||[],stats.recentWrong||[],ctrl.signal,concept,_aiHist,lastAiScenarioRef.current,AI_BUDGET);
         // Retry up to 2x on quality/parse failures if time remains (Fix 8)
@@ -12840,6 +12852,7 @@ export default function App(){
             console.warn("[BSM] AI cooldown activated after",aiFailRef.current.consecutive,"consecutive failures");
           }
         }
+        console.log("[BSM DEBUG] FALLBACK to handcrafted | position:",p,"| error:",result?.error||"unknown","| consecutiveFailures:",aiFailRef.current.consecutive,"| totalFlowTime:",Date.now()-_aiStartMs+"ms")
         setAiMode(false);setAiFallback(true);
         const s=getSmartRecycle(p,src,lastScId);
         setHist(h=>({...h,[p]:[...(h[p]||[]),s.id].slice(-src.length)}));
