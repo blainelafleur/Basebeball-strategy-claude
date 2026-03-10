@@ -6959,8 +6959,8 @@ function getSmartCoachLine(cat, situation, position, streak, isPro, stats, curre
     const re24 = getRunExpectancy(runners, outs);
     const ci = getCountIntel(count);
     const pressure = getPressure(situation);
-    // Streak lines take priority — use full range
-    if (cat==="success" && streak>=3) {
+    // Streak milestone lines (only at 5+ to avoid overriding educational content)
+    if (cat==="success" && streak>=5 && streak%5===0) {
       const maxSt=COACH_LINES.streakLines.length-1;
       const sl=COACH_LINES.streakLines[Math.min(streak,maxSt)];
       if(sl) return sl;
@@ -11870,22 +11870,24 @@ function Coach({mood="neutral",msg=null}){
     </div>
   </div>);
 }
+const _recentCoachLines=[]
 function getCoachLine(cat,pos,streak,isPro=false){
-  // Pro: full coach with streak reactions, facts, position tips
+  const _notRecent=line=>!_recentCoachLines.includes(line)
+  const _pick=arr=>{const fresh=arr.filter(_notRecent);const pool=fresh.length>0?fresh:arr;return pool[Math.floor(Math.random()*pool.length)]}
+  const _record=line=>{_recentCoachLines.push(line);if(_recentCoachLines.length>5)_recentCoachLines.shift();return line}
   if(isPro){
-    const maxSt=COACH_LINES.streakLines.length-1;
-    if(cat==="success"&&streak>=3&&COACH_LINES.streakLines[Math.min(streak,maxSt)])return COACH_LINES.streakLines[Math.min(streak,maxSt)];
-    if(cat==="success"&&Math.random()<0.2){const f=COACH_LINES.facts;return f[Math.floor(Math.random()*f.length)];}
-    if(pos&&Math.random()<0.3){
+    // Priority 1 (70%): Position-specific lines
+    if(pos&&Math.random()<0.7){
       const posLines=cat==="success"?COACH_LINES.posSuccess:cat==="danger"?COACH_LINES.posDanger:null;
-      if(posLines&&posLines[pos]){
-        const v=posLines[pos];
-        return Array.isArray(v)?v[Math.floor(Math.random()*v.length)]:v;
-      }
+      if(posLines?.[pos]){const v=posLines[pos];const line=_pick(Array.isArray(v)?v:[v]);if(line)return _record(line)}
     }
+    // Priority 2 (20%): Facts
+    if(cat==="success"&&Math.random()<0.2){const line=_pick(COACH_LINES.facts);if(line)return _record(line)}
+    // Priority 3: Streak lines (only at 5+, not 3)
+    if(cat==="success"&&streak>=5){const maxSt=COACH_LINES.streakLines.length-1;const sl=COACH_LINES.streakLines[Math.min(streak,maxSt)];if(sl&&_notRecent(sl))return _record(sl)}
   }
-  // Free: generic success/warning/danger lines only
-  const lines=COACH_LINES[cat]||COACH_LINES.danger;return lines[Math.floor(Math.random()*lines.length)];
+  // Generic success/warning/danger lines
+  const lines=COACH_LINES[cat]||COACH_LINES.danger;return _record(_pick(lines));
 }
 
 const DIFF_TAG = [{l:"Rookie",c:"#22c55e"},{l:"Intermediate",c:"#f59e0b"},{l:"Advanced",c:"#ef4444"}];
