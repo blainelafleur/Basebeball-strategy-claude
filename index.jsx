@@ -11185,6 +11185,10 @@ function clearAllCircuitBreakers() {
 
 function saveToLocalPool(scenario, position) {
   try {
+    if (!scenario?.title || !scenario?.options) {
+      console.warn("[BSM DEBUG] saveToLocalPool called with invalid scenario for", position, "— got:", typeof scenario, scenario ? Object.keys(scenario).join(",") : "null")
+      return
+    }
     const pool = getLocalPool()
     // Dedup by title + position
     if (pool.some(p => p.scenario.title === scenario.title && p.position === position)) return
@@ -11199,20 +11203,23 @@ function saveToLocalPool(scenario, position) {
     // Trim to max, removing oldest first
     while (pool.length > LOCAL_POOL_MAX) pool.shift()
     localStorage.setItem(LOCAL_POOL_KEY, JSON.stringify(pool))
-    console.log("[BSM Pool] Saved to local pool:", scenario.title, "(" + position + "). Pool size:", pool.length)
+    console.log("[BSM DEBUG] saveToLocalPool:", position, "title:", scenario.title, "diff:", scenario.diff, "pool size after save:", pool.length)
   } catch (e) {
-    console.warn("[BSM Pool] Local save failed:", e.message)
+    console.warn("[BSM DEBUG] saveToLocalPool FAILED:", e.message)
   }
 }
 
 function consumeFromLocalPool(position, difficulty, excludeIds = []) {
   try {
     const pool = getLocalPool()
+    const forPos = pool.filter(p => p.position === position)
+    const forDiff = forPos.filter(p => p.difficulty <= difficulty)
     const matchIdx = pool.findIndex(p =>
       p.position === position &&
-      p.difficulty === difficulty &&
+      p.difficulty <= difficulty &&
       !excludeIds.includes(p.scenario.id)
     )
+    console.log("[BSM DEBUG] consumeFromLocalPool:", position, "| raw pool:", pool.length, "| for position:", forPos.length, "| diff <="+difficulty+":", forDiff.length, "| match after exclude:", matchIdx >= 0 ? "YES" : "NO")
     if (matchIdx === -1) return null
     const match = pool.splice(matchIdx, 1)[0]
     localStorage.setItem(LOCAL_POOL_KEY, JSON.stringify(pool))
@@ -12107,6 +12114,8 @@ export default function App(){
   useEffect(()=>{(async()=>{
     // Clear stale circuit breakers from previous session
     clearAllCircuitBreakers()
+    // Log local pool inventory
+    try{const _pool=getLocalPool();const _inv={};_pool.forEach(e=>{_inv[e.position]=(_inv[e.position]||0)+1});console.log("[BSM DEBUG] Local pool inventory on load: total="+_pool.length,_inv)}catch{}
     // Load local state first
     let localStats=null;
     try{const r=await window.storage.get(STORAGE_KEY);if(r?.value)localStats=JSON.parse(r.value);}catch{}
@@ -12904,7 +12913,7 @@ export default function App(){
         aiCacheRef.current.generating=true;aiCacheRef.current.lastGenTime=Date.now();
         console.log("[BSM] Just-in-time AI precache for",p);
         generateAIScenario(p,stats,stats.cl||[],stats.recentWrong||[],null,null,stats.aiHistory||[])
-          .then(result=>{if(result?.scenario){const existing=aiCacheRef.current.scenarios[p];if(existing?.scenario)saveToLocalPool(existing.scenario,p);aiCacheRef.current.scenarios[p]=result;console.log("[BSM] Pre-cached AI scenario:",result.scenario.title,"for",p)}})
+          .then(result=>{if(result?.scenario){const existing=aiCacheRef.current.scenarios[p];if(existing?.scenario?.scenario)saveToLocalPool(existing.scenario.scenario,p);aiCacheRef.current.scenarios[p]=result;console.log("[BSM] Pre-cached AI scenario:",result.scenario.title,"for",p)}})
           .catch(()=>{}).finally(()=>{aiCacheRef.current.generating=false})
       }
       setTimeout(()=>{setToast({e:"🔄",n:"Review Mode",d:"Revisiting scenarios to sharpen your skills!"});setTimeout(()=>setToast(null),3000)},300);
@@ -12936,7 +12945,7 @@ export default function App(){
         aiCacheRef.current.generating=true;aiCacheRef.current.lastGenTime=Date.now();
         console.log("[BSM] Just-in-time AI precache for",p);
         generateAIScenario(p,stats,stats.cl||[],stats.recentWrong||[],null,null,stats.aiHistory||[])
-          .then(result=>{if(result?.scenario){const existing=aiCacheRef.current.scenarios[p];if(existing?.scenario)saveToLocalPool(existing.scenario,p);aiCacheRef.current.scenarios[p]=result;console.log("[BSM] Pre-cached AI scenario:",result.scenario.title,"for",p)}})
+          .then(result=>{if(result?.scenario){const existing=aiCacheRef.current.scenarios[p];if(existing?.scenario?.scenario)saveToLocalPool(existing.scenario.scenario,p);aiCacheRef.current.scenarios[p]=result;console.log("[BSM] Pre-cached AI scenario:",result.scenario.title,"for",p)}})
           .catch(()=>{}).finally(()=>{aiCacheRef.current.generating=false})
       }
     }
