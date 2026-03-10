@@ -12733,7 +12733,8 @@ export default function App(){
         const _cbSec=Math.round((_cb.openUntil-Date.now())/1000)
         console.log("[BSM] Circuit breaker OPEN — skipping AI, serving from pool/handcrafted. Reopens in",_cbSec,"s")
         setAiMode(false);setAiFallback(true);
-        const s=getSmartRecycle(p,src,lastScId);
+        const _cbSrc=forceAI?src.filter(s=>s.diff>=2):src
+        const s=getSmartRecycle(p,_cbSrc.length>0?_cbSrc:src,lastScId);
         _servedScenarioIds.add(s.id)
         if(s.title)_servedScenarioTitles.add(s.title)
         setHist(h=>({...h,[p]:[...(h[p]||[]),s.id].slice(-src.length)}));
@@ -12747,7 +12748,8 @@ export default function App(){
       if(Date.now()<aiFailRef.current.cooldownUntil){
         const mins=Math.ceil((aiFailRef.current.cooldownUntil-Date.now())/60000);
         setAiMode(false);setAiFallback(true);
-        const s=getSmartRecycle(p,src,lastScId);
+        const _cdSrc=forceAI?src.filter(s=>s.diff>=2):src
+        const s=getSmartRecycle(p,_cdSrc.length>0?_cdSrc:src,lastScId);
         _servedScenarioIds.add(s.id)
         if(s.title)_servedScenarioTitles.add(s.title)
         setHist(h=>({...h,[p]:[...(h[p]||[]),s.id].slice(-src.length)}));
@@ -12897,7 +12899,8 @@ export default function App(){
         }
         console.log("[BSM DEBUG] FALLBACK to handcrafted | position:",p,"| error:",result?.error||"unknown","| consecutiveFailures:",aiFailRef.current.consecutive,"| totalFlowTime:",Date.now()-_aiStartMs+"ms")
         setAiMode(false);setAiFallback(true);
-        const s=getSmartRecycle(p,src,lastScId);
+        const _fbSrc=forceAI?src.filter(s=>s.diff>=2):src
+        const s=getSmartRecycle(p,_fbSrc.length>0?_fbSrc:src,lastScId);
         _servedScenarioIds.add(s.id)
         if(s.title)_servedScenarioTitles.add(s.title)
         setHist(h=>({...h,[p]:[...(h[p]||[]),s.id].slice(-src.length)}));
