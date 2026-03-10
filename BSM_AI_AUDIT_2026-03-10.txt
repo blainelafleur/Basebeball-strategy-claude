@@ -1,0 +1,433 @@
+================================================================================
+BSM AI QUALITY AUDIT REPORT
+Date: March 10, 2026
+App: Baseball Strategy Master (https://bsm-app.pages.dev)
+Auditor: Claude (automated browser testing via Claude in Chrome)
+================================================================================
+
+================================================================================
+1. EXECUTIVE SUMMARY
+================================================================================
+
+The BSM AI scenario system was tested across 9 positions with 13 total scenario
+attempts via the "AI Coach's Challenge" button. The audit reveals a CRITICAL
+reliability problem: the forceAI pipeline fails to deliver AI-generated scenarios
+69% of the time, silently falling back to handcrafted "Practice" scenarios. When
+AI scenarios DO generate successfully, quality is generally good — score
+perspectives are correct, situations are realistic, and Brain data integration
+works well. However, coach lines are overwhelmingly generic, live generation
+takes 30-70+ seconds, and there is no scenario deduplication.
+
+OVERALL GRADE: C+
+- AI Delivery Reliability: F (69% fallback rate)
+- AI Scenario Quality (when delivered): B+
+- Score Perspective Accuracy: A (no errors found)
+- Coach Line Quality: D (mostly generic/streak-based)
+- Loading Performance: D (live gen 30-70s, frequent timeouts)
+- Explanation Quality: B (one weak AI explanation)
+- Fallback Handling: C (silent, no user notification, wrong difficulty)
+
+TOP 3 PRIORITIES:
+1. Fix forceAI pipeline — 69% fallback rate makes AI Coach's Challenge broken
+2. Overhaul coach line system — too many generic streak lines, duplicates, context mismatches
+3. Add scenario deduplication — same scenario served twice in a row
+
+
+================================================================================
+2. TEST MATRIX
+================================================================================
+
+13 scenarios tested across 9 positions. Target was 2 per position; some
+positions only got 1 due to time constraints from slow live generation.
+
++----+--------------+---------------------------------------------+----------+------------------+-----------+
+| #  | Position     | Scenario Title                              | Badge    | Source           | Load Time |
++----+--------------+---------------------------------------------+----------+------------------+-----------+
+|  1 | Pitcher #1   | Wild Pitch Response                         | AI ✓     | Server pool      | ~3s       |
+|  2 | Pitcher #2   | Their Best Hitter — First Base Open         | Practice | Pre-cache fallbk | <1s       |
+|  3 | Catcher #1   | Lead-Off Strike Strategy                    | AI ✓     | Local pool       | ~1s       |
+|  4 | Batter #1    | Two Strikes — Breaking Ball Barrage         | Practice | Fallback         | ~5s       |
+|  5 | Batter #2    | Trailing By One With Runner on Second       | AI ✓     | Unknown          | ~5s       |
+|  6 | Baserunner#1 | Steal Decision — Bad Count Changes Everything| Practice | Fallback         | ~5s       |
+|  7 | Baserunner#2 | Steal Decision — Bad Count (DUPLICATE!)     | Practice | Same as #6       | ~5s       |
+|  8 | Manager #1   | Best Reliever — Use Now or Save?            | Practice | Fallback         | ~5s       |
+|  9 | Manager #2   | Lefty-Righty Matchup                        | Practice | Fallback         | ~5s       |
+| 10 | FirstBase #1 | First Baseman's DP — Bases Loaded           | Practice | Fallback         | ~5s       |
+| 11 | Shortstop #1 | Double Play Pivot                           | AI ✓     | Live generation  | ~30s      |
+| 12 | ThirdBase #1 | Bunt Situation — Where to Move              | Practice | Timeout fallback | ~60s      |
+| 13 | CenterField#1| Double Off Throw                            | AI ✓     | Live generation  | ~70s      |
++----+--------------+---------------------------------------------+----------+------------------+-----------+
+
+SUMMARY:
+- AI badge shown: 5 of 13 (38%)
+- Practice fallback: 8 of 13 (62%)
+- Counting only forceAI=true calls: 9 of 13 showed Practice (69% fallback)
+  (Pitcher #1 came from server pool pre-fetch, not a forceAI trigger)
+
+
+================================================================================
+3. AI BADGE ACCURACY
+================================================================================
+
+FINDING: Badge display is ACCURATE when shown. AI scenarios correctly display
+the purple "AI" badge. Handcrafted fallbacks correctly show "Practice" badge.
+No false AI badges were observed (i.e., no handcrafted scenario was mislabeled
+as AI-generated).
+
+CONCERN: The real problem isn't badge accuracy — it's that the AI Coach's
+Challenge feature, which promises AI-generated scenarios, delivers handcrafted
+scenarios 69% of the time with NO indication to the user that AI generation
+failed. The user clicks "AI Coach's Challenge" expecting an AI scenario and
+silently gets a handcrafted one instead.
+
+BADGE DISTRIBUTION BY SOURCE:
+- Server pool: 1 scenario (AI badge ✓)
+- Local pool: 1 scenario (AI badge ✓)
+- Live generation success: 2 scenarios (AI badge ✓)
+- Live generation timeout → fallback: 1 scenario (Practice badge)
+- Direct fallback (no generation attempted or pool empty): 8 scenarios (Practice badge)
+
+AI-BADGED SCENARIOS QUALITY:
+| Scenario                                   | Score OK | Situation Realistic | Options Distinct |
+|--------------------------------------------|----------|---------------------|------------------|
+| Pitcher: Wild Pitch Response               | ✓        | ✓                   | ✓                |
+| Catcher: Lead-Off Strike Strategy          | ✓        | ✓ (minor persp.)    | ✓                |
+| Batter: Trailing By One w/ Runner on 2nd   | ✓        | ✓                   | ✓                |
+| Shortstop: Double Play Pivot               | ✓        | ✓                   | ✓                |
+| CenterField: Double Off Throw              | ✓        | ✓                   | ✓                |
+
+
+================================================================================
+4. SCORE PERSPECTIVE AUDIT
+================================================================================
+
+FINDING: ALL scenarios tested had CORRECT score perspectives. No score-swap
+bugs were detected in either AI-generated or handcrafted scenarios.
+
+DETAILED CHECKS:
+- Pitcher #1: Bot 3rd, home team losing 2-4, scoreboard [2,4] — CORRECT
+- Catcher #1: Top 3rd, trailing 2-3 — perspective correct
+- Batter #2: Top 6th, trailing 3-4, runner on 2nd — CORRECT
+- Baserunner #1: Situation consistent with scoreboard — CORRECT
+- Manager #1: Bot 6th, tied 3-3 — CORRECT
+- Shortstop #1: Top 7th, home leading 4-3, scoreboard [4,3] — CORRECT
+- CenterField #1: Bot 5th, away team leading 4-3, scoreboard [3,4] — CORRECT
+
+NOTE: The BSM_PROJECT_CONTEXT.md warns that score perspective is "the single
+most common AI generation error." During this audit it appears the score
+validation logic is working correctly, at least for the scenarios that were
+successfully generated.
+
+GRADE: A
+
+
+================================================================================
+5. COACH LINE QUALITY
+================================================================================
+
+FINDING: Coach lines are the WEAKEST element of the experience. Most lines
+are generic streak counters rather than position-specific teaching moments.
+
+ALL COACH LINES OBSERVED:
+
+| # | Position     | Coach Line                                                                | Quality    |
+|---|-------------|---------------------------------------------------------------------------|------------|
+| 1 | Pitcher #1  | "Interesting choice! In the big leagues, that play happens more often     | GOOD       |
+|   |             |  than you'd think."                                                       | (generic   |
+|   |             |                                                                           |  but OK)   |
+| 2 | Pitcher #2  | "Data point: Late and close — every decision is amplified!"               | FAIR       |
+| 3 | Catcher #1  | "Data point: Late and close — every decision is amplified!"               | DUPLICATE  |
+|   |             |                                                                           | of #2!     |
+| 4 | Batter #1   | "Babe Ruth struck out 1,330 times. You're in good company!"              | FAIR       |
+| 5 | Batter #2   | "Smart players make their teammates better — that's exactly what you     | GENERIC    |
+|   |             |  just did."                                                               |            |
+| 6 | Baserunner#1| "Babe Ruth struck out 1,330 times. You're in good company!"              | DUPLICATE  |
+|   |             |                                                                           | of #4!     |
+| 7 | Baserunner#2| "You're seeing the whole field!"                                          | GENERIC    |
+| 8 | Manager #1  | "Data point: Runner on 3rd, 1 out — 67% chance of scoring.               | MISMATCH   |
+|   |             |  Make contact count!"                                                     | (batting   |
+|   |             |                                                                           |  advice    |
+|   |             |                                                                           |  for mgr)  |
+| 9 | Manager #2  | "Three in a row! You're heating up!"                                      | GENERIC    |
+| 10| FirstBase#1 | "Four straight! Stay locked in!"                                         | GENERIC    |
+| 11| Shortstop#1 | "Five consecutive correct reads. Increasing complexity."                  | GENERIC    |
+| 12| ThirdBase#1 | "Strong streak. Moving to a higher-difficulty concept."                   | GENERIC    |
+| 13| CenterField | (Not recorded — scenario loaded but answer not submitted in session)      | N/A        |
+
+ISSUES:
+1. DUPLICATES: Lines #2/#3 identical, Lines #4/#6 identical across positions
+2. GENERIC STREAK LINES: Lines #9, #10, #11, #12 are pure streak counters
+   with zero educational value
+3. CONTEXT MISMATCH: Line #8 gives batting advice ("Make contact count!")
+   for a manager bullpen management scenario
+4. NO POSITION-SPECIFIC LINES: Zero coach lines referenced the specific
+   position's responsibilities or strategy
+
+EDUCATIONAL VALUE BREAKDOWN:
+- Educational/teaching: 0 of 12 (0%)
+- Data-backed but generic: 2 of 12 (17%)
+- Encouraging but empty: 4 of 12 (33%)
+- Pure streak counter: 4 of 12 (33%)
+- Duplicate: 2 of 12 (17%)
+
+GRADE: D
+
+RECOMMENDATION: Coach lines should be position-aware and scenario-aware.
+After a correct answer on a cutoff play, the coach should say something like
+"Great relay! The shortstop is the captain of the cutoff — you saved a run by
+hitting your target." NOT "Four straight! Stay locked in!"
+
+
+================================================================================
+6. TIMEOUT / FALLBACK ANALYSIS
+================================================================================
+
+FINDING: The fallback system works (no crashes or broken states), but it's
+too aggressive and provides a poor user experience.
+
+TIMEOUT BEHAVIOR OBSERVED:
+- ThirdBase: ~60 seconds of "TAKING A LITTLE LONGER..." then fell back to
+  a 1-star Rookie difficulty handcrafted scenario. The difficulty mismatch
+  is a problem — AI Coach's Challenge should never serve Rookie difficulty.
+- CenterField: ~70 seconds of loading, but DID eventually deliver an AI
+  scenario (just barely within the 90-second AI_BUDGET).
+
+FALLBACK QUALITY ISSUES:
+1. NO USER NOTIFICATION: When forceAI falls back to handcrafted, the user
+   sees a "Practice" badge but no message like "AI scenario unavailable,
+   here's a challenging handcrafted one instead."
+2. WRONG DIFFICULTY: ThirdBase fallback served a 1-star Rookie scenario
+   via AI Coach's Challenge. Fallbacks should be filtered to diff >= 2.
+3. NO RETRY OPTION: After fallback, no way to try AI generation again
+   without returning to the home screen.
+
+LOADING UX:
+- "TAKING A LITTLE LONGER..." message appears after initial timeout
+- No progress indicator or estimated wait time
+- No cancel button to skip to a handcrafted scenario
+- Wait times of 30-70 seconds are too long for a kids' app (target: 6-18)
+
+FALLBACK RATE BY CAUSE:
+- Pool empty (no pre-cached scenarios): ~6 of 8 fallbacks
+- Timeout after live generation attempt: ~1 of 8 (ThirdBase)
+- Unknown/immediate fallback: ~1 of 8
+
+GRADE: C
+
+
+================================================================================
+7. EXPLANATION QUALITY
+================================================================================
+
+FINDING: Explanations are generally good for handcrafted scenarios and
+adequate for AI scenarios, with one notable weakness.
+
+AI SCENARIO EXPLANATIONS:
+- Pitcher #1 (Wild Pitch Response): Good — explained why covering home plate
+  is the pitcher's job on a wild pitch.
+- Catcher #1 (Lead-Off Strike Strategy): WEAK — discussed wrong answer option
+  instead of explaining why chosen correct answer was best. The explanation
+  argued for "throw a fastball" but the correct answer was about pitch
+  sequencing strategy.
+- Batter #2 (Trailing By One): Good — explained count leverage and approach.
+  Brain Insights integrated well.
+- Shortstop #1 (Double Play Pivot): WEAK — only 1 sentence long. AI scenarios
+  should provide at least 2-3 sentences explaining the strategic reasoning.
+- CenterField #1 (Double Off Throw): Not tested (answer not submitted).
+
+HANDCRAFTED SCENARIO EXPLANATIONS:
+Generally strong across all tested positions. Multi-sentence, specific to the
+game situation, and educational.
+
+EXPLANATION ISSUES:
+1. Catcher AI explanation discussed wrong option — suggests the AI prompt's
+   explanation generation isn't consistently keyed to the correct answer.
+2. Shortstop AI explanation was 1 sentence — too thin for educational value.
+3. AI explanations don't consistently include the "why" — they sometimes
+   state WHAT to do without explaining WHY it matters strategically.
+
+GRADE: B
+
+
+================================================================================
+8. LOADING PERFORMANCE
+================================================================================
+
+PERFORMANCE BY SOURCE TYPE:
+- Server pool (pre-fetched): ~3 seconds — EXCELLENT
+- Local pool (browser-cached): ~1 second — EXCELLENT
+- Handcrafted fallback: <1-5 seconds — GOOD
+- Live AI generation (success): 30-70 seconds — POOR
+- Live AI generation (timeout): 60+ seconds then fallback — VERY POOR
+
+TARGET PERFORMANCE FOR KIDS APP:
+- Ideal: < 3 seconds
+- Acceptable: < 10 seconds
+- Poor: 10-30 seconds
+- Unacceptable: > 30 seconds
+
+The pre-caching system (server pool + local pool) provides excellent
+performance when pools are populated. The core problem is that pools are
+frequently empty, forcing expensive live generation.
+
+POOL AVAILABILITY DURING TESTING:
+- Pitcher: Server pool had 1 scenario, then empty
+- Catcher: Local pool had 1 scenario, then empty
+- Batter: Pool empty — hit live generation or fallback
+- Baserunner: Pool empty
+- Manager: Pool empty
+- FirstBase: Pool empty
+- Shortstop: Pool empty — live generated in ~30s
+- ThirdBase: Pool empty — live generation timed out
+- CenterField: Pool empty — live generated in ~70s
+
+Only 2 of 9 positions had ANY pool scenarios available. This suggests the
+pre-caching system is either not running reliably or the pool is draining
+faster than it refills.
+
+GRADE: D
+
+
+================================================================================
+9. RECOMMENDATIONS
+================================================================================
+
+PRIORITY 1 — CRITICAL (Fix within 1 week)
+─────────────────────────────────────────
+
+1.1 FIX forceAI PIPELINE RELIABILITY
+    The AI Coach's Challenge button promises AI scenarios but delivers
+    handcrafted 69% of the time. Root cause investigation needed:
+    - Is the pre-cache system running? Pools were empty for 7 of 9 positions
+    - Is live generation timing out? 2 of 3 live attempts took 30-70 seconds
+    - Is there a race condition between pool check and fallback?
+    ACTION: Add console logging at every decision point in the forceAI path.
+    Instrument: pool check → pool miss → live gen start → live gen result →
+    fallback trigger. Log WHY each fallback happens.
+
+1.2 ADD SCENARIO DEDUPLICATION
+    Baserunner was served the exact same scenario ("Steal Decision — Bad
+    Count Changes Everything") twice in a row. The completed scenario ID
+    list (state.cl) should be checked before serving ANY scenario, including
+    fallbacks.
+    ACTION: Add cl-check before fallback scenario selection.
+
+1.3 FILTER FALLBACK DIFFICULTY
+    When forceAI falls back to handcrafted, it served a 1-star Rookie
+    scenario for ThirdBase. AI Coach's Challenge fallbacks should be
+    filtered to difficulty >= 2.
+    ACTION: Add `diff >= 2` filter in fallback scenario selection for
+    forceAI=true calls.
+
+
+PRIORITY 2 — HIGH (Fix within 2 weeks)
+───────────────────────────────────────
+
+2.1 OVERHAUL COACH LINE SYSTEM
+    Current issues: 33% generic streak counters, 17% duplicates, context
+    mismatches. Coach lines need three fixes:
+    a) Position-awareness: Lines should reference the position's specific
+       role (e.g., "Great cutoff throw!" for infielders, not "Stay locked in!")
+    b) Scenario-awareness: Lines should reference the game situation or
+       concept being tested
+    c) Deduplication: Same line should not appear across different positions
+       in the same session
+    ACTION: Refactor getCoachLine() to accept position + concept parameters
+    and select from position-specific line pools.
+
+2.2 ADD FALLBACK USER NOTIFICATION
+    When AI generation fails and a handcrafted scenario is served, show a
+    brief toast: "AI scenario loading... here's a challenge while we prepare
+    your custom scenario!" This manages expectations and explains the
+    Practice badge.
+    ACTION: Add toast notification in the fallback path of startGame().
+
+2.3 IMPROVE AI EXPLANATION CONSISTENCY
+    Two issues found: (a) Catcher explanation discussed wrong option,
+    (b) Shortstop explanation was only 1 sentence.
+    ACTION: Add post-generation validation that checks:
+    - Explanation references the correct answer option specifically
+    - Explanation is at least 2 sentences / 40 words
+    - Explanation includes strategic reasoning (the "why")
+
+
+PRIORITY 3 — MEDIUM (Fix within 1 month)
+─────────────────────────────────────────
+
+3.1 IMPROVE PRE-CACHE RELIABILITY
+    Only 2 of 9 positions had pool scenarios. The pre-cache system should
+    maintain at least 1-2 scenarios per position at all times.
+    ACTION: Investigate pool fill rate, add monitoring for pool depth per
+    position, consider eager pre-fetching on app load for popular positions.
+
+3.2 ADD LOADING CANCEL BUTTON
+    30-70 second waits are unacceptable for ages 6-18. Add a "Skip to
+    Practice Scenario" button that appears after 10 seconds of loading.
+    ACTION: Add cancel/skip button to the loading screen after 10s delay.
+
+3.3 ADD "SOMETHING OFF?" FEEDBACK FOR ALL AI SCENARIOS
+    The "Something off?" button was observed on the Shortstop AI scenario.
+    Verify it appears consistently on ALL AI-generated scenarios and that
+    the feedback is logged/actionable.
+    ACTION: Audit feedback button rendering logic, verify D1 logging.
+
+3.4 FIX CATCHER PERSPECTIVE BREAK
+    Catcher AI scenario used "What should the catcher do?" instead of
+    "What should you do?" — breaks the 2nd-person immersive perspective
+    used throughout the app.
+    ACTION: Add perspective validation to AI generation prompt and
+    post-generation checks.
+
+
+================================================================================
+APPENDIX A: RAW TEST LOG
+================================================================================
+
+Test conducted: March 10, 2026, ~2-hour session
+Browser: Chrome (via Claude in Chrome MCP)
+App version: Production (bsm-app.pages.dev)
+Pro mode: Enabled via localStorage injection (bsm_v5)
+Games played before testing: Set to 10 (required gp >= 3 for AI button)
+
+Setup steps:
+1. Opened bsm-app.pages.dev in Chrome
+2. Injected Pro mode and gp=10 via localStorage
+3. Refreshed app to apply changes
+4. Navigated to AI Coach's Challenge section
+5. Clicked position buttons and recorded all observations
+
+Positions tested: Pitcher (2), Catcher (1), Batter (2), Baserunner (2),
+Manager (2), FirstBase (1), Shortstop (1), ThirdBase (1), CenterField (1)
+
+
+================================================================================
+APPENDIX B: KNOWN LIMITATIONS OF THIS AUDIT
+================================================================================
+
+1. Testing was conducted via automated browser control (Claude in Chrome),
+   which may have slightly different timing characteristics than manual use.
+
+2. Only 13 scenarios were tested across 9 positions (target was 18). Some
+   positions only got 1 scenario due to slow live generation consuming
+   session time.
+
+3. Console logs were not consistently captured for every scenario due to
+   browser extension reconnection issues during long waits.
+
+4. The CenterField #1 scenario loaded but the answer was not submitted
+   before the session ended, so its explanation and coach line were not
+   evaluated.
+
+5. AI scenario quality may vary by time of day due to xAI API load.
+
+6. The audit focused on the "AI Coach's Challenge" flow. Other AI entry
+   points (e.g., exhausted scenarios triggering AI) were not tested.
+
+7. Score perspective testing was limited to scenarios that were actually
+   delivered. A comprehensive score audit would require testing the AI
+   generation prompt with adversarial score setups.
+
+
+================================================================================
+END OF REPORT
+================================================================================
