@@ -11158,14 +11158,29 @@ function getLocalPool() {
   } catch { return [] }
 }
 
-// Circuit breaker for AI calls — prevents repeated slow/failed calls from degrading UX
-function getCircuitBreaker() {
+// Circuit breaker for AI calls — per-position to prevent one slow position from blocking all
+function getCircuitBreaker(position) {
   try {
-    return JSON.parse(sessionStorage.getItem("bsm_circuit_breaker") || '{"responseTimes":[],"failures":0,"openUntil":0}')
+    const key = position ? "bsm_cb_" + position : "bsm_circuit_breaker"
+    return JSON.parse(sessionStorage.getItem(key) || '{"responseTimes":[],"failures":0,"openUntil":0}')
   } catch { return { responseTimes: [], failures: 0, openUntil: 0 } }
 }
-function updateCircuitBreaker(cb) {
-  try { sessionStorage.setItem("bsm_circuit_breaker", JSON.stringify(cb)) } catch {}
+function updateCircuitBreaker(cb, position) {
+  try {
+    const key = position ? "bsm_cb_" + position : "bsm_circuit_breaker"
+    sessionStorage.setItem(key, JSON.stringify(cb))
+  } catch {}
+}
+function clearAllCircuitBreakers() {
+  try {
+    const keys = []
+    for (let i = 0; i < sessionStorage.length; i++) {
+      const k = sessionStorage.key(i)
+      if (k && (k.startsWith("bsm_cb_") || k === "bsm_circuit_breaker")) keys.push(k)
+    }
+    keys.forEach(k => sessionStorage.removeItem(k))
+    if (keys.length > 0) console.log("[BSM] Cleared", keys.length, "circuit breaker(s) on app load")
+  } catch {}
 }
 
 function saveToLocalPool(scenario, position) {
@@ -12090,6 +12105,8 @@ export default function App(){
 
   // Load
   useEffect(()=>{(async()=>{
+    // Clear stale circuit breakers from previous session
+    clearAllCircuitBreakers()
     // Load local state first
     let localStats=null;
     try{const r=await window.storage.get(STORAGE_KEY);if(r?.value)localStats=JSON.parse(r.value);}catch{}
@@ -12688,8 +12705,8 @@ export default function App(){
 
       // Tier 3: Fresh AI generation (existing code continues below)
       // Circuit breaker check — skip AI if response times too slow or repeated failures
-      const _cb=getCircuitBreaker()
-      console.log("[BSM DEBUG] Tier 3 CIRCUIT BREAKER check | open:",Date.now()<_cb.openUntil,"| failures:",_cb.failures,"| openUntil:",_cb.openUntil?new Date(_cb.openUntil).toLocaleTimeString():"none","| avgResponseTime:",_cb.responseTimes.length>0?Math.round(_cb.responseTimes.reduce((a,b)=>a+b,0)/_cb.responseTimes.length/1000)+"s":"no data")
+      const _cb=getCircuitBreaker(p)
+      console.log("[BSM DEBUG] Tier 3 CIRCUIT BREAKER check for",p,"| open:",Date.now()<_cb.openUntil,"| failures:",_cb.failures,"| openUntil:",_cb.openUntil?new Date(_cb.openUntil).toLocaleTimeString():"none","| avgResponseTime:",_cb.responseTimes.length>0?Math.round(_cb.responseTimes.reduce((a,b)=>a+b,0)/_cb.responseTimes.length/1000)+"s":"no data")
       if(Date.now()<_cb.openUntil){
         const _cbSec=Math.round((_cb.openUntil-Date.now())/1000)
         console.log("[BSM] Circuit breaker OPEN — skipping AI, serving from pool/handcrafted. Reopens in",_cbSec,"s")
@@ -12792,17 +12809,17 @@ export default function App(){
       setAiLoading(false);
       if(result?.scenario){
         aiFailRef.current.consecutive=0;aiFailRef.current.cooldownUntil=0;
-        // Circuit breaker: record success + response time
-        const _cbS=getCircuitBreaker()
+        // Circuit breaker: record success + response time (per-position)
+        const _cbS=getCircuitBreaker(p)
         const _elapsed=Date.now()-_aiStartMs
         _cbS.responseTimes=[..._cbS.responseTimes.slice(-4),_elapsed]
         _cbS.failures=0;_cbS.openUntil=0
         const _avgTime=_cbS.responseTimes.reduce((a,b)=>a+b,0)/_cbS.responseTimes.length
-        if(_cbS.responseTimes.length>=3&&_avgTime>50000){
-          _cbS.openUntil=Date.now()+5*60*1000
-          console.warn("[BSM] Circuit breaker OPENED — avg response time",Math.round(_avgTime/1000),"s")
+        if(_cbS.responseTimes.length>=3&&_avgTime>120000){
+          _cbS.openUntil=Date.now()+3*60*1000
+          console.warn("[BSM] Circuit breaker OPENED for",p,"— avg response time",Math.round(_avgTime/1000),"s")
         }
-        updateCircuitBreaker(_cbS)
+        updateCircuitBreaker(_cbS,p)
         lastAiScenarioRef.current=result.scenario; // Track for connected arcs
         console.log("[BSM] AI scenario accepted:", result.scenario.title);
         // Sprint 4.2+4.3: Track AI scenario generation success with A/B variants
@@ -12837,14 +12854,14 @@ export default function App(){
           if(ctrl?.signal.aborted)return;
         } else {
           aiFailRef.current.consecutive++;
-          // Circuit breaker: record failure
-          const _cbF=getCircuitBreaker()
+          // Circuit breaker: record failure (per-position)
+          const _cbF=getCircuitBreaker(p)
           _cbF.failures++
-          if(_cbF.failures>=2){
-            _cbF.openUntil=Date.now()+10*60*1000
-            console.warn("[BSM] Circuit breaker OPENED — 2 consecutive failures")
+          if(_cbF.failures>=4){
+            _cbF.openUntil=Date.now()+3*60*1000
+            console.warn("[BSM] Circuit breaker OPENED for",p,"—",_cbF.failures,"consecutive failures")
           }
-          updateCircuitBreaker(_cbF)
+          updateCircuitBreaker(_cbF,p)
           // Sprint 4.2: Track AI scenario failure
           trackAnalyticsEvent("ai_scenario_failed",{pos:p,error:result?.error||"unknown",consecutive:aiFailRef.current.consecutive},{ageGroup:stats.ageGroup,isPro:stats.isPro});
           if(aiFailRef.current.consecutive>=3){
