@@ -9565,6 +9565,83 @@ async function flushLearningBatch() {
 }
 
 // ============================================================================
+// Phase 0: Multi-Agent Pipeline (Claude Opus + Vectorize RAG)
+// ============================================================================
+async function generateWithMultiAgent(position, stats, signal, targetConcept = null) {
+  const t0 = Date.now()
+  console.group("[BSM Multi-Agent Pipeline]")
+  try {
+    // Build player context from stats
+    const ps = stats?.ps?.[position]
+    const accuracy = ps && ps.p > 0 ? Math.round(ps.c / ps.p * 100) : null
+    const recentWrong = (stats?.recentWrong || []).slice(0, 5)
+    const masteryData = stats?.masteryData || { concepts: {} }
+
+    let playerContext = ""
+    if (accuracy !== null) playerContext += `Position accuracy: ${accuracy}% over ${ps.p} plays. `
+    if (recentWrong.length > 0) playerContext += `Recent wrong concepts: ${recentWrong.join(', ')}. `
+
+    // Add mastery info for this position's concepts
+    const posConcepts = KNOWLEDGE_BASE.getConceptsForPosition(position)
+    const masteredConcepts = posConcepts.filter(c => masteryData.concepts?.[c.tag]?.state === 'mastered').map(c => c.name)
+    const learningConcepts = posConcepts.filter(c => masteryData.concepts?.[c.tag]?.state === 'learning').map(c => c.name)
+    if (masteredConcepts.length) playerContext += `Mastered: ${masteredConcepts.slice(0, 5).join(', ')}. `
+    if (learningConcepts.length) playerContext += `Still learning: ${learningConcepts.slice(0, 5).join(', ')}. `
+    if (!playerContext) playerContext = "New player, no history."
+
+    // Send position rules from client (RAG will also retrieve server-side)
+    const principles = KNOWLEDGE_BASE.getPrinciplesForPosition(position)
+
+    const res = await Promise.race([
+      fetch(WORKER_BASE + "/v1/multi-agent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          position,
+          playerContext,
+          positionRules: principles.condensed || principles.full || "",
+          targetConcept: targetConcept || null,
+          maxRetries: 1
+        }),
+        signal
+      }),
+      new Promise((_, reject) => setTimeout(() => reject(new Error("Multi-agent timeout")), 90000))
+    ])
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: { message: "Unknown" } }))
+      console.warn("[BSM Multi-Agent] HTTP error:", res.status, err.error?.message)
+      return null
+    }
+
+    const data = await res.json()
+    console.log(`[BSM Multi-Agent] Success in ${data.pipeline.totalElapsed}ms:`,
+      `"${data.scenario.title}"`,
+      `critique=${data.critique.score}/10 (pass=${data.critique.pass})`,
+      `stages=${data.pipeline.stages.length}`,
+      `tokens=${data.pipeline.totalInputTokens + data.pipeline.totalOutputTokens}`,
+      `RAG hits=${data.pipeline.ragHits || 0}`)
+
+    // Run client-side quality firewall too (belt and suspenders)
+    const fwResult = QUALITY_FIREWALL.validate(data.scenario, position)
+    if (!fwResult.pass) {
+      console.warn("[BSM Multi-Agent] Client firewall rejected:", fwResult.tier1Fails)
+      return null
+    }
+
+    // Shuffle answers client-side
+    shuffleAnswers(data.scenario)
+
+    return { scenario: data.scenario, agentGrade: data.critique, plan: data.scenario.agentPlan }
+  } catch (e) {
+    console.warn("[BSM Multi-Agent] Error:", e.message)
+    return null
+  } finally {
+    console.groupEnd()
+  }
+}
+
+// ============================================================================
 // Level 3.7: Agent Pipeline with Shadow Mode
 // ============================================================================
 async function generateWithAgentPipeline(position, stats, conceptsLearned, recentWrong, signal, targetConcept, aiHistory, flaggedAvoidText = "", previousScenario = null, timeoutMs = 55000) {
@@ -9885,6 +9962,18 @@ async function generateAIScenario(position, stats, conceptsLearned = [], recentW
 
   // Budget starts HERE — only counts actual AI generation time (setup network calls excluded)
   const _aiFlowStart = Date.now()
+
+  // Phase 0: Multi-Agent Pipeline (Claude Opus + RAG) — primary path
+  if (!skipAgent) {
+    console.log("[BSM] Attempting multi-agent pipeline (Claude Opus)")
+    const maResult = await generateWithMultiAgent(position, stats, signal, targetConcept)
+    if (maResult?.scenario) {
+      console.log("[BSM] Multi-agent pipeline succeeded")
+      return maResult
+    }
+    console.warn("[BSM] Multi-agent pipeline failed, falling through to xAI pipeline")
+    // Fall through to existing xAI pipeline as backup
+  }
 
   // Calibration injection for standard pipeline (matching agent pipeline behavior)
   let calibrationText = ""
