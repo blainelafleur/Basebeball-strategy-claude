@@ -7519,7 +7519,16 @@ const QUALITY_FIREWALL = {
       if (shared.length === 0) return "Explanation coherence: best answer explanation shares no significant words with option text — may describe wrong option"
       return null
     },
-    // Check 8a: Situation-description consistency — verify description matches situation object
+    // Check 8a: 3rd-person perspective — description should use "you" not "the pitcher"
+    perspectiveCheck(scenario) {
+      const desc = (scenario.description || "").toLowerCase()
+      const posNames = /\b(the\s+)?(pitcher|catcher|first baseman|second baseman|shortstop|third baseman|left fielder|center fielder|right fielder|batter|baserunner|manager|hitter|fielder|outfielder|infielder)\s+(should|needs to|must|has to|decides|wants to|calls for|is |was |will |would |can |could |throws|sees|gets|goes|reads|doesn)/i
+      const match = desc.match(posNames)
+      if (match) return "3rd-person perspective: description says '" + match[0].trim() + "' — should use 'you' (2nd person)"
+      if (/what should the \w+ do/i.test(desc)) return "3rd-person perspective: description asks 'What should the [position] do?' — should ask 'What should you do?'"
+      return null
+    },
+    // Check 8b: Situation-description consistency — verify description matches situation object
     situationConsistency(scenario) {
       const desc = (scenario.description || "").toLowerCase()
       const sit = scenario.situation || {}
@@ -9594,10 +9603,10 @@ async function generateWithAgentPipeline(position, stats, conceptsLearned, recen
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         model: "grok-4",
-        max_tokens: 2500,
+        max_tokens: 1800,
         temperature: aiTemp,
         messages: [
-          { role: "system", content: "You are the world's most experienced baseball coach, teaching kids 6-18 via Baseball Strategy Master.\n\nOUTPUT: Respond with ONLY valid JSON. No markdown, no code fences, no text outside JSON.\n\nGOLDEN RULE: Every scenario teaches ONE baseball concept that drives the situation, options, correct answer, and explanations.\n\nEXPLANATION RULES:\n- 2-4 sentences each. BEST: action → WHY correct in THIS situation → positive result. WRONG: action → WHY it fails → concrete consequences.\n- Player perspective (\"you\", \"your team\"). No jargon (RE24/OBP/wOBA) in descriptions/options — stats in explDepth.data only.\n- EVERY explanation must reference the specific game situation.\n- ALWAYS use second person ('you') when addressing the player. Never say 'What should the pitcher do?' — say 'What should you do?'\n\nOPTION RULES:\n- All 4 at the SAME decision moment. Each specific and concrete. Strategically distinct. Include one common kid mistake. No near-duplicates.\n- CRITICAL: Each option must be a DISTINCT physical action. If one action is a prerequisite of another (e.g., 'step off the rubber' is part of 'throw over to first'), they are NOT distinct — pick one or the other. Similarly: 'take the pitch' vs 'don't swing', 'sacrifice bunt' vs 'lay down a bunt', 'go to the bullpen' vs 'make a pitching change' are the same action.\n\nPOSITION BOUNDARIES: Only actions this position actually performs. score=[HOME,AWAY]. Home bats in Bot half. outs: 0-2. count: \"B-S\" or \"-\". runners must match description." },
+          { role: "system", content: "You are the world's most experienced baseball coach, teaching kids 6-18 via Baseball Strategy Master.\n\nOUTPUT: Respond with ONLY valid JSON. No markdown, no code fences, no text outside JSON.\n\nGOLDEN RULE: Every scenario teaches ONE baseball concept that drives the situation, options, correct answer, and explanations.\n\nEXPLANATION RULES:\n- 2-4 sentences each. BEST: action → WHY correct in THIS situation → positive result. WRONG: action → WHY it fails → concrete consequences.\n- Player perspective (\"you\", \"your team\"). No jargon (RE24/OBP/wOBA) in descriptions/options — stats in explDepth.data only.\n- EVERY explanation must reference the specific game situation.\n- ALWAYS use second person ('you') when addressing the player. Never say 'What should the pitcher do?' — say 'What should you do?'\n\nOPTION RULES:\n- All 4 at the SAME decision moment. Each specific and concrete. Strategically distinct. Include one common kid mistake. No near-duplicates.\n- CRITICAL: Each option must be a DISTINCT physical action. If one action is a prerequisite of another (e.g., 'step off the rubber' is part of 'throw over to first'), they are NOT distinct — pick one or the other. Similarly: 'take the pitch' vs 'don't swing', 'sacrifice bunt' vs 'lay down a bunt', 'go to the bullpen' vs 'make a pitching change' are the same action.\n\nCRITICAL — 2ND PERSON PERSPECTIVE: The player IS the position. The description MUST use 'you' and 'your'. Write 'You\\'re the pitcher on the mound...' NOT 'The pitcher is on the mound...' Write 'What should you do?' NOT 'What should the pitcher do?' This is non-negotiable — every description must read as if the player is living the moment.\n\nPOSITION BOUNDARIES: Only actions this position actually performs. score=[HOME,AWAY]. Home bats in Bot half. outs: 0-2. count: \"B-S\" or \"-\". runners must match description." },
           { role: "user", content: agentPrompt }
         ]
       })
@@ -10156,7 +10165,7 @@ count format: "B-S" (0-3 balls, 0-2 strikes) or "-". runners: [] empty, [1]=1st,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         model: "grok-4",
-        max_tokens: 2500,
+        max_tokens: 1800,
         temperature: aiTemp,
         messages: [
           { role: "system", content: coachSystem + ` You create training scenarios for Baseball Strategy Master, a strategy-teaching app for kids 6-18.
@@ -10192,6 +10201,8 @@ SITUATION RULES:
 - The LAST sentence of the description MUST set up the exact decision moment. All 4 options are what the player does RIGHT NOW.
 
 VARY EVERYTHING: Different count, runner configuration, inning (1-9), and score each time. The best answer should NOT always be option index 0 or 1 — distribute across 0-3.
+
+CRITICAL — 2ND PERSON PERSPECTIVE: The player IS the position. The description MUST use "you" and "your" throughout. Write "You're the pitcher on the mound..." NOT "The pitcher is on the mound..." Write "What should you do?" NOT "What should the pitcher do?" This is non-negotiable — every description must read as if the player is living the moment.
 
 POSITION BOUNDARIES: The scenario MUST only include actions that the selected position actually performs on the field. A center fielder does not call pitches. A batter does not position the defense. A pitcher does not decide the batting order.
 
@@ -10732,13 +10743,40 @@ function shuffleAnswers(scenario) {
 
 // Fix 3rd-person perspective ("What should the catcher do?") → 2nd-person ("What should you do?")
 function fixPerspective(scenario) {
-  const posNames = "pitcher|catcher|first baseman|second baseman|shortstop|third baseman|left fielder|center fielder|right fielder|batter|baserunner|base runner|manager|hitter|fielder|outfielder|infielder"
-  const re1 = new RegExp(`What should the (${posNames}) do\\??`, "gi")
-  const re2 = new RegExp(`The (${posNames}) should`, "gi")
-  const re3 = new RegExp(`the (${posNames}) needs to`, "gi")
-  const fix = (s) => s ? s.replace(re1, "What should you do?").replace(re2, "You should").replace(re3, "you need to") : s
+  const P = "pitcher|catcher|first baseman|second baseman|shortstop|third baseman|left fielder|center fielder|right fielder|batter|baserunner|base runner|manager|hitter|fielder|outfielder|infielder|designated hitter|relief pitcher|closer"
+  // Build all patterns once
+  const pats = [
+    [new RegExp(`What should the (${P}) do\\??`, "gi"), "What should you do?"],
+    [new RegExp(`[Tt]he (${P}) should`, "g"), "You should"],
+    [new RegExp(`the (${P}) needs to`, "gi"), "you need to"],
+    [new RegExp(`the (${P}) decides to`, "gi"), "you decide to"],
+    [new RegExp(`the (${P}) must`, "gi"), "you must"],
+    [new RegExp(`the (${P}) has to`, "gi"), "you have to"],
+    [new RegExp(`the (${P}) wants to`, "gi"), "you want to"],
+    [new RegExp(`the (${P}) calls for`, "gi"), "you call for"],
+    [new RegExp(`the (${P}) is `, "gi"), "you are "],
+    [new RegExp(`the (${P}) was `, "gi"), "you were "],
+    [new RegExp(`the (${P}) will `, "gi"), "you will "],
+    [new RegExp(`the (${P}) would `, "gi"), "you would "],
+    [new RegExp(`the (${P}) can `, "gi"), "you can "],
+    [new RegExp(`the (${P}) could `, "gi"), "you could "],
+    [new RegExp(`the (${P}) throws`, "gi"), "you throw"],
+    [new RegExp(`the (${P}) sees`, "gi"), "you see"],
+    [new RegExp(`the (${P}) gets`, "gi"), "you get"],
+    [new RegExp(`the (${P}) goes`, "gi"), "you go"],
+    [new RegExp(`the (${P}) reads`, "gi"), "you read"],
+    [new RegExp(`the (${P}) doesn['']t`, "gi"), "you don't"],
+  ]
+  const fix = (s) => {
+    if (!s) return s
+    for (const [re, rep] of pats) { re.lastIndex = 0; s = s.replace(re, rep) }
+    return s
+  }
   if (scenario.description) scenario.description = fix(scenario.description)
   if (scenario.title) scenario.title = fix(scenario.title)
+  // Also fix explanations and options
+  if (Array.isArray(scenario.explanations)) scenario.explanations = scenario.explanations.map(e => fix(e))
+  if (Array.isArray(scenario.options)) scenario.options = scenario.options.map(o => fix(o))
   return scenario
 }
 
@@ -10768,6 +10806,7 @@ const _recentAITitles = []
 // Pool stats helpers for dynamic quality thresholds
 let _serverPoolCounts = {}
 const _serverPoolCheckedThisSession = new Set()
+const _emptyPoolPositions = new Set() // positions with 0 local + 0 server pool entries
 try {
   fetch(WORKER_BASE + "/scenario-pool/stats")
     .then(r => r.json()).then(d => { _serverPoolCounts = d.counts || {} }).catch(() => {})
@@ -11387,6 +11426,27 @@ async function prefetchAIScenario(position, stats, conceptsLearned, recentWrong,
     _prefetchController = null
   }
 }
+// Background pool filler — generates directly to local pool (no cache slot needed)
+const _poolFillInFlight = new Set()
+async function fillLocalPool(position, stats, count = 1) {
+  if (_poolFillInFlight.has(position)) return
+  _poolFillInFlight.add(position)
+  for (let i = 0; i < count; i++) {
+    try {
+      const ctrl = new AbortController()
+      const result = await generateAIScenario(position, stats, stats.cl || [], stats.recentWrong || [], ctrl.signal, null, stats.aiHistory || [], null, 100000, true)
+      if (result?.scenario) {
+        saveToLocalPool(result.scenario, position)
+        console.log("[BSM Pool Fill]", position, "(" + (i+1) + "/" + count + "):", result.scenario.title)
+      }
+    } catch (e) {
+      console.warn("[BSM Pool Fill] Failed for", position + ":", e.message)
+      break // stop trying on error
+    }
+  }
+  _poolFillInFlight.delete(position)
+}
+
 function consumeCachedAI(position, cacheRef = null) {
   if (!cacheRef?.current) return null
   const cached = cacheRef.current.scenarios?.[position]
@@ -12264,20 +12324,21 @@ export default function App(){
       navigator.serviceWorker.register("/sw.js").catch(()=>{});
     }
   },[]);
-  // Pro user app-load prefetch: warm cache for top 3 most-played positions
+  // Pro user app-load prefetch: warm pools for top 5 most-played positions
   const _proWarmDone=useRef(false)
   useEffect(()=>{
     if(!stats.isPro||!stats.ps||_proWarmDone.current)return
     _proWarmDone.current=true
-    const top3=Object.entries(stats.ps).filter(([,v])=>v.p>=3).sort((a,b)=>b[1].p-a[1].p).slice(0,3).map(([k])=>k)
-    if(top3.length===0)return
-    console.log("[BSM DEBUG] Pro warm prefetch: top positions =",top3)
-    top3.forEach((pos,i)=>{
-      setTimeout(()=>{
-        if(!aiCacheRef.current.fetching&&!aiCacheRef.current.scenarios[pos]?.scenario){
-          prefetchAIScenario(pos,stats,stats.cl||[],stats.recentWrong||[],stats.aiHistory||[],null,null,aiCacheRef)
-        }
-      },i*15000) // stagger: 0s, 15s, 30s
+    const top5=Object.entries(stats.ps).filter(([,v])=>v.p>=2).sort((a,b)=>b[1].p-a[1].p).slice(0,5).map(([k])=>k)
+    if(top5.length===0)return
+    console.log("[BSM DEBUG] Pro warm prefetch: top positions =",top5)
+    // First position: immediate cache prefetch for fastest first-play
+    if(top5[0]&&!aiCacheRef.current.fetching&&!aiCacheRef.current.scenarios[top5[0]]?.scenario){
+      prefetchAIScenario(top5[0],stats,stats.cl||[],stats.recentWrong||[],stats.aiHistory||[],null,null,aiCacheRef)
+    }
+    // Remaining positions: staggered pool fills (direct to local pool, no cache slot needed)
+    top5.slice(1).forEach((pos,i)=>{
+      setTimeout(()=>fillLocalPool(pos,stats),(i+1)*12000) // 12s, 24s, 36s, 48s
     })
   },[stats.isPro,stats.ps])
   // Sprint 4.2+4.5: Track session start with load performance
@@ -12682,16 +12743,16 @@ export default function App(){
           prefetchAIScenario(position, stats, stats.cl || [], stats.recentWrong || [], stats.aiHistory || [], lastAiScenarioRef.current, nextConcept, aiCacheRef)
         }
       }, 500)
-      // Also prefetch next-most-likely position (based on play frequency)
+      // Background pool fill: keep pool warm for this position
+      // If pool was empty for this position, fetch 2; otherwise fetch 1
+      const fillCount = _emptyPoolPositions.has(position) ? 2 : 1
+      setTimeout(() => fillLocalPool(position, stats, fillCount), 3000)
+      // Also fill next-most-likely position (based on play frequency)
       setTimeout(() => {
-        if (!aiCacheRef.current.fetching) {
-          const ps = stats.ps || {}
-          const nextPos = Object.entries(ps).filter(([k,v]) => k !== position && v.p >= 2).sort((a,b) => b[1].p - a[1].p)[0]?.[0]
-          if (nextPos && !aiCacheRef.current.scenarios[nextPos]?.scenario) {
-            prefetchAIScenario(nextPos, stats, stats.cl || [], stats.recentWrong || [], stats.aiHistory || [], null, null, aiCacheRef)
-          }
-        }
-      }, 8000)
+        const ps = stats.ps || {}
+        const nextPos = Object.entries(ps).filter(([k,v]) => k !== position && v.p >= 2).sort((a,b) => b[1].p - a[1].p)[0]?.[0]
+        if (nextPos) fillLocalPool(nextPos, stats, _emptyPoolPositions.has(nextPos) ? 2 : 1)
+      }, 15000)
     }
 
     // Local helper: AI generation with loading, abort, retry, cooldown, fallback
@@ -12809,6 +12870,9 @@ export default function App(){
           console.warn("[BSM DEBUG] Tier 2 SERVER POOL ERROR:", e.message)
         }
       }
+
+      // Track positions that had no pool entries at all (local=0 + server=miss)
+      if (_localPoolSize === 0) _emptyPoolPositions.add(p)
 
       // Tier 3: Fresh AI generation (existing code continues below)
       // Circuit breaker check — skip AI if response times too slow or repeated failures

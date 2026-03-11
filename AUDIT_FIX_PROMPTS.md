@@ -465,16 +465,44 @@ This is a small text-processing addition, not a refactor.
 [x] 1.3 — Fix timeout chain (DONE — AI_BUDGET 180→75s, agent 55→40s, worker 120→55s)
 [x] 1.4 — Fix inflated exclude list + debug local pool (DONE — saveToLocalPool bug fixed)
 [x] 1.5 — Investigate empty server pool (DONE — 29 scenarios, 7 positions empty, ~6/day cron)
-[ ] 1.5b — Skip server pool fetch for empty positions (latency optimization)
-[ ] 1.6 — Scenario deduplication
-[ ] 1.7 — Fallback difficulty filter
-[ ] 2.1 — Coach line overhaul
-[ ] 2.2 — Fallback user notification
-[ ] 2.3 — AI explanation validation
-[ ] 3.1 — Pre-cache reliability
-[ ] 3.2 — Loading cancel button
-[ ] 3.3 — Feedback button audit
-[ ] 3.4 — Perspective fix
+[x] 1.5b — Skip server pool fetch for empty positions (latency optimization)
+[x] 1.6 — Scenario deduplication
+[x] 1.7 — Fallback difficulty filter
+[x] 2.1 — Coach line overhaul
+[x] 2.2 — Fallback user notification
+[x] 2.3 — AI explanation validation
+[x] 3.1 — Pre-cache reliability
+[x] 3.2 — Loading cancel button
+[x] 3.3 — Feedback button audit
+[x] 3.4 — Perspective fix
 ```
 
-**After all fixes: re-run the full AI audit (same 9 positions × 2 scenarios) to verify improvements.**
+**All 14 prompts applied. Re-audit completed.**
+
+---
+
+## RE-AUDIT RESULTS (March 10, 2026)
+
+Full report: `BSM_AI_REAUDIT_2026-03-10.txt`
+
+**OVERALL GRADE: C+ → B+** (+1.36 on 4.0 scale)
+
+| Dimension                   | Before   | After    | Change  |
+|-----------------------------|----------|----------|---------|
+| AI Delivery Rate            | F (31%)  | D+ (36%) | +5pp   |
+| AI Scenario Quality         | B+       | A-       | +half  |
+| Score Perspective            | A        | A        | —      |
+| Coach Line Quality          | D (0%)   | A- (100%)| ↑↑↑    |
+| Loading Performance         | D        | B-       | +1.5   |
+| Explanation Quality         | B        | A-       | +1     |
+| Fallback Handling           | C        | A        | ↑↑     |
+| Brain Insights              | B+       | A        | +half  |
+| Deduplication               | F        | A        | ↑↑↑    |
+| 2nd-Person Perspective      | N/A      | B-       | new    |
+
+**Top 3 wins:** Coach lines (D→A-), Fallback UX (C→A), Dedup (F→A)
+
+**Remaining issues (path to A-):**
+1. AI perspective still uses 3rd person 75% of the time — needs post-gen regex rewrite
+2. Pool depth insufficient — only 3/7 positions had pre-cached scenarios
+3. Live generation still 25-60s when pools are empty
