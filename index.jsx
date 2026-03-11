@@ -10224,7 +10224,7 @@ COMMON MISTAKES TO AVOID:
       console.warn("[BSM] Skipping standard pipeline — insufficient budget:", Math.round(stdBudget / 1000) + "s")
       return { error: signal?.aborted ? "aborted" : "timeout" }
     }
-    const stdTimeout = Math.min(55000, stdBudget) // cap to remaining budget so we don't hang
+    const stdTimeout = Math.min(85000, stdBudget) // cap to remaining budget; worker timeout is 90s
     console.log("[BSM] Standard pipeline budget:", Math.round(stdBudget / 1000) + "s, timeout:", Math.round(stdTimeout / 1000) + "s")
     const response = await Promise.race([
       fetch(AI_PROXY_URL, fetchOpts),
@@ -11427,25 +11427,37 @@ async function prefetchAIScenario(position, stats, conceptsLearned, recentWrong,
     _prefetchController = null
   }
 }
-// Background pool filler — generates directly to local pool (no cache slot needed)
-const _poolFillInFlight = new Set()
+// Background pool filler — sequential queue, max 1 xAI call at a time
+const _bgQueue = [] // [{position, stats, count}]
+let _bgRunning = false
 async function fillLocalPool(position, stats, count = 1) {
-  if (_poolFillInFlight.has(position)) return
-  _poolFillInFlight.add(position)
-  for (let i = 0; i < count; i++) {
-    try {
-      const ctrl = new AbortController()
-      const result = await generateAIScenario(position, stats, stats.cl || [], stats.recentWrong || [], ctrl.signal, null, stats.aiHistory || [], null, 100000, true)
-      if (result?.scenario) {
-        saveToLocalPool(result.scenario, position)
-        console.log("[BSM Pool Fill]", position, "(" + (i+1) + "/" + count + "):", result.scenario.title)
+  // Deduplicate: skip if this position is already queued or running
+  if (_bgQueue.some(q => q.position === position)) return
+  _bgQueue.push({ position, stats, count })
+  _drainBgQueue()
+}
+async function _drainBgQueue() {
+  if (_bgRunning || _bgQueue.length === 0) return
+  _bgRunning = true
+  while (_bgQueue.length > 0) {
+    const { position, stats, count } = _bgQueue.shift()
+    for (let i = 0; i < count; i++) {
+      try {
+        const ctrl = new AbortController()
+        const result = await generateAIScenario(position, stats, stats.cl || [], stats.recentWrong || [], ctrl.signal, null, stats.aiHistory || [], null, 100000, true)
+        if (result?.scenario) {
+          saveToLocalPool(result.scenario, position)
+          console.log("[BSM Pool Fill]", position, "(" + (i+1) + "/" + count + "):", result.scenario.title)
+        }
+      } catch (e) {
+        console.warn("[BSM Pool Fill] Failed for", position + ":", e.message)
+        break
       }
-    } catch (e) {
-      console.warn("[BSM Pool Fill] Failed for", position + ":", e.message)
-      break // stop trying on error
+      // Delay between sequential fills so xAI isn't overwhelmed
+      if (i < count - 1 || _bgQueue.length > 0) await new Promise(r => setTimeout(r, 5000))
     }
   }
-  _poolFillInFlight.delete(position)
+  _bgRunning = false
 }
 
 function consumeCachedAI(position, cacheRef = null) {
@@ -12337,10 +12349,8 @@ export default function App(){
     if(top5[0]&&!aiCacheRef.current.fetching&&!aiCacheRef.current.scenarios[top5[0]]?.scenario){
       prefetchAIScenario(top5[0],stats,stats.cl||[],stats.recentWrong||[],stats.aiHistory||[],null,null,aiCacheRef)
     }
-    // Remaining positions: staggered pool fills (direct to local pool, no cache slot needed)
-    top5.slice(1).forEach((pos,i)=>{
-      setTimeout(()=>fillLocalPool(pos,stats),(i+1)*12000) // 12s, 24s, 36s, 48s
-    })
+    // Remaining positions: queued sequentially (max 1 xAI call at a time)
+    top5.slice(1).forEach(pos=>fillLocalPool(pos,stats))
   },[stats.isPro,stats.ps])
   // Sprint 4.2+4.5: Track session start with load performance
   useEffect(()=>{
@@ -12736,24 +12746,17 @@ export default function App(){
     console.log('[BSM] startGame',{pos:p,forceAI,unseen:unseen.length,allExhausted,isPro:stats.isPro});
 
     const triggerPrefetch = (position) => {
-      // Prefetch is free (no play count consumed) — allow for any user in AI flow
-      // All call sites are inside doAI, so this only fires after AI scenarios
+      // Prefetch for current position only — no flooding multiple positions
+      // 1. Cache prefetch (immediate next play): 500ms delay
       setTimeout(() => {
         if (!aiCacheRef.current.fetching && !aiCacheRef.current.scenarios[position]?.scenario) {
           const nextConcept = sessionPlanRef.current?.[0]?.concept || null
           prefetchAIScenario(position, stats, stats.cl || [], stats.recentWrong || [], stats.aiHistory || [], lastAiScenarioRef.current, nextConcept, aiCacheRef)
         }
       }, 500)
-      // Background pool fill: keep pool warm for this position
-      // If pool was empty for this position, fetch 2; otherwise fetch 1
+      // 2. Pool fill (background, queued — max 1 xAI call at a time)
       const fillCount = _emptyPoolPositions.has(position) ? 2 : 1
       setTimeout(() => fillLocalPool(position, stats, fillCount), 3000)
-      // Also fill next-most-likely position (based on play frequency)
-      setTimeout(() => {
-        const ps = stats.ps || {}
-        const nextPos = Object.entries(ps).filter(([k,v]) => k !== position && v.p >= 2).sort((a,b) => b[1].p - a[1].p)[0]?.[0]
-        if (nextPos) fillLocalPool(nextPos, stats, _emptyPoolPositions.has(nextPos) ? 2 : 1)
-      }, 15000)
     }
 
     // Local helper: AI generation with loading, abort, retry, cooldown, fallback

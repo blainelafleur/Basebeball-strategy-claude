@@ -1333,7 +1333,7 @@ async function handleAIProxy(request, env, cors) {
   }
   const body = await request.text();
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 55000);
+  const timeout = setTimeout(() => controller.abort(), 90000);
   try {
     const t0 = Date.now();
     const xaiResponse = await fetch("https://api.x.ai/v1/chat/completions", {
@@ -1355,22 +1355,22 @@ async function handleAIProxy(request, env, cors) {
         : "xai_server_error";
       return jsonResponse({
         error: { message: `xAI API error: ${xaiResponse.status}`, type: errType, status: xaiResponse.status, detail: errBody.slice(0, 300) }
-      }, xaiResponse.status, { ...cors, "X-XAI-Elapsed": String(elapsed), "X-XAI-Timeout": "55000" });
+      }, xaiResponse.status, { ...cors, "X-XAI-Elapsed": String(elapsed), "X-XAI-Timeout": "90000" });
     }
     console.log(`[BSM Worker] xAI responded ${xaiResponse.status} in ${elapsed}ms`);
     // Stream response through directly — no buffering
     return new Response(xaiResponse.body, {
       status: xaiResponse.status,
-      headers: { ...cors, "Content-Type": "application/json", "X-XAI-Elapsed": String(elapsed), "X-XAI-Timeout": "55000" },
+      headers: { ...cors, "Content-Type": "application/json", "X-XAI-Elapsed": String(elapsed), "X-XAI-Timeout": "90000" },
     });
   } catch (e) {
     clearTimeout(timeout);
     if (e.name === "AbortError") {
-      console.error("[BSM Worker] xAI timeout after 55s");
-      return jsonResponse({ error: { message: "xAI API timeout (55s)", type: "timeout" } }, 504, { ...cors, "X-XAI-Timeout": "55000" });
+      console.error("[BSM Worker] xAI timeout after 90s");
+      return jsonResponse({ error: { message: "xAI API timeout (90s)", type: "timeout" } }, 504, { ...cors, "X-XAI-Timeout": "90000" });
     }
     console.error("[BSM Worker] xAI fetch error:", e.message);
-    return jsonResponse({ error: { message: e.message, type: "fetch_error" } }, 502, { ...cors, "X-XAI-Timeout": "55000" });
+    return jsonResponse({ error: { message: e.message, type: "fetch_error" } }, 502, { ...cors, "X-XAI-Timeout": "90000" });
   }
 }
 
