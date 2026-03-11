@@ -11385,10 +11385,18 @@ function reportPoolFeedback(poolId, correct, flagged = false) {
 }
 
 // Sprint 5: AI pre-generation cache \u2014 unified into aiCacheRef (passed from App)
-let _prefetchController = null
+const _prefetchControllers = {} // per-position AbortControllers
+function _updateFetchingCompat(cacheRef) {
+  if (!cacheRef?.current) return
+  cacheRef.current.fetching = Object.values(cacheRef.current.fetchingPositions || {}).some(Boolean)
+}
 async function prefetchAIScenario(position, stats, conceptsLearned, recentWrong, aiHistory, lastScenario = null, targetConcept = null, cacheRef = null) {
   if (!cacheRef?.current) return
-  if (cacheRef.current.fetching) return
+  if (!cacheRef.current.fetchingPositions) cacheRef.current.fetchingPositions = {}
+  if (cacheRef.current.fetchingPositions[position]) return
+  // Global concurrency limit: max 2 concurrent xAI calls
+  const activeFetches = Object.values(cacheRef.current.fetchingPositions).filter(Boolean).length
+  if (activeFetches >= 2) return
   // Save existing cache for different position to local pool before overwriting
   const existingPositions = Object.keys(cacheRef.current.scenarios || {})
   for (const pos of existingPositions) {
@@ -11398,9 +11406,10 @@ async function prefetchAIScenario(position, stats, conceptsLearned, recentWrong,
     }
   }
   if (cacheRef.current.scenarios[position]?.scenario) return // already cached for this position
-  cacheRef.current.fetching = true
-  _prefetchController = new AbortController()
-  const promise = generateAIScenario(position, stats, conceptsLearned, recentWrong, _prefetchController.signal, targetConcept, aiHistory, lastScenario, 100000, true)
+  cacheRef.current.fetchingPositions[position] = true
+  _updateFetchingCompat(cacheRef)
+  _prefetchControllers[position] = new AbortController()
+  const promise = generateAIScenario(position, stats, conceptsLearned, recentWrong, _prefetchControllers[position].signal, targetConcept, aiHistory, lastScenario, 100000, true)
   // Store in-flight promise so doAI can await it instead of launching a duplicate call
   if (!cacheRef.current.inFlightPromise) cacheRef.current.inFlightPromise = {}
   cacheRef.current.inFlightPromise[position] = promise
@@ -11410,21 +11419,22 @@ async function prefetchAIScenario(position, stats, conceptsLearned, recentWrong,
     }
   })
   try {
-    console.log("[BSM] Pre-fetch using independent budget: 100s, targeting concept:", targetConcept || "any")
+    console.log("[BSM] Pre-fetch", position, "using independent budget: 100s, targeting concept:", targetConcept || "any")
     const result = await promise
     if (result.scenario) {
       cacheRef.current.scenarios[position] = { scenario: result, timestamp: Date.now() }
-      console.log("[BSM] AI scenario pre-cached:", result.scenario.title)
+      console.log("[BSM] AI scenario pre-cached for", position + ":", result.scenario.title)
     }
   } catch (e) {
-    if (e.name === 'AbortError' || _prefetchController?.signal?.aborted) {
-      console.log("[BSM] Pre-fetch cancelled (navigation)")
+    if (e.name === 'AbortError' || _prefetchControllers[position]?.signal?.aborted) {
+      console.log("[BSM] Pre-fetch cancelled for", position)
     } else {
-      console.warn("[BSM] Pre-fetch failed:", e.message)
+      console.warn("[BSM] Pre-fetch failed for", position + ":", e.message)
     }
   } finally {
-    cacheRef.current.fetching = false
-    _prefetchController = null
+    cacheRef.current.fetchingPositions[position] = false
+    _updateFetchingCompat(cacheRef)
+    delete _prefetchControllers[position]
   }
 }
 // Background pool filler — sequential queue, max 1 xAI call at a time
@@ -11479,7 +11489,23 @@ function consumeCachedAI(position, cacheRef = null) {
   return null
 }
 function cancelPrefetch() {
-  if (_prefetchController) { _prefetchController.abort(); _prefetchController = null }
+  for (const [pos, ctrl] of Object.entries(_prefetchControllers)) {
+    if (ctrl) ctrl.abort()
+    delete _prefetchControllers[pos]
+  }
+}
+function cancelPrefetchExcept(position, cacheRef) {
+  for (const [pos, ctrl] of Object.entries(_prefetchControllers)) {
+    if (pos !== position && ctrl) {
+      ctrl.abort()
+      delete _prefetchControllers[pos]
+      if (cacheRef?.current?.fetchingPositions) {
+        cacheRef.current.fetchingPositions[pos] = false
+      }
+      console.log("[BSM] Cancelled stale prefetch for", pos, "— player picked", position)
+    }
+  }
+  _updateFetchingCompat(cacheRef)
 }
 
 // Sound
@@ -12171,7 +12197,7 @@ export default function App(){
   const aiFailRef=useRef({consecutive:0,cooldownUntil:0});
   const outcomeStartRef=useRef(0);
   // Sprint 2.3: AI pre-generation cache
-  const aiCacheRef=useRef({scenarios:{},generating:false,lastGenTime:0,fetching:false});
+  const aiCacheRef=useRef({scenarios:{},generating:false,lastGenTime:0,fetching:false,fetchingPositions:{}});
   const lastScRef=useRef(null);
   lastScRef.current=sc?.id||null;
   const conceptTargetRef=useRef(null); // Set by "Recommended for You" click to target a specific concept
@@ -12734,6 +12760,7 @@ export default function App(){
   const startGame=useCallback(async(p,forceAI=false)=>{
     if(aiLoading)return;
     if(atLimit){setPanel('limit');return;}
+    cancelPrefetchExcept(p, aiCacheRef) // Cancel stale prefetches for other positions
     snd.play('tap');setPos(p);setChoice(null);setOd(null);setRi(-1);setFo(null);setShowC(false);setLvlUp(null);setShowExp(true);setDailyMode(false);setAiFallback(false);setAiFallbackBanner(false);setWrongStreak(0);
 
     const raw=SCENARIOS[p]||[];const pool=raw.filter(s=>s.diff<=maxDiff);const seen=hist[p]||[];
