@@ -12773,17 +12773,16 @@ export default function App(){
     console.log('[BSM] startGame',{pos:p,forceAI,unseen:unseen.length,allExhausted,isPro:stats.isPro});
 
     const triggerPrefetch = (position) => {
-      // Prefetch for current position only — no flooding multiple positions
-      // 1. Cache prefetch (immediate next play): 500ms delay
-      setTimeout(() => {
-        if (!aiCacheRef.current.fetching && !aiCacheRef.current.scenarios[position]?.scenario) {
+      // Sequential: prefetch cache first, THEN fill pool (no concurrent xAI calls)
+      setTimeout(async () => {
+        if (!aiCacheRef.current.fetchingPositions?.[position] && !aiCacheRef.current.scenarios[position]?.scenario) {
           const nextConcept = sessionPlanRef.current?.[0]?.concept || null
-          prefetchAIScenario(position, stats, stats.cl || [], stats.recentWrong || [], stats.aiHistory || [], lastAiScenarioRef.current, nextConcept, aiCacheRef)
+          await prefetchAIScenario(position, stats, stats.cl || [], stats.recentWrong || [], stats.aiHistory || [], lastAiScenarioRef.current, nextConcept, aiCacheRef)
+          // Pool fill only after prefetch completes — keeps xAI calls sequential
+          const fillCount = _emptyPoolPositions.has(position) ? 2 : 1
+          setTimeout(() => fillLocalPool(position, stats, fillCount), 2000)
         }
       }, 500)
-      // 2. Pool fill (background, queued — max 1 xAI call at a time)
-      const fillCount = _emptyPoolPositions.has(position) ? 2 : 1
-      setTimeout(() => fillLocalPool(position, stats, fillCount), 3000)
     }
 
     // Local helper: AI generation with loading, abort, retry, cooldown, fallback
@@ -13212,10 +13211,14 @@ export default function App(){
     const o={cat,isOpt,exp:expArr[idx],bestExp:expArr[sc.best],bestOpt:sc.options[sc.best],concept:sc.concept,pts,chosen:sc.options[idx],rate,anim:sc.anim,speedBonus,timeLeft:timer,explDepth:_ed,chosenIdx:idx,bestIdx:sc.best};
     setOd(o);setExplDepthLayer(0);
     outcomeStartRef.current=Date.now();
-    // Sprint 5: Pre-fetch next AI scenario while player reads explanation (unified cache, concept-aware)
-    if(aiMode&&!speedMode&&!survivalMode&&!realGameMode&&!aiCacheRef.current.scenarios?.[pos]?.scenario&&!aiCacheRef.current.fetching){
-      const nextConcept=sessionPlanRef.current?.[0]?.concept||null
-      prefetchAIScenario(pos,stats,stats.cl||[],stats.recentWrong||[],stats.aiHistory||[],lastAiScenarioRef.current,nextConcept,aiCacheRef)
+    // Sprint 5: Pre-fetch next AI scenario while player reads explanation (per-position lock)
+    if(aiMode&&!speedMode&&!survivalMode&&!realGameMode&&!aiCacheRef.current.scenarios?.[pos]?.scenario){
+      // Cancel any in-flight prefetch for a DIFFERENT position, let same-position continue
+      if(!aiCacheRef.current.fetchingPositions?.[pos]){
+        cancelPrefetchExcept(pos,aiCacheRef)
+        const nextConcept=sessionPlanRef.current?.[0]?.concept||null
+        prefetchAIScenario(pos,stats,stats.cl||[],stats.recentWrong||[],stats.aiHistory||[],lastAiScenarioRef.current,nextConcept,aiCacheRef)
+      }
     }
     // Track speed round result
     if(speedMode)setSpeedRound(sr=>sr?{...sr,results:[...sr.results,{isOpt,pts,speedBonus,timeLeft:timer,concept:sc.concept,pos}]}:sr);
