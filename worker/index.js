@@ -2,7 +2,7 @@
 // Secrets: XAI_API_KEY, RESEND_API_KEY
 // Bindings: PROMO_CODES (KV), DB (D1), VECTORIZE (Vectorize), AI (Workers AI)
 
-import { runEmbeddingPipeline, queryKnowledge } from "./scripts/embed-knowledge.js";
+import { embedAllKnowledge, queryKnowledge } from "./scripts/embed-knowledge.js";
 
 const ALLOWED_ORIGINS = [
   "https://bsm-app.pages.dev",
@@ -3656,15 +3656,8 @@ export default {
         return jsonResponse({ error: "Unauthorized" }, 401, cors);
       }
       try {
-        // Fetch app source and bible from GitHub raw content
-        const [sourceRes, bibleRes] = await Promise.all([
-          fetch("https://raw.githubusercontent.com/blainelafleur/Basebeball-strategy-claude/main/index.jsx"),
-          fetch("https://raw.githubusercontent.com/blainelafleur/Basebeball-strategy-claude/main/SCENARIO_BIBLE.md")
-        ]);
-        if (!sourceRes.ok) return jsonResponse({ error: "Failed to fetch index.jsx from GitHub" }, 500, cors);
-        const appSource = await sourceRes.text();
-        const bibleText = bibleRes.ok ? await bibleRes.text() : "";
-        const result = await runEmbeddingPipeline(env, appSource, bibleText);
+        // Embed from pre-extracted knowledge.json (built by scripts/extract-scenarios.js)
+        const result = await embedAllKnowledge(env);
         return jsonResponse(result, 200, cors);
       } catch (e) {
         return jsonResponse({ error: e.message, stack: e.stack }, 500, cors);
