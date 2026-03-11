@@ -9931,9 +9931,9 @@ async function generateAIScenario(position, stats, conceptsLearned = [], recentW
 
   // Budget gate: skip standard pipeline if agent ate most of the budget
   const remainingBudget = budgetMs - (Date.now() - _aiFlowStart)
-  if (remainingBudget < 65000) {
+  if (remainingBudget < 20000) {
     const _errType = signal?.aborted ? "aborted" : "timeout"
-    console.log("[BSM] Insufficient budget for standard pipeline after agent: " + Math.round(remainingBudget / 1000) + "s remaining (need 65s), skipping to fallback" + (signal?.aborted ? " (signal aborted)" : ""))
+    console.log("[BSM] Insufficient budget for standard pipeline after agent: " + Math.round(remainingBudget / 1000) + "s remaining (need 20s), skipping to fallback" + (signal?.aborted ? " (signal aborted)" : ""))
     return { scenario: null, error: _errType }
   }
 
@@ -10220,14 +10220,15 @@ COMMON MISTAKES TO AVOID:
 
     const _aiT0 = Date.now()
     const stdBudget = budgetMs - (Date.now() - _aiFlowStart) - 2000
-    if (stdBudget < 35000) {
+    if (stdBudget < 18000) {
       console.warn("[BSM] Skipping standard pipeline — insufficient budget:", Math.round(stdBudget / 1000) + "s")
       return { error: signal?.aborted ? "aborted" : "timeout" }
     }
-    console.log("[BSM] Standard pipeline budget:", Math.round(stdBudget / 1000) + "s")
+    const stdTimeout = Math.min(55000, stdBudget) // cap to remaining budget so we don't hang
+    console.log("[BSM] Standard pipeline budget:", Math.round(stdBudget / 1000) + "s, timeout:", Math.round(stdTimeout / 1000) + "s")
     const response = await Promise.race([
       fetch(AI_PROXY_URL, fetchOpts),
-      new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), Math.min(75000, stdBudget)))
+      new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), stdTimeout))
     ]);
     const _aiFetchMs = Date.now() - _aiT0
 
