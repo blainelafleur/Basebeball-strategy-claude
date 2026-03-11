@@ -9910,8 +9910,8 @@ async function generateAIScenario(position, stats, conceptsLearned = [], recentW
     const abConfigs = getActiveABConfigs(stats.sessionHash || "")
     const agentConfig = abConfigs.agent_pipeline || {}
     const agentBudget = budgetMs - (Date.now() - _aiFlowStart) - 2000
-    const agentTimeout = Math.min(40000, agentBudget)
-    if (!skipAgent && agentConfig.useAgent && agentBudget >= agentTimeout && agentBudget >= 45000) {
+    const agentTimeout = Math.min(65000, agentBudget)
+    if (!skipAgent && agentConfig.useAgent && agentBudget >= agentTimeout && agentBudget >= 65000) {
       console.log("[BSM] Trying agent pipeline (A/B variant: agent, budget:", Math.round(agentBudget / 1000) + "s, timeout:", Math.round(agentTimeout / 1000) + "s)")
       const agentResult = await generateWithAgentPipeline(position, stats, conceptsLearned, recentWrong, signal, targetConcept, aiHistory, flaggedAvoidText + realGameFeelText + promptPatchText + auditInsightText, previousScenario, agentTimeout)
       if (agentResult && agentResult.scenario) {
@@ -9931,9 +9931,9 @@ async function generateAIScenario(position, stats, conceptsLearned = [], recentW
 
   // Budget gate: skip standard pipeline if agent ate most of the budget
   const remainingBudget = budgetMs - (Date.now() - _aiFlowStart)
-  if (remainingBudget < 20000) {
+  if (remainingBudget < 30000) {
     const _errType = signal?.aborted ? "aborted" : "timeout"
-    console.log("[BSM] Insufficient budget for standard pipeline after agent: " + Math.round(remainingBudget / 1000) + "s remaining (need 20s), skipping to fallback" + (signal?.aborted ? " (signal aborted)" : ""))
+    console.log("[BSM] Insufficient budget for standard pipeline after agent: " + Math.round(remainingBudget / 1000) + "s remaining (need 30s), skipping to fallback" + (signal?.aborted ? " (signal aborted)" : ""))
     return { scenario: null, error: _errType }
   }
 
@@ -10220,7 +10220,7 @@ COMMON MISTAKES TO AVOID:
 
     const _aiT0 = Date.now()
     const stdBudget = budgetMs - (Date.now() - _aiFlowStart) - 2000
-    if (stdBudget < 18000) {
+    if (stdBudget < 25000) {
       console.warn("[BSM] Skipping standard pipeline — insufficient budget:", Math.round(stdBudget / 1000) + "s")
       return { error: signal?.aborted ? "aborted" : "timeout" }
     }
@@ -12943,7 +12943,7 @@ export default function App(){
       }
       const _aiHist=stats.aiHistory||[]
       const _aiStartMs=Date.now()
-      const AI_BUDGET=75000
+      const AI_BUDGET=120000
       // Sprint 5: Try pre-cached scenario first for instant load (unified cache)
       let ctrl=null
       let result=consumeCachedAI(p, aiCacheRef)
