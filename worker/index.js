@@ -11,6 +11,12 @@ const ALLOWED_ORIGINS = [
   "http://localhost:8080",
 ];
 
+// Multi-agent pipeline (Phase 0 — Claude Opus + RAG)
+const ANTHROPIC_MODEL = "claude-opus-4-20250514";
+const ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages";
+const MULTI_AGENT_TIMEOUT = 120000; // 120s total pipeline budget
+const STAGE_TIMEOUT = 50000; // 50s per stage max
+
 const RATE_LIMIT_AI = 10; // AI proxy: req/min/IP
 const RATE_LIMIT_AUTH = 20; // auth endpoints: req/min/IP
 const RATE_LIMIT_SYNC = 30; // sync: req/min/user
@@ -3196,6 +3202,440 @@ async function handleScheduled(event, env) {
   }
 }
 
+// ─── Multi-Agent Pipeline (Phase 0: Claude Opus + Vectorize RAG) ─────────────
+
+/** Call Claude Opus API with timeout */
+async function callClaude(system, userMessage, env, maxTokens = 1500, timeoutMs = STAGE_TIMEOUT) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  const t0 = Date.now();
+  try {
+    const res = await fetch(ANTHROPIC_API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": env.ANTHROPIC_API_KEY,
+        "anthropic-version": "2023-06-01"
+      },
+      body: JSON.stringify({
+        model: ANTHROPIC_MODEL,
+        max_tokens: maxTokens,
+        system,
+        messages: [{ role: "user", content: userMessage }]
+      }),
+      signal: controller.signal
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error?.message || `Claude API ${res.status}`);
+    const text = data.content?.[0]?.text || "";
+    return { text, usage: data.usage || {}, elapsed: Date.now() - t0 };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/** Query Vectorize with embedding + metadata filter */
+async function queryVectorize(env, queryText, position = null, topK = 3, typeFilter = null) {
+  const embedResult = await env.AI.run("@cf/baai/bge-large-en-v1.5", { text: [queryText] });
+  if (!embedResult?.data?.[0]) return [];
+  const filter = {};
+  if (position) filter.position = { $eq: position };
+  if (typeFilter) filter.type = { $eq: typeFilter };
+  const opts = { topK, returnMetadata: "all", returnValues: false };
+  if (Object.keys(filter).length > 0) opts.filter = filter;
+  const results = await env.VECTORIZE.query(embedResult.data[0], opts);
+  return (results.matches || []).map(m => ({
+    text: m.metadata?.text || "",
+    metadata: m.metadata || {},
+    score: m.score
+  }));
+}
+
+/** Extract JSON from Claude response (handles markdown code blocks) */
+function extractJSON(text) {
+  // Try direct parse first
+  try { return JSON.parse(text); } catch {}
+  // Try extracting from ```json ... ``` block
+  const mdMatch = text.match(/```(?:json)?\s*\n?([\s\S]*?)\n?\s*```/);
+  if (mdMatch) try { return JSON.parse(mdMatch[1]); } catch {}
+  // Try finding first { ... } or [ ... ]
+  const braceMatch = text.match(/\{[\s\S]*\}/);
+  if (braceMatch) try { return JSON.parse(braceMatch[0]); } catch {}
+  return null;
+}
+
+// ─── Stage System Prompts ────────────────────────────────────────────────────
+
+const PLANNER_SYSTEM = `You are a baseball strategy scenario planner for Baseball Strategy Master, an educational app for kids ages 6-18.
+
+Your job: create a PLAN for a scenario, NOT the scenario itself. Output a JSON plan.
+
+RULES:
+- teachingGoal must be one of: "introduce" (new concept), "reinforce" (practice known concept), "assess" (test mastery)
+- difficulty: 1 (Rookie, ages 6-8), 2 (Pro, ages 9-12), 3 (All-Star, ages 13+)
+- gameState must be physically possible (0-2 outs, valid runners, valid count, score as [away, home])
+- Score perspective: Bot inning = HOME team bats = batting team's score goes in score[1]
+- Top inning = AWAY team bats = batting team's score goes in score[0]
+- keyDistractors: 2-3 tempting wrong answers that test common misconceptions
+- dataToReference: specific stats/rules the scenario should reference (e.g., "RE24 with runners on 2nd", "steal break-even rate")
+
+Output ONLY valid JSON:
+{
+  "teachingGoal": "introduce"|"reinforce"|"assess",
+  "targetConcept": "specific concept name",
+  "difficulty": 1|2|3,
+  "gameState": { "inning": "Top 3"|"Bot 7", "outs": 0|1|2, "runners": [1]|[1,2]|[], "score": [2, 3], "count": "1-2"|null },
+  "scenarioFocus": "one sentence describing the key decision",
+  "keyDistractors": ["tempting wrong answer 1", "tempting wrong answer 2"],
+  "dataToReference": "specific data point or rule"
+}`;
+
+const GENERATOR_SYSTEM = `You are a baseball strategy scenario writer for Baseball Strategy Master, an educational app teaching kids ages 6-18.
+
+OUTPUT FORMAT: Valid JSON only. No markdown, no explanation outside the JSON.
+
+MANDATORY RULES:
+1. PERSPECTIVE: ALL text must use 2nd person ("you", "your"). NEVER "the pitcher should" — always "you should".
+2. SCORE PERSPECTIVE: Bot inning = HOME bats. The HOME team's score is score[1], AWAY is score[0].
+   "Bot 7, score [3, 5]" means AWAY leads 3-5... wait, no: score = [away, home], so away=3, home=5, home leads.
+   Actually: score[0] = away, score[1] = home. Bot = home bats. Top = away bats.
+3. POSITION BOUNDARIES: Pitcher NEVER acts as cutoff/relay. Catcher NEVER leaves home unguarded. Outfielders throw TO relay man.
+4. EXPLANATIONS: Each explanation must discuss THAT specific option. The best option's explanation must argue FOR it (positive).
+5. RATES: Best option gets highest rate (75-90). One tempting wrong answer gets 40-65. Others get 15-40. Sum should be 165-195.
+6. OPTIONS: Exactly 4, strategically distinct. Not just "throw to different bases."
+7. AGE-APPROPRIATE: diff:1 = simple words, short sentences. diff:2 = baseball terminology OK. diff:3 = advanced stats/strategy.
+8. CONCEPT: Must be specific (e.g., "cutoff-relay assignment from RF") not generic ("defense").
+
+JSON SCHEMA:
+{
+  "title": "Short descriptive title",
+  "description": "2-3 sentences setting the scene. Use 2nd person. Include game context.",
+  "situation": { "inning": "Top 3", "outs": 1, "count": "2-1", "runners": [1, 2], "score": [2, 3] },
+  "options": ["Option A", "Option B", "Option C", "Option D"],
+  "best": 0-3,
+  "explanations": ["Explains option A", "Explains option B", "Explains option C", "Explains option D"],
+  "rates": [85, 45, 30, 20],
+  "concept": "Human-readable concept sentence",
+  "conceptTag": "kebab-case-tag",
+  "diff": 1|2|3,
+  "anim": "steal"|"score"|"hit"|"throwHome"|"doubleplay"|"strike"|"strikeout"|"groundout"|"flyout"|"catch"|"advance"|"walk"|"bunt"|"safe"|"freeze"
+}`;
+
+const CRITIC_SYSTEM = `You are a quality auditor for Baseball Strategy Master, an educational baseball app for kids ages 6-18.
+
+Evaluate the scenario against a 21-item checklist and a 5-dimension rubric. Be STRICT — only truly excellent scenarios should score 9.5+.
+
+THE 21-ITEM CHECKLIST:
+1. Does the scenario have exactly 4 options?
+2. Is the best answer index valid (0-3)?
+3. Does each explanation specifically discuss THAT option (not a generic response)?
+4. Does the best explanation argue FOR the correct choice (positive reasoning, not just "others are worse")?
+5. Is the score perspective correct? (Bot inning = HOME bats, score[0]=away, score[1]=home)
+6. Is the game situation physically possible? (valid outs, runners, count, score)
+7. Does the pitcher NEVER act as cutoff man?
+8. Does the catcher NEVER leave home plate unguarded with runners in scoring position?
+9. Do outfielders throw TO the relay man (not relay themselves)?
+10. Are cutoff/relay assignments correct per standard baseball? (3B cuts LF→home, 1B cuts CF/RF→home, SS relays left side, 2B relays right side)
+11. Is the difficulty tag appropriate for the vocabulary used?
+12. Does the best option have the highest success rate?
+13. Do rates sum to approximately 165-195?
+14. Is there at least one "tempting wrong answer" (rate 40-65)?
+15. Does the description set the scene with enough game context (inning, outs, runners, score)?
+16. Is the concept tag specific (not generic like "defense" or "strategy")?
+17. Would the explanations actually teach something to a young player?
+18. Are any statistics or rules referenced accurate?
+19. Are all four options strategically distinct (not just variations of the same action)?
+20. Is the language age-appropriate for the stated difficulty/ageMin?
+21. Would a real youth baseball coach agree with the correct answer?
+
+THE 5-DIMENSION RUBRIC (score each 1-10):
+- factualAccuracy: Are all baseball facts, rules, and statistics correct?
+- explanationStrength: Do explanations teach WHY, not just WHAT?
+- ageAppropriateness: Language matches the difficulty level?
+- educationalValue: Would a kid actually learn something from this?
+- varietyDistinctness: Are the 4 options genuinely different strategic choices?
+
+OVERALL SCORE: weighted average (factualAccuracy 2x, explanationStrength 2x, others 1x), scaled to 1-10.
+PASS: overallScore >= 9.5 AND zero checklist failures.
+
+Output ONLY valid JSON:
+{
+  "checklist": { "item_1": true, "item_2": true, ..., "item_21": true },
+  "checklistFailures": ["item_5: Score perspective wrong — Bot 3rd but uses score[0] for batting team"],
+  "rubric": {
+    "factualAccuracy": 9,
+    "explanationStrength": 8,
+    "ageAppropriateness": 10,
+    "educationalValue": 9,
+    "varietyDistinctness": 8
+  },
+  "overallScore": 8.75,
+  "pass": false,
+  "issues": ["Explanation for option 2 doesn't address that specific choice"],
+  "suggestions": ["Rewrite explanation 2 to specifically discuss why throwing to second is suboptimal here"]
+}`;
+
+const REWRITER_SYSTEM = `You are a scenario editor for Baseball Strategy Master. Fix ONLY the identified issues — do not change anything that isn't broken.
+
+RULES:
+- Keep the same game situation, concept, and teaching goal
+- Fix ONLY the specific issues identified by the critic
+- Maintain 2nd-person perspective throughout ("you", "your")
+- Ensure score perspective is correct (Bot = home bats, score[0]=away, score[1]=home)
+- Keep rates distributed properly (best=highest, one tempting wrong at 40-65, sum 165-195)
+
+Output ONLY the corrected scenario as valid JSON (same schema as the original).`;
+
+// ─── handleMultiAgent ────────────────────────────────────────────────────────
+
+async function handleMultiAgent(request, env, cors) {
+  const pipelineStart = Date.now();
+  const stages = [];
+  let totalInputTokens = 0;
+  let totalOutputTokens = 0;
+  let ragHits = 0;
+
+  try {
+    const body = await request.json();
+    const { position, playerContext, positionRules, targetConcept, maxRetries = 1 } = body;
+
+    if (!position) return jsonResponse({ error: "position is required" }, 400, cors);
+
+    // ─── STAGE 1: PLANNER ─────────────────────────────────────────────────────
+
+    // RAG: get similar existing scenarios to avoid duplication
+    let planContext = [];
+    try {
+      planContext = await queryVectorize(env, `${position} ${playerContext || ""} baseball strategy scenario`, position, 3, "scenario");
+      ragHits += planContext.length;
+    } catch (e) { /* RAG failure is non-fatal */ }
+
+    const existingScenarios = planContext.length > 0
+      ? "\n\nSIMILAR EXISTING SCENARIOS (avoid duplicating these):\n" + planContext.map((s, i) => `${i + 1}. ${s.text.slice(0, 300)}`).join("\n")
+      : "";
+
+    const plannerUserMsg = `Create a scenario plan for position: ${position}.
+Player context: ${playerContext || "No player history available."}
+${targetConcept ? `Target concept: ${targetConcept}` : "Choose an appropriate concept for this position."}
+${positionRules ? `\nPosition rules: ${positionRules}` : ""}${existingScenarios}`;
+
+    const planResult = await callClaude(PLANNER_SYSTEM, plannerUserMsg, env, 400, STAGE_TIMEOUT);
+    totalInputTokens += planResult.usage.input_tokens || 0;
+    totalOutputTokens += planResult.usage.output_tokens || 0;
+    stages.push({ name: "planner", elapsed: planResult.elapsed, tokens: (planResult.usage.input_tokens || 0) + (planResult.usage.output_tokens || 0) });
+
+    const plan = extractJSON(planResult.text);
+    if (!plan || !plan.gameState) {
+      return jsonResponse({ error: "Planner failed to produce valid plan", raw: planResult.text.slice(0, 500) }, 500, cors);
+    }
+
+    // Validate planner output
+    if (!["introduce", "reinforce", "assess"].includes(plan.teachingGoal)) plan.teachingGoal = "reinforce";
+    if (!Array.isArray(plan.gameState.score) || plan.gameState.score.length !== 2) {
+      plan.gameState.score = [0, 0];
+    }
+
+    // ─── STAGE 2: GENERATOR ───────────────────────────────────────────────────
+
+    // RAG: retrieve relevant knowledge
+    let mapContext = [], principleContext = [], brainContext = [], exampleContext = [];
+    try {
+      const ragQueries = await Promise.all([
+        queryVectorize(env, (plan.targetConcept || position) + " " + position, position, 3, "map"),
+        queryVectorize(env, position + " defensive responsibilities positioning", position, 2, "principle"),
+        queryVectorize(env, plan.dataToReference || plan.targetConcept || position, null, 2, "brain"),
+        queryVectorize(env, plan.scenarioFocus || plan.targetConcept || position, position, 2, "scenario")
+      ]);
+      mapContext = ragQueries[0];
+      principleContext = ragQueries[1];
+      brainContext = ragQueries[2];
+      exampleContext = ragQueries[3];
+      ragHits += mapContext.length + principleContext.length + brainContext.length + exampleContext.length;
+    } catch (e) { /* RAG failure is non-fatal */ }
+
+    const ragSections = [];
+    if (mapContext.length > 0) {
+      ragSections.push("RELEVANT KNOWLEDGE MAPS:\n" + mapContext.map(m => m.text.slice(0, 1500)).join("\n\n---\n\n"));
+    }
+    if (principleContext.length > 0) {
+      ragSections.push("POSITION PRINCIPLES:\n" + principleContext.map(p => p.text.slice(0, 1000)).join("\n\n"));
+    }
+    if (brainContext.length > 0) {
+      ragSections.push("STATISTICAL REFERENCE:\n" + brainContext.map(b => b.text.slice(0, 800)).join("\n\n"));
+    }
+    if (exampleContext.length > 0) {
+      ragSections.push("EXAMPLE SCENARIOS (match this quality):\n" + exampleContext.map(e => e.text.slice(0, 600)).join("\n\n---\n\n"));
+    }
+    const ragBlock = ragSections.length > 0 ? "\n\n" + ragSections.join("\n\n") : "";
+
+    const generatorUserMsg = `Generate a complete scenario based on this plan:
+
+PLAN:
+- Teaching goal: ${plan.teachingGoal}
+- Target concept: ${plan.targetConcept}
+- Difficulty: ${plan.difficulty}
+- Game state: ${JSON.stringify(plan.gameState)}
+- Scenario focus: ${plan.scenarioFocus}
+- Key distractors: ${JSON.stringify(plan.keyDistractors)}
+- Data to reference: ${plan.dataToReference || "N/A"}
+
+Position: ${position}
+${ragBlock}
+
+Generate the scenario as valid JSON.`;
+
+    const genResult = await callClaude(GENERATOR_SYSTEM, generatorUserMsg, env, 1500, STAGE_TIMEOUT);
+    totalInputTokens += genResult.usage.input_tokens || 0;
+    totalOutputTokens += genResult.usage.output_tokens || 0;
+    stages.push({ name: "generator", elapsed: genResult.elapsed, tokens: (genResult.usage.input_tokens || 0) + (genResult.usage.output_tokens || 0) });
+
+    let scenario = extractJSON(genResult.text);
+    if (!scenario || !scenario.options || !Array.isArray(scenario.options)) {
+      return jsonResponse({ error: "Generator failed to produce valid scenario", raw: genResult.text.slice(0, 500) }, 500, cors);
+    }
+
+    // Validate structure
+    if (scenario.options.length !== 4) return jsonResponse({ error: "Scenario must have exactly 4 options" }, 500, cors);
+    if (typeof scenario.best !== "number" || scenario.best < 0 || scenario.best > 3) scenario.best = 0;
+    if (!scenario.explanations || scenario.explanations.length !== 4) {
+      return jsonResponse({ error: "Scenario must have exactly 4 explanations" }, 500, cors);
+    }
+    if (!scenario.rates || scenario.rates.length !== 4) scenario.rates = [80, 45, 30, 25];
+    if (!scenario.situation) scenario.situation = plan.gameState;
+    if (!scenario.diff) scenario.diff = plan.difficulty || 2;
+
+    // ─── STAGE 3: CRITIC ──────────────────────────────────────────────────────
+
+    async function runCritic(scenarioToGrade) {
+      const criticUserMsg = `Evaluate this Baseball Strategy Master scenario for position "${position}":\n\n${JSON.stringify(scenarioToGrade, null, 2)}`;
+      const criticResult = await callClaude(CRITIC_SYSTEM, criticUserMsg, env, 600, STAGE_TIMEOUT);
+      totalInputTokens += criticResult.usage.input_tokens || 0;
+      totalOutputTokens += criticResult.usage.output_tokens || 0;
+      stages.push({ name: "critic", elapsed: criticResult.elapsed, tokens: (criticResult.usage.input_tokens || 0) + (criticResult.usage.output_tokens || 0) });
+
+      const critique = extractJSON(criticResult.text);
+      if (!critique || typeof critique.overallScore !== "number") {
+        return { overallScore: 0, pass: false, checklist: {}, checklistFailures: ["Failed to parse critic output"], rubric: {}, issues: ["Critic returned invalid JSON"], suggestions: [] };
+      }
+      // Recompute pass based on score + failures
+      critique.pass = critique.overallScore >= 9.5 && (!critique.checklistFailures || critique.checklistFailures.length === 0);
+      return critique;
+    }
+
+    let critique = await runCritic(scenario);
+    let bestScenario = scenario;
+    let bestCritique = critique;
+    let bestScore = critique.overallScore;
+
+    // ─── STAGE 4: REWRITER (if needed) ────────────────────────────────────────
+
+    let rewriteCount = 0;
+    while (!critique.pass && rewriteCount < maxRetries) {
+      rewriteCount++;
+      const rewriterUserMsg = `Fix this scenario based on the critic's feedback.
+
+ORIGINAL SCENARIO:
+${JSON.stringify(scenario, null, 2)}
+
+CRITIC FEEDBACK:
+- Overall score: ${critique.overallScore}/10
+- Checklist failures: ${JSON.stringify(critique.checklistFailures || [])}
+- Issues: ${JSON.stringify(critique.issues || [])}
+- Suggestions: ${JSON.stringify(critique.suggestions || [])}
+- Rubric: ${JSON.stringify(critique.rubric || {})}
+${ragBlock}
+
+Output the corrected scenario as valid JSON.`;
+
+      const rewriteResult = await callClaude(REWRITER_SYSTEM, rewriterUserMsg, env, 1500, STAGE_TIMEOUT);
+      totalInputTokens += rewriteResult.usage.input_tokens || 0;
+      totalOutputTokens += rewriteResult.usage.output_tokens || 0;
+      stages.push({ name: "rewriter", elapsed: rewriteResult.elapsed, tokens: (rewriteResult.usage.input_tokens || 0) + (rewriteResult.usage.output_tokens || 0) });
+
+      const rewritten = extractJSON(rewriteResult.text);
+      if (rewritten && rewritten.options && rewritten.options.length === 4) {
+        scenario = rewritten;
+        // Re-run critic on rewritten version
+        critique = await runCritic(scenario);
+
+        if (critique.overallScore > bestScore) {
+          bestScenario = scenario;
+          bestCritique = critique;
+          bestScore = critique.overallScore;
+        }
+      } else {
+        // Rewrite failed to produce valid JSON, stop trying
+        break;
+      }
+    }
+
+    // Use best version
+    scenario = bestScenario;
+    critique = bestCritique;
+
+    // ─── METADATA STAMPING ──────────────────────────────────────────────────
+
+    scenario.id = `ma_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    scenario.isAI = true;
+    scenario.cat = "ai-generated";
+    scenario.scenarioSource = "multi-agent-opus";
+    scenario.agentGrade = Math.round(critique.overallScore * 10);
+    scenario.agentPlan = {
+      goal: plan.teachingGoal,
+      concept: plan.targetConcept,
+      difficulty: plan.difficulty
+    };
+    const totalElapsed = Date.now() - pipelineStart;
+    scenario.pipelineStats = {
+      totalElapsed,
+      stages: stages.map(s => s.name),
+      totalInputTokens,
+      totalOutputTokens,
+      critiquePass: critique.pass,
+      critiqueScore: critique.overallScore,
+      ragHits
+    };
+
+    // ─── RESPONSE ───────────────────────────────────────────────────────────
+
+    const response = jsonResponse({
+      scenario,
+      critique: {
+        score: critique.overallScore,
+        pass: critique.pass,
+        rubric: critique.rubric,
+        checklistFailures: critique.checklistFailures,
+        issues: critique.issues
+      },
+      pipeline: {
+        model: ANTHROPIC_MODEL,
+        totalElapsed,
+        stages,
+        totalInputTokens,
+        totalOutputTokens,
+        ragHits,
+        rewriteCount
+      }
+    }, 200, cors);
+
+    // Add pipeline headers
+    response.headers.set("X-Pipeline-Elapsed", String(totalElapsed));
+    response.headers.set("X-Pipeline-Stages", String(stages.length));
+    response.headers.set("X-Pipeline-Model", ANTHROPIC_MODEL);
+    response.headers.set("X-Pipeline-RAG-Hits", String(ragHits));
+
+    return response;
+
+  } catch (e) {
+    const elapsed = Date.now() - pipelineStart;
+    return jsonResponse({
+      error: e.message || "Multi-agent pipeline error",
+      elapsed,
+      stages
+    }, 500, cors);
+  }
+}
+
 // --- Router ---
 
 export default {
@@ -3693,6 +4133,7 @@ export default {
       }
       if (path === "/flag-scenario") return await handleFlagScenario(request, env, cors);
       if (path === "/feedback-scenario") return await handleFeedbackScenario(request, env, cors);
+      if (path === "/v1/multi-agent" && request.method === "POST") return await handleMultiAgent(request, env, cors);
       return await handleAIProxy(request, env, cors);
     } catch (err) {
       return jsonResponse({ error: "Proxy error" }, 502, cors);
