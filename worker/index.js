@@ -1,6 +1,8 @@
 // Cloudflare Worker — xAI API proxy + promo codes + user accounts for Baseball Strategy Master
 // Secrets: XAI_API_KEY, RESEND_API_KEY
-// Bindings: PROMO_CODES (KV), DB (D1)
+// Bindings: PROMO_CODES (KV), DB (D1), VECTORIZE (Vectorize), AI (Workers AI)
+
+import { runEmbeddingPipeline, queryKnowledge } from "./scripts/embed-knowledge.js";
 
 const ALLOWED_ORIGINS = [
   "https://bsm-app.pages.dev",
@@ -3609,6 +3611,24 @@ export default {
           return jsonResponse({ error: e.message }, 500, cors);
         }
       }
+      // GET /vectorize/query — query the knowledge base via RAG
+      if (path === "/vectorize/query") {
+        try {
+          const url = new URL(request.url);
+          const query = url.searchParams.get("query");
+          if (!query) return jsonResponse({ error: "Missing ?query= parameter" }, 400, cors);
+          const topK = Math.min(parseInt(url.searchParams.get("topK") || "3"), 20);
+          const position = url.searchParams.get("position") || null;
+          const type = url.searchParams.get("type") || null;
+          const filter = {};
+          if (type) filter.type = type;
+          if (position) filter.position = position;
+          const results = await queryKnowledge(env, query, topK, filter);
+          return jsonResponse({ query, topK, filter, results }, 200, cors);
+        } catch (e) {
+          return jsonResponse({ error: e.message }, 500, cors);
+        }
+      }
       return new Response("Method not allowed", { status: 405, headers: cors });
     }
 
@@ -3626,6 +3646,28 @@ export default {
         return jsonResponse(result, result.error ? 500 : 200, cors);
       } catch (e) {
         return jsonResponse({ error: e.message }, 500, cors);
+      }
+    }
+
+    // POST /admin/embed-knowledge — run the full RAG embedding pipeline
+    if (path === "/admin/embed-knowledge" && request.method === "POST") {
+      const adminKey = request.headers.get("X-Admin-Key");
+      if (!adminKey || adminKey !== env.ADMIN_KEY) {
+        return jsonResponse({ error: "Unauthorized" }, 401, cors);
+      }
+      try {
+        // Fetch app source and bible from GitHub raw content
+        const [sourceRes, bibleRes] = await Promise.all([
+          fetch("https://raw.githubusercontent.com/blainelafleur/Basebeball-strategy-claude/main/index.jsx"),
+          fetch("https://raw.githubusercontent.com/blainelafleur/Basebeball-strategy-claude/main/SCENARIO_BIBLE.md")
+        ]);
+        if (!sourceRes.ok) return jsonResponse({ error: "Failed to fetch index.jsx from GitHub" }, 500, cors);
+        const appSource = await sourceRes.text();
+        const bibleText = bibleRes.ok ? await bibleRes.text() : "";
+        const result = await runEmbeddingPipeline(env, appSource, bibleText);
+        return jsonResponse(result, 200, cors);
+      } catch (e) {
+        return jsonResponse({ error: e.message, stack: e.stack }, 500, cors);
       }
     }
 

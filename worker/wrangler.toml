@@ -28,6 +28,16 @@ binding = "DB"
 database_name = "bsm-accounts"
 database_id = "362f65bf-8f77-47fc-a8bf-1f1ee9c11f5b"
 
+# Vectorize index for RAG (scenario/map/principle embeddings)
+# Create with: npx wrangler vectorize create bsm-knowledge --dimensions 1024 --metric cosine
+[[vectorize]]
+binding = "VECTORIZE"
+index_name = "bsm-knowledge"
+
+# Workers AI (for embedding generation)
+[ai]
+binding = "AI"
+
 # Cron triggers:
 # - Daily batch scenario generation + pool promotion: every day at 6am UTC
 # - Weekly AI quality report + prompt patches: Mondays at 6am UTC
