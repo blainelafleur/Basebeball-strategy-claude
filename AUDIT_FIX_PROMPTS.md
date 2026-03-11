@@ -58,7 +58,84 @@ These changes should eliminate the cascade problem while still protecting agains
 
 ---
 
-### Prompt 1.3: Fix Inflated Exclude List (332 IDs blocking local pool)
+### Prompt 1.3: Fix Timeout Chain — The Actual Generation Bottleneck
+
+```
+CONTEXT FROM DIAGNOSTIC LOGS (post circuit-breaker fix):
+
+The circuit breaker fix worked — per-position breakers are functioning, cleared
+on app load. But now the REAL bottleneck is exposed: the AI generation pipeline
+takes too long, and when it fails it wastes the ENTIRE 180-second budget before
+falling back.
+
+Here's what happens on a typical timeout (from actual logs):
+
+1. Agent pipeline starts with 55s timeout
+2. Agent pipeline times out at 55s (or sometimes succeeds at ~52s — tight!)
+3. Falls back to standard pipeline with ~123s remaining budget
+4. Standard pipeline calls the Cloudflare Worker proxy
+5. Worker calls xAI API with 120s timeout
+6. xAI doesn't respond in time → Worker returns 504 Gateway Timeout
+7. Total flow: 130s of waiting → fallback to handcrafted
+
+The GOOD news: When the agent pipeline succeeds, it works in ~52s and produces
+quality scenarios (grade 70, pass). The problem is when it DOESN'T succeed,
+the fallback chain is too slow.
+
+KEY TECHNICAL DETAILS:
+- generateAIScenario() at line 9747 has default budgetMs=75000 but doAI()
+  passes AI_BUDGET=180000 (line 12768/12792)
+- Agent pipeline timeout: Math.min(55000, agentBudget) at line 9877
+- Standard pipeline timeout: Math.min(75000, stdBudget) at line 10191
+- Worker proxy timeout: 120000ms at worker/index.js line 1336
+- Cloudflare Workers free plan has ~30s CPU time limit which can cause 504s
+  independent of the fetch timeout
+- The standard pipeline gets stdBudget = budgetMs - elapsed - 2000, so after
+  a 55s agent timeout it gets ~123s — but the worker 504s well before that
+
+TASK — Tighten the timeout chain to fail fast and fall back quickly:
+
+1. REDUCE AI_BUDGET from 180000 to 75000 (line 12768 in doAI()).
+   No kid should wait more than 75 seconds total. The agent pipeline either
+   succeeds in ~52s or it doesn't. With a 75s total budget:
+   - Agent gets its 55s shot
+   - If agent fails, standard pipeline gets ~18s — not enough for a full
+     generation, so it should skip directly to fallback
+   - Net result: max wait drops from 130s to ~58s
+
+2. REDUCE AGENT TIMEOUT from 55000 to 40000 (line 9877). The agent succeeded
+   at 52s in testing, but 40s is a better target — if xAI can't respond in
+   40s, it's unlikely to respond at 55s either. Change:
+   `const agentTimeout = Math.min(40000, agentBudget)`
+   This makes the max wait ~42s instead of ~57s.
+
+3. ADD A FAST-FAIL FOR STANDARD PIPELINE AFTER AGENT TIMEOUT: After the agent
+   pipeline fails, check remaining budget. If remaining < 35000ms, skip the
+   standard pipeline entirely and go straight to fallback. Currently at
+   line 10184, the threshold is 20000ms — raise it to 35000ms:
+   `if (stdBudget < 35000) {`
+   This prevents the standard pipeline from starting a doomed 20-30s request.
+
+4. REDUCE WORKER TIMEOUT from 120000 to 55000 in worker/index.js line 1336:
+   `const timeout = setTimeout(() => controller.abort(), 55000);`
+   The worker's 120s timeout is way beyond what the client will wait for.
+   Align it with the agent timeout so the 504 comes back faster.
+
+5. KEEP RETRY BUDGET CHECK: The retry loop at line ~12795 already checks
+   `if(!retryable||remaining<20000)break` — raise this to 30000 to prevent
+   retries that will just timeout again:
+   `if(!retryable||remaining<30000)break`
+
+NET EFFECT: Max wait time drops from ~130s to ~42s. If the agent pipeline
+succeeds (which it did for ThirdBase at 52s with the old timeout — should
+still work at 40s), user gets an AI scenario. If it fails, fallback happens
+in ~42s instead of ~130s. Combined with the loading cancel button (Prompt 3.2),
+users can bail out at 8s if they want.
+```
+
+---
+
+### Prompt 1.4: Fix Inflated Exclude List + Debug Local Pool
 
 ```
 CONTEXT FROM DIAGNOSTIC LOGS:
@@ -93,38 +170,85 @@ If you find that saveToLocalPool is never called or localStorage is broken, fix 
 
 ---
 
-### Prompt 1.4: Investigate Empty Server Pool (D1)
+### Prompt 1.5: Investigate Empty Server Pool (D1) ✅ DONE
+
+Research complete. D1 has only 29 scenarios total: pitcher(13), batter(6), catcher(4), centerField(2), baserunner(1), firstBase(1), leftField(1), thirdBase(1). Seven positions have ZERO entries. Batch cron only adds ~6/day. The 5s server pool fetch adds dead latency for positions with no entries.
+
+---
+
+### Prompt 1.5b: Skip Server Pool Fetch for Empty Positions
 
 ```
-CONTEXT FROM DIAGNOSTIC LOGS:
+CONTEXT FROM 1.5 INVESTIGATION:
 
-The server pool (D1 community pool) returned null for every position tested:
-- "Tier 2 SERVER POOL result: null (empty or no match)" — for thirdBase, manager, AND firstBase
+The D1 server pool has only 29 scenarios across 8 positions. Seven positions
+(manager, secondBase, shortstop, rightField, rules, famous, counts) have ZERO
+entries. Yet the Tier 2 server pool fetch at line ~12688 fires a 5-second
+network request for EVERY position, wasting time for positions that will
+always return null.
 
-This means the D1 database either has no scenarios stored, or the query is filtering everything out.
+The app already fetches _serverPoolCounts on load (line 10727-10731):
+  let _serverPoolCounts = {}
+  try {
+    fetch(WORKER_BASE + "/scenario-pool/stats")
+      .then(r => r.json()).then(d => { _serverPoolCounts = d.counts || {} }).catch(() => {})
+  } catch {}
 
-TASK: Investigate the server pool pipeline end-to-end.
+This tells us exactly which positions have pool entries.
 
-1. Find fetchFromServerPool() in index.jsx. Read the function and understand:
-   - What endpoint does it call? (Should be the Cloudflare Worker)
-   - What parameters does it send? (position, difficulty, exclude IDs, exclude titles)
-   - The logs show it sends poolExcludeIds: 13 and excludeTitles: 91. Are 91 excluded titles too aggressive?
+TASK — Skip the server pool fetch for positions with no entries:
 
-2. Find the WORKER endpoint that handles server pool requests. Check worker/index.js for the pool fetch route. Understand:
-   - What D1 query does it run?
-   - Is there a table for pool scenarios? What's it called?
-   - Does it have any data? (Use the Cloudflare MCP tools to query: mcp__21186333-89eb-4773-baed-2da59a623de2__d1_database_query)
+1. In the Tier 2 server pool section of doAI() (line ~12687-12713), add a
+   guard BEFORE the fetch:
 
-3. Find where scenarios get WRITTEN to the server pool. Is there a "contribute to pool" flow where generated AI scenarios are saved back to D1? If this pipeline is broken or was never built, the pool will always be empty.
+   // Skip server pool for positions with no known entries
+   const knownPoolCount = _serverPoolCounts?.[p] || 0
+   if (knownPoolCount === 0) {
+     console.log("[BSM DEBUG] Tier 2 SERVER POOL SKIPPED for", p, "| knownPoolCount: 0")
+   } else {
+     // existing Tier 2 fetch code goes here (lines 12688-12713)
+   }
 
-4. Report your findings. If the D1 table is empty, we need to decide: either build a pool seeding script or remove the server pool tier from the hot path (it adds latency for zero value if empty).
+   This saves 5 seconds of dead latency for 7 of 15 positions.
 
-This is a RESEARCH task — investigate and report findings before making changes.
+2. ADD SESSION-LEVEL POOL HIT TRACKING: After a successful server pool hit
+   (line 12693), also update _serverPoolCounts so the count stays fresh:
+     _serverPoolCounts[p] = (_serverPoolCounts[p] || 1)
+   This is just a safety net — the counts are already loaded on app init.
+
+3. PERIODIC RE-CHECK: Add a session-level flag so that ONCE per session per
+   position, the app still tries the server pool even if knownPoolCount is 0.
+   This catches newly-added pool entries. Implementation:
+
+   const _serverPoolCheckedThisSession = new Set()
+
+   In the guard from step 1, change the skip condition to:
+     if (knownPoolCount === 0 && _serverPoolCheckedThisSession.has(p)) {
+       console.log("[BSM DEBUG] Tier 2 SERVER POOL SKIPPED for", p, "| no entries + already checked this session")
+     } else {
+       _serverPoolCheckedThisSession.add(p)
+       // existing fetch code
+     }
+
+   First request per position per session always checks. After that, only
+   positions with known entries get checked again.
+
+4. LOG THE SAVINGS: When skipping, log: "[BSM DEBUG] Tier 2 SERVER POOL
+   SKIPPED — saved ~5s latency for [position]"
+
+NET EFFECT: First AI request per position still checks the server pool.
+Subsequent requests for positions with 0 entries skip the 5-second fetch.
+Positions with entries (pitcher, batter, catcher, etc.) continue checking
+normally. As the pool grows via the cron + user contributions, positions
+will naturally start getting checked again.
+
+This is a surgical optimization — don't refactor the pool system, just add
+the skip guard.
 ```
 
 ---
 
-### Prompt 1.5: Add Scenario Deduplication
+### Prompt 1.6: Add Scenario Deduplication
 
 ```
 Read BSM_AI_AUDIT_2026-03-10.txt Section 2 (Test Matrix), rows 6-7.
@@ -147,7 +271,7 @@ Keep changes minimal — this is a targeted dedup fix, not a refactor.
 
 ---
 
-### Prompt 1.6: Filter Fallback Difficulty for AI Coach's Challenge
+### Prompt 1.7: Filter Fallback Difficulty for AI Coach's Challenge
 
 ```
 Read BSM_AI_AUDIT_2026-03-10.txt Section 6 (Timeout/Fallback).
@@ -287,7 +411,7 @@ TASK: Add a "Skip to Practice Scenario" button that appears after 8 seconds of A
 
 1. Add a timer state (e.g., aiLoadElapsed) that starts counting when aiLoading becomes true
 2. After 8 seconds, show a button: "⏭️ Skip to Practice Scenario" styled as a subtle ghost button below the loading animation
-3. When clicked: abort the in-flight AI request (abortRef.current.abort()), set aiLoading=false, and serve a handcrafted scenario via getSmartRecycle (with the diff >= 2 filter from prompt 1.6 if forceAI was true)
+3. When clicked: abort the in-flight AI request (abortRef.current.abort()), set aiLoading=false, and serve a handcrafted scenario via getSmartRecycle (with the diff >= 2 filter from prompt 1.7 if forceAI was true)
 4. Show a brief encouraging toast: "No worries! Here's a handcrafted challenge."
 5. Still trigger a background prefetch so the NEXT attempt is more likely to succeed
 
@@ -337,11 +461,13 @@ This is a small text-processing addition, not a refactor.
 
 ```
 [x] 1.1 — Diagnostic logging (DONE — revealed root causes)
-[ ] 1.2 — Fix circuit breaker cascade (THE #1 PROBLEM)
-[ ] 1.3 — Fix inflated exclude list + debug local pool
-[ ] 1.4 — Investigate empty server pool (D1) — research task
-[ ] 1.5 — Scenario deduplication
-[ ] 1.6 — Fallback difficulty filter
+[x] 1.2 — Fix circuit breaker cascade (DONE — per-position, cleared on load)
+[x] 1.3 — Fix timeout chain (DONE — AI_BUDGET 180→75s, agent 55→40s, worker 120→55s)
+[x] 1.4 — Fix inflated exclude list + debug local pool (DONE — saveToLocalPool bug fixed)
+[x] 1.5 — Investigate empty server pool (DONE — 29 scenarios, 7 positions empty, ~6/day cron)
+[ ] 1.5b — Skip server pool fetch for empty positions (latency optimization)
+[ ] 1.6 — Scenario deduplication
+[ ] 1.7 — Fallback difficulty filter
 [ ] 2.1 — Coach line overhaul
 [ ] 2.2 — Fallback user notification
 [ ] 2.3 — AI explanation validation

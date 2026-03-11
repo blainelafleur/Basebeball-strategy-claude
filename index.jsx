@@ -9597,7 +9597,7 @@ async function generateWithAgentPipeline(position, stats, conceptsLearned, recen
         max_tokens: 2500,
         temperature: aiTemp,
         messages: [
-          { role: "system", content: "You are the world's most experienced baseball coach, teaching kids 6-18 via Baseball Strategy Master.\n\nOUTPUT: Respond with ONLY valid JSON. No markdown, no code fences, no text outside JSON.\n\nGOLDEN RULE: Every scenario teaches ONE baseball concept that drives the situation, options, correct answer, and explanations.\n\nEXPLANATION RULES:\n- 2-4 sentences each. BEST: action → WHY correct in THIS situation → positive result. WRONG: action → WHY it fails → concrete consequences.\n- Player perspective (\"you\", \"your team\"). No jargon (RE24/OBP/wOBA) in descriptions/options — stats in explDepth.data only.\n- EVERY explanation must reference the specific game situation.\n\nOPTION RULES:\n- All 4 at the SAME decision moment. Each specific and concrete. Strategically distinct. Include one common kid mistake. No near-duplicates.\n- CRITICAL: Each option must be a DISTINCT physical action. If one action is a prerequisite of another (e.g., 'step off the rubber' is part of 'throw over to first'), they are NOT distinct — pick one or the other. Similarly: 'take the pitch' vs 'don't swing', 'sacrifice bunt' vs 'lay down a bunt', 'go to the bullpen' vs 'make a pitching change' are the same action.\n\nPOSITION BOUNDARIES: Only actions this position actually performs. score=[HOME,AWAY]. Home bats in Bot half. outs: 0-2. count: \"B-S\" or \"-\". runners must match description." },
+          { role: "system", content: "You are the world's most experienced baseball coach, teaching kids 6-18 via Baseball Strategy Master.\n\nOUTPUT: Respond with ONLY valid JSON. No markdown, no code fences, no text outside JSON.\n\nGOLDEN RULE: Every scenario teaches ONE baseball concept that drives the situation, options, correct answer, and explanations.\n\nEXPLANATION RULES:\n- 2-4 sentences each. BEST: action → WHY correct in THIS situation → positive result. WRONG: action → WHY it fails → concrete consequences.\n- Player perspective (\"you\", \"your team\"). No jargon (RE24/OBP/wOBA) in descriptions/options — stats in explDepth.data only.\n- EVERY explanation must reference the specific game situation.\n- ALWAYS use second person ('you') when addressing the player. Never say 'What should the pitcher do?' — say 'What should you do?'\n\nOPTION RULES:\n- All 4 at the SAME decision moment. Each specific and concrete. Strategically distinct. Include one common kid mistake. No near-duplicates.\n- CRITICAL: Each option must be a DISTINCT physical action. If one action is a prerequisite of another (e.g., 'step off the rubber' is part of 'throw over to first'), they are NOT distinct — pick one or the other. Similarly: 'take the pitch' vs 'don't swing', 'sacrifice bunt' vs 'lay down a bunt', 'go to the bullpen' vs 'make a pitching change' are the same action.\n\nPOSITION BOUNDARIES: Only actions this position actually performs. score=[HOME,AWAY]. Home bats in Bot half. outs: 0-2. count: \"B-S\" or \"-\". runners must match description." },
           { role: "user", content: agentPrompt }
         ]
       })
@@ -9619,6 +9619,8 @@ async function generateWithAgentPipeline(position, stats, conceptsLearned, recen
 
     // Strip [BEST] prefix if AI copied it from examples
     if (scenario.options) scenario.options = scenario.options.map(o => o.replace(/^\[BEST\]\s*/i, ''))
+    // Fix 3rd-person perspective → 2nd-person ("you")
+    fixPerspective(scenario)
 
     // ══════════════════════════════════════════════════════════════
     // NORMALIZE FIRST, THEN GRADE (fixes: grading raw scenario bug)
@@ -10169,7 +10171,7 @@ EXPLANATION RULES (most important — players learn from explanations):
 - Each explanation: 2-4 sentences.
 - BEST answer explanation: Name the action → state WHY it is correct in THIS specific game situation (reference score, inning, outs, runners, count) → state the POSITIVE RESULT.
 - WRONG answer explanations: Name the action → state WHY it fails in THIS situation with concrete consequences → teach what makes it wrong.
-- Write from the player's perspective: "you", "your team", "your runner" — never "the offense" or "the batting team."
+- Write from the player's perspective: "you", "your team", "your runner" — never "the offense" or "the batting team." ALWAYS use second person. Never "What should the pitcher do?" — say "What should you do?"
 - NEVER use jargon like RE24, OBP, wOBA, xBA in descriptions or options. Stats go in explDepth.data only.
 - EVERY explanation must reference the SPECIFIC game situation. No generic explanations ever.
 - CRITICAL: Each explanation must specifically argue for or against THAT option. The best answer explanation must clearly state why THIS choice is optimal, not why another option is wrong. Anchor every explanation to the action described in its option text.
@@ -10249,6 +10251,8 @@ COMMON MISTAKES TO AVOID:
 
     // Strip [BEST] prefix if AI copied it from examples
     if (scenario.options) scenario.options = scenario.options.map(o => o.replace(/^\[BEST\]\s*/i, ''))
+    // Fix 3rd-person perspective → 2nd-person ("you")
+    fixPerspective(scenario)
 
     // Validate structure
     const missing = [];
@@ -10726,6 +10730,18 @@ function shuffleAnswers(scenario) {
   return scenario
 }
 
+// Fix 3rd-person perspective ("What should the catcher do?") → 2nd-person ("What should you do?")
+function fixPerspective(scenario) {
+  const posNames = "pitcher|catcher|first baseman|second baseman|shortstop|third baseman|left fielder|center fielder|right fielder|batter|baserunner|base runner|manager|hitter|fielder|outfielder|infielder"
+  const re1 = new RegExp(`What should the (${posNames}) do\\??`, "gi")
+  const re2 = new RegExp(`The (${posNames}) should`, "gi")
+  const re3 = new RegExp(`the (${posNames}) needs to`, "gi")
+  const fix = (s) => s ? s.replace(re1, "What should you do?").replace(re2, "You should").replace(re3, "you need to") : s
+  if (scenario.description) scenario.description = fix(scenario.description)
+  if (scenario.title) scenario.title = fix(scenario.title)
+  return scenario
+}
+
 // Randomize JSON template values so AI doesn't copy hardcoded examples
 function getRandomTemplateValues() {
   const counts = ["0-0","1-0","0-1","1-1","2-1","0-2","3-1","2-2","3-2","-"]
@@ -11177,7 +11193,7 @@ try {
 } catch (e) { /* localStorage not available */ }
 
 const LOCAL_POOL_KEY = "bsm_scenario_pool"
-const LOCAL_POOL_MAX = 50 // max scenarios stored locally
+const LOCAL_POOL_MAX = 75 // max scenarios stored locally (≥5 per position)
 
 function getLocalPool() {
   try {
@@ -12023,7 +12039,7 @@ export default function App(){
   const[lvlUp,setLvlUp]=useState(null);
   const[aiLoading,setAiLoading]=useState(false);
   const[aiLoadTick,setAiLoadTick]=useState(0);
-  useEffect(()=>{if(!aiLoading){setAiLoadTick(0);return}const iv=setInterval(()=>setAiLoadTick(t=>t+1),3000);return()=>clearInterval(iv)},[aiLoading])
+  useEffect(()=>{if(!aiLoading){setAiLoadTick(0);return}const iv=setInterval(()=>setAiLoadTick(t=>t+1),1000);return()=>clearInterval(iv)},[aiLoading])
   const[coachMsg,setCoachMsg]=useState(null);
   const[parentGate,setParentGate]=useState(false);
   const[parentGateInline,setParentGateInline]=useState(null); // {a,b,answer:""} when showing inline gate
@@ -12078,6 +12094,7 @@ export default function App(){
   const sessionPlanRef=useRef(null); // Session planner: array of {type, concept} or null
   const sessionPlanPosRef=useRef(null); // Track which position the plan was built for
   const abortRef=useRef(null);
+  const skipAiRef=useRef(null); // Skip-to-handcrafted handler set by doAI
   const aiFailRef=useRef({consecutive:0,cooldownUntil:0});
   const outcomeStartRef=useRef(0);
   // Sprint 2.3: AI pre-generation cache
@@ -12145,7 +12162,7 @@ export default function App(){
     // Clear stale circuit breakers from previous session
     clearAllCircuitBreakers()
     // Log local pool inventory
-    try{const _pool=getLocalPool();const _inv={};_pool.forEach(e=>{_inv[e.position]=(_inv[e.position]||0)+1});console.log("[BSM DEBUG] Local pool inventory on load: total="+_pool.length,_inv)}catch{}
+    try{const _pool=getLocalPool();const _inv={};_pool.forEach(e=>{_inv[e.position]=(_inv[e.position]||0)+1});const _empty=Object.keys(SCENARIOS).filter(k=>!_inv[k]);console.log("[BSM DEBUG] Local pool inventory on load: total="+_pool.length+"/"+LOCAL_POOL_MAX+", empty positions: "+(_empty.length>0?_empty.join(","):"none"),_inv)}catch{}
     // Load local state first
     let localStats=null;
     try{const r=await window.storage.get(STORAGE_KEY);if(r?.value)localStats=JSON.parse(r.value);}catch{}
@@ -12247,6 +12264,22 @@ export default function App(){
       navigator.serviceWorker.register("/sw.js").catch(()=>{});
     }
   },[]);
+  // Pro user app-load prefetch: warm cache for top 3 most-played positions
+  const _proWarmDone=useRef(false)
+  useEffect(()=>{
+    if(!stats.isPro||!stats.ps||_proWarmDone.current)return
+    _proWarmDone.current=true
+    const top3=Object.entries(stats.ps).filter(([,v])=>v.p>=3).sort((a,b)=>b[1].p-a[1].p).slice(0,3).map(([k])=>k)
+    if(top3.length===0)return
+    console.log("[BSM DEBUG] Pro warm prefetch: top positions =",top3)
+    top3.forEach((pos,i)=>{
+      setTimeout(()=>{
+        if(!aiCacheRef.current.fetching&&!aiCacheRef.current.scenarios[pos]?.scenario){
+          prefetchAIScenario(pos,stats,stats.cl||[],stats.recentWrong||[],stats.aiHistory||[],null,null,aiCacheRef)
+        }
+      },i*15000) // stagger: 0s, 15s, 30s
+    })
+  },[stats.isPro,stats.ps])
   // Sprint 4.2+4.5: Track session start with load performance
   useEffect(()=>{
     const perf=typeof performance!=="undefined"?performance.now():null;
@@ -12649,10 +12682,33 @@ export default function App(){
           prefetchAIScenario(position, stats, stats.cl || [], stats.recentWrong || [], stats.aiHistory || [], lastAiScenarioRef.current, nextConcept, aiCacheRef)
         }
       }, 500)
+      // Also prefetch next-most-likely position (based on play frequency)
+      setTimeout(() => {
+        if (!aiCacheRef.current.fetching) {
+          const ps = stats.ps || {}
+          const nextPos = Object.entries(ps).filter(([k,v]) => k !== position && v.p >= 2).sort((a,b) => b[1].p - a[1].p)[0]?.[0]
+          if (nextPos && !aiCacheRef.current.scenarios[nextPos]?.scenario) {
+            prefetchAIScenario(nextPos, stats, stats.cl || [], stats.recentWrong || [], stats.aiHistory || [], null, null, aiCacheRef)
+          }
+        }
+      }, 8000)
     }
 
     // Local helper: AI generation with loading, abort, retry, cooldown, fallback
     const doAI=async()=>{
+      // Register skip handler so loading UI can bail to handcrafted
+      skipAiRef.current=()=>{
+        if(abortRef.current)abortRef.current.abort()
+        setAiLoading(false);setAiMode(false);setAiFallback(true)
+        const _fbSrc=forceAI?src.filter(s=>s.diff>=2):src
+        const s=getSmartRecycle(p,_fbSrc.length>0?_fbSrc:src,lastScId)
+        _servedScenarioIds.add(s.id)
+        if(s.title)_servedScenarioTitles.add(s.title)
+        setHist(h=>({...h,[p]:[...(h[p]||[]),s.id].slice(-src.length)}))
+        setSc(s);s.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80)})
+        triggerPrefetch(p)
+        setTimeout(()=>{setToast({e:"⚾",n:"No worries!",d:"Here's a handcrafted challenge while AI Coach warms up."});setTimeout(()=>setToast(null),4000)},300)
+      }
       console.log("[BSM DEBUG] ═══ doAI() START ═══ position:",p,"| forceAI:",forceAI,"| isPro:",stats.isPro,"| servedIds:",_servedScenarioIds.size,"| servedTitles:",_servedScenarioTitles.size,"| cacheKeys:",Object.keys(aiCacheRef.current.scenarios||{}).filter(k=>aiCacheRef.current.scenarios[k]).join(",")||"none")
       // Pillar 6B: Prime calibration cache (non-blocking)
       getCalibrationData().catch(()=>{})
@@ -12863,6 +12919,7 @@ export default function App(){
       }
       console.log("[BSM] AI total flow took " + (Date.now()-_aiStartMs) + "ms")
       abortRef.current=null;
+      skipAiRef.current=null;
       setAiLoading(false);
       if(result?.scenario){
         aiFailRef.current.consecutive=0;aiFailRef.current.cooldownUntil=0;
@@ -14776,7 +14833,7 @@ export default function App(){
         {screen==="play"&&aiLoading&&(()=>{
           const msgs=["COACH IS DRAWING UP A PLAY...","AI COACH IS THINKING...","ALMOST THERE...","TAKING A LITTLE LONGER..."]
           const subs=["Creating a personalized scenario based on your skill level","Analyzing your strengths and building a challenge","Putting the finishing touches on your scenario","Hang tight \u2014 the AI is working hard on this one"]
-          const phase=Math.min(aiLoadTick, 3)
+          const phase=Math.min(Math.floor(aiLoadTick/3), 3)
           return <div style={{textAlign:"center",padding:"80px 20px"}}>
           <div style={{fontSize:48,marginBottom:12,animation:"spin 2s linear infinite"}}>⚾</div>
           <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:22,color:"#f59e0b",letterSpacing:2,marginBottom:6}}>{msgs[phase]}</div>
@@ -14784,7 +14841,8 @@ export default function App(){
           <div style={{marginTop:16,display:"flex",justifyContent:"center",gap:4}}>
             {[0,1,2].map(i=><div key={i} style={{width:8,height:8,borderRadius:4,background:"#f59e0b",animation:"pulse 1s ease-in-out " + (i*.2) + "s infinite"}}/>)}
           </div>
-          <button onClick={()=>{if(abortRef.current)abortRef.current.abort();setAiLoading(false);goHome()}} style={{marginTop:20,background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.08)",borderRadius:8,padding:"6px 16px",color:"#6b7280",fontSize:11,cursor:"pointer"}}>{"\u2190"} Cancel</button>
+          {aiLoadTick>=8&&skipAiRef.current&&<button onClick={()=>{if(skipAiRef.current)skipAiRef.current()}} style={{marginTop:16,background:"rgba(168,85,247,.08)",border:"1px solid rgba(168,85,247,.2)",borderRadius:10,padding:"8px 18px",color:"#a855f7",fontSize:13,fontWeight:600,cursor:"pointer",transition:"all .2s"}}>{"\u23ED\uFE0F"} Skip to Practice Scenario</button>}
+          <button onClick={()=>{skipAiRef.current=null;if(abortRef.current)abortRef.current.abort();setAiLoading(false);goHome()}} style={{marginTop:aiLoadTick>=8?10:20,background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.08)",borderRadius:8,padding:"6px 16px",color:"#6b7280",fontSize:11,cursor:"pointer"}}>{"\u2190"} Cancel</button>
         </div>})()}
 
         {screen==="play"&&!aiLoading&&sc&&<div>
@@ -14999,7 +15057,7 @@ export default function App(){
               setFlagOpen(false);
               setFlagComment("");
               // Send rich feedback to server
-              const scenarioSnapshot={title:sc.title,description:sc.description,options:sc.options,best:sc.best,explanations:sc.explanations,concept:sc.concept,diff:sc.diff};
+              const scenarioSnapshot={title:sc.title,description:sc.description,options:sc.options,best:sc.best,explanations:sc.explanations,concept:sc.concept,diff:sc.diff,chosenAnswer:typeof choice==="number"?choice:null,chosenOption:typeof choice==="number"?sc.options[choice]:null};
               fetch(WORKER_BASE+'/feedback-scenario',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({scenario_id:sid,position:pos,flag_category:category,comment:flagComment.slice(0,140),scenario_json:JSON.stringify(scenarioSnapshot)})}).catch(()=>{});
               // Report flag to pool
               if (sc.isPooled && sc.id) { reportPoolFeedback(sc.id, false, true) }
