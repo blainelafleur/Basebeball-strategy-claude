@@ -79,10 +79,6 @@ wandb_project: bsm-70b
 wandb_run_name: bsm-70b-sft-v1
 logging_steps: 10
 
-# ── Eval ──────────────────────────────────────────────────────────────
-eval_steps: 100
-eval_strategy: steps
-
 # ── Flash Attention 2 (H100 native) ──────────────────────────────────
 flash_attention: true
 
