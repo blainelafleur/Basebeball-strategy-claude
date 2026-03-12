@@ -7,7 +7,7 @@
 | Setting | Value |
 |---------|-------|
 | GPU Type | H100 SXM |
-| GPU Count | 1 |
+| GPU Count | 2 |
 | GPU RAM | >= 80 GB |
 | Disk Space | 200 GB |
 | Docker Image | `pytorch/pytorch:2.3.1-cuda12.1-cudnn8-devel` |
