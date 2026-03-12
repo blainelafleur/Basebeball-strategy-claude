@@ -1,35 +1,43 @@
 # ═══════════════════════════════════════════════════════════════════════
-# BSM 70B Production SFT Config — Axolotl + QLoRA
+# BSM 70B Production SFT Config — Axolotl + QLoRA + FSDP
 # ═══════════════════════════════════════════════════════════════════════
 #
-# Model:    Llama-3.1-70B-Instruct (proven, Axolotl-tested, broad tool support)
-# Hardware: 2× H100 SXM 80GB (Vast.ai)
+# Model:    Llama-3.1-70B-Instruct
+# Hardware: 2× H100 SXM 80GB (Vast.ai) — FSDP shards across both GPUs
 # Time:     ~4-6 hours SFT
 #
-# Command:  accelerate launch -m axolotl.cli.train axolotl_config.yaml
+# Command:  accelerate launch --num_processes 2 -m axolotl.cli.train axolotl_config.yaml
 # ═══════════════════════════════════════════════════════════════════════
 
 base_model: meta-llama/Llama-3.1-70B-Instruct
 model_type: LlamaForCausalLM
 tokenizer_type: AutoTokenizer
 
-# QLoRA — 4-bit base model across 2× H100 (160GB total)
+# QLoRA — 4-bit base model, FSDP shards across 2× H100
 load_in_4bit: true
 strict: false
-
-# Force model to split across both GPUs (~20GB each, leaving room for training)
-gpu_memory_limit: "40GiB"
 
 # Chat template — Llama 3.1 instruct format
 chat_template: llama3
 
+# ── FSDP — shards model across both GPUs ────────────────────────────
+fsdp:
+  - full_shard
+  - auto_wrap
+fsdp_config:
+  fsdp_limit_all_gathers: true
+  fsdp_sync_module_states: true
+  fsdp_offload_params: false
+  fsdp_use_orig_params: true
+  fsdp_cpu_ram_efficient_loading: true
+  fsdp_transformer_layer_cls_to_wrap: LlamaDecoderLayer
+  fsdp_state_dict_type: FULL_STATE_DICT
+
 # ── Datasets ──────────────────────────────────────────────────────────
 # Golden examples weighted 3× to anchor quality baseline
-# Combined SFT has 739 examples (120 golden + 584 handcrafted + 35 rated)
 datasets:
   - path: ./llm_data/sft_golden_prepared.jsonl
     type: completion
-    # Golden examples are our quality anchor — seen 3× per epoch
   - path: ./llm_data/sft_golden_prepared.jsonl
     type: completion
   - path: ./llm_data/sft_golden_prepared.jsonl
@@ -37,23 +45,16 @@ datasets:
   - path: ./llm_data/sft_combined_prepared.jsonl
     type: completion
 
-# Total effective examples per epoch: 120×3 + 739 = 1099
-# Total across 3 epochs: ~3297 training steps
-
 sequence_len: 4096
 sample_packing: true
 pad_to_sequence_len: true
 
 # ── LoRA Config ───────────────────────────────────────────────────────
-# r=32 for 70B — maximum capacity for domain adaptation
-# alpha=64 (2× rank) — standard ratio for stable training
 adapter: lora
 lora_r: 32
 lora_alpha: 64
 lora_dropout: 0.05
 lora_target_linear: true
-# Target all linear layers including gate_proj, up_proj, down_proj
-# This gives better domain adaptation for structured JSON output
 
 # ── Training Hyperparameters ──────────────────────────────────────────
 val_set_size: 0.05
@@ -64,11 +65,9 @@ lr_scheduler: cosine
 warmup_ratio: 0.06
 weight_decay: 0.01
 
-# Batch size tuned for 2× H100 160GB with 4-bit 70B
-# Effective batch = micro_batch × gradient_accum = 1 × 8 = 8
 train_batch_size: 8
 micro_batch_size: 1
-gradient_accumulation_steps: 8
+gradient_accumulation_steps: 4
 
 # ── Mixed Precision ───────────────────────────────────────────────────
 bf16: true
