@@ -38,7 +38,7 @@ datasets:
 # Total effective examples per epoch: 120×3 + 739 = 1099
 # Total across 3 epochs: ~3297 training steps
 
-sequence_len: 4096
+sequence_len: 2048
 sample_packing: true
 pad_to_sequence_len: true
 

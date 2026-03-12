@@ -20,6 +20,8 @@
 
 set -euo pipefail
 
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+
 SECONDS=0
 LOG_FILE="train_$(date +%Y%m%d_%H%M%S).log"
 
