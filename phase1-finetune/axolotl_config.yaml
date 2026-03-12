@@ -14,7 +14,7 @@ base_model: meta-llama/Llama-3.1-70B-Instruct
 model_type: LlamaForCausalLM
 tokenizer_type: AutoTokenizer
 
-# QLoRA — fits 70B on single H100 80GB (~42GB VRAM)
+# QLoRA — fits 70B on single H100 80GB
 load_in_4bit: true
 strict: false
 
@@ -23,11 +23,9 @@ chat_template: llama3
 
 # ── Datasets ──────────────────────────────────────────────────────────
 # Golden examples weighted 3× to anchor quality baseline
-# Combined SFT has 739 examples (120 golden + 584 handcrafted + 35 rated)
 datasets:
   - path: ./llm_data/sft_golden_prepared.jsonl
     type: completion
-    # Golden examples are our quality anchor — seen 3× per epoch
   - path: ./llm_data/sft_golden_prepared.jsonl
     type: completion
   - path: ./llm_data/sft_golden_prepared.jsonl
@@ -35,23 +33,17 @@ datasets:
   - path: ./llm_data/sft_combined_prepared.jsonl
     type: completion
 
-# Total effective examples per epoch: 120×3 + 739 = 1099
-# Total across 3 epochs: ~3297 training steps
-
-sequence_len: 2048
-sample_packing: true
+sequence_len: 1024
+sample_packing: false
 pad_to_sequence_len: true
 
 # ── LoRA Config ───────────────────────────────────────────────────────
-# r=32 for 70B — more capacity than 12B config (was r=16)
-# alpha=64 (2× rank) — standard ratio for stable training
+# r=16 to fit in VRAM — still sufficient for domain adaptation
 adapter: lora
-lora_r: 32
-lora_alpha: 64
+lora_r: 16
+lora_alpha: 32
 lora_dropout: 0.05
 lora_target_linear: true
-# Target all linear layers including gate_proj, up_proj, down_proj
-# This gives better domain adaptation for structured JSON output
 
 # ── Training Hyperparameters ──────────────────────────────────────────
 val_set_size: 0.05
@@ -62,7 +54,6 @@ lr_scheduler: cosine
 warmup_ratio: 0.06
 weight_decay: 0.01
 
-# Batch size tuned for H100 80GB with 4-bit 70B
 # Effective batch = micro_batch × gradient_accum = 1 × 8 = 8
 train_batch_size: 8
 micro_batch_size: 1
