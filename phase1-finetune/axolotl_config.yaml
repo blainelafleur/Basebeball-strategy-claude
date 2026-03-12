@@ -16,6 +16,7 @@ tokenizer_type: AutoTokenizer
 
 # QLoRA — fits 70B on single H100 80GB
 load_in_4bit: true
+bnb_4bit_use_double_quant: true
 strict: false
 
 # Chat template — Llama 3.1 instruct format
@@ -43,13 +44,17 @@ adapter: lora
 lora_r: 16
 lora_alpha: 32
 lora_dropout: 0.05
-lora_target_linear: true
+lora_target_modules:
+  - q_proj
+  - v_proj
+  - k_proj
+  - o_proj
 
 # ── Training Hyperparameters ──────────────────────────────────────────
 val_set_size: 0.05
 learning_rate: 1.5e-5
 num_epochs: 3
-optimizer: adamw_torch
+optimizer: adamw_bnb_8bit
 lr_scheduler: cosine
 warmup_ratio: 0.06
 weight_decay: 0.01
