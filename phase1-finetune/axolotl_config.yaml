@@ -1,9 +1,11 @@
 # ═══════════════════════════════════════════════════════════════════════
-# BSM 70B Production SFT Config — Axolotl + QLoRA + FSDP
+# BSM 70B Production SFT Config — Axolotl + QLoRA + DeepSpeed ZeRO-3
 # ═══════════════════════════════════════════════════════════════════════
 #
 # Model:    Llama-3.1-70B-Instruct
-# Hardware: 2× H100 SXM 80GB (Vast.ai) — FSDP shards across both GPUs
+# Hardware: 2× H100 SXM 80GB (Vast.ai)
+# Strategy: DeepSpeed ZeRO-3 shards model/grads/optimizer across GPUs
+#           + CPU offload for optimizer states
 # Time:     ~4-6 hours SFT
 #
 # Command:  accelerate launch --num_processes 2 -m axolotl.cli.train axolotl_config.yaml
@@ -13,25 +15,15 @@ base_model: meta-llama/Llama-3.1-70B-Instruct
 model_type: LlamaForCausalLM
 tokenizer_type: AutoTokenizer
 
-# QLoRA — 4-bit base model, FSDP shards across 2× H100
+# QLoRA — 4-bit quantized base model
 load_in_4bit: true
 strict: false
 
 # Chat template — Llama 3.1 instruct format
 chat_template: llama3
 
-# ── FSDP — shards model across both GPUs ────────────────────────────
-fsdp:
-  - full_shard
-  - auto_wrap
-fsdp_config:
-  fsdp_limit_all_gathers: true
-  fsdp_sync_module_states: true
-  fsdp_offload_params: false
-  fsdp_use_orig_params: true
-  fsdp_cpu_ram_efficient_loading: true
-  fsdp_transformer_layer_cls_to_wrap: LlamaDecoderLayer
-  fsdp_state_dict_type: FULL_STATE_DICT
+# ── DeepSpeed ZeRO-3 — proven multi-GPU approach for 70B ────────────
+deepspeed: deepspeed_config.json
 
 # ── Datasets ──────────────────────────────────────────────────────────
 # Golden examples weighted 3× to anchor quality baseline
@@ -50,6 +42,7 @@ sample_packing: false
 pad_to_sequence_len: true
 
 # ── LoRA Config ───────────────────────────────────────────────────────
+# r=32 for maximum domain adaptation capacity
 adapter: lora
 lora_r: 32
 lora_alpha: 64
@@ -65,6 +58,7 @@ lr_scheduler: cosine
 warmup_ratio: 0.06
 weight_decay: 0.01
 
+# Effective batch = micro_batch × gradient_accum × num_gpus = 1 × 4 × 2 = 8
 train_batch_size: 8
 micro_batch_size: 1
 gradient_accumulation_steps: 4
@@ -75,7 +69,7 @@ tf32: true
 
 # ── Saving ────────────────────────────────────────────────────────────
 save_strategy: steps
-save_steps: 200
+save_steps: 100
 save_total_limit: 3
 output_dir: ./bsm-70b-sft
 
@@ -83,7 +77,7 @@ output_dir: ./bsm-70b-sft
 logging_steps: 10
 
 # ── Eval ──────────────────────────────────────────────────────────────
-eval_steps: 100
+eval_steps: 50
 eval_strategy: steps
 
 # ── Flash Attention 2 (H100 native) ──────────────────────────────────

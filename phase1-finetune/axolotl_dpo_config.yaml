@@ -1,5 +1,5 @@
 # ═══════════════════════════════════════════════════════════════════════
-# BSM 70B Production DPO Config — Axolotl + QLoRA + FSDP
+# BSM 70B Production DPO Config — Axolotl + QLoRA + DeepSpeed ZeRO-3
 # ═══════════════════════════════════════════════════════════════════════
 #
 # Run AFTER SFT completes. Uses merged SFT model as base.
@@ -21,18 +21,8 @@ strict: false
 
 chat_template: llama3
 
-# ── FSDP — same as SFT config ──────────────────────────────────────
-fsdp:
-  - full_shard
-  - auto_wrap
-fsdp_config:
-  fsdp_limit_all_gathers: true
-  fsdp_sync_module_states: true
-  fsdp_offload_params: false
-  fsdp_use_orig_params: true
-  fsdp_cpu_ram_efficient_loading: true
-  fsdp_transformer_layer_cls_to_wrap: LlamaDecoderLayer
-  fsdp_state_dict_type: FULL_STATE_DICT
+# ── DeepSpeed ZeRO-3 ────────────────────────────────────────────────
+deepspeed: deepspeed_config.json
 
 # ── Dataset ───────────────────────────────────────────────────────────
 # DPO data fields: prompt, chosen, rejected
@@ -63,8 +53,7 @@ lr_scheduler: cosine
 warmup_ratio: 0.1
 weight_decay: 0.01
 
-# Smaller effective batch for DPO (pairs are larger)
-# Effective = micro_batch × gradient_accum × num_processes = 1 × 2 × 2 = 4
+# Effective = micro_batch × gradient_accum × num_gpus = 1 × 2 × 2 = 4
 train_batch_size: 4
 micro_batch_size: 1
 gradient_accumulation_steps: 2
@@ -78,7 +67,7 @@ save_strategy: epoch
 save_total_limit: 2
 output_dir: ./bsm-70b-dpo
 
-# ── Logging (no wandb — disabled on pod) ─────────────────────────────
+# ── Logging ───────────────────────────────────────────────────────────
 logging_steps: 10
 
 # ── Flash Attention + Gradient Checkpointing ─────────────────────────
