@@ -25,14 +25,14 @@ chat_template: llama3
 # Golden examples weighted 3× to anchor quality baseline
 # Combined SFT has 739 examples (120 golden + 584 handcrafted + 35 rated)
 datasets:
-  - path: ./llm_data/sft_golden.jsonl
+  - path: ./llm_data/sft_golden_prepared.jsonl
     type: completion
     # Golden examples are our quality anchor — seen 3× per epoch
-  - path: ./llm_data/sft_golden.jsonl
+  - path: ./llm_data/sft_golden_prepared.jsonl
     type: completion
-  - path: ./llm_data/sft_golden.jsonl
+  - path: ./llm_data/sft_golden_prepared.jsonl
     type: completion
-  - path: ./llm_data/sft_combined.jsonl
+  - path: ./llm_data/sft_combined_prepared.jsonl
     type: completion
 
 # Total effective examples per epoch: 120×3 + 739 = 1099

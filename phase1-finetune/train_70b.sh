@@ -115,6 +115,30 @@ else
   log "  Wandb: enabled"
 fi
 
+# ── Step 2b: Prepare datasets ──────────────────────────────────────────
+
+log ""
+log "Step 2b: Converting datasets (prompt+completion → text)..."
+
+python3 << 'PREP_DATA'
+import json, os
+
+for name in ["sft_combined", "sft_golden"]:
+    src = f"llm_data/{name}.jsonl"
+    dst = f"llm_data/{name}_prepared.jsonl"
+    count = 0
+    with open(src) as fin, open(dst, "w") as fout:
+        for line in fin:
+            row = json.loads(line)
+            # Combine prompt + completion into single "text" field
+            text = row.get("text") or (row.get("prompt", "") + row.get("completion", ""))
+            fout.write(json.dumps({"text": text}) + "\n")
+            count += 1
+    print(f"  {name}: {count} examples → {dst}")
+PREP_DATA
+
+log "  Datasets prepared."
+
 # ── Step 3: SFT Training ─────────────────────────────────────────────
 
 log ""
