@@ -41,8 +41,8 @@ pad_to_sequence_len: true
 # ── LoRA Config ───────────────────────────────────────────────────────
 # r=16 to fit in VRAM — still sufficient for domain adaptation
 adapter: lora
-lora_r: 16
-lora_alpha: 32
+lora_r: 8
+lora_alpha: 16
 lora_dropout: 0.05
 lora_target_modules:
   - q_proj
@@ -51,7 +51,7 @@ lora_target_modules:
   - o_proj
 
 # ── Training Hyperparameters ──────────────────────────────────────────
-val_set_size: 0.05
+val_set_size: 0.0
 learning_rate: 1.5e-5
 num_epochs: 3
 optimizer: adamw_bnb_8bit
