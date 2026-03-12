@@ -78,4 +78,4 @@ logging_steps: 10
 flash_attention: true
 gradient_checkpointing: true
 gradient_checkpointing_kwargs:
-  use_reentrant: false
+  use_reentrant: true
