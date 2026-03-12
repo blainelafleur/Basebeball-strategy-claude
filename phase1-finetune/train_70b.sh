@@ -4,12 +4,12 @@
 # ═══════════════════════════════════════════════════════════════════════
 #
 # Target:     Llama-3.1-70B-Instruct → BSM baseball strategy expert
-# Hardware:   1x H100 SXM 80GB (Vast.ai)
+# Hardware:   2x H100 SXM 80GB (Vast.ai) — FSDP shards across both GPUs
 # Time:       ~6-8 hours total (SFT + merge + DPO + merge + validate)
-# Cost:       ~$20-25 on Vast.ai ($2.50-3/hr)
+# Cost:       ~$20-30 on Vast.ai (~$3/hr)
 #
-# Upload:     scp -r phase1-finetune/ root@<pod-ip>:/workspace/bsm/
-# Run:        cd /workspace/bsm && chmod +x train_70b.sh && ./train_70b.sh
+# Upload:     git clone <repo> /workspace/bsm
+# Run:        cd /workspace/bsm/phase1-finetune && ./train_70b.sh
 #
 # Outputs:
 #   ./bsm-70b-sft/          — SFT LoRA adapter checkpoints
@@ -19,8 +19,6 @@
 # ═══════════════════════════════════════════════════════════════════════
 
 set -euo pipefail
-
-export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
 SECONDS=0
 LOG_FILE="train_$(date +%Y%m%d_%H%M%S).log"
@@ -43,11 +41,8 @@ fi
 
 GPU_NAME=$(nvidia-smi --query-gpu=name --format=csv,noheader | head -1)
 GPU_MEM=$(nvidia-smi --query-gpu=memory.total --format=csv,noheader,nounits | head -1)
-log "  GPU: $GPU_NAME (${GPU_MEM}MB)"
-
-if [ "${GPU_MEM:-0}" -lt 70000 ]; then
-  log "WARNING: Less than 70GB VRAM. 70B QLoRA needs ~42GB. May OOM."
-fi
+GPU_COUNT=$(nvidia-smi --query-gpu=name --format=csv,noheader | wc -l | tr -d ' ')
+log "  GPUs: ${GPU_COUNT}x $GPU_NAME (${GPU_MEM}MB each)"
 
 for f in llm_data/sft_combined.jsonl llm_data/sft_golden.jsonl llm_data/dpo.jsonl; do
   if [ ! -f "$f" ]; then
@@ -69,6 +64,10 @@ log "  Effective/epoch: $EFFECTIVE training examples"
 DISK_FREE=$(df -BG . | tail -1 | awk '{print $4}' | tr -d 'G')
 log "  Disk free:       ${DISK_FREE}GB (need ~150GB for 70B)"
 
+if [ "${DISK_FREE:-0}" -lt 150 ]; then
+  log "WARNING: Low disk space. Training may fail during save."
+fi
+
 # ── Step 1: Install dependencies ─────────────────────────────────────
 
 log ""
@@ -84,7 +83,7 @@ python -c "import torch; assert torch.cuda.is_available()" 2>/dev/null || {
 log "  Installing Axolotl + Flash Attention..."
 pip install axolotl 2>&1 | tail -3 | tee -a "$LOG_FILE"
 pip install flash-attn --no-build-isolation 2>&1 | tail -3 | tee -a "$LOG_FILE"
-pip install wandb huggingface_hub[cli] 2>&1 | tail -1 | tee -a "$LOG_FILE"
+pip install huggingface_hub[cli] 2>&1 | tail -1 | tee -a "$LOG_FILE"
 
 log "  Done."
 
@@ -110,9 +109,11 @@ if [ -z "$HF_USER" ]; then
 fi
 log "  HuggingFace: $HF_USER"
 
+# Always disable wandb unless explicitly configured
 if [ -z "${WANDB_API_KEY:-}" ]; then
   log "  Wandb: disabled (set WANDB_API_KEY to enable)"
   export WANDB_DISABLED=true
+  export WANDB_MODE=disabled
 else
   log "  Wandb: enabled"
 fi
@@ -144,12 +145,12 @@ log "  Datasets prepared."
 # ── Step 3: SFT Training ─────────────────────────────────────────────
 
 log ""
-log "Step 3: SFT Training (Llama-3.1-70B + QLoRA r=32)"
+log "Step 3: SFT Training (Llama-3.1-70B + QLoRA r=32 + FSDP)"
 log "  Golden weighted 3x. Effective: $EFFECTIVE examples/epoch x 3 epochs"
-log "  Estimated: 4-6 hours on H100..."
+log "  Estimated: 4-6 hours on 2x H100..."
 
 SFT_START=$SECONDS
-accelerate launch --num_processes 2 -m axolotl.cli.train axolotl_config.yaml 2>&1 | tee -a "$LOG_FILE"
+accelerate launch --num_processes "$GPU_COUNT" -m axolotl.cli.train axolotl_config.yaml 2>&1 | tee -a "$LOG_FILE"
 SFT_ELAPSED=$(( SECONDS - SFT_START ))
 log "SFT done in $(( SFT_ELAPSED / 3600 ))h $(( (SFT_ELAPSED % 3600) / 60 ))m"
 
@@ -162,21 +163,46 @@ fi
 
 log ""
 log "Step 4: Merging SFT LoRA into base model..."
+log "  Loading base in bf16 across GPUs for clean merge..."
 
 python3 << 'MERGE_SFT'
-import torch
+import torch, os, glob
 from peft import PeftModel
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-print("Loading base model...")
+# Find the adapter — FSDP may save in a subdirectory
+sft_dir = "./bsm-70b-sft"
+adapter_path = sft_dir
+
+# Check if adapter_config.json is in a subdirectory
+if not os.path.exists(os.path.join(sft_dir, "adapter_config.json")):
+    # Look in checkpoint subdirectories
+    candidates = sorted(glob.glob(os.path.join(sft_dir, "checkpoint-*")))
+    if candidates:
+        adapter_path = candidates[-1]  # Use last checkpoint
+        print(f"Using checkpoint: {adapter_path}")
+    else:
+        # Check for FSDP consolidated dir
+        candidates = sorted(glob.glob(os.path.join(sft_dir, "*")))
+        for c in candidates:
+            if os.path.exists(os.path.join(c, "adapter_config.json")):
+                adapter_path = c
+                print(f"Found adapter in: {adapter_path}")
+                break
+
+if not os.path.exists(os.path.join(adapter_path, "adapter_config.json")):
+    print(f"ERROR: No adapter_config.json found in {sft_dir} or subdirectories")
+    print(f"Contents: {os.listdir(sft_dir)}")
+    raise FileNotFoundError("adapter_config.json not found")
+
+print("Loading base model in bf16 (no quantization for clean merge)...")
 base = AutoModelForCausalLM.from_pretrained(
     "meta-llama/Llama-3.1-70B-Instruct",
     torch_dtype=torch.bfloat16,
     device_map="auto",
-    load_in_4bit=True,
 )
-print("Loading LoRA adapter...")
-model = PeftModel.from_pretrained(base, "./bsm-70b-sft")
+print(f"Loading LoRA adapter from {adapter_path}...")
+model = PeftModel.from_pretrained(base, adapter_path)
 print("Merging...")
 model = model.merge_and_unload()
 print("Saving...")
@@ -197,7 +223,7 @@ if [ "$DPO_COUNT" -ge "$DPO_MIN" ]; then
   log "  Estimated: 1-2 hours..."
 
   DPO_START=$SECONDS
-  accelerate launch --num_processes 2 -m axolotl.cli.train axolotl_dpo_config.yaml 2>&1 | tee -a "$LOG_FILE"
+  accelerate launch --num_processes "$GPU_COUNT" -m axolotl.cli.train axolotl_dpo_config.yaml 2>&1 | tee -a "$LOG_FILE"
   DPO_ELAPSED=$(( SECONDS - DPO_START ))
   log "DPO done in $(( DPO_ELAPSED / 3600 ))h $(( (DPO_ELAPSED % 3600) / 60 ))m"
 
@@ -205,19 +231,28 @@ if [ "$DPO_COUNT" -ge "$DPO_MIN" ]; then
   log "Step 5b: Merging DPO LoRA..."
 
   python3 << 'MERGE_DPO'
-import torch
+import torch, os, glob
 from peft import PeftModel
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-print("Loading SFT-merged base...")
+# Find the DPO adapter
+dpo_dir = "./bsm-70b-dpo"
+adapter_path = dpo_dir
+
+if not os.path.exists(os.path.join(dpo_dir, "adapter_config.json")):
+    candidates = sorted(glob.glob(os.path.join(dpo_dir, "checkpoint-*")))
+    if candidates:
+        adapter_path = candidates[-1]
+        print(f"Using checkpoint: {adapter_path}")
+
+print("Loading SFT-merged base in bf16...")
 base = AutoModelForCausalLM.from_pretrained(
     "./bsm-70b-sft-merged",
     torch_dtype=torch.bfloat16,
     device_map="auto",
-    load_in_4bit=True,
 )
-print("Loading DPO adapter...")
-model = PeftModel.from_pretrained(base, "./bsm-70b-dpo")
+print(f"Loading DPO adapter from {adapter_path}...")
+model = PeftModel.from_pretrained(base, adapter_path)
 print("Merging...")
 model = model.merge_and_unload()
 print("Saving...")
@@ -307,7 +342,7 @@ log "  TRAINING COMPLETE"
 log "═══════════════════════════════════════════════════════════════"
 log ""
 log "  Time: $(( TOTAL / 3600 ))h $(( (TOTAL % 3600) / 60 ))m"
-log "  GPU:  $GPU_NAME"
+log "  GPUs: ${GPU_COUNT}x $GPU_NAME"
 log "  SFT:  $SFT_COUNT examples ($GOLDEN_COUNT golden x3)"
 log "  DPO:  $DPO_COUNT pairs"
 log ""

@@ -1,15 +1,15 @@
 # ═══════════════════════════════════════════════════════════════════════
-# BSM 70B Production DPO Config — Axolotl + QLoRA
+# BSM 70B Production DPO Config — Axolotl + QLoRA + FSDP
 # ═══════════════════════════════════════════════════════════════════════
 #
 # Run AFTER SFT completes. Uses merged SFT model as base.
 # Teaches the model to prefer expert-quality explanations over weak ones.
 #
-# Hardware: Same H100 SXM pod as SFT
+# Hardware: 2× H100 SXM 80GB (same pod as SFT)
 # Time:     ~1-2 hours
-# Requires: ≥100 DPO pairs (currently 108 — above minimum)
+# Requires: ≥50 DPO pairs
 #
-# Command:  accelerate launch -m axolotl.cli.train axolotl_dpo_config.yaml
+# Command:  accelerate launch --num_processes 2 -m axolotl.cli.train axolotl_dpo_config.yaml
 # ═══════════════════════════════════════════════════════════════════════
 
 base_model: ./bsm-70b-sft-merged
@@ -21,18 +21,30 @@ strict: false
 
 chat_template: llama3
 
+# ── FSDP — same as SFT config ──────────────────────────────────────
+fsdp:
+  - full_shard
+  - auto_wrap
+fsdp_config:
+  fsdp_limit_all_gathers: true
+  fsdp_sync_module_states: true
+  fsdp_offload_params: false
+  fsdp_use_orig_params: true
+  fsdp_cpu_ram_efficient_loading: true
+  fsdp_transformer_layer_cls_to_wrap: LlamaDecoderLayer
+  fsdp_state_dict_type: FULL_STATE_DICT
+
 # ── Dataset ───────────────────────────────────────────────────────────
+# DPO data fields: prompt, chosen, rejected
 datasets:
   - path: ./llm_data/dpo.jsonl
-    type: chatml.intel
-    # Fields: prompt, chosen, rejected
+    type: chatml_format.prompt_chosen_rejected
 
 sequence_len: 2048
 sample_packing: false
 pad_to_sequence_len: true
 
 # ── LoRA Config ───────────────────────────────────────────────────────
-# Lower rank for DPO — fine adjustment, not deep learning
 adapter: lora
 lora_r: 16
 lora_alpha: 32
@@ -52,9 +64,10 @@ warmup_ratio: 0.1
 weight_decay: 0.01
 
 # Smaller effective batch for DPO (pairs are larger)
+# Effective = micro_batch × gradient_accum × num_processes = 1 × 2 × 2 = 4
 train_batch_size: 4
 micro_batch_size: 1
-gradient_accumulation_steps: 4
+gradient_accumulation_steps: 2
 
 # ── Mixed Precision ───────────────────────────────────────────────────
 bf16: true
@@ -65,9 +78,7 @@ save_strategy: epoch
 save_total_limit: 2
 output_dir: ./bsm-70b-dpo
 
-# ── Logging ───────────────────────────────────────────────────────────
-wandb_project: bsm-70b
-wandb_run_name: bsm-70b-dpo-v1
+# ── Logging (no wandb — disabled on pod) ─────────────────────────────
 logging_steps: 10
 
 # ── Flash Attention + Gradient Checkpointing ─────────────────────────
