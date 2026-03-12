@@ -45,8 +45,8 @@ datasets:
   - path: ./llm_data/sft_combined_prepared.jsonl
     type: completion
 
-sequence_len: 4096
-sample_packing: true
+sequence_len: 2048
+sample_packing: false
 pad_to_sequence_len: true
 
 # ── LoRA Config ───────────────────────────────────────────────────────
