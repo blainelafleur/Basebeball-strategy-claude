@@ -17,6 +17,9 @@ tokenizer_type: AutoTokenizer
 load_in_4bit: true
 strict: false
 
+# Force model to split across both GPUs (~20GB each, leaving room for training)
+gpu_memory_limit: "40GiB"
+
 # Chat template — Llama 3.1 instruct format
 chat_template: llama3
 
