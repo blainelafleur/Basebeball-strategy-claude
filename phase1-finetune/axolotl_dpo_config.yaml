@@ -21,6 +21,10 @@ strict: false
 
 chat_template: llama3
 
+# Llama 3.1 has no pad token — use eos_token
+special_tokens:
+  pad_token: "<|end_of_text|>"
+
 # ── DeepSpeed ZeRO-3 ────────────────────────────────────────────────
 deepspeed: deepspeed_config.json
 

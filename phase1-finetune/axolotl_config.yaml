@@ -22,6 +22,10 @@ strict: false
 # Chat template — Llama 3.1 instruct format
 chat_template: llama3
 
+# Llama 3.1 has no pad token — use eos_token
+special_tokens:
+  pad_token: "<|end_of_text|>"
+
 # ── DeepSpeed ZeRO-3 — proven multi-GPU approach for 70B ────────────
 deepspeed: deepspeed_config.json
 
