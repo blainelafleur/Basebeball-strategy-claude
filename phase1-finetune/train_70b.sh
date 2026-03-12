@@ -91,12 +91,21 @@ log "  Done."
 log ""
 log "Step 2: Authentication..."
 
-if ! huggingface-cli whoami &>/dev/null; then
+HF_USER=$(python3 -c "
+try:
+    from huggingface_hub import HfApi
+    api = HfApi()
+    info = api.whoami()
+    print(info['name'])
+except Exception:
+    print('')
+" 2>/dev/null)
+
+if [ -z "$HF_USER" ]; then
   log "  HuggingFace login required (Llama-3.1-70B-Instruct is gated)."
-  log "  Run: huggingface-cli login"
+  log "  Run: python3 -c \"from huggingface_hub import login; login()\""
   exit 1
 fi
-HF_USER=$(huggingface-cli whoami 2>/dev/null | head -1)
 log "  HuggingFace: $HF_USER"
 
 if [ -z "${WANDB_API_KEY:-}" ]; then
