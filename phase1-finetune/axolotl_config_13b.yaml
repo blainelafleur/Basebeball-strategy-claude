@@ -1,0 +1,54 @@
+# BSM Phase 1: TEST RUN — Mistral-Nemo-12B on Vast.ai
+# Purpose: Validate pipeline end-to-end before spending on 70B
+#
+# GPU: Single RTX 4090 (24GB) or A6000 — ~$0.30-0.50/hr on Vast.ai
+# Time: ~30-45 min for SFT on 595 examples
+# Cost: ~$0.25-0.40 total
+#
+# Command: accelerate launch -m axolotl.cli.train axolotl_config_13b.yaml
+
+base_model: mistralai/Mistral-Nemo-Instruct-2407
+model_type: MistralForCausalLM
+tokenizer_type: AutoTokenizer
+
+# QLoRA — 12B fits on 24GB VRAM in 4-bit
+load_in_4bit: true
+strict: false
+
+datasets:
+  - path: ./llm_data/sft_combined.jsonl
+    type: completion
+
+sequence_len: 4096
+sample_packing: true
+pad_to_sequence_len: true
+
+# LoRA config — same as 70B run for apples-to-apples comparison
+adapter: lora
+lora_r: 16
+lora_alpha: 32
+lora_dropout: 0.05
+lora_target_linear: true
+
+# Training hyperparameters
+val_set_size: 0.05
+learning_rate: 2e-5
+num_epochs: 3
+optimizer: adamw_torch
+lr_scheduler: cosine
+train_batch_size: 8
+micro_batch_size: 4
+gradient_accumulation_steps: 2
+warmup_steps: 50
+
+# Can use bf16 on Ampere+ GPUs (4090, A6000, A100, H100)
+bf16: auto
+
+# Saving
+save_strategy: epoch
+output_dir: ./bsm-13b-test
+
+# Logging — set WANDB_API_KEY env var or run `wandb login` first
+wandb_project: bsm-llm
+wandb_run_name: bsm-13b-test-v1
+logging_steps: 10

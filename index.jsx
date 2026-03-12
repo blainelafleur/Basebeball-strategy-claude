@@ -1448,11 +1448,11 @@ const SCENARIOS = {
       best:0,explanations:["When a hitter pulls everything, shade your infield toward the pull side. Move the second baseman toward first, the shortstop toward second, and the first baseman closer to the line. You're positioning where the ball is most likely to go based on the data you have.","Playing straight up ignores three at-bats of evidence. Use the information!","Only shading one player is a half-measure. Move the whole infield together.","A full shift with the shortstop on the right side is too extreme for most situations. Shading is enough."],
       rates:[85,25,35,30],concept:"Against pull hitters, shade the infield toward the pull side — position where the ball is going",explSimple:["When a hitter pulls everything, shade your infield toward the pull side.","Playing straight up ignores three at-bats of evidence.","Only shading one player is a half-measure.","A full shift with the shortstop on the right side is too extreme for most situations."],anim:"groundout"},
     {id:"f59", conceptTag:"fly-ball-priority",title:"Pop-Up Between Three Players",diff:1,cat:"communication",ageMin:6,ageMax:99,
-      description:"Bot 3rd, nobody on, 1 out. Pop-up hit between the pitcher, catcher, and first baseman. All three are drifting toward it. Nobody has called it.",
+      description:"You're the first baseman. Bot 3rd, nobody on, 1 out. A pop-up is hit between you, the pitcher, and the catcher. All three of you are drifting toward it. Nobody has called it yet.",
       situation:{inning:"Bot 3",outs:1,count:"-",runners:[],score:[2,1]},
-      options:["Someone needs to call it NOW — first baseman has priority","The pitcher should catch it — he's closest","The catcher should call it — he sees the whole field","Wait and see who gets there first"],
+      options:["Call for it loudly — you have priority as the first baseman","Let the pitcher catch it — he's closest","Wait for the catcher to call it — he sees the whole field","Wait and see who gets there first"],
       best:0,explanations:["On pop-ups in the infield, there's a priority system: the fielder behind the play has priority because the ball is moving toward them (easier catch). The first baseman has priority over the pitcher, and the pitcher has priority over the catcher. Someone MUST call 'I got it!' — the worst outcome is nobody calling it.","The pitcher should defer to the first baseman, who is a better fielder and has the ball coming toward him.","The catcher CAN call it, but the first baseman has priority on pop-ups in front of home plate.","Waiting is how easy pop-ups drop for hits. Someone must take charge immediately."],
-      rates:[85,35,30,5],concept:"On pop-ups, the priority is: infielder behind the play > pitcher > catcher. CALL IT!",explSimple:["Great choice! on pop-ups in the infield, there's a priority system: the fielder behind the play has.","Not the best move. The pitcher should defer to the first baseman, who is a better fielder and has.","Not the best move. The catcher CAN call it, but the first baseman has priority on pop-ups.","Not the best move. Waiting is how easy pop-ups drop for hits."], anim:"catch"},
+      rates:[85,45,30,15],concept:"On pop-ups, the priority is: infielder behind the play > pitcher > catcher. CALL IT!",explSimple:["Great choice! on pop-ups in the infield, there's a priority system: the fielder behind the play has.","Not the best move. The pitcher should defer to the first baseman, who is a better fielder and has.","Not the best move. The catcher CAN call it, but the first baseman has priority on pop-ups.","Not the best move. Waiting is how easy pop-ups drop for hits."], anim:"catch"},
     {id:"f62", conceptTag:"bunt-defense",title:"Bunt Defense — Who Covers What?",diff:3,cat:"communication",ageMin:12,ageMax:99,
       description:"Top of the 3rd, runners on 1st and 2nd, nobody out. Bunt is expected. Your team calls the bunt defense. Who covers what?",
       situation:{inning:"Top 3",outs:0,count:"-",runners:[1,2],score:[1,1]},
@@ -1893,7 +1893,7 @@ const SCENARIOS = {
       situation:{inning:"Top 7",outs:1,count:"1-1",runners:[2],score:[2,1]},
       options:["Sprint to third base, straddle the bag, and catch the throw with your glove ready to sweep a tag on the runner's feet","Stay in your fielding position because the shortstop should cover third on steals of third","Run toward the runner to cut down the throwing distance for the catcher","Move behind third base to back up the throw in case it's off target"],
       best:0,explanations:["When a runner steals third, the third baseman covers the bag. Sprint to third, straddle it so the runner has access to the base, and catch the catcher's throw with your glove sweeping down to tag the runner's feet as he slides in.","The shortstop does NOT cover third on steals — that's the third baseman's responsibility. The shortstop covers second base on steal situations. Third base is your bag, and you need to be there when the ball arrives.","Running toward the runner leaves third base uncovered. The catcher is throwing to the BASE, not to you in the middle of the baseline. If you're not on the bag, the throw has nowhere to go.","Moving behind third means the catcher's throw has to go past the bag and reach you deeper. That's a longer throw and gives the runner more time to reach the base safely. Be on the bag, not behind it."],
-      rates:[85,15,20,25],concept:"On steals of third, the third baseman covers the bag — straddle it, catch the throw, and sweep the tag down on the runner's feet.",explSimple:["When a runner steals third, the third baseman covers the bag.","The shortstop does NOT cover third on steals — that's the third baseman's responsibility.","Running toward the runner leaves third base uncovered.","Moving behind third means the catcher's throw has to go past the bag and reach you deeper."],anim:"catch"},
+      rates:[85,20,40,25],concept:"On steals of third, the third baseman covers the bag — straddle it, catch the throw, and sweep the tag down on the runner's feet.",explSimple:["When a runner steals third, the third baseman covers the bag.","The shortstop does NOT cover third on steals — that's the third baseman's responsibility.","Running toward the runner leaves third base uncovered.","Moving behind third means the catcher's throw has to go past the bag and reach you deeper."],anim:"catch"},
     {id:"3b_new1",title:"The Slow Roller — Charge or Wait?",diff:2,cat:"defense",conceptTag:"backup-duties",ageMin:8,ageMax:99,
       description:"Slow roller down the third base line. Spin on the ball — it might stay fair or go foul. What do you do?",
       situation:{inning:"Bot 4",outs:1,count:"2-2",runners:[],score:[2,1]},
@@ -2339,7 +2339,7 @@ const SCENARIOS = {
       situation:{inning:"Top 7",outs:1,count:"1-0",runners:[1],score:[2,3]},
       options:["Don't steal — your 70% rate is above break-even but this catcher is too good","Steal — your 70% rate is above the 65% high school break-even","Steal only on the next pitch if it's a breaking ball","Wait for a 2-strike count when the catcher has to focus on framing"],
       best:0,explanations:["Your season rate is 70%, but that's against ALL catchers. This catcher has a 2.0 pop time (elite) and has thrown out 60% of runners today. Against THIS catcher, your expected success rate drops well below 65%. The combined delivery+pop time is 1.4+2.0=3.4 seconds — that's right at the margin where steals become very difficult. The break-even at the high school level is 65%, and your adjusted rate against this arm is likely below that. Don't run into an out in the 7th when you're down by 1.","Your 70% season rate is above the 65% high school break-even — but break-even is the MINIMUM, not the target. Against a catcher throwing out 60% of runners with a 2.0 pop time, your actual success probability drops significantly. The math says hold.","Breaking balls give you slightly more time, but the 0.1-0.2 second advantage doesn't overcome a 2.0 pop time catcher. You'd need the delivery+pop total above 3.4 seconds to be comfortable, and even with a curve you're at about 3.5 — barely marginal.","A 2-strike count doesn't help your steal. The catcher still receives and throws the same way. Framing matters for borderline pitches, but it doesn't slow down his pop time or transfer."],
-      rates:[82,30,25,20],concept:"Break-even is the MINIMUM, not the target — adjust your steal decision for the specific catcher's arm, not just your season average",anim:"steal"},
+      rates:[82,40,30,20],concept:"Break-even is the MINIMUM, not the target — adjust your steal decision for the specific catcher's arm, not just your season average",anim:"steal"},
     // ============================================================================
     // VARIABLE MASTERY CLUSTER 2 — The Steal Decision
     // Same base situation, one variable changes the correct answer each time
@@ -3112,7 +3112,7 @@ const SCENARIOS = {
       situation:{inning:"Top 5",outs:0,count:"-",runners:[2],score:[2,3]},
       options:["Hold the ball \u2014 the play is over","Fire to second base immediately \u2014 catch the runner off the bag","Throw to the pitcher and let him handle it","Fake a throw to second and hold \u2014 see if the runner takes off for third"],
       best:1,explanations:["The play is never over until all runners are safe on a base! Great catchers keep their eyes on every runner after the ball comes in. If someone overruns a bag, that's an opportunity for an out.","Excellent awareness! When a runner overslides second base, a quick throw from the catcher to the shortstop or second baseman covering can catch him before he gets back. This is a heads-up play that great catchers make by staying alert after every play.","The pitcher isn't in position to make this play. You have the ball and a clear throw \u2014 go directly to the base where the runner is off the bag.","Faking wastes time. The runner is already scrambling to get back \u2014 every second you hesitate is a second he gets closer to the bag. Throw it now."],
-      rates:[20,85,15,30],concept:"Great catchers stay alert after every play \u2014 when a runner overslides a base, a quick throw can catch him off the bag",anim:"safe"},
+      rates:[25,85,45,30],concept:"Great catchers stay alert after every play \u2014 when a runner overslides a base, a quick throw can catch him off the bag",anim:"safe"},
     {id:"ct30", conceptTag:"pitch-sequencing",title:"Pitcher Tipping His Pitches",diff:3,cat:"catcher",ageMin:12,ageMax:99,
       description:"You're the catcher. The opposing hitters seem to know what's coming \u2014 they're sitting on off-speed and crushing it, but laying off fastballs. You suspect your pitcher might be tipping his pitches. What do you do?",
       situation:{inning:"Top 4",outs:0,count:"-",runners:[1],score:[2,4]},
@@ -3282,11 +3282,11 @@ const SCENARIOS = {
       best:1,explanations:["A fielder only has the right to the baseline when fielding the ball or in possession of it.","Obstruction! A fielder without the ball cannot block the baseline. The runner is awarded at least 3rd base. In the 2013 World Series, this call ended Game 3.","Interference is called on the RUNNER, not the fielder. This is obstruction.","Sliding doesn't matter. The fielder illegally blocked the path."],
       rates:[25,85,15,20],concept:"Obstruction: fielders can't block the baseline without the ball — runners get the base",anim:"advance"},
     {id:"rl6", conceptTag:"force-vs-tag",title:"Designated Hitter Rule",diff:1,cat:"rules",ageMin:6,ageMax:99,
-      description:"Your team's pitcher is due up 4th in the batting order. What's your option?",
+      description:"You're the manager setting your lineup. Your pitcher is due up 4th in the batting order. What's your option?",
       situation:{inning:"Top 1",outs:0,count:"-",runners:[],score:[0,0]},
       options:["The pitcher must bat — that's the rule","Use a designated hitter (DH) to bat in the pitcher's spot","Pinch hit for the pitcher every time he's due up","Let a fielder bat twice"],
       best:1,explanations:["In the AL (and now universally since 2022), the DH replaces the pitcher in the batting order.","The designated hitter (DH) bats in place of the pitcher. Since 2022, both AL and NL use the DH. The pitcher never has to bat.","Pinch hitting removes the pitcher from the game. The DH stays in the lineup all game.","A player can only occupy one spot in the batting order."],
-      rates:[15,85,30,10],concept:"The designated hitter (DH) bats for the pitcher — universal in MLB since 2022",explSimple:["Not the best move. In the AL , the DH replaces the pitcher in the batting order.","Great choice! the designated hitter bats in place of the pitcher.","Not the best move. Pinch hitting removes the pitcher from the game.","Not the best move. A player can only occupy one spot in the batting order."], anim:"strike"},
+      rates:[25,85,40,20],concept:"The designated hitter (DH) bats for the pitcher — universal in MLB since 2022",explSimple:["Not the best move. In the AL , the DH replaces the pitcher in the batting order.","Great choice! the designated hitter bats in place of the pitcher.","Not the best move. Pinch hitting removes the pitcher from the game.","Not the best move. A player can only occupy one spot in the batting order."], anim:"strike"},
     {id:"rl7", conceptTag:"force-vs-tag",title:"Ground Rule Double",diff:1,cat:"rules",ageMin:6,ageMax:99,
       description:"Runner on 1st, 1 out. The batter hits a screaming line drive that bounces once in fair territory, then hops over the outfield fence. Where do the runners end up?",
       situation:{inning:"Bot 6",outs:1,count:"2-1",runners:[1],score:[1,2]},
@@ -3426,12 +3426,12 @@ const SCENARIOS = {
       explSimple:["Right! When the catcher visits the mound, the pitch clock gets reset to full time. It's like a timeout that gives the pitcher more time.","The clock always resets after a visit. That's one reason catchers go out there!","The clock resets, but the pitcher's pickoff attempts don't reset \u2014 those are separate rules.","It resets to the normal time (20 seconds with runners), not 30 seconds."],
       rates:[82,20,15,10],concept:"Mound visits reset the pitch clock to its full amount \u2014 a strategic benefit of visiting the mound",anim:"freeze"},
     {id:"rl29",title:"Pitch Clock \u2014 What Counts as 'Ready'?",diff:1,cat:"rules",conceptTag:"pitch-clock-strategy",ageMin:8,ageMax:99,
-      description:"You're a 10-year-old batter stepping into the box for the first time in a pitch clock game. The announcer says the batter must be 'alert to the pitcher' with 8 seconds on the clock. What does that actually mean you need to do?",
+      description:"You're stepping into the batter's box for the first time in a pitch clock game. The announcer says you must be 'alert to the pitcher' with 8 seconds on the clock. What does that actually mean you need to do?",
       situation:{inning:"Top 1",outs:0,count:"0-0",runners:[],score:[0,0]},
-      options:["Be in the batter's box with both feet, looking at the pitcher","Just be standing near the plate \u2014 doesn't matter if you're looking","Have your bat on your shoulder in your stance","Be in the box but you can still be adjusting your gloves"],
+      options:["Be in the batter's box with both feet, looking at the pitcher","Just stand near the plate — doesn't matter if you're looking","Have your bat on your shoulder in your stance","Be in the box but you can still be adjusting your gloves"],
       best:0,explanations:["Correct! 'Alert to the pitcher' means you must be in the batter's box AND looking at the pitcher, ready for the pitch to come. Both feet in the box, eyes on the mound. If you're still adjusting your helmet, looking at the scoreboard, or not in your stance, the umpire can call an automatic strike.","You need to be IN the batter's box specifically, not just near the plate. And you need to be looking at the pitcher \u2014 being distracted counts as not ready.","Having your bat on your shoulder isn't required \u2014 some hitters hold their bat up, some down. What matters is that you're in the box and looking at the pitcher.","If you're adjusting your gloves with 8 seconds left, you're NOT alert to the pitcher. Get your adjustments done early! Step out between pitches if needed, but be ready at 8 seconds."],
       explSimple:["Right! You need to be standing in the box with both feet and looking at the pitcher. Think of it like being ready to play \u2014 no fiddling with your gear!","You need to actually be in the batter's box, not just somewhere nearby.","You don't have to hold your bat a certain way, but you do need to be in the box and watching the pitcher.","If you're messing with your gloves when there's 8 seconds left, the umpire can call a strike! Get ready early."],
-      rates:[85,15,20,25],concept:"Being 'alert to the pitcher' means both feet in the box, eyes on the mound, ready for the pitch",anim:"strike"},
+      rates:[85,20,30,30],concept:"Being 'alert to the pitcher' means both feet in the box, eyes on the mound, ready for the pitch",anim:"strike"},
     {id:"rl30",title:"Infield Fly \u2014 Does It Apply with Two Outs?",diff:2,cat:"rules",conceptTag:"infield-fly",ageMin:9,ageMax:99,
       description:"Bot 6th, runners on 1st and 2nd, TWO outs. The batter pops the ball straight up near the pitcher's mound. An easy catch. Should the umpire call 'Infield Fly'?",
       situation:{inning:"Bot 6",outs:2,count:"1-2",runners:[1,2],score:[5,3]},
@@ -3488,11 +3488,11 @@ const SCENARIOS = {
       best:1,explanations:["Under Rule 6.01(j), if a runner intentionally interferes with a fielder's attempt to complete a double play by sliding out of the base path, both the runner AND the batter-runner are called out. This is the slide rule \u2014 designed to protect middle infielders from dangerous takeout slides.","Correct! The slide rule (sometimes called the Utley Rule after Chase Utley's 2015 NLDS slide) requires runners to make a bona fide slide. Going out of the base path to take out the fielder results in a double play being called: the sliding runner is out for interference, and the batter-runner is also out.","The interference penalty is specifically designed to give the defense the double play they would have gotten without the illegal slide. Both outs are called.","Hard slides within the base path are legal. But sliding OUTSIDE the base path to interfere with the throw is illegal interference under the slide rule. The rule distinguishes between a competitive play and a dangerous one."],
       rates:[25,85,20,15],concept:"The slide rule: runners must make a bona fide slide at second base \u2014 going out of the base path to disrupt a double play results in two outs",anim:"doubleplay"},
     {id:"rl39", conceptTag:"double-play-turn",title:"Neighborhood Play at Second Base",diff:3,cat:"rules",ageMin:12,ageMax:99,
-      description:"Runner on first, 1 out. Ground ball to the shortstop. The second baseman receives the throw near second base, transfers quickly, and throws to first for the double play. On replay, the second baseman's foot was about 6 inches off the bag when he caught the ball. Is the force out at second valid?",
+      description:"You're watching a close play. Runner on first, 1 out. Ground ball to the shortstop. The second baseman receives the throw near second base, transfers quickly, and throws to first for the double play. On replay, his foot was about 6 inches off the bag when he caught the ball. Is the force out at second valid?",
       situation:{inning:"Top 5",outs:1,count:"0-1",runners:[1],score:[2,1]},
       options:["The out stands \u2014 the neighborhood play allows the fielder to be close to the bag on double play turns","The runner is safe \u2014 the fielder must touch the base for a force out, period","It depends on whether the runner slid into the fielder","The umpire on the field makes the final call \u2014 replay can't overturn it"],
       best:0,explanations:["Under the current rules, replay review has a specific standard for double play turns at second base. If the fielder is 'in the vicinity' of the bag and any part of the tag play is to protect himself from a sliding runner, the out can stand. This is the neighborhood play exception \u2014 MLB specifically protects middle infielders on double play turns.","While technically the fielder should touch the base, MLB's replay rules give special latitude on double play turns at second base. The 'neighborhood play' has been part of baseball for decades, and even with replay, umpires allow fielders to be slightly off the bag to protect themselves.","The runner's slide matters for the slide rule, but the neighborhood play is about protecting the fielder regardless. If the fielder is in the vicinity and transitioning quickly, the out can stand.","Replay CAN review force plays at second base, but the standard is different from other force plays. The neighborhood play exception gives fielders more leeway during double play turns."],
-      rates:[85,30,25,20],concept:"The neighborhood play allows second basemen to be slightly off the bag during double play turns \u2014 protecting the fielder from sliding runners",anim:"doubleplay"},
+      rates:[85,40,25,20],concept:"The neighborhood play allows second basemen to be slightly off the bag during double play turns \u2014 protecting the fielder from sliding runners",anim:"doubleplay"},
     {id:"rl40", conceptTag:"force-vs-tag",title:"Ghost Runner \u2014 Extra Innings Rule",diff:3,cat:"rules",ageMin:12,ageMax:99,
       description:"It's the 10th inning in a regular season MLB game. Under the automatic runner rule, who starts on second base, and what are the strategic implications?",
       situation:{inning:"Top 10",outs:0,count:"-",runners:[2],score:[3,3]},
@@ -3575,11 +3575,11 @@ const SCENARIOS = {
       best:0,explanations:["Yes! If you've done your homework and know the pitcher likes to throw first-pitch fastballs, being ready to attack it is a huge advantage. The first pitch is often the best pitch you'll see in an at bat because the pitcher is trying to get ahead. A fastball down the middle on the first pitch is a gift \u2014 don't let it go!","Seeing a pitch to get comfortable sounds smart, but you just gave up a meatball down the middle. Sometimes the first pitch IS the best pitch. If you know it's coming, attack it! You don't get that pitch back.","Bunting a pitch right down the middle that you knew was coming wastes a great opportunity. You could have driven it for extra bases. Bunting has its place, but not when you're ambushing a predictable fastball.","Fouling off a pitch on purpose is a waste of a hittable pitch. That fastball down the middle might be the best pitch you see all at bat. Don't play games \u2014 when you get your pitch, swing at it!"],
       rates:[85,30,15,10],concept:"Do your homework! Watch the pitcher from the dugout. If you know a first-pitch fastball is coming, be aggressive and ready to attack.",explSimple:["Yes! If you've done your homework and know the pitcher likes to throw first-pitch fastballs,.","Not the best move. Seeing a pitch to get comfortable sounds smart, but you just gave up.","Not the best move. Bunting a pitch right down the middle that you knew was coming wastes a great opportunity.","Not the best move. Fouling off a pitch on purpose is a waste of a hittable pitch."], anim:"hit"},
     {id:"cn13", conceptTag:"count-leverage",title:"2-0 Sitting Fastball",diff:2,cat:"counts",ageMin:9,ageMax:99,
-      description:"The count is 2-0 after two balls off the plate. The pitcher needs to throw a strike to avoid falling behind 3-0. You're a good hitter having a great game. Your coach gave you the green light to swing. Statistics show pitchers throw fastballs about 70% of the time on 2-0 counts.",
+      description:"You're at the plate and the count is 2-0 after two balls off the plate. The pitcher needs to throw a strike to avoid falling behind 3-0. You're a good hitter having a great game. Your coach gave you the green light to swing. Statistics show pitchers throw fastballs about 70% of the time on 2-0 counts.",
       situation:{inning:"Bot 6",outs:1,count:"2-0",runners:[2],score:[2,2]},
       options:["Look for a fastball in your favorite zone \u2014 if you get it, drive it hard","Swing at any strike \u2014 you need to be aggressive on 2-0","Take the pitch to try to get to 3-0 and a guaranteed fastball","Look for the breaking ball since the pitcher might try to trick you"],
       best:0,explanations:["Perfect approach! At 2-0, you can be selective AND aggressive. Pick one zone (like middle-in or middle-out) and one pitch (fastball). If you get exactly what you're looking for, swing hard. If not, take it \u2014 you're still ahead in the count. This is how smart hitters do damage on 2-0 counts.","Being aggressive is right, but swinging at ANY strike is too loose. At 2-0, you have the luxury of being picky. You don't have to swing at a borderline strike or a pitch in a tough location. Be aggressive only on YOUR pitch.","While taking to 3-0 isn't terrible, you're giving up one of the best hitting counts in baseball. Pitchers throw fastballs 70% of the time at 2-0 because they need a strike. That's a perfect time to sit on one and punish it.","At 2-0, pitchers overwhelmingly throw fastballs because they need to get back in the count. Looking breaking ball on a 2-0 count is overthinking it. Play the percentages \u2014 sit fastball and react."],
-      rates:[85,35,25,15],concept:"A 2-0 count is a great opportunity. Look for a fastball in YOUR zone \u2014 if you get it, swing hard. If not, you're still ahead in the count.",explSimple:["At 2-0, you can be selective AND aggressive.","Being aggressive is right, but swinging at ANY strike is too loose.","While taking to 3-0 isn't terrible, you're giving up one of the best hitting counts in baseball.","At 2-0, pitchers overwhelmingly throw fastballs because they need to get back in the count."],anim:"hit"},
+      rates:[85,45,30,15],concept:"A 2-0 count is a great opportunity. Look for a fastball in YOUR zone \u2014 if you get it, swing hard. If not, you're still ahead in the count.",explSimple:["At 2-0, you can be selective AND aggressive.","Being aggressive is right, but swinging at ANY strike is too loose.","While taking to 3-0 isn't terrible, you're giving up one of the best hitting counts in baseball.","At 2-0, pitchers overwhelmingly throw fastballs because they need to get back in the count."],anim:"hit"},
     {id:"cn14", conceptTag:"count-leverage",title:"Full Count Two Outs",diff:2,cat:"counts",ageMin:9,ageMax:99,
       description:"Full count, 3-2, with two outs. The runners are going on the pitch because any walk or hit puts them in motion. You're at the plate against a tired reliever in the 8th inning. Your team trails by two runs with runners on first and second.",
       situation:{inning:"Bot 8",outs:2,count:"3-2",runners:[1,2],score:[3,5]},
@@ -3593,11 +3593,11 @@ const SCENARIOS = {
       best:0,explanations:["This is called a 'waste pitch' and it's one of pitching's smartest strategies. At 0-2, you can afford to throw a ball. Throw something that LOOKS like a strike but breaks off the plate \u2014 a slider down and away, a fastball up and in, or a curve in the dirt. If the batter chases, great. If not, you're at 1-2 and still in command.","Grooving a fastball right down the middle on 0-2 is a gift to the hitter. You have the count in your favor \u2014 there's no reason to throw a pitch right over the heart of the plate. Make the batter earn it by expanding the zone.","Throwing at a batter is dangerous and unsportsmanlike. You could hurt someone, get ejected, or start a conflict. There are much smarter ways to use an 0-2 count than trying to intimidate with inside pitches at the feet.","Repeating the same pitch that worked for strike two is predictable. Good hitters adjust and are now looking for that pitch. Change speeds, change locations, keep the batter guessing. Pitching is about deception."],
       rates:[85,15,10,30],concept:"At 0-2, use a 'waste pitch' just off the plate. You can afford a ball, and if the batter chases, you get an easy out. Expand the zone!",explSimple:["This is called a 'waste pitch' and it's one of pitching's smartest strategies.","Grooving a fastball right down the middle on 0-2 is a gift to the hitter.","Throwing at a batter is dangerous and unsportsmanlike.","Repeating the same pitch that worked for strike two is predictable."],anim:"strike"},
     {id:"cn16",title:"3-1 Green Light",diff:2,cat:"counts",conceptTag:"count-leverage",ageMin:9,ageMax:99,
-      description:"The count is 3-1 and your coach flashes you the green light \u2014 you're allowed to swing. The pitcher absolutely needs to throw a strike here or walk you. There's a runner on second with one out and your team is tied in the 6th inning. A hit here could put your team ahead.",
+      description:"You're at the plate. The count is 3-1 and your coach flashes you the green light \u2014 you're allowed to swing. The pitcher absolutely needs to throw a strike here or walk you. There's a runner on second with one out and your team is tied in the 6th inning. A hit here could put your team ahead.",
       situation:{inning:"Bot 6",outs:1,count:"3-1",runners:[2],score:[4,4]},
       options:["Look fastball and drive it \u2014 the pitcher needs to throw a strike, so sit on your pitch","Swing at any pitch in the zone \u2014 you got the green light so use it","Take the pitch anyway and try to draw the walk at 3-1","Swing at the first pitch no matter what \u2014 show the pitcher you're aggressive"],
       best:0,explanations:["Smart hitting! At 3-1, the pitcher is almost certainly throwing a fastball because they need a strike. Look for a fastball in your power zone. If you get it, attack it and drive in that runner from second. If it's not your pitch, let it go \u2014 even if it's a strike, you're at 3-2 and still alive.","Having the green light doesn't mean swing at everything. It means you have PERMISSION to swing if you get your pitch. A green light with bad discipline is worse than no green light at all. Stay selective \u2014 look for a pitch you can drive.","Your coach gave you the green light because they trust your bat. Taking the pitch here goes against the coach's strategy. The 3-1 count is one of the best hitting counts in baseball \u2014 use the opportunity!","Swinging at anything regardless of location is reckless. 'Show the pitcher you're aggressive' isn't a strategy. The green light means swing at hittable pitches, not that you should hack at everything blindly."],
-      rates:[85,30,20,10],concept:"A 3-1 green light means look for YOUR pitch and attack it. The pitcher needs a strike, so the fastball is coming \u2014 be ready!",explSimple:["At 3-1, the pitcher is almost certainly throwing a fastball because they need a strike.","Having the green light doesn't mean swing at everything.","Your coach gave you the green light because they trust your bat.","Swinging at anything regardless of location is reckless."],anim:"hit"},
+      rates:[85,40,30,15],concept:"A 3-1 green light means look for YOUR pitch and attack it. The pitcher needs a strike, so the fastball is coming \u2014 be ready!",explSimple:["At 3-1, the pitcher is almost certainly throwing a fastball because they need a strike.","Having the green light doesn't mean swing at everything.","Your coach gave you the green light because they trust your bat.","Swinging at anything regardless of location is reckless."],anim:"hit"},
     {id:"cn17", conceptTag:"count-leverage",title:"1-1 Neutral Count",diff:1,cat:"counts",ageMin:6,ageMax:99,
       description:"The count is 1-1 \u2014 perfectly even. One ball, one strike. Neither the pitcher nor the batter has an advantage. The pitcher can throw anything here: fastball, curve, changeup, slider. You need to be ready. What's the best mindset at a 1-1 count?",
       situation:{inning:"Top 2",outs:0,count:"1-1",runners:[],score:[0,0]},
@@ -4240,6 +4240,8 @@ const STRIPE_MONTHLY_URL = "https://buy.stripe.com/4gM00ifyYbLI67way56kg00";
 const STRIPE_YEARLY_URL = "https://buy.stripe.com/4gM7sKgD2g1YbrQ9u16kg01";
 const WORKER_BASE = "https://bsm-ai-proxy.blafleur.workers.dev";
 const AI_PROXY_URL = WORKER_BASE + "/v1/chat/completions";
+const LLM_70B_URL = WORKER_BASE + "/api/llm-70b";
+const LLM_70B_ENRICH_URL = WORKER_BASE + "/api/llm-70b/enrich";
 
 // Sprint C3: Shareable player card generator
 function generatePlayerCard(stats,callback){
@@ -4581,7 +4583,7 @@ const STADIUM_MILESTONES=[
   {games:200,label:"Fireworks",desc:"Fireworks on perfect answers!",icon:"🎆"},
   {games:330,label:"Legend Stadium",desc:"Golden border + Legend title!",icon:"👑"},
 ];
-const DEFAULT = {pts:0,str:0,bs:0,gp:0,co:0,ps:{},achs:[],cl:[],ds:0,lastDay:null,todayPlayed:0,todayDate:null,sp:0,isPro:false,onboarded:false,soundOn:true,recentWrong:[],dailyDone:false,dailyDate:null,weeklyDone:null,streakFreezes:0,survivalBest:0,ageGroup:"11-12",displayName:"",teamCode:"",teamName:"",seasonGame:0,seasonCorrect:0,seasonComplete:false,fieldTheme:"default",avatarJersey:0,avatarCap:0,avatarBat:0,season:1,proPlan:null,proPurchaseDate:null,proExpiry:null,lastStreakFreezeDate:null,wrongCounts:{},posGrad:{},funnel:[],hist:{},posPlayed:{},firstPlayDate:null,lastPlayDate:null,sessionCount:0,tutorialDone:false,promoCode:null,promoActivatedDate:null,masteryShown:[],masteryData:{concepts:{},errorPatterns:{},sessionHistory:[]},qualitySignals:{},flaggedScenarios:{},explanationLog:{},gapDetectionCache:null,lastWrongConceptTag:null,aiHistory:[],aiMetrics:{correct:0,total:0,flagged:0,scores:[]},hcMetrics:{correct:0,total:0,flagged:0},activePath:null,sitMastery:{},dailySitDone:false,dailySitDate:null,dailySitStreak:0,dailySitBestStreak:0,lastDailySitDate:null,aiSitCount:0};
+const DEFAULT = {pts:0,str:0,bs:0,gp:0,co:0,ps:{},achs:[],cl:[],ds:0,lastDay:null,todayPlayed:0,todayDate:null,sp:0,isPro:false,onboarded:false,soundOn:true,recentWrong:[],dailyDone:false,dailyDate:null,weeklyDone:null,streakFreezes:0,survivalBest:0,ageGroup:"11-12",displayName:"",teamCode:"",teamName:"",seasonGame:0,seasonCorrect:0,seasonComplete:false,fieldTheme:"default",avatarJersey:0,avatarCap:0,avatarBat:0,season:1,proPlan:null,proPurchaseDate:null,proExpiry:null,lastStreakFreezeDate:null,wrongCounts:{},posGrad:{},funnel:[],hist:{},posPlayed:{},firstPlayDate:null,lastPlayDate:null,sessionCount:0,tutorialDone:false,promoCode:null,promoActivatedDate:null,masteryShown:[],masteryData:{concepts:{},errorPatterns:{},sessionHistory:[]},qualitySignals:{},flaggedScenarios:{},explanationLog:{},gapDetectionCache:null,lastWrongConceptTag:null,aiHistory:[],aiMetrics:{correct:0,total:0,flagged:0,scores:[]},hcMetrics:{correct:0,total:0,flagged:0},activePath:null,sitMastery:{},dailySitDone:false,dailySitDate:null,dailySitStreak:0,dailySitBestStreak:0,lastDailySitDate:null,aiSitCount:0,useLLM70B:false};
 
 // Streak flame visual — grows with daily streak length
 function getFlame(ds){
@@ -9592,8 +9594,13 @@ async function generateWithMultiAgent(position, stats, signal, targetConcept = n
     // Send position rules from client (RAG will also retrieve server-side)
     const principles = KNOWLEDGE_BASE.getPrinciplesForPosition(position)
 
+    // 70B flag: route through fine-tuned model when enabled
+    const use70B = stats?.useLLM70B === true
+    const endpoint = use70B ? LLM_70B_URL : WORKER_BASE + "/v1/multi-agent"
+    if (use70B) console.log("[BSM] Using fine-tuned 70B model")
+
     const res = await Promise.race([
-      fetch(WORKER_BASE + "/v1/multi-agent", {
+      fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -10314,9 +10321,10 @@ COMMON MISTAKES TO AVOID:
       return { error: signal?.aborted ? "aborted" : "timeout" }
     }
     const stdTimeout = Math.min(85000, stdBudget) // cap to remaining budget; worker timeout is 90s
-    console.log("[BSM] Standard pipeline budget:", Math.round(stdBudget / 1000) + "s, timeout:", Math.round(stdTimeout / 1000) + "s")
+    const stdUrl = stats?.useLLM70B ? LLM_70B_URL : AI_PROXY_URL
+    console.log("[BSM] Standard pipeline budget:", Math.round(stdBudget / 1000) + "s, timeout:", Math.round(stdTimeout / 1000) + "s", stats?.useLLM70B ? "(70B)" : "(xAI)")
     const response = await Promise.race([
-      fetch(AI_PROXY_URL, fetchOpts),
+      fetch(stdUrl, fetchOpts),
       new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), stdTimeout))
     ]);
     const _aiFetchMs = Date.now() - _aiT0
@@ -12235,6 +12243,8 @@ export default function App(){
   const[showProgression,setShowProgression]=useState(false);
   const[explainMore,setExplainMore]=useState(null); // string result from AI
   const[explainLoading,setExplainLoading]=useState(false);
+  const[deepAnalysis,setDeepAnalysis]=useState(null); // 70B deep RE24/situational analysis
+  const[deepAnalysisLoading,setDeepAnalysisLoading]=useState(false);
   const[aiMode,setAiMode]=useState(false); // true when playing AI-generated scenario
   const[wrongStreak,setWrongStreak]=useState(0); // consecutive wrong answers (reset on correct or position change)
   const[explDepthLayer,setExplDepthLayer]=useState(0); // 0=simple, 1=why, 2=data (progressive explanation depth)
@@ -13464,7 +13474,7 @@ export default function App(){
     }
     sessionConceptsRef.current=[] // Sprint 3.1: reset session concept diversity tracker
     cancelPrefetch() // BUG 5: cancel in-flight prefetches on navigate away
-    setScreen("home");setPos(null);setSc(null);setChoice(null);setOd(null);setFo(null);setPanel(null);setLvlUp(null);setCoachMsg(null);setDailyMode(false);setSpeedMode(false);setSpeedRound(null);setSurvivalMode(false);setSurvivalRun(null);setRealGameMode(false);setRealGame(null);setChallengeMode(false);setChallengePack(null);setSeasonMode(false);setSeasonStageIntro(null);setAiMode(false);setAiFallback(false);setExplainMore(null);setExplainLoading(false);setSitMode(false);setSitSet(null);setSitQ(0);setSitResults([]);setSitTransition(null);setFilmStep(-1);if(filmTimerRef.current){clearTimeout(filmTimerRef.current);filmTimerRef.current=null}setAiSitLoading(false);if(aiSitAbortRef.current){aiSitAbortRef.current.abort();aiSitAbortRef.current=null}if(timerRef.current)clearTimeout(timerRef.current)
+    setScreen("home");setPos(null);setSc(null);setChoice(null);setOd(null);setFo(null);setPanel(null);setLvlUp(null);setCoachMsg(null);setDailyMode(false);setSpeedMode(false);setSpeedRound(null);setSurvivalMode(false);setSurvivalRun(null);setRealGameMode(false);setRealGame(null);setChallengeMode(false);setChallengePack(null);setSeasonMode(false);setSeasonStageIntro(null);setAiMode(false);setAiFallback(false);setExplainMore(null);setExplainLoading(false);setDeepAnalysis(null);setDeepAnalysisLoading(false);setSitMode(false);setSitSet(null);setSitQ(0);setSitResults([]);setSitTransition(null);setFilmStep(-1);if(filmTimerRef.current){clearTimeout(filmTimerRef.current);filmTimerRef.current=null}setAiSitLoading(false);if(aiSitAbortRef.current){aiSitAbortRef.current.abort();aiSitAbortRef.current=null}if(timerRef.current)clearTimeout(timerRef.current)
   },[speedMode,survivalMode,seasonMode,realGameMode,dailyMode,sitMode,screen]);
   goHomeRef.current=goHome;
   const launchSitQuestion=useCallback((set,qIdx)=>{
@@ -13489,7 +13499,7 @@ export default function App(){
       });
       outcomeStartRef.current=0;
     }
-    setLvlUp(null);setExplainMore(null);setExplainLoading(false);setFlagOpen(false);setFlagComment("");if(speedMode){speedNextRef.current?.()}else if(survivalMode){survivalNextRef.current?.()}else if(realGameMode){realGameNextRef.current?.()}else if(seasonMode){seasonNextRef.current?.()}else if(challengePack&&challengePack.done){setScreen("play")/* shows challenge results overlay */}else if(sitMode&&sitSet){const nq=sitQ+1;if(nq<sitSet.questions.length){const nxQ=sitSet.questions[nq];const pm=POS_META[nxQ.pos];setSitTransition({qIdx:nq,pos:nxQ.pos,label:pm?.label||nxQ.pos,emoji:pm?.emoji||"⚾",color:pm?.color||"#3b82f6",total:sitSet.questions.length});setTimeout(()=>{setSitTransition(null);launchSitQuestion(sitSet,nq);setSitQ(nq)},1500)}else{setFilmStep(-1);setScreen("sitResults")}}else if(dailyMode){goHomeRef.current?.()}else if(atLimit){setScreen("home");setTimeout(()=>setPanel('limit'),100)}else{startGame(pos,aiMode)}},[pos,startGame,dailyMode,speedMode,survivalMode,realGameMode,seasonMode,challengePack,sitMode,sitSet,sitQ,atLimit,aiMode,sc,explainMore,launchSitQuestion]);
+    setLvlUp(null);setExplainMore(null);setExplainLoading(false);setDeepAnalysis(null);setDeepAnalysisLoading(false);setFlagOpen(false);setFlagComment("");if(speedMode){speedNextRef.current?.()}else if(survivalMode){survivalNextRef.current?.()}else if(realGameMode){realGameNextRef.current?.()}else if(seasonMode){seasonNextRef.current?.()}else if(challengePack&&challengePack.done){setScreen("play")/* shows challenge results overlay */}else if(sitMode&&sitSet){const nq=sitQ+1;if(nq<sitSet.questions.length){const nxQ=sitSet.questions[nq];const pm=POS_META[nxQ.pos];setSitTransition({qIdx:nq,pos:nxQ.pos,label:pm?.label||nxQ.pos,emoji:pm?.emoji||"⚾",color:pm?.color||"#3b82f6",total:sitSet.questions.length});setTimeout(()=>{setSitTransition(null);launchSitQuestion(sitSet,nq);setSitQ(nq)},1500)}else{setFilmStep(-1);setScreen("sitResults")}}else if(dailyMode){goHomeRef.current?.()}else if(atLimit){setScreen("home");setTimeout(()=>setPanel('limit'),100)}else{startGame(pos,aiMode)}},[pos,startGame,dailyMode,speedMode,survivalMode,realGameMode,seasonMode,challengePack,sitMode,sitSet,sitQ,atLimit,aiMode,sc,explainMore,launchSitQuestion]);
   const finishOnboard=useCallback(()=>{setStats(p=>({...p,onboarded:true,todayDate:new Date().toDateString()}));setScreen("home");trackAnalyticsEvent("onboard_complete",null,{ageGroup:stats.ageGroup,isPro:stats.isPro})},[stats.ageGroup,stats.isPro]);
 
   // Auth: signup
@@ -14392,6 +14402,23 @@ export default function App(){
               )})}
             </div>
             <div style={{textAlign:"center",marginTop:8,fontSize:9,color:"#6b7280"}}>{stats.isPro?"All themes unlocked!":"3 free themes. Earn more through milestones or go Pro!"}</div>
+
+            {/* 70B Model Toggle — Pro Lab */}
+            {stats.isPro&&<div style={{marginTop:12}}>
+              <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:14,color:"#3b82f6",letterSpacing:1,marginBottom:6}}>PRO LAB</div>
+              <div style={{background:"rgba(59,130,246,.06)",border:"1px solid rgba(59,130,246,.12)",borderRadius:10,padding:10}}>
+                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+                  <div>
+                    <div style={{fontSize:11,fontWeight:700,color:"white"}}>BSM 70B Model</div>
+                    <div style={{fontSize:9,color:"#6b7280",marginTop:2}}>Fine-tuned baseball brain — deeper analysis & better scenarios</div>
+                  </div>
+                  <button onClick={()=>{setStats(p=>({...p,useLLM70B:!p.useLLM70B}));snd.play('tap')}} style={{width:44,height:24,borderRadius:12,background:stats.useLLM70B?"#3b82f6":"rgba(255,255,255,.1)",border:"none",cursor:"pointer",position:"relative",transition:"background .2s"}}>
+                    <div style={{width:18,height:18,borderRadius:9,background:"white",position:"absolute",top:3,left:stats.useLLM70B?23:3,transition:"left .2s",boxShadow:"0 1px 3px rgba(0,0,0,.3)"}}/>
+                  </button>
+                </div>
+                {stats.useLLM70B&&<div style={{fontSize:9,color:"#3b82f6",marginTop:6,fontWeight:600}}>Active — using fine-tuned model for generation + enrichment</div>}
+              </div>
+            </div>}
           </div>}
 
           {/* Speed Round Position Picker */}
@@ -15198,11 +15225,16 @@ export default function App(){
               setExplainLoading(true);
               try{
                 const _ec=new AbortController();const _et=setTimeout(()=>_ec.abort(),45000);
+                if(stats.useLLM70B){
+                  const res=await fetch(LLM_70B_ENRICH_URL,{method:"POST",headers:{"Content-Type":"application/json"},signal:_ec.signal,body:JSON.stringify({scenario:sc,choiceIdx:choice,situation:sc.situation,position:pos,playerAge:stats.ageGroup})});
+                  clearTimeout(_et);if(!res.ok)throw new Error("API "+res.status);
+                  const d=await res.json();setExplainMore(d.enrichment||d.choices?.[0]?.message?.content||"Couldn't load explanation. Try again later!");
+                }else{
                 const res=await fetch(AI_PROXY_URL,{method:"POST",headers:{"Content-Type":"application/json"},signal:_ec.signal,body:JSON.stringify({model:"grok-4",messages:[{role:"system",content:"You are a baseball coach explaining concepts to young players (ages 8-18). Keep it clear, engaging, and under 100 words. Use specific examples."},{role:"user",content:`Explain this baseball concept in more depth: "${od.concept}". The player ${od.isOpt?"got this right":"got this wrong"} in a ${POS_META[pos]?.label||pos} scenario. Give a deeper explanation with a real-game example.`}],max_tokens:200,temperature:0.5})});
                 clearTimeout(_et);
                 if(!res.ok)throw new Error("API "+res.status);
                 const d=await res.json();
-                setExplainMore(d.choices?.[0]?.message?.content||"Couldn't load explanation. Try again later!");
+                setExplainMore(d.choices?.[0]?.message?.content||"Couldn't load explanation. Try again later!");};
               }catch{setExplainMore("Couldn't load explanation. Check your connection and try again.")}
               setExplainLoading(false);
             }} style={{background:"rgba(168,85,247,.06)",border:"1px solid rgba(168,85,247,.15)",borderRadius:8,padding:"6px 14px",color:"#a855f7",fontSize:11,fontWeight:600,cursor:"pointer"}}>🔍 Explain More</button>}
@@ -15230,6 +15262,16 @@ export default function App(){
               </div>
             </div>);
           })()}
+
+          {/* 70B Deep Analysis — deeper RE24/situational reasoning when 70B is enabled */}
+          {showC&&stats.useLLM70B&&stats.ageGroup!=="6-8"&&stats.ageGroup!=="9-10"&&<div style={{marginTop:8}}>
+            {deepAnalysisLoading&&<div style={{textAlign:"center",fontSize:11,color:"#a855f7"}}>Loading deep analysis...</div>}
+            {!deepAnalysis&&!deepAnalysisLoading&&<button onClick={()=>{setDeepAnalysisLoading(true);fetch(LLM_70B_ENRICH_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({scenario:sc,choiceIdx:choice,situation:sc.situation,position:pos,playerAge:stats.ageGroup})}).then(r=>r.json()).then(d=>{setDeepAnalysis(d.enrichment||null);setDeepAnalysisLoading(false)}).catch(()=>setDeepAnalysisLoading(false))}} style={{background:"rgba(59,130,246,.06)",border:"1px solid rgba(59,130,246,.15)",borderRadius:8,padding:"6px 14px",color:"#3b82f6",fontSize:11,fontWeight:600,cursor:"pointer",width:"100%"}}>🧠 70B Deep Analysis</button>}
+            {deepAnalysis&&<div style={{background:"linear-gradient(135deg,rgba(59,130,246,.04),rgba(168,85,247,.04))",border:"1px solid rgba(59,130,246,.12)",borderRadius:12,padding:12}}>
+              <div style={{fontSize:9,color:"#3b82f6",textTransform:"uppercase",letterSpacing:1,fontWeight:700,marginBottom:6,textAlign:"center"}}>70B Deep Analysis</div>
+              <p style={{fontSize:12,color:"#d1d5db",lineHeight:1.5,margin:0}}>{deepAnalysis}</p>
+            </div>}
+          </div>}
 
           {sc?.isAI&&stats.ageGroup!=="6-8"&&stats.ageGroup!=="9-10"&&(()=>{
             const sid=sc.id||sc._aiId;

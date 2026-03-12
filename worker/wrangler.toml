@@ -5,6 +5,11 @@ compatibility_date = "2024-01-01"
 # Secrets (never in this file):
 #   npx wrangler secret put XAI_API_KEY     — xAI API key for AI scenarios
 #   npx wrangler secret put RESEND_API_KEY  — Resend email service key
+#
+# Fine-tuned 70B model (set these when 70B is deployed):
+#   npx wrangler secret put LLM_70B_URL     — OpenAI-compatible inference URL (vLLM/Together/Fireworks/RunPod)
+#   npx wrangler secret put LLM_70B_API_KEY — API key for inference provider
+#   npx wrangler secret put LLM_70B_MODEL   — Model name (default: "bsm-70b")
 
 # Deploy:
 #   cd worker && npx wrangler deploy

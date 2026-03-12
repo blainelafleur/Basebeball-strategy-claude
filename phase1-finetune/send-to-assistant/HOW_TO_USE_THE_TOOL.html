@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rating Tool — How to Use</title>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 800px; margin: 0 auto; padding: 30px 20px; color: #1a1a1a; line-height: 1.6; }
+  h1 { color: #1a472a; border-bottom: 3px solid #1a472a; padding-bottom: 10px; }
+  h2 { color: #1a472a; margin-top: 32px; border-bottom: 1px solid #ddd; padding-bottom: 6px; }
+  h3 { color: #2d6a3e; margin-top: 20px; }
+  .step { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin: 12px 0; }
+  .step-num { display: inline-block; background: #1a472a; color: white; width: 28px; height: 28px; border-radius: 50%; text-align: center; line-height: 28px; font-weight: bold; font-size: 0.85rem; margin-right: 8px; }
+  .callout { background: #f0fdf4; border-left: 4px solid #22c55e; padding: 12px 16px; margin: 16px 0; border-radius: 0 8px 8px 0; }
+  .warning { background: #fef3c7; border-left: 4px solid #f59e0b; padding: 12px 16px; margin: 16px 0; border-radius: 0 8px 8px 0; }
+  code { background: #f3f4f6; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+  .kbd { display: inline-block; background: #e5e7eb; border: 1px solid #d1d5db; border-radius: 4px; padding: 2px 8px; font-family: monospace; font-size: 0.85em; }
+  @media print { body { font-size: 11pt; } }
+</style>
+</head>
+<body>
+
+<h1>Rating Tool — How to Use</h1>
+
+<h2>Setup (One Time, 2 Minutes)</h2>
+
+<div class="step">
+<p><span class="step-num">1</span> Save all the files you received to the <strong>same folder</strong> on your computer (e.g., a folder on your Desktop called "BSM Rating")</p>
+</div>
+
+<div class="step">
+<p><span class="step-num">2</span> Double-click <code>rating-tool.html</code> to open it in your web browser</p>
+<ul>
+  <li>Works in Chrome, Safari, Firefox, or Edge</li>
+  <li>No internet needed — everything runs locally</li>
+  <li>No account or login required</li>
+</ul>
+</div>
+
+<h2>Loading Scenarios</h2>
+
+<div class="step">
+<p><span class="step-num">3</span> Click <strong>"Choose File"</strong> in the top-left of the tool</p>
+</div>
+
+<div class="step">
+<p><span class="step-num">4</span> Select your JSON file</p>
+<ul>
+  <li>Start with <code>SAMPLE_RATING_BATCH.json</code> to practice</li>
+  <li>After practice, load your assigned batch file</li>
+</ul>
+</div>
+
+<p>You'll see the first scenario appear with all its details.</p>
+
+<h2>Rating a Scenario (5 Steps)</h2>
+
+<div class="step">
+<p><span class="step-num">A</span> <strong>Read everything</strong> — the game situation, all 4 options (green = best), and all 4 explanations</p>
+</div>
+
+<div class="step">
+<p><span class="step-num">B</span> <strong>Rate the 5 dimensions</strong> — scroll down to "Coach Rating (1-10)" and click a number for each:</p>
+<ol>
+  <li>Factual Accuracy</li>
+  <li>Explanation Strength</li>
+  <li>Age-Appropriateness</li>
+  <li>Educational Value</li>
+  <li>Variety & Engagement</li>
+</ol>
+<p>The number turns <strong>gold</strong> when selected.</p>
+</div>
+
+<div class="step">
+<p><span class="step-num">C</span> <strong>Pick the strongest explanation</strong> — click which of the 4 explanations teaches the best</p>
+</div>
+
+<div class="step">
+<p><span class="step-num">D</span> <strong>Add comments</strong> (optional) — type any notes or flag errors</p>
+</div>
+
+<div class="step">
+<p><span class="step-num">E</span> <strong>Click "Submit & Next"</strong> (green button, bottom right)</p>
+<p>You must rate all 5 dimensions first or you'll get an error message.</p>
+</div>
+
+<h2>Helpful Tips</h2>
+
+<h3>Keyboard Shortcuts</h3>
+<ul>
+  <li><span class="kbd">&larr;</span> <span class="kbd">&rarr;</span> Arrow keys — move between scenarios</li>
+  <li><span class="kbd">Cmd</span>+<span class="kbd">Enter</span> (Mac) — quick submit</li>
+</ul>
+
+<h3>Filters (top bar)</h3>
+<ul>
+  <li><strong>"Unrated"</strong> — shows only scenarios you haven't rated yet</li>
+  <li><strong>Position buttons</strong> — filter by baseball position</li>
+  <li><strong>"Skip"</strong> button — skip a scenario and come back later</li>
+</ul>
+
+<div class="callout">
+<strong>Your progress is saved automatically!</strong> You can close the browser tab and reopen <code>rating-tool.html</code> later. It will ask if you want to resume where you left off.
+</div>
+
+<h2>Exporting Your Ratings</h2>
+
+<div class="step">
+<p><span class="step-num">1</span> Click <strong>"Export Rated"</strong> (green button in the top bar)</p>
+</div>
+
+<div class="step">
+<p><span class="step-num">2</span> A file called <code>coach-ratings-YYYY-MM-DD.json</code> downloads automatically</p>
+</div>
+
+<div class="step">
+<p><span class="step-num">3</span> <strong>Send this file back to Blaine</strong> (email, Slack, or however you communicate)</p>
+</div>
+
+<p>That's it! The exported file contains all your ratings.</p>
+
+<h2>Troubleshooting</h2>
+
+<div class="warning">
+<p><strong>"Please rate all 5 dimensions before submitting"</strong><br>
+Scroll up and make sure you clicked a number (1-10) for ALL 5 rating rows.</p>
+</div>
+
+<div class="warning">
+<p><strong>Tool shows "0 Rated" after reopening</strong><br>
+You may have cleared your browser cache. Load the JSON file again. Your exported file is always the source of truth.</p>
+</div>
+
+<div class="warning">
+<p><strong>Can't find the rating boxes</strong><br>
+They're below the 4 options and explanations. Scroll down past the "Concept:" tag.</p>
+</div>
+
+<div class="warning">
+<p><strong>File won't load</strong><br>
+Make sure you're selecting a <code>.json</code> file, not the <code>.html</code> file.</p>
+</div>
+
+</body>
+</html>

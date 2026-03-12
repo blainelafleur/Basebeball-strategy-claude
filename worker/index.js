@@ -17,6 +17,11 @@ const ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages";
 const MULTI_AGENT_TIMEOUT = 120000; // 120s total pipeline budget
 const STAGE_TIMEOUT = 50000; // 50s per stage max
 
+// Fine-tuned 70B model (drop-in ready — set LLM_70B_* secrets when deployed)
+// Supports any OpenAI-compatible API (vLLM, Together, Fireworks, RunPod, etc.)
+const LLM_70B_TIMEOUT = 90000; // 90s timeout for 70B inference
+const LLM_70B_DEFAULT_MAX_TOKENS = 2000;
+
 const RATE_LIMIT_AI = 10; // AI proxy: req/min/IP
 const RATE_LIMIT_AUTH = 20; // auth endpoints: req/min/IP
 const RATE_LIMIT_SYNC = 30; // sync: req/min/user
@@ -3210,23 +3215,50 @@ async function callClaude(system, userMessage, env, maxTokens = 1500, timeoutMs 
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   const t0 = Date.now();
   try {
-    const res = await fetch(ANTHROPIC_API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": env.ANTHROPIC_API_KEY,
-        "anthropic-version": "2023-06-01"
-      },
-      body: JSON.stringify({
-        model: ANTHROPIC_MODEL,
-        max_tokens: maxTokens,
-        system,
-        messages: [{ role: "user", content: userMessage }]
-      }),
-      signal: controller.signal
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error?.message || `Claude API ${res.status}`);
+    const makeRequest = async () => {
+      const res = await fetch(ANTHROPIC_API_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": env.ANTHROPIC_API_KEY,
+          "anthropic-version": "2023-06-01"
+        },
+        body: JSON.stringify({
+          model: ANTHROPIC_MODEL,
+          max_tokens: maxTokens,
+          system,
+          messages: [{ role: "user", content: userMessage }]
+        }),
+        signal: controller.signal
+      });
+      const data = await res.json();
+      if (res.status === 429) {
+        // Rate limited — wait and retry once
+        const retryAfter = parseInt(res.headers.get("retry-after") || "15") * 1000;
+        await new Promise(r => setTimeout(r, Math.min(retryAfter, 30000)));
+        const res2 = await fetch(ANTHROPIC_API_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-api-key": env.ANTHROPIC_API_KEY,
+            "anthropic-version": "2023-06-01"
+          },
+          body: JSON.stringify({
+            model: ANTHROPIC_MODEL,
+            max_tokens: maxTokens,
+            system,
+            messages: [{ role: "user", content: userMessage }]
+          }),
+          signal: controller.signal
+        });
+        const data2 = await res2.json();
+        if (!res2.ok) throw new Error(data2.error?.message || `Claude API ${res2.status} (after retry)`);
+        return data2;
+      }
+      if (!res.ok) throw new Error(data.error?.message || `Claude API ${res.status}`);
+      return data;
+    };
+    const data = await makeRequest();
     const text = data.content?.[0]?.text || "";
     return { text, usage: data.usage || {}, elapsed: Date.now() - t0 };
   } finally {
@@ -3634,6 +3666,139 @@ Output the corrected scenario as valid JSON.`;
       stages
     }, 500, cors);
   }
+}
+
+// --- Fine-tuned 70B model proxy (drop-in replacement for xAI/Claude) ---
+
+async function handleLLM70B(request, env, cors) {
+  // Requires LLM_70B_URL and LLM_70B_API_KEY secrets
+  if (!env.LLM_70B_URL) {
+    // 70B not deployed yet — fall back to current pipeline
+    return null;
+  }
+  const body = await request.json();
+  // Override model to use our fine-tuned 70B
+  const llmBody = {
+    ...body,
+    model: env.LLM_70B_MODEL || "bsm-70b",
+    max_tokens: body.max_tokens || LLM_70B_DEFAULT_MAX_TOKENS,
+  };
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), LLM_70B_TIMEOUT);
+  try {
+    const t0 = Date.now();
+    const headers = { "Content-Type": "application/json" };
+    if (env.LLM_70B_API_KEY) headers["Authorization"] = `Bearer ${env.LLM_70B_API_KEY}`;
+    const res = await fetch(env.LLM_70B_URL, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(llmBody),
+      signal: controller.signal,
+    });
+    clearTimeout(timeout);
+    const elapsed = Date.now() - t0;
+    if (!res.ok) {
+      const errBody = await res.text();
+      console.error(`[BSM Worker] 70B error ${res.status} (${elapsed}ms):`, errBody.slice(0, 500));
+      return jsonResponse({
+        error: { message: `70B model error: ${res.status}`, type: "llm_70b_error", status: res.status, detail: errBody.slice(0, 300) },
+        _fallback: true
+      }, res.status, { ...cors, "X-LLM70B-Elapsed": String(elapsed) });
+    }
+    console.log(`[BSM Worker] 70B responded ${res.status} in ${elapsed}ms`);
+    const data = await res.json();
+    return jsonResponse({
+      ...data,
+      _model: "bsm-70b",
+      _elapsed: elapsed,
+    }, 200, { ...cors, "X-LLM70B-Elapsed": String(elapsed), "X-LLM70B-Model": env.LLM_70B_MODEL || "bsm-70b" });
+  } catch (e) {
+    clearTimeout(timeout);
+    if (e.name === "AbortError") {
+      console.error("[BSM Worker] 70B timeout after", LLM_70B_TIMEOUT, "ms");
+      return jsonResponse({ error: { message: "70B model timeout", type: "timeout" }, _fallback: true }, 504, cors);
+    }
+    console.error("[BSM Worker] 70B fetch error:", e.message);
+    return jsonResponse({ error: { message: e.message, type: "fetch_error" }, _fallback: true }, 502, cors);
+  }
+}
+
+// POST /api/llm-70b — fine-tuned model endpoint with automatic fallback
+async function handleLLM70BRoute(request, env, cors) {
+  // Try 70B first
+  const result = await handleLLM70B(request.clone(), env, cors);
+  if (result && !result.headers?.get?.("X-LLM70B-Elapsed")?.includes?.("error")) {
+    // Check if response body indicates fallback needed
+    const body = await result.clone().json().catch(() => ({}));
+    if (!body._fallback) return result;
+  }
+  // Fallback to multi-agent pipeline (Claude Opus + RAG)
+  console.log("[BSM Worker] 70B unavailable/failed, falling back to multi-agent pipeline");
+  try {
+    const fallbackRes = await handleMultiAgent(request.clone(), env, cors);
+    return fallbackRes;
+  } catch (e) {
+    console.warn("[BSM Worker] Multi-agent fallback also failed:", e.message);
+    // Last resort: xAI proxy
+    return await handleAIProxy(request, env, cors);
+  }
+}
+
+// POST /api/llm-70b/enrich — deeper RE24/situational reasoning from 70B
+async function handleLLM70BEnrich(request, env, cors) {
+  const body = await request.json();
+  const { scenario, choiceIdx, situation, position, playerAge } = body;
+  if (!scenario || !situation) {
+    return jsonResponse({ error: "Missing scenario or situation" }, 400, cors);
+  }
+  // Build enrichment prompt — ask the 70B for deep RE24/situational analysis
+  const enrichPrompt = {
+    model: env.LLM_70B_MODEL || "bsm-70b",
+    messages: [
+      { role: "system", content: `You are an elite baseball strategy analyst. Given a game situation, provide deep RE24 run expectancy analysis, win probability context, and situational reasoning. Be specific with numbers. Keep it under 150 words. Age-appropriate for ${playerAge || 14} year old.` },
+      { role: "user", content: `Situation: ${JSON.stringify(situation)}\nPosition: ${position}\nScenario: "${scenario.title}"\nPlayer chose option ${choiceIdx}: "${scenario.options?.[choiceIdx] || 'unknown'}"\nCorrect answer was option ${scenario.best}: "${scenario.options?.[scenario.best] || 'unknown'}"\nConcept: ${scenario.concept || 'general'}\n\nProvide deep situational analysis with RE24 values, scoring probabilities, and why the correct choice matters strategically.` }
+    ],
+    max_tokens: 300,
+    temperature: 0.3,
+  };
+  // Try 70B first for domain-specific depth
+  if (env.LLM_70B_URL) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 30000);
+    try {
+      const headers = { "Content-Type": "application/json" };
+      if (env.LLM_70B_API_KEY) headers["Authorization"] = `Bearer ${env.LLM_70B_API_KEY}`;
+      const res = await fetch(env.LLM_70B_URL, {
+        method: "POST", headers, body: JSON.stringify(enrichPrompt), signal: controller.signal,
+      });
+      clearTimeout(timeout);
+      if (res.ok) {
+        const data = await res.json();
+        const content = data.choices?.[0]?.message?.content;
+        if (content) return jsonResponse({ ok: true, enrichment: content, model: "bsm-70b" }, 200, cors);
+      }
+    } catch (e) {
+      clearTimeout(timeout);
+      console.warn("[BSM Worker] 70B enrich failed:", e.message);
+    }
+  }
+  // Fallback to xAI for enrichment
+  if (env.XAI_API_KEY) {
+    try {
+      enrichPrompt.model = "grok-4";
+      const res = await fetch("https://api.x.ai/v1/chat/completions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${env.XAI_API_KEY}` },
+        body: JSON.stringify(enrichPrompt),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const content = data.choices?.[0]?.message?.content;
+        if (content) return jsonResponse({ ok: true, enrichment: content, model: "grok-4-fallback" }, 200, cors);
+      }
+    } catch {}
+  }
+  return jsonResponse({ ok: false, error: "Enrichment unavailable" }, 503, cors);
 }
 
 // --- Router ---
@@ -4133,6 +4298,9 @@ export default {
       }
       if (path === "/flag-scenario") return await handleFlagScenario(request, env, cors);
       if (path === "/feedback-scenario") return await handleFeedbackScenario(request, env, cors);
+      // Fine-tuned 70B model routes (with automatic fallback)
+      if (path === "/api/llm-70b" && request.method === "POST") return await handleLLM70BRoute(request, env, cors);
+      if (path === "/api/llm-70b/enrich" && request.method === "POST") return await handleLLM70BEnrich(request, env, cors);
       if (path === "/v1/multi-agent" && request.method === "POST") return await handleMultiAgent(request, env, cors);
       return await handleAIProxy(request, env, cors);
     } catch (err) {

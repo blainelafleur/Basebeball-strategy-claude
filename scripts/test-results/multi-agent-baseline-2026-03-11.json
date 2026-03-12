@@ -1,0 +1,639 @@
+{
+  "date": "2026-03-11",
+  "totalTests": 49,
+  "successes": 23,
+  "failures": 2,
+  "metrics": {
+    "avgElapsedMs": 50653,
+    "avgCritiqueScore": 9.59,
+    "critiquePassRate": 65,
+    "avgGradeScore": 99.3,
+    "avgTokens": 7774,
+    "avgRagHits": 9,
+    "avgRewrites": 0.6,
+    "perspectiveIssues": 0,
+    "positionViolations": 0
+  },
+  "byPosition": {
+    "centerField": {
+      "count": 2,
+      "critiqueSum": 19.5,
+      "gradeSum": 200,
+      "elapsedSum": 95316
+    },
+    "rightField": {
+      "count": 3,
+      "critiqueSum": 28.67,
+      "gradeSum": 300,
+      "elapsedSum": 151895
+    },
+    "batter": {
+      "count": 3,
+      "critiqueSum": 27,
+      "gradeSum": 300,
+      "elapsedSum": 136119
+    },
+    "baserunner": {
+      "count": 3,
+      "critiqueSum": 29.1,
+      "gradeSum": 295,
+      "elapsedSum": 147274
+    },
+    "manager": {
+      "count": 4,
+      "critiqueSum": 38.17,
+      "gradeSum": 390,
+      "elapsedSum": 256406
+    },
+    "famous": {
+      "count": 2,
+      "critiqueSum": 18.67,
+      "gradeSum": 200,
+      "elapsedSum": 101997
+    },
+    "rules": {
+      "count": 3,
+      "critiqueSum": 29.470000000000002,
+      "gradeSum": 300,
+      "elapsedSum": 111233
+    },
+    "counts": {
+      "count": 3,
+      "critiqueSum": 30,
+      "gradeSum": 300,
+      "elapsedSum": 164789
+    }
+  },
+  "results": [
+    {
+      "position": "centerField",
+      "context": "Intermediate, 64% accuracy, working on gap coverage and angle routes",
+      "success": true,
+      "elapsed": 51020,
+      "title": "Gap Shot with Runner on Third",
+      "critiqueScore": 9.5,
+      "critiquePass": true,
+      "gradeScore": 100,
+      "gradeIssues": [],
+      "tokens": 8892,
+      "rewriteCount": 1,
+      "ragHits": 9,
+      "error": null,
+      "checklistFailures": [],
+      "rubric": {
+        "factualAccuracy": 10,
+        "explanationStrength": 9,
+        "ageAppropriateness": 10,
+        "educationalValue": 9,
+        "varietyDistinctness": 9
+      }
+    },
+    {
+      "position": "centerField",
+      "context": "Advanced, 83% accuracy, mastered of-communication and backup at 2B",
+      "success": true,
+      "elapsed": 44296,
+      "title": "Relay Positioning in Right Field Corner",
+      "critiqueScore": 10,
+      "critiquePass": true,
+      "gradeScore": 100,
+      "gradeIssues": [],
+      "tokens": 4958,
+      "rewriteCount": 0,
+      "ragHits": 9,
+      "error": null,
+      "checklistFailures": [],
+      "rubric": {
+        "factualAccuracy": 10,
+        "explanationStrength": 10,
+        "ageAppropriateness": 10,
+        "educationalValue": 10,
+        "varietyDistinctness": 10
+      }
+    },
+    {
+      "position": "rightField",
+      "context": "Beginner, 52% accuracy, just learning backup-duties at first base",
+      "success": true,
+      "elapsed": 56782,
+      "title": "Backing Up on a Ground Ball",
+      "critiqueScore": 9.17,
+      "critiquePass": false,
+      "gradeScore": 100,
+      "gradeIssues": [],
+      "tokens": 8983,
+      "rewriteCount": 1,
+      "ragHits": 9,
+      "error": null,
+      "checklistFailures": [
+        "item_14: No tempting wrong answer - all incorrect options have rates below 40",
+        "item_15: Description lacks game context - doesn't mention score or game situation significance"
+      ],
+      "rubric": {
+        "factualAccuracy": 10,
+        "explanationStrength": 9,
+        "ageAppropriateness": 10,
+        "educationalValue": 9,
+        "varietyDistinctness": 8
+      }
+    },
+    {
+      "position": "rightField",
+      "context": "Intermediate, 61% accuracy, working on throw decisions (cutoff vs direct)",
+      "success": true,
+      "elapsed": 30013,
+      "title": "Hit the Cutoff or Go for Glory",
+      "critiqueScore": 10,
+      "critiquePass": true,
+      "gradeScore": 100,
+      "gradeIssues": [],
+      "tokens": 4860,
+      "rewriteCount": 0,
+      "ragHits": 9,
+      "error": null,
+      "checklistFailures": [],
+      "rubric": {
+        "factualAccuracy": 10,
+        "explanationStrength": 10,
+        "ageAppropriateness": 10,
+        "educationalValue": 10,
+        "varietyDistinctness": 10
+      }
+    },
+    {
+      "position": "rightField",
+      "context": "Advanced, 80% accuracy, mastered all outfield fundamentals",
+      "success": true,
+      "elapsed": 65100,
+      "title": "Defensive Shift Decision Against Pull Hitter",
+      "critiqueScore": 9.5,
+      "critiquePass": false,
+      "gradeScore": 100,
+      "gradeIssues": [],
+      "tokens": 9042,
+      "rewriteCount": 1,
+      "ragHits": 9,
+      "error": null,
+      "checklistFailures": [
+        "item_13: Rates sum to 190 which is within range, but this is not the issue - the rates are 45+25+35+85=190"
+      ],
+      "rubric": {
+        "factualAccuracy": 10,
+        "explanationStrength": 9,
+        "ageAppropriateness": 9,
+        "educationalValue": 10,
+        "varietyDistinctness": 10
+      }
+    },
+    {
+      "position": "batter",
+      "context": "Beginner, 40% accuracy, learning count-leverage basics",
+      "success": true,
+      "elapsed": 26063,
+      "title": "Protecting the Plate Down by One",
+      "critiqueScore": 9.5,
+      "critiquePass": true,
+      "gradeScore": 100,
+      "gradeIssues": [],
+      "tokens": 4854,
+      "rewriteCount": 0,
+      "ragHits": 9,
+      "error": null,
+      "checklistFailures": [],
+      "rubric": {
+        "factualAccuracy": 10,
+        "explanationStrength": 9,
+        "ageAppropriateness": 10,
+        "educationalValue": 9,
+        "varietyDistinctness": 10
+      }
+    },
+    {
+      "position": "batter",
+      "context": "Intermediate, 58% accuracy, working on two-strike-approach",
+      "success": true,
+      "elapsed": 29844,
+      "title": "Two Strikes, Tying Run at Third",
+      "critiqueScore": 9.67,
+      "critiquePass": true,
+      "gradeScore": 100,
+      "gradeIssues": [],
+      "tokens": 5016,
+      "rewriteCount": 0,
+      "ragHits": 9,
+      "error": null,
+      "checklistFailures": [],
+      "rubric": {
+        "factualAccuracy": 10,
+        "explanationStrength": 9,
+        "ageAppropriateness": 10,
+        "educationalValue": 10,
+        "varietyDistinctness": 10
+      }
+    },
+    {
+      "position": "batter",
+      "context": "Advanced, 75% accuracy, mastered situational-hitting, learning squeeze-recognition",
+      "success": false,
+      "elapsed": 46259,
+      "error": "HTTP 502",
+      "checklistFailures": [],
+      "rubric": {}
+    },
+    {
+      "position": "batter",
+      "context": "Expert, 85% accuracy, working on win-probability vs RE24 decisions",
+      "success": true,
+      "elapsed": 80212,
+      "title": "Win Probability vs Run Expectancy in the 9th",
+      "critiqueScore": 7.83,
+      "critiquePass": false,
+      "gradeScore": 100,
+      "gradeIssues": [],
+      "tokens": 10381,
+      "rewriteCount": 1,
+      "ragHits": 9,
+      "error": null,
+      "checklistFailures": [
+        "item_11: Difficulty 3 uses advanced analytics terms (RE24, WPA) not appropriate for younger players",
+        "item_20: Language too advanced - 'win probability', 'run expectancy', 'RE24', 'WPA' are not age-appropriate for the intended 6-18 audience"
+      ],
+      "rubric": {
+        "factualAccuracy": 10,
+        "explanationStrength": 9,
+        "ageAppropriateness": 4,
+        "educationalValue": 7,
+        "varietyDistinctness": 10
+      }
+    },
+    {
+      "position": "baserunner",
+      "context": "Beginner, 44% accuracy, learning tag-up basics",
+      "success": false,
+      "elapsed": 8480,
+      "error": "Overloaded",
+      "checklistFailures": [],
+      "rubric": {}
+    },
+    {
+      "position": "baserunner",
+      "context": "Intermediate, 60% accuracy, working on steal-breakeven and secondary-lead",
+      "success": true,
+      "elapsed": 56011,
+      "title": "Perfect Your Secondary Lead",
+      "critiqueScore": 10,
+      "critiquePass": true,
+      "gradeScore": 95,
+      "gradeIssues": [
+        "no tempting wrong answer (40-65)"
+      ],
+      "tokens": 9242,
+      "rewriteCount": 1,
+      "ragHits": 9,
+      "error": null,
+      "checklistFailures": [],
+      "rubric": {
+        "factualAccuracy": 10,
+        "explanationStrength": 10,
+        "ageAppropriateness": 10,
+        "educationalValue": 10,
+        "varietyDistinctness": 10
+      }
+    },
+    {
+      "position": "baserunner",
+      "context": "Advanced, 78% accuracy, mastered tag-up, learning steal-window and first-to-third reads",
+      "success": true,
+      "elapsed": 33880,
+      "title": "First-to-Third Decision in Clutch Situation",
+      "critiqueScore": 9.5,
+      "critiquePass": true,
+      "gradeScore": 100,
+      "gradeIssues": [],
+      "tokens": 5212,
+      "rewriteCount": 0,
+      "ragHits": 9,
+      "error": null,
+      "checklistFailures": [],
+      "rubric": {
+        "factualAccuracy": 10,
+        "explanationStrength": 9,
+        "ageAppropriateness": 9,
+        "educationalValue": 10,
+        "varietyDistinctness": 9
+      }
+    },
+    {
+      "position": "baserunner",
+      "context": "Expert, 87% accuracy, working on baserunning-rates and delayed steal",
+      "success": true,
+      "elapsed": 57383,
+      "title": "Reading the Delayed Steal Window",
+      "critiqueScore": 9.6,
+      "critiquePass": true,
+      "gradeScore": 100,
+      "gradeIssues": [],
+      "tokens": 9616,
+      "rewriteCount": 1,
+      "ragHits": 9,
+      "error": null,
+      "checklistFailures": [],
+      "rubric": {
+        "factualAccuracy": 10,
+        "explanationStrength": 9,
+        "ageAppropriateness": 9,
+        "educationalValue": 10,
+        "varietyDistinctness": 10
+      }
+    },
+    {
+      "position": "manager",
+      "context": "Beginner, 38% accuracy, learning basic bunt-re24 decisions",
+      "success": true,
+      "elapsed": 58261,
+      "title": "Should You Bunt Your Good Hitter?",
+      "critiqueScore": 9.67,
+      "critiquePass": true,
+      "gradeScore": 95,
+      "gradeIssues": [
+        "no tempting wrong answer (40-65)"
+      ],
+      "tokens": 10016,
+      "rewriteCount": 1,
+      "ragHits": 9,
+      "error": null,
+      "checklistFailures": [],
+      "rubric": {
+        "factualAccuracy": 10,
+        "explanationStrength": 9,
+        "ageAppropriateness": 10,
+        "educationalValue": 10,
+        "varietyDistinctness": 9
+      }
+    },
+    {
+      "position": "manager",
+      "context": "Intermediate, 55% accuracy, working on pitching-change timing (TTO effect)",
+      "success": true,
+      "elapsed": 54136,
+      "title": "Specialist vs Power Hitter",
+      "critiqueScore": 10,
+      "critiquePass": true,
+      "gradeScore": 100,
+      "gradeIssues": [],
+      "tokens": 9806,
+      "rewriteCount": 1,
+      "ragHits": 9,
+      "error": null,
+      "checklistFailures": [],
+      "rubric": {
+        "factualAccuracy": 10,
+        "explanationStrength": 10,
+        "ageAppropriateness": 10,
+        "educationalValue": 10,
+        "varietyDistinctness": 10
+      }
+    },
+    {
+      "position": "manager",
+      "context": "Advanced, 74% accuracy, mastered bunt-re24, working on ibb-strategy",
+      "success": true,
+      "elapsed": 69597,
+      "title": "Intentional Walk Decision with Winning Run at Third",
+      "critiqueScore": 9.83,
+      "critiquePass": false,
+      "gradeScore": 95,
+      "gradeIssues": [
+        "no tempting wrong answer (40-65)"
+      ],
+      "tokens": 10139,
+      "rewriteCount": 1,
+      "ragHits": 9,
+      "error": null,
+      "checklistFailures": [
+        "item_13: Rates sum to 165 but best option (85) is too high relative to others — creates unrealistic success gap"
+      ],
+      "rubric": {
+        "factualAccuracy": 10,
+        "explanationStrength": 10,
+        "ageAppropriateness": 9,
+        "educationalValue": 10,
+        "varietyDistinctness": 10
+      }
+    },
+    {
+      "position": "manager",
+      "context": "Expert, 86% accuracy, working on leverage-index and win-probability decisions",
+      "success": true,
+      "elapsed": 74412,
+      "title": "The Closer Conundrum",
+      "critiqueScore": 8.67,
+      "critiquePass": false,
+      "gradeScore": 100,
+      "gradeIssues": [],
+      "tokens": 10678,
+      "rewriteCount": 1,
+      "ragHits": 9,
+      "error": null,
+      "checklistFailures": [
+        "item_11: Difficulty 3 uses advanced concepts like 'leverage index' and 'third time through the order' that are too complex for mid-level players",
+        "item_20: Language includes terms like 'leverage-index-vs-win-probability' in the tag, and explanations discuss advanced concepts not appropriate for difficulty 3"
+      ],
+      "rubric": {
+        "factualAccuracy": 10,
+        "explanationStrength": 9,
+        "ageAppropriateness": 6,
+        "educationalValue": 9,
+        "varietyDistinctness": 10
+      }
+    },
+    {
+      "position": "famous",
+      "context": "Intermediate player, 60% accuracy, enjoys historical baseball",
+      "success": true,
+      "elapsed": 72039,
+      "title": "Eckersley's Full Count Decision",
+      "critiqueScore": 8.67,
+      "critiquePass": false,
+      "gradeScore": 100,
+      "gradeIssues": [],
+      "tokens": 9379,
+      "rewriteCount": 1,
+      "ragHits": 9,
+      "error": null,
+      "checklistFailures": [],
+      "rubric": {
+        "factualAccuracy": 8,
+        "explanationStrength": 9,
+        "ageAppropriateness": 8,
+        "educationalValue": 9,
+        "varietyDistinctness": 10
+      }
+    },
+    {
+      "position": "famous",
+      "context": "Advanced, 80% accuracy, knows most famous plays",
+      "success": true,
+      "elapsed": 29958,
+      "title": "Gibson's Historic At-Bat",
+      "critiqueScore": 10,
+      "critiquePass": true,
+      "gradeScore": 100,
+      "gradeIssues": [],
+      "tokens": 5170,
+      "rewriteCount": 0,
+      "ragHits": 9,
+      "error": null,
+      "checklistFailures": [],
+      "rubric": {
+        "factualAccuracy": 10,
+        "explanationStrength": 10,
+        "ageAppropriateness": 10,
+        "educationalValue": 10,
+        "varietyDistinctness": 10
+      }
+    },
+    {
+      "position": "rules",
+      "context": "Beginner, 45% accuracy, learning force-vs-tag and infield-fly",
+      "success": true,
+      "elapsed": 26683,
+      "title": "When Do Runners Have to Run?",
+      "critiqueScore": 9.67,
+      "critiquePass": true,
+      "gradeScore": 100,
+      "gradeIssues": [],
+      "tokens": 4789,
+      "rewriteCount": 0,
+      "ragHits": 9,
+      "error": null,
+      "checklistFailures": [],
+      "rubric": {
+        "factualAccuracy": 10,
+        "explanationStrength": 9,
+        "ageAppropriateness": 10,
+        "educationalValue": 10,
+        "varietyDistinctness": 9
+      }
+    },
+    {
+      "position": "rules",
+      "context": "Intermediate, 62% accuracy, working on balk-rule and obstruction-interference",
+      "success": true,
+      "elapsed": 48826,
+      "title": "Balk! Pitcher Can't Spin to First",
+      "critiqueScore": 10,
+      "critiquePass": false,
+      "gradeScore": 100,
+      "gradeIssues": [],
+      "tokens": 8416,
+      "rewriteCount": 1,
+      "ragHits": 9,
+      "error": null,
+      "checklistFailures": [
+        "item_13: Rates sum to 180, which is within acceptable range 165-195"
+      ],
+      "rubric": {
+        "factualAccuracy": 10,
+        "explanationStrength": 10,
+        "ageAppropriateness": 10,
+        "educationalValue": 10,
+        "varietyDistinctness": 10
+      }
+    },
+    {
+      "position": "rules",
+      "context": "Advanced, 80% accuracy, mastered most rules, working on edge cases",
+      "success": true,
+      "elapsed": 35724,
+      "title": "Collision at Second Base",
+      "critiqueScore": 9.8,
+      "critiquePass": true,
+      "gradeScore": 100,
+      "gradeIssues": [],
+      "tokens": 4941,
+      "rewriteCount": 0,
+      "ragHits": 9,
+      "error": null,
+      "checklistFailures": [],
+      "rubric": {
+        "factualAccuracy": 10,
+        "explanationStrength": 10,
+        "ageAppropriateness": 9,
+        "educationalValue": 10,
+        "varietyDistinctness": 10
+      }
+    },
+    {
+      "position": "counts",
+      "context": "Beginner, 50% accuracy, just learning count-leverage",
+      "success": true,
+      "elapsed": 26528,
+      "title": "Your Best Friend Count",
+      "critiqueScore": 10,
+      "critiquePass": true,
+      "gradeScore": 100,
+      "gradeIssues": [],
+      "tokens": 4742,
+      "rewriteCount": 0,
+      "ragHits": 9,
+      "error": null,
+      "checklistFailures": [],
+      "rubric": {
+        "factualAccuracy": 10,
+        "explanationStrength": 10,
+        "ageAppropriateness": 10,
+        "educationalValue": 10,
+        "varietyDistinctness": 10
+      }
+    },
+    {
+      "position": "counts",
+      "context": "Intermediate, 65% accuracy, working on two-strike vs hitter's count strategy",
+      "success": true,
+      "elapsed": 76537,
+      "title": "Two-Strike Approach Decision",
+      "critiqueScore": 10,
+      "critiquePass": false,
+      "gradeScore": 100,
+      "gradeIssues": [],
+      "tokens": 9812,
+      "rewriteCount": 1,
+      "ragHits": 9,
+      "error": null,
+      "checklistFailures": [
+        "item_13: Rates sum to 185, which is within 165-195 range"
+      ],
+      "rubric": {
+        "factualAccuracy": 10,
+        "explanationStrength": 10,
+        "ageAppropriateness": 10,
+        "educationalValue": 10,
+        "varietyDistinctness": 10
+      }
+    },
+    {
+      "position": "counts",
+      "context": "Advanced, 82% accuracy, applying count data to real at-bats",
+      "success": true,
+      "elapsed": 61724,
+      "title": "Reading the 2-0 Fastball Tendency",
+      "critiqueScore": 10,
+      "critiquePass": true,
+      "gradeScore": 100,
+      "gradeIssues": [],
+      "tokens": 9861,
+      "rewriteCount": 1,
+      "ragHits": 9,
+      "error": null,
+      "checklistFailures": [],
+      "rubric": {
+        "factualAccuracy": 10,
+        "explanationStrength": 10,
+        "ageAppropriateness": 10,
+        "educationalValue": 10,
+        "varietyDistinctness": 10
+      }
+    }
+  ]
+}

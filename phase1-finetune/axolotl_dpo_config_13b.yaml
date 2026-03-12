@@ -1,0 +1,43 @@
+# BSM Phase 1: DPO Config for 13B test model
+# Run AFTER SFT pass completes and you have ≥300 DPO pairs
+#
+# Command: accelerate launch -m axolotl.cli.train axolotl_dpo_config_13b.yaml
+
+base_model: ./bsm-13b-test-merged
+model_type: MistralForCausalLM
+tokenizer_type: AutoTokenizer
+
+load_in_4bit: true
+strict: false
+
+datasets:
+  - path: ./llm_data/dpo.jsonl
+    type: dpo
+
+sequence_len: 2048
+sample_packing: false
+pad_to_sequence_len: true
+
+adapter: lora
+lora_r: 8
+lora_alpha: 16
+lora_dropout: 0.05
+lora_target_linear: true
+
+val_set_size: 0.1
+learning_rate: 5e-6
+num_epochs: 1
+optimizer: adamw_torch
+lr_scheduler: cosine
+train_batch_size: 4
+micro_batch_size: 2
+gradient_accumulation_steps: 2
+
+bf16: auto
+
+save_strategy: epoch
+output_dir: ./bsm-13b-test-dpo
+
+wandb_project: bsm-llm
+wandb_run_name: bsm-13b-dpo-v1
+logging_steps: 10

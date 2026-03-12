@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BSM Scenario Rating — Instructions</title>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 800px; margin: 0 auto; padding: 30px 20px; color: #1a1a1a; line-height: 1.6; }
+  h1 { color: #1a472a; border-bottom: 3px solid #1a472a; padding-bottom: 10px; }
+  h2 { color: #1a472a; margin-top: 32px; border-bottom: 1px solid #ddd; padding-bottom: 6px; }
+  h3 { color: #2d6a3e; margin-top: 24px; }
+  .callout { background: #f0fdf4; border-left: 4px solid #22c55e; padding: 12px 16px; margin: 16px 0; border-radius: 0 8px 8px 0; }
+  .warning { background: #fef3c7; border-left: 4px solid #f59e0b; padding: 12px 16px; margin: 16px 0; border-radius: 0 8px 8px 0; }
+  .error { background: #fef2f2; border-left: 4px solid #ef4444; padding: 12px 16px; margin: 16px 0; border-radius: 0 8px 8px 0; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+  th, td { border: 1px solid #ddd; padding: 8px 12px; text-align: left; font-size: 0.9rem; }
+  th { background: #f3f4f6; font-weight: 600; }
+  code { background: #f3f4f6; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+  .example { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin: 16px 0; }
+  .example h4 { margin: 0 0 8px 0; color: #1a472a; }
+  ul, ol { padding-left: 24px; }
+  li { margin-bottom: 4px; }
+  .checklist { list-style: none; padding-left: 0; }
+  .checklist li { padding: 4px 0; }
+  .checklist li::before { content: "☐ "; font-size: 1.1em; }
+  @media print { body { font-size: 11pt; } }
+</style>
+</head>
+<body>
+
+<h1>BSM Scenario Rating — Instructions for Raters</h1>
+
+<div class="callout">
+<strong>Your Mission:</strong> You are rating AI-generated baseball strategy scenarios. Your ratings will train the world's best baseball education AI — an app that teaches kids ages 6-18 how to think through real game situations. <strong>Your honest, careful ratings directly determine how good this AI becomes.</strong> Rate tough. Rate honest. Don't inflate scores to be nice.
+</div>
+
+<h2>What You'll Be Rating</h2>
+<p>Each scenario is a baseball game situation with:</p>
+<ul>
+  <li>A <strong>description</strong> (the game situation)</li>
+  <li><strong>4 options</strong> (what the player could do)</li>
+  <li><strong>1 best answer</strong> (marked with a green border)</li>
+  <li><strong>4 explanations</strong> (why each choice is good or bad)</li>
+  <li><strong>Success rates</strong> (% chance each option works)</li>
+  <li>A <strong>concept</strong> (what the scenario teaches)</li>
+</ul>
+
+<h2>The 5-Dimension Rubric (1-10 Scale)</h2>
+
+<h3>1. Factual Accuracy</h3>
+<p><em>Are the baseball rules, strategies, and positions correct?</em></p>
+<table>
+  <tr><th>Score</th><th>Meaning</th></tr>
+  <tr><td>10</td><td>Every fact is correct. Rules, positions, cutoffs, priorities all right.</td></tr>
+  <tr><td>7-9</td><td>Mostly correct, minor nitpick (e.g., slightly off rate, but strategy is sound).</td></tr>
+  <tr><td>4-6</td><td>One noticeable error (e.g., wrong backup assignment, iffy rule interpretation).</td></tr>
+  <tr><td>1-3</td><td>Major error (e.g., pitcher told to play cutoff, wrong force/tag call, balk rule wrong).</td></tr>
+</table>
+
+<div class="error">
+<strong>Common Tier 1 Errors — Always Flag These:</strong>
+<ul>
+  <li>Pitcher being assigned cutoff/relay duties (WRONG)</li>
+  <li>Catcher leaving home plate unattended (WRONG)</li>
+  <li>Fly ball priority reversed (CF has priority over corners)</li>
+  <li>Wrong force/tag situations</li>
+  <li>Infield fly called with 2 outs or less than 2 runners</li>
+</ul>
+</div>
+
+<h3>2. Explanation Strength</h3>
+<p><em>Does the best explanation clearly teach WHY the answer is correct?</em></p>
+<table>
+  <tr><th>Score</th><th>Meaning</th></tr>
+  <tr><td>10</td><td>Explains the principle, uses specific reasoning, kid walks away smarter.</td></tr>
+  <tr><td>7-9</td><td>Good explanation but could be more specific or teaching-focused.</td></tr>
+  <tr><td>4-6</td><td>Vague. Says "good choice" but doesn't explain the underlying principle.</td></tr>
+  <tr><td>1-3</td><td>Wrong reasoning, misleading, or doesn't explain anything.</td></tr>
+</table>
+
+<h3>3. Age-Appropriateness</h3>
+<p><em>Does the language match the target audience?</em></p>
+<table>
+  <tr><th>Difficulty</th><th>Target Age</th><th>What to Expect</th></tr>
+  <tr><td>Rookie (diff 1)</td><td>Ages 6-10</td><td>Simple words, short sentences, no jargon</td></tr>
+  <tr><td>Pro (diff 2)</td><td>Ages 9-14</td><td>Some baseball terms okay, clear explanations</td></tr>
+  <tr><td>All-Star (diff 3)</td><td>Ages 13-18+</td><td>Advanced concepts, stats references okay</td></tr>
+</table>
+
+<h3>4. Educational Value</h3>
+<p><em>Does this scenario teach something specific and useful?</em></p>
+<table>
+  <tr><th>Score</th><th>Meaning</th></tr>
+  <tr><td>10</td><td>Clear teaching moment. Kid learns a real baseball principle they can use.</td></tr>
+  <tr><td>7-9</td><td>Teaches something, but could be more specific or memorable.</td></tr>
+  <tr><td>4-6</td><td>Generic. Doesn't really teach a specific concept.</td></tr>
+  <tr><td>1-3</td><td>No educational value. Filler content.</td></tr>
+</table>
+
+<h3>5. Variety & Engagement</h3>
+<p><em>Is the situation fresh, realistic, and interesting to read?</em></p>
+<table>
+  <tr><th>Score</th><th>Meaning</th></tr>
+  <tr><td>10</td><td>Unique scenario. Vivid game situation. Would keep a kid engaged.</td></tr>
+  <tr><td>7-9</td><td>Good scenario but slightly formulaic or seen-before feeling.</td></tr>
+  <tr><td>4-6</td><td>Boring or generic setup.</td></tr>
+  <tr><td>1-3</td><td>Completely unengaging or unrealistic situation.</td></tr>
+</table>
+
+<h2>Preferred Explanation Pick</h2>
+<p>After rating the 5 dimensions, pick which of the 4 explanations is <strong>strongest for teaching a kid</strong>. This isn't always the "best answer" explanation — sometimes a wrong-answer explanation teaches better. Pick the one that would make a 10-year-old go "Oh, NOW I get it!"</p>
+
+<h2>Worked Example</h2>
+
+<div class="example">
+<h4>Scenario: "You're the pitcher. Top 1st, nobody on, 0 outs. Leadoff hitter up."</h4>
+<ul>
+  <li><strong>A. Throw a fastball strike (85%)</strong> — BEST</li>
+  <li>B. Start with a curveball to surprise him (40%)</li>
+  <li>C. Waste a pitch high and inside (30%)</li>
+  <li>D. Throw a changeup to set up your fastball (50%)</li>
+</ul>
+<p><strong>Best explanation:</strong> "Getting ahead 0-1 is huge. Pitchers who throw first-pitch strikes have ERAs nearly 2 runs lower."</p>
+
+<p><strong>My ratings:</strong></p>
+<ul>
+  <li>Factual Accuracy: <strong>9</strong> — stats are accurate, strategy is correct</li>
+  <li>Explanation Strength: <strong>8</strong> — good stat, but could explain WHY getting ahead matters more</li>
+  <li>Age-Appropriateness: <strong>9</strong> — Rookie difficulty, language is clear and simple</li>
+  <li>Educational Value: <strong>9</strong> — teaches a specific, actionable principle</li>
+  <li>Variety & Engagement: <strong>7</strong> — classic scenario but a bit generic</li>
+</ul>
+<p><strong>Preferred Explanation:</strong> A (teaches the "first-pitch strike" principle clearly)</p>
+<p><strong>Comment:</strong> "Good scenario. Option D explanation could mention that changeups work better when the batter is already timing fastball."</p>
+</div>
+
+<h2>Daily Checklist</h2>
+<ul class="checklist">
+  <li>Open <code>rating-tool.html</code> in your browser</li>
+  <li>Load the scenario JSON file</li>
+  <li>Click "Unrated" filter to see remaining scenarios</li>
+  <li>Rate 20 scenarios (about 45-60 minutes)</li>
+  <li>Click "Export Rated" when done</li>
+  <li>Send the exported JSON file back to Blaine</li>
+  <li>Note any flagged errors in comments</li>
+</ul>
+
+<h2>Boundaries — What NOT to Do</h2>
+<div class="warning">
+<ul>
+  <li>Do NOT change any scenario text or code</li>
+  <li>Do NOT inflate scores to be nice — we need honest data</li>
+  <li>Do NOT rush through ratings — quality over speed</li>
+  <li>Do NOT skip the "Preferred Explanation" pick</li>
+  <li>Do NOT rate based on personal preference — rate based on whether the scenario accurately teaches established strategy</li>
+</ul>
+</div>
+
+<h2>Questions?</h2>
+<p>Contact Blaine directly. When in doubt about a baseball rule, flag it in comments rather than guessing. We'd rather you note "not sure about this balk call" than guess wrong.</p>
+
+<div class="callout">
+<strong>Thank you — your work here directly builds the best baseball education tool on the planet.</strong>
+</div>
+
+</body>
+</html>

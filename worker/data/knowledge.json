@@ -1,5 +1,5 @@
 {
-  "extractedAt": "2026-03-11T14:53:17.868Z",
+  "extractedAt": "2026-03-11T22:31:23.342Z",
   "scenarios": [
     {
       "id": "p1",
@@ -10039,11 +10039,11 @@
       "id": "f59",
       "position": "firstBase",
       "title": "Pop-Up Between Three Players",
-      "description": "Bot 3rd, nobody on, 1 out. Pop-up hit between the pitcher, catcher, and first baseman. All three are drifting toward it. Nobody has called it.",
+      "description": "You're the first baseman. Bot 3rd, nobody on, 1 out. A pop-up is hit between you, the pitcher, and the catcher. All three of you are drifting toward it. Nobody has called it yet.",
       "options": [
-        "Someone needs to call it NOW — first baseman has priority",
-        "The pitcher should catch it — he's closest",
-        "The catcher should call it — he sees the whole field",
+        "Call for it loudly — you have priority as the first baseman",
+        "Let the pitcher catch it — he's closest",
+        "Wait for the catcher to call it — he sees the whole field",
         "Wait and see who gets there first"
       ],
       "best": 0,
@@ -10055,9 +10055,9 @@
       ],
       "rates": [
         85,
-        35,
+        45,
         30,
-        5
+        15
       ],
       "diff": 1,
       "concept": "On pop-ups, the priority is: infielder behind the play > pitcher > catcher. CALL IT!",
@@ -13196,8 +13196,8 @@
       ],
       "rates": [
         85,
-        15,
         20,
+        40,
         25
       ],
       "diff": 2,
@@ -16189,8 +16189,8 @@
       ],
       "rates": [
         82,
+        40,
         30,
-        25,
         20
       ],
       "diff": 3,
@@ -21536,9 +21536,9 @@
         "Faking wastes time. The runner is already scrambling to get back — every second you hesitate is a second he gets closer to the bag. Throw it now."
       ],
       "rates": [
-        20,
+        25,
         85,
-        15,
+        45,
         30
       ],
       "diff": 3,
@@ -22755,7 +22755,7 @@
       "id": "rl6",
       "position": "rules",
       "title": "Designated Hitter Rule",
-      "description": "Your team's pitcher is due up 4th in the batting order. What's your option?",
+      "description": "You're the manager setting your lineup. Your pitcher is due up 4th in the batting order. What's your option?",
       "options": [
         "The pitcher must bat — that's the rule",
         "Use a designated hitter (DH) to bat in the pitcher's spot",
@@ -22770,10 +22770,10 @@
         "A player can only occupy one spot in the batting order."
       ],
       "rates": [
-        15,
+        25,
         85,
-        30,
-        10
+        40,
+        20
       ],
       "diff": 1,
       "concept": "The designated hitter (DH) bats for the pitcher — universal in MLB since 2022",
@@ -23765,10 +23765,10 @@
       "id": "rl29",
       "position": "rules",
       "title": "Pitch Clock — What Counts as 'Ready'?",
-      "description": "You're a 10-year-old batter stepping into the box for the first time in a pitch clock game. The announcer says the batter must be 'alert to the pitcher' with 8 seconds on the clock. What does that actually mean you need to do?",
+      "description": "You're stepping into the batter's box for the first time in a pitch clock game. The announcer says you must be 'alert to the pitcher' with 8 seconds on the clock. What does that actually mean you need to do?",
       "options": [
         "Be in the batter's box with both feet, looking at the pitcher",
-        "Just be standing near the plate — doesn't matter if you're looking",
+        "Just stand near the plate — doesn't matter if you're looking",
         "Have your bat on your shoulder in your stance",
         "Be in the box but you can still be adjusting your gloves"
       ],
@@ -23781,9 +23781,9 @@
       ],
       "rates": [
         85,
-        15,
         20,
-        25
+        30,
+        30
       ],
       "diff": 1,
       "concept": "Being 'alert to the pitcher' means both feet in the box, eyes on the mound, ready for the pitch",
@@ -24204,7 +24204,7 @@
       "id": "rl39",
       "position": "rules",
       "title": "Neighborhood Play at Second Base",
-      "description": "Runner on first, 1 out. Ground ball to the shortstop. The second baseman receives the throw near second base, transfers quickly, and throws to first for the double play. On replay, the second baseman's foot was about 6 inches off the bag when he caught the ball. Is the force out at second valid?",
+      "description": "You're watching a close play. Runner on first, 1 out. Ground ball to the shortstop. The second baseman receives the throw near second base, transfers quickly, and throws to first for the double play. On replay, his foot was about 6 inches off the bag when he caught the ball. Is the force out at second valid?",
       "options": [
         "The out stands — the neighborhood play allows the fielder to be close to the bag on double play turns",
         "The runner is safe — the fielder must touch the base for a force out, period",
@@ -24220,7 +24220,7 @@
       ],
       "rates": [
         85,
-        30,
+        40,
         25,
         20
       ],
@@ -24812,7 +24812,7 @@
       "id": "cn13",
       "position": "counts",
       "title": "2-0 Sitting Fastball",
-      "description": "The count is 2-0 after two balls off the plate. The pitcher needs to throw a strike to avoid falling behind 3-0. You're a good hitter having a great game. Your coach gave you the green light to swing. Statistics show pitchers throw fastballs about 70% of the time on 2-0 counts.",
+      "description": "You're at the plate and the count is 2-0 after two balls off the plate. The pitcher needs to throw a strike to avoid falling behind 3-0. You're a good hitter having a great game. Your coach gave you the green light to swing. Statistics show pitchers throw fastballs about 70% of the time on 2-0 counts.",
       "options": [
         "Look for a fastball in your favorite zone — if you get it, drive it hard",
         "Swing at any strike — you need to be aggressive on 2-0",
@@ -24828,8 +24828,8 @@
       ],
       "rates": [
         85,
-        35,
-        25,
+        45,
+        30,
         15
       ],
       "diff": 2,
@@ -24943,7 +24943,7 @@
       "id": "cn16",
       "position": "counts",
       "title": "3-1 Green Light",
-      "description": "The count is 3-1 and your coach flashes you the green light — you're allowed to swing. The pitcher absolutely needs to throw a strike here or walk you. There's a runner on second with one out and your team is tied in the 6th inning. A hit here could put your team ahead.",
+      "description": "You're at the plate. The count is 3-1 and your coach flashes you the green light — you're allowed to swing. The pitcher absolutely needs to throw a strike here or walk you. There's a runner on second with one out and your team is tied in the 6th inning. A hit here could put your team ahead.",
       "options": [
         "Look fastball and drive it — the pitcher needs to throw a strike, so sit on your pitch",
         "Swing at any pitch in the zone — you got the green light so use it",
@@ -24959,9 +24959,9 @@
       ],
       "rates": [
         85,
+        40,
         30,
-        20,
-        10
+        15
       ],
       "diff": 2,
       "concept": "A 3-1 green light means look for YOUR pitch and attack it. The pitcher needs a strike, so the fastball is coming — be ready!",

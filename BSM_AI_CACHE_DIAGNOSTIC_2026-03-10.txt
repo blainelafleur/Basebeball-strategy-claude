@@ -1,0 +1,233 @@
+═══════════════════════════════════════════════════════════════════
+  BSM AI CACHING DIAGNOSTIC REPORT
+  Why "Play One While Next Builds" Doesn't Work
+  March 10, 2026
+═══════════════════════════════════════════════════════════════════
+
+IDEAL FLOW (what should happen):
+  1. Player picks position → instantly served a pooled/cached AI scenario
+  2. While player plays that scenario (30-90s), next scenario builds in background
+  3. When player finishes and clicks "Next Challenge" → next AI scenario served instantly
+  4. Repeat: always one ahead
+
+ACTUAL FLOW (what happens today):
+  1. Player picks position → pools are empty, cache is empty
+  2. Tier 0/1/2 all miss → falls through to Tier 3 (live generation)
+  3. Live generation shows "AI loading..." spinner for 50-120s
+  4. Often 504s → falls back to handcrafted scenario
+  5. triggerPrefetch fires 500ms after showing scenario, but...
+  6. xAI takes 50-55s → prefetch rarely finishes before player moves on
+  7. Next play: cache still empty → repeat the wait/failure cycle
+
+═══════════════════════════════════════════════════════════════════
+  ROOT CAUSES (7 issues, ranked by impact)
+═══════════════════════════════════════════════════════════════════
+
+━━━ ISSUE 1: xAI Response Time vs. Player Pace (CRITICAL) ━━━
+
+xAI's grok-4 model takes 50-55 seconds per call. A typical player reads
+the scenario and answers in 30-60 seconds. This means:
+
+  - triggerPrefetch fires at +500ms after scenario shown
+  - xAI call starts at ~+1s
+  - xAI responds at ~+51-56s
+  - Player clicks "Next" at ~+30-60s
+
+If the player is fast (30s), the prefetch has only been running 29s out of
+the 50-55s it needs. The scenario isn't ready. If the player is slow (60s),
+there's a narrow window where it might be ready.
+
+The answer-submitted prefetch (line 13189) helps — it fires when the player
+clicks an answer, giving an additional 10-30s of explanation reading time.
+But 10-30s + 30-60s of play time = 40-90s total, which SHOULD be enough...
+except for Issue 2.
+
+
+━━━ ISSUE 2: The `fetching` Flag Creates a Global Lock (CRITICAL) ━━━
+
+prefetchAIScenario (line 11391):
+  if (cacheRef.current.fetching) return   // HARD BLOCK
+
+Only ONE prefetch can run globally at any time. If the warm prefetch
+(app load) is still running when triggerPrefetch fires → silently blocked.
+If triggerPrefetch's call is still running when the answer-submitted
+prefetch fires → silently blocked.
+
+This means the pipeline is strictly SERIAL. If the warm prefetch is taking
+55s for position X, and the player picks position Y at second 20, the
+triggerPrefetch for Y is silently dropped. The player gets nothing.
+
+Evidence from logs: "Pre-fetch using independent budget: 100s" appears for
+one position, then no subsequent prefetch fires for the position the player
+actually picked.
+
+
+━━━ ISSUE 3: Warm Prefetch Targets Wrong Position (HIGH) ━━━
+
+The Pro warm prefetch (line 12345-12353) fires for the player's top 5
+most-played positions. But it's a GUESS. If the player picks a position
+that's NOT in their top 5, the warm prefetch was wasted.
+
+Worse: since the warm prefetch holds the `fetching` lock for 50-55s,
+the player's actual position can't start prefetching until the useless
+warm prefetch completes.
+
+Example from logs:
+  - Warm prefetch fires for "pitcher" (most played)
+  - Player picks "shortstop" → triggerPrefetch blocked by fetching=true
+  - 55 seconds later, warm prefetch finishes for pitcher
+  - NOW shortstop prefetch can start... but player already fell through to Tier 3
+
+
+━━━ ISSUE 4: No "Read Time Prefetch" After Tier 3 Completes (MEDIUM) ━━━
+
+When a Tier 3 live generation succeeds (line 12992-13031), it calls
+triggerPrefetch(p) at line 13031. This fires the prefetch at +500ms.
+Good.
+
+But when the player ANSWERS and the explanation screen shows, the
+answer-submitted prefetch (line 13189) fires. This check:
+  if(aiMode && !speedMode && !survivalMode && !realGameMode &&
+     !aiCacheRef.current.scenarios?.[pos]?.scenario &&
+     !aiCacheRef.current.fetching)
+
+The `!aiCacheRef.current.fetching` check blocks if the triggerPrefetch
+from line 13031 is still running. Since that was started 30-60s ago when
+the scenario was shown, and xAI takes 50-55s, the prefetch might STILL be
+running → answer-submitted prefetch blocked.
+
+Net effect: we get ONE prefetch attempt per scenario, not two.
+
+
+━━━ ISSUE 5: fillLocalPool Competes with prefetchAIScenario (MEDIUM) ━━━
+
+triggerPrefetch fires TWO things:
+  1. At 500ms: prefetchAIScenario() — stores in aiCacheRef (instant serve)
+  2. At 3000ms: fillLocalPool() — stores in localStorage (pool backup)
+
+Both call generateAIScenario(). The pool fill makes an xAI call at +3s.
+If the prefetch is still running (it takes 50-55s), the pool fill adds a
+SECOND concurrent xAI call. Two concurrent long-running xAI calls increase
+the likelihood of 504 timeouts for both.
+
+The sequential queue in fillLocalPool prevents ADDITIONAL pool fills from
+stacking, but it doesn't prevent the prefetch+fill overlap.
+
+
+━━━ ISSUE 6: Circuit Breaker Opens Too Easily (LOW-MEDIUM) ━━━
+
+The circuit breaker opens after 4 failures per position (line 13042-13044),
+with a 3-minute cooldown. In the current state where xAI 504s are common,
+the circuit breaker opens after just 4 attempts, blocking ALL AI generation
+(including prefetch) for 3 minutes. During this window, every play is a
+handcrafted fallback.
+
+The circuit breaker also opens if average response time exceeds 120s across
+3+ samples (line 13000-13003). With xAI at 50-55s per call, agent pipeline
+retries can push total flow time past 120s, triggering this.
+
+
+━━━ ISSUE 7: Stale-Cache TTL Too Aggressive (LOW) ━━━
+
+consumeCachedAI (line 11468) discards scenarios older than 5 minutes (300s).
+If a prefetch completes but the player takes 6+ minutes before their next
+play (bathroom break, distraction), the cached scenario is thrown away.
+
+For a kids' app, 5 minutes is too tight. Kids get distracted.
+
+
+═══════════════════════════════════════════════════════════════════
+  THE FIX: "Always One Ahead" Architecture
+═══════════════════════════════════════════════════════════════════
+
+The core strategy: make prefetch PER-POSITION (not global), eliminate the
+single-lock bottleneck, and ensure every player interaction triggers a
+background build that has enough time to complete.
+
+FIX 1: Per-Position Fetching Locks (eliminates Issue 2)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Replace the single `cacheRef.current.fetching` boolean with a per-position
+map: `cacheRef.current.fetching = {}` (keyed by position name). This way,
+a prefetch for pitcher doesn't block a prefetch for shortstop.
+
+Limit to max 2 concurrent xAI calls globally to prevent 504 flooding.
+
+FIX 2: Cancel Warm Prefetch on Position Pick (eliminates Issue 3)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+When the player picks a position, immediately cancel any in-flight warm
+prefetch for a DIFFERENT position and start prefetching for the picked
+position. The warm prefetch is speculative; the player's actual choice
+takes priority.
+
+FIX 3: Delay fillLocalPool Until Prefetch Completes (eliminates Issue 5)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Don't fire fillLocalPool at +3000ms. Instead, fire it AFTER the prefetch
+completes (in the .finally() of prefetchAIScenario). This ensures only
+1 xAI call at a time per position, and pool fills only when the cache is
+already populated.
+
+FIX 4: Extend Stale TTL to 15 Minutes (eliminates Issue 7)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Change 300000ms (5 min) to 900000ms (15 min) in consumeCachedAI. AI
+scenarios don't go stale — they're generated fresh each time. A 15-minute
+window accommodates kids who get distracted.
+
+FIX 5: Smarter Circuit Breaker Thresholds (addresses Issue 6)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Increase failure threshold from 4 to 6 (504s are transient, not permanent).
+Don't count prefetch failures toward the circuit breaker (only count
+interactive Tier 3 failures). Reduce cooldown from 3 min to 90 seconds.
+
+FIX 6: "Explanation Reading" Prefetch Guarantee (addresses Issue 4)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+The answer-submitted prefetch (line 13189) should NOT be blocked by the
+fetching flag. Instead, it should check if the in-flight prefetch is for
+the SAME position. If yes, let it continue. If it's for a different
+position (stale warm prefetch), cancel and restart.
+
+FIX 7: Reduce Pool Fill Concurrency to 0 During Gameplay
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+During active play, prioritize the cache prefetch (instant next scenario)
+over pool filling (background inventory). Only fill pool when the player
+is on the home screen, position select, or after a session ends.
+
+
+═══════════════════════════════════════════════════════════════════
+  EXPECTED RESULTS AFTER FIX
+═══════════════════════════════════════════════════════════════════
+
+Player Flow:
+  1. Player picks "shortstop" → any warm prefetch for other position cancelled
+  2. Tier 0/1/2 checked (likely miss on first play)
+  3. Tier 3: live generation shows spinner (50-55s) — unavoidable first time
+  4. Scenario shown → triggerPrefetch fires at +500ms for shortstop
+  5. Player plays for 30-60s → prefetch has been running 30-60s
+  6. Player answers → answer-submitted prefetch checks: is one in-flight for
+     shortstop? YES → let it run (don't block, don't duplicate)
+  7. Player reads explanation for 10-30s → prefetch has now been running 40-90s
+  8. Total prefetch time: 40-90s > 50-55s needed → SCENARIO IS READY
+  9. Player clicks "Next Challenge" → Tier 0 HIT → instant serve!
+  10. triggerPrefetch fires again → next scenario building while they play
+  11. Repeat: always one ahead from play #2 onward
+
+Worst case: if xAI takes 55s and player is very fast (30s play + 10s read
+= 40s total), the prefetch still isn't ready. But we await the in-flight
+promise for up to 30s (line 12960-12962), so the player waits 15s max.
+Much better than the current 50-55s full wait.
+
+
+═══════════════════════════════════════════════════════════════════
+  METRICS TO VERIFY SUCCESS
+═══════════════════════════════════════════════════════════════════
+
+After implementing, check console logs for:
+  - "Consuming pre-cached scenario" on plays 2+ (should appear >70% of time)
+  - "Pre-fetch in flight for [pos] — awaiting" (in-flight dedup working)
+  - NO "Pre-fetch cancelled" during gameplay (warm prefetch not blocking)
+  - "Pre-fetch using standard pipeline only (skipAgent)" on all prefetches
+  - Pool fill messages AFTER prefetch completes, not concurrently
+
+Track analytics:
+  - ai_scenario_generated with cached:true should increase from ~5% to 60%+
+  - Average "AI loading..." spinner time should drop from 50s to <5s on 2nd+ play
+  - Circuit breaker opens should decrease (fewer wasted concurrent calls)

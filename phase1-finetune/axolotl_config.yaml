@@ -1,0 +1,96 @@
+# ═══════════════════════════════════════════════════════════════════════
+# BSM 70B Production SFT Config — Axolotl + QLoRA
+# ═══════════════════════════════════════════════════════════════════════
+#
+# Model:    Llama-3.1-70B-Instruct (proven, Axolotl-tested, broad tool support)
+# Hardware: 1× H100 SXM 80GB (Vast.ai or RunPod)
+# Time:     ~4-6 hours SFT
+# Cost:     ~$12-18 on Vast.ai ($2.50-3/hr H100 SXM)
+#
+# Command:  accelerate launch -m axolotl.cli.train axolotl_config.yaml
+# ═══════════════════════════════════════════════════════════════════════
+
+base_model: meta-llama/Llama-3.1-70B-Instruct
+model_type: LlamaForCausalLM
+tokenizer_type: AutoTokenizer
+
+# QLoRA — fits 70B on single H100 80GB (~42GB VRAM)
+load_in_4bit: true
+strict: false
+
+# Chat template — Llama 3.1 instruct format
+chat_template: llama3
+
+# ── Datasets ──────────────────────────────────────────────────────────
+# Golden examples weighted 3× to anchor quality baseline
+# Combined SFT has 739 examples (120 golden + 584 handcrafted + 35 rated)
+datasets:
+  - path: ./llm_data/sft_golden.jsonl
+    type: completion
+    # Golden examples are our quality anchor — seen 3× per epoch
+  - path: ./llm_data/sft_golden.jsonl
+    type: completion
+  - path: ./llm_data/sft_golden.jsonl
+    type: completion
+  - path: ./llm_data/sft_combined.jsonl
+    type: completion
+
+# Total effective examples per epoch: 120×3 + 739 = 1099
+# Total across 3 epochs: ~3297 training steps
+
+sequence_len: 4096
+sample_packing: true
+pad_to_sequence_len: true
+
+# ── LoRA Config ───────────────────────────────────────────────────────
+# r=32 for 70B — more capacity than 12B config (was r=16)
+# alpha=64 (2× rank) — standard ratio for stable training
+adapter: lora
+lora_r: 32
+lora_alpha: 64
+lora_dropout: 0.05
+lora_target_linear: true
+# Target all linear layers including gate_proj, up_proj, down_proj
+# This gives better domain adaptation for structured JSON output
+
+# ── Training Hyperparameters ──────────────────────────────────────────
+val_set_size: 0.05
+learning_rate: 1.5e-5
+num_epochs: 3
+optimizer: adamw_torch
+lr_scheduler: cosine
+warmup_ratio: 0.06
+weight_decay: 0.01
+
+# Batch size tuned for H100 80GB with 4-bit 70B
+# Effective batch = micro_batch × gradient_accum = 1 × 8 = 8
+train_batch_size: 8
+micro_batch_size: 1
+gradient_accumulation_steps: 8
+
+# ── Mixed Precision ───────────────────────────────────────────────────
+bf16: true
+tf32: true
+
+# ── Saving ────────────────────────────────────────────────────────────
+save_strategy: steps
+save_steps: 200
+save_total_limit: 3
+output_dir: ./bsm-70b-sft
+
+# ── Logging ───────────────────────────────────────────────────────────
+wandb_project: bsm-70b
+wandb_run_name: bsm-70b-sft-v1
+logging_steps: 10
+
+# ── Eval ──────────────────────────────────────────────────────────────
+eval_steps: 100
+eval_strategy: steps
+
+# ── Flash Attention 2 (H100 native) ──────────────────────────────────
+flash_attention: true
+
+# ── Gradient Checkpointing (saves VRAM for 70B) ──────────────────────
+gradient_checkpointing: true
+gradient_checkpointing_kwargs:
+  use_reentrant: false

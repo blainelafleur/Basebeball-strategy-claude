@@ -1,0 +1,890 @@
+[
+  {
+    "id": "rate_1773274867332_0",
+    "position": "thirdBase",
+    "difficulty": "intermediate",
+    "scenario": {
+      "title": "Shift Against Pull Hitter",
+      "description": "You're playing third base in the top of the 5th. Your team trails 3-2 with a runner on first and one out. The batter is a right-handed power hitter who pulls 75% of his ground balls to your side.",
+      "situation": {
+        "inning": "Top 5",
+        "outs": 1,
+        "count": null,
+        "runners": [
+          1
+        ],
+        "score": [
+          3,
+          2
+        ]
+      },
+      "options": [
+        "Shift toward shortstop for better double play positioning",
+        "Play deep and guard the line to prevent extra bases",
+        "Move in closer for a possible bunt or slow roller",
+        "Stay in standard position and react to whatever happens"
+      ],
+      "best": 0,
+      "explanations": [
+        "With the runner on first and this pull hitter's tendencies, you should shift toward the shortstop hole. This gives you the best chance to turn two on a ground ball, which could end the inning and preserve your one-run deficit.",
+        "Playing deep to guard the line prevents doubles, but with a runner already on first and trailing by one, you need to focus on getting outs rather than preventing extra bases.",
+        "Moving in for a bunt is too aggressive here. This power hitter rarely bunts, and you'd be out of position for his typical hard ground balls to your area.",
+        "Staying in standard position ignores the scouting data. When you know 75% of his ground balls come to the left side, you need to adjust your positioning to take advantage of that tendency."
+      ],
+      "rates": [
+        85,
+        45,
+        25,
+        20
+      ],
+      "concept": "Defensive shifts maximize your chances of making plays based on hitter tendencies",
+      "conceptTag": "defensive-positioning-shift",
+      "diff": 2,
+      "anim": "doubleplay",
+      "id": "ma_1773274867323_k4sdft",
+      "isAI": true,
+      "cat": "ai-generated",
+      "scenarioSource": "multi-agent-opus",
+      "agentGrade": 95,
+      "agentPlan": {
+        "goal": "introduce",
+        "concept": "defensive positioning with shift",
+        "difficulty": 2
+      },
+      "pipelineStats": {
+        "totalElapsed": 31218,
+        "stages": [
+          "planner",
+          "generator",
+          "critic"
+        ],
+        "totalInputTokens": 4031,
+        "totalOutputTokens": 981,
+        "critiquePass": true,
+        "critiqueScore": 9.5,
+        "ragHits": 9
+      }
+    },
+    "critiqueScore": 9.5,
+    "critiqueRubric": {
+      "factualAccuracy": 10,
+      "explanationStrength": 9,
+      "ageAppropriateness": 9,
+      "educationalValue": 10,
+      "varietyDistinctness": 10
+    },
+    "pipelineModel": "claude-opus-4-20250514",
+    "generatedAt": "2026-03-12T00:21:07.332Z",
+    "ratings": {
+      "factualAccuracy": 10,
+      "explanationStrength": 10,
+      "ageAppropriateness": 10,
+      "educationalValue": 10,
+      "varietyEngagement": 10
+    },
+    "preferredExplanation": 0,
+    "coachComments": null,
+    "ratedAt": "2026-03-12T00:33:26.736Z",
+    "overallScore": 10
+  },
+  {
+    "id": "rate_1773274911191_1",
+    "position": "famous",
+    "difficulty": "intermediate",
+    "scenario": {
+      "title": "Brooks Robinson's Critical Positioning",
+      "description": "1970 World Series, Game 5. You're Brooks Robinson at third base with the Orioles clinging to a 4-3 lead in the bottom of the 9th. The Reds have runners on second and third with two outs.",
+      "situation": {
+        "inning": "Bot 9",
+        "outs": 2,
+        "runners": [
+          2,
+          3
+        ],
+        "score": [
+          4,
+          3
+        ],
+        "count": null
+      },
+      "options": [
+        "Guard the line to prevent a double down the line",
+        "Play in on the grass to cut off the tying run at home",
+        "Position yourself normally for maximum range and reaction time",
+        "Play deep to prevent an extra-base hit over your head"
+      ],
+      "best": 1,
+      "explanations": [
+        "Guarding the line seems logical but leaves you too far from home plate. With two outs, you need to prevent the tying run from scoring more than worrying about extra bases.",
+        "Playing in on the grass gives you the best chance to field a grounder and throw home for the force out. Your .971 fielding percentage this series proves you can handle the reduced reaction time.",
+        "Normal positioning splits the difference but doesn't fully commit to either preventing the run or the extra-base hit. In this high-leverage situation, you need to make a decisive choice.",
+        "Playing deep protects against the double but any ground ball gets through for the tying run. With your range, you can charge hard from an in position if needed."
+      ],
+      "rates": [
+        35,
+        85,
+        25,
+        20
+      ],
+      "concept": "In championship moments with the tying run 90 feet away, elite defenders must position aggressively to cut off runs at home",
+      "conceptTag": "high-pressure-defensive-positioning",
+      "diff": 3,
+      "anim": "freeze",
+      "id": "ma_1773274911179_nue7o4",
+      "isAI": true,
+      "cat": "ai-generated",
+      "scenarioSource": "multi-agent-opus",
+      "agentGrade": 100,
+      "agentPlan": {
+        "goal": "reinforce",
+        "concept": "high-pressure defensive positioning",
+        "difficulty": 3
+      },
+      "pipelineStats": {
+        "totalElapsed": 28725,
+        "stages": [
+          "planner",
+          "generator",
+          "critic"
+        ],
+        "totalInputTokens": 4039,
+        "totalOutputTokens": 970,
+        "critiquePass": true,
+        "critiqueScore": 10,
+        "ragHits": 9
+      }
+    },
+    "critiqueScore": 10,
+    "critiqueRubric": {
+      "factualAccuracy": 10,
+      "explanationStrength": 10,
+      "ageAppropriateness": 10,
+      "educationalValue": 10,
+      "varietyDistinctness": 10
+    },
+    "pipelineModel": "claude-opus-4-20250514",
+    "generatedAt": "2026-03-12T00:21:51.191Z",
+    "ratings": {
+      "factualAccuracy": 5,
+      "explanationStrength": 4,
+      "ageAppropriateness": 5,
+      "educationalValue": 2,
+      "varietyEngagement": 9
+    },
+    "preferredExplanation": 1,
+    "coachComments": "Why would he play the out at home with runners on 2nd and third with 2 outs. There is no force at home. This whole scenario seems inaccurate",
+    "ratedAt": "2026-03-12T00:35:57.442Z",
+    "overallScore": 5
+  },
+  {
+    "id": "rate_1773274979975_2",
+    "position": "shortstop",
+    "difficulty": "intermediate",
+    "scenario": {
+      "title": "Double Play Pivot at Second",
+      "description": "You're playing shortstop in the top of the 4th. Your team leads 2-1. The second baseman fields a grounder and tosses it to you for the double play.",
+      "situation": {
+        "inning": "Top 4",
+        "outs": 0,
+        "count": null,
+        "runners": [
+          1
+        ],
+        "score": [
+          1,
+          2
+        ]
+      },
+      "options": [
+        "Catch the ball, step on the bag with your right foot, pivot, and throw to first",
+        "Catch the ball and throw to first right away without touching the bag",
+        "Wait for the runner to get really close, then make your pivot",
+        "Jump over the bag while catching and throwing at the same time"
+      ],
+      "best": 0,
+      "explanations": [
+        "You do it just right! You catch the ball, touch the bag with your right foot to get the force out, then pivot and throw to first. Using your right foot keeps your body open to first base and helps you avoid the sliding runner while making a strong throw.",
+        "You forgot to touch second base! Without stepping on the bag, you don't get the force out at second. Now you only get one out instead of two.",
+        "You wait too long! The runner slides into you before you can make your throw. You need to be quick but also use the right footwork.",
+        "You try to do too much at once! Jumping makes your throw wild. You need to use proper footwork - catch, step, pivot, throw."
+      ],
+      "rates": [
+        85,
+        20,
+        40,
+        25
+      ],
+      "concept": "Double play pivot footwork protects you from sliding runners",
+      "conceptTag": "double-play-pivot-footwork",
+      "diff": 1,
+      "anim": "doubleplay",
+      "id": "ma_1773274979865_d59ru8",
+      "isAI": true,
+      "cat": "ai-generated",
+      "scenarioSource": "multi-agent-opus",
+      "agentGrade": 97,
+      "agentPlan": {
+        "goal": "introduce",
+        "concept": "double play pivot footwork",
+        "difficulty": 1
+      },
+      "pipelineStats": {
+        "totalElapsed": 53470,
+        "stages": [
+          "planner",
+          "generator",
+          "critic",
+          "rewriter",
+          "critic"
+        ],
+        "totalInputTokens": 7051,
+        "totalOutputTokens": 1792,
+        "critiquePass": false,
+        "critiqueScore": 9.67,
+        "ragHits": 9
+      }
+    },
+    "critiqueScore": 9.67,
+    "critiqueRubric": {
+      "factualAccuracy": 10,
+      "explanationStrength": 9,
+      "ageAppropriateness": 10,
+      "educationalValue": 10,
+      "varietyDistinctness": 9
+    },
+    "pipelineModel": "claude-opus-4-20250514",
+    "generatedAt": "2026-03-12T00:22:59.975Z",
+    "ratings": {
+      "factualAccuracy": 10,
+      "explanationStrength": 10,
+      "ageAppropriateness": 10,
+      "educationalValue": 6,
+      "varietyEngagement": 10
+    },
+    "preferredExplanation": 0,
+    "coachComments": "The scenario is missing the part about there being a runner on first. It just says that the second baseman fields a ground ball and tosses to you for the double play. It needs more information in the scenario description to be accurate ",
+    "ratedAt": "2026-03-12T00:38:52.686Z",
+    "overallScore": 9.2
+  },
+  {
+    "id": "rate_1773275056061_3",
+    "position": "catcher",
+    "difficulty": "intermediate",
+    "scenario": {
+      "title": "Steal Threat With Full Count",
+      "description": "You're catching in the bottom of the 5th, down 3-2. There's a speedy runner on first with one out and a full count on the batter. You know this runner loves to steal on 3-2 counts.",
+      "situation": {
+        "inning": "Bot 5",
+        "outs": 1,
+        "count": "3-2",
+        "runners": [
+          1
+        ],
+        "score": [
+          3,
+          2
+        ]
+      },
+      "options": [
+        "Stay low in your normal crouch to avoid tipping that you expect a steal",
+        "Shift your weight slightly forward onto your toes for a quicker release",
+        "Move up closer to the plate to shorten your throw distance to second",
+        "Call for a pitchout to get a clean throw if the runner goes"
+      ],
+      "best": 1,
+      "explanations": [
+        "Staying in your normal crouch might keep the element of surprise, but you'll be slower getting into throwing position. Elite catchers need 1.9-2.0 second pop times, and starting flat-footed costs you precious time.",
+        "Shifting your weight forward onto your toes lets you explode into your throw while still receiving the pitch normally. This pre-loading shaves 0.1-0.2 seconds off your pop time without tipping your hand to the runner.",
+        "Moving closer to the plate seems logical to shorten the distance, but you'll likely get called for catcher's interference if the batter swings. Plus, you still need proper footwork for an accurate throw.",
+        "A pitchout on 3-2 gives the batter a free base with a walk. With your team already trailing, you can't afford to put another runner on base voluntarily."
+      ],
+      "rates": [
+        35,
+        85,
+        25,
+        20
+      ],
+      "concept": "Catchers can improve pop time by pre-loading weight forward while maintaining normal receiving position",
+      "conceptTag": "catcher-steal-positioning",
+      "diff": 2,
+      "anim": "steal",
+      "id": "ma_1773275056059_m4fjde",
+      "isAI": true,
+      "cat": "ai-generated",
+      "scenarioSource": "multi-agent-opus",
+      "agentGrade": 100,
+      "agentPlan": {
+        "goal": "introduce",
+        "concept": "catcher positioning on steal attempts",
+        "difficulty": 2
+      },
+      "pipelineStats": {
+        "totalElapsed": 60946,
+        "stages": [
+          "planner",
+          "generator",
+          "critic",
+          "rewriter",
+          "critic"
+        ],
+        "totalInputTokens": 7526,
+        "totalOutputTokens": 1908,
+        "critiquePass": false,
+        "critiqueScore": 10,
+        "ragHits": 9
+      }
+    },
+    "critiqueScore": 10,
+    "critiqueRubric": {
+      "factualAccuracy": 10,
+      "explanationStrength": 10,
+      "ageAppropriateness": 10,
+      "educationalValue": 10,
+      "varietyDistinctness": 10
+    },
+    "pipelineModel": "claude-opus-4-20250514",
+    "generatedAt": "2026-03-12T00:24:16.061Z",
+    "ratings": {
+      "factualAccuracy": 10,
+      "explanationStrength": 10,
+      "ageAppropriateness": 10,
+      "educationalValue": 10,
+      "varietyEngagement": 10
+    },
+    "preferredExplanation": 1,
+    "coachComments": "Only thing I could add would be for the catcher to also be ready to block something in the dirt to keep the runner from advancing on a pass ball or wild pitch. The first priority is to catch/stop the ball then throw the runner out if fielded cleanly. But shifting being ready to throw them out is also being ready to block. ",
+    "ratedAt": "2026-03-12T00:43:11.561Z",
+    "overallScore": 10
+  },
+  {
+    "id": "rate_1773275124567_4",
+    "position": "rules",
+    "difficulty": "beginner",
+    "scenario": {
+      "title": "Catcher Blocks the Plate Without the Ball",
+      "description": "Top of the 5th, your team trails 4-3 with runners on first and third, one out. The pitcher throws a wild pitch that gets away from the catcher. Your runner from third breaks for home, but the catcher moves up the line to block the plate before retrieving the ball.",
+      "situation": {
+        "inning": "Top 5",
+        "outs": 1,
+        "count": "2-1",
+        "runners": [
+          1,
+          3
+        ],
+        "score": [
+          3,
+          4
+        ]
+      },
+      "options": [
+        "Your runner is automatically out for running into the catcher",
+        "Your runner must avoid the catcher - it's the runner's responsibility to find a path",
+        "The umpire should call obstruction - your runner is awarded home plate",
+        "The play continues normally since it was incidental contact"
+      ],
+      "best": 2,
+      "explanations": [
+        "This option is wrong because the catcher initiated the contact by blocking the baseline without possession of the ball. The runner has the right to the basepath.",
+        "This option misunderstands the obstruction rule. While runners normally must avoid fielders, a fielder cannot block the base path without the ball.",
+        "This is correct! When a fielder blocks the runner's path without possession of the ball, it's obstruction. Your runner is awarded the base he would have reached - in this case, home plate.",
+        "This isn't just incidental contact. The catcher intentionally moved into the baseline to block your runner's path to the plate without having the ball, which is textbook obstruction."
+      ],
+      "rates": [
+        25,
+        55,
+        85,
+        20
+      ],
+      "concept": "Obstruction occurs when a fielder blocks the base path without possession of the ball",
+      "conceptTag": "obstruction-rule",
+      "diff": 2,
+      "anim": "score",
+      "id": "ma_1773275124402_yyj54l",
+      "isAI": true,
+      "cat": "ai-generated",
+      "scenarioSource": "multi-agent-opus",
+      "agentGrade": 97,
+      "agentPlan": {
+        "goal": "introduce",
+        "concept": "Interference and Obstruction",
+        "difficulty": 2
+      },
+      "pipelineStats": {
+        "totalElapsed": 53228,
+        "stages": [
+          "planner",
+          "generator",
+          "critic",
+          "rewriter",
+          "critic"
+        ],
+        "totalInputTokens": 6967,
+        "totalOutputTokens": 1867,
+        "critiquePass": false,
+        "critiqueScore": 9.67,
+        "ragHits": 9
+      }
+    },
+    "critiqueScore": 9.67,
+    "critiqueRubric": {
+      "factualAccuracy": 10,
+      "explanationStrength": 9,
+      "ageAppropriateness": 10,
+      "educationalValue": 10,
+      "varietyDistinctness": 9
+    },
+    "pipelineModel": "claude-opus-4-20250514",
+    "generatedAt": "2026-03-12T00:25:24.567Z",
+    "ratings": {
+      "factualAccuracy": 2,
+      "explanationStrength": 5,
+      "ageAppropriateness": 8,
+      "educationalValue": 10,
+      "varietyEngagement": 10
+    },
+    "preferredExplanation": 2,
+    "coachComments": "This is an inaccurate scenario. If the ball gets by the catcher, he has to run to the backstop to get the ball. The pitcher is covering the plate on a passball with the runner coming from 3rd. ",
+    "ratedAt": "2026-03-12T00:47:29.525Z",
+    "overallScore": 7
+  },
+  {
+    "id": "rate_1773275170096_5",
+    "position": "secondBase",
+    "difficulty": "beginner",
+    "scenario": {
+      "title": "Relay Positioning on Extra-Base Hit",
+      "description": "You're playing second base in the bottom of the 6th, your team trailing 3-2. There's a runner on third with one out when the batter crushes a ball deep to right-center field.",
+      "situation": {
+        "inning": "Bot 6",
+        "outs": 1,
+        "count": null,
+        "runners": [
+          3
+        ],
+        "score": [
+          3,
+          2
+        ]
+      },
+      "options": [
+        "Line yourself up between the right fielder and home plate, hands up high",
+        "Stay close to second base to cover the bag",
+        "Run toward the outfield to get the ball faster",
+        "Position yourself between the right fielder and third base"
+      ],
+      "best": 0,
+      "explanations": [
+        "You position yourself perfectly in line between the right fielder and home plate. This gives you the best angle to receive the throw and relay it home quickly. Your hands are up so the outfielder can see you easily.",
+        "Staying at second base leaves you too far from the play. The throw from right field would have to travel much farther without a relay, giving the runner more time to score.",
+        "Running toward the outfield seems helpful but actually makes the relay harder. You need to be in the right spot to catch and throw, not just closer to the ball.",
+        "Lining up toward third base puts you in the wrong position. The runner is already at third - the play is at home plate, so that's where your relay alignment should point."
+      ],
+      "rates": [
+        85,
+        25,
+        20,
+        35
+      ],
+      "concept": "On relay throws home from right field, the second baseman lines up directly between the outfielder and home plate",
+      "conceptTag": "relay-positioning",
+      "diff": 2,
+      "anim": "throwHome",
+      "id": "ma_1773275170070_05icxg",
+      "isAI": true,
+      "cat": "ai-generated",
+      "scenarioSource": "multi-agent-opus",
+      "agentGrade": 95,
+      "agentPlan": {
+        "goal": "reinforce",
+        "concept": "relay positioning and cutoff responsibilities",
+        "difficulty": 2
+      },
+      "pipelineStats": {
+        "totalElapsed": 30285,
+        "stages": [
+          "planner",
+          "generator",
+          "critic"
+        ],
+        "totalInputTokens": 3871,
+        "totalOutputTokens": 962,
+        "critiquePass": true,
+        "critiqueScore": 9.5,
+        "ragHits": 9
+      }
+    },
+    "critiqueScore": 9.5,
+    "critiqueRubric": {
+      "factualAccuracy": 10,
+      "explanationStrength": 9,
+      "ageAppropriateness": 10,
+      "educationalValue": 9,
+      "varietyDistinctness": 9
+    },
+    "pipelineModel": "claude-opus-4-20250514",
+    "generatedAt": "2026-03-12T00:26:10.096Z",
+    "ratings": {
+      "factualAccuracy": 1,
+      "explanationStrength": 1,
+      "ageAppropriateness": 7,
+      "educationalValue": 1,
+      "varietyEngagement": 8
+    },
+    "preferredExplanation": 0,
+    "coachComments": "The secondbaseman does not cutoff to home from right field. That is the first basemans job. Also, if the ball is hit in the gap with a runner on third, that runner is going to score no matter wat, the second baseman needs to position himself to either help get the batter out at second as a relay man from right to the shortstop cover 2nd, or be the cutoff for a throw to 3rd if the batter tries to stretch it to a triple. ",
+    "ratedAt": "2026-03-12T00:51:03.569Z",
+    "overallScore": 3.6
+  },
+  {
+    "id": "rate_1773275240053_6",
+    "position": "shortstop",
+    "difficulty": "beginner",
+    "scenario": {
+      "title": "Double Play Pivot - Set Your Feet",
+      "description": "Top 5, your team leads 3-2. Runner on first, nobody out. Sharp grounder to your second baseman who flips to you at second base. You catch the ball as you approach the bag.",
+      "situation": {
+        "inning": "Top 5",
+        "outs": 0,
+        "count": null,
+        "runners": [
+          1
+        ],
+        "score": [
+          2,
+          3
+        ]
+      },
+      "options": [
+        "Plant your right foot on the back corner of the bag, catch, pivot, and throw",
+        "Catch the ball and immediately throw without setting your feet",
+        "Stay on the bag after catching to ensure the force out",
+        "Jump straight up to avoid the runner while throwing"
+      ],
+      "best": 0,
+      "explanations": [
+        "Planting your right foot on the back corner gives you the best balance and throwing angle. You create momentum toward first while clearing the baseline - this footwork increases double play success by 35%.",
+        "Throwing without setting your feet leads to wild throws. You might beat the runner but an errant throw gives them both bases.",
+        "Staying on the bag after the catch leaves you vulnerable to the sliding runner and makes your throw awkward. You already have the force - now you need the double play.",
+        "Jumping straight up takes away all your throwing power and accuracy. You'll float the ball to first and the runner will beat it easily."
+      ],
+      "rates": [
+        85,
+        45,
+        25,
+        20
+      ],
+      "concept": "Proper pivot footwork on double plays - right foot on back corner, catch, pivot, throw",
+      "conceptTag": "double-play-pivot-footwork",
+      "diff": 2,
+      "anim": "doubleplay",
+      "id": "ma_1773275240044_48vhuq",
+      "isAI": true,
+      "cat": "ai-generated",
+      "scenarioSource": "multi-agent-opus",
+      "agentGrade": 100,
+      "agentPlan": {
+        "goal": "introduce",
+        "concept": "double play pivot footwork",
+        "difficulty": 2
+      },
+      "pipelineStats": {
+        "totalElapsed": 54825,
+        "stages": [
+          "planner",
+          "generator",
+          "critic",
+          "rewriter",
+          "critic"
+        ],
+        "totalInputTokens": 7130,
+        "totalOutputTokens": 1797,
+        "critiquePass": true,
+        "critiqueScore": 10,
+        "ragHits": 9
+      }
+    },
+    "critiqueScore": 10,
+    "critiqueRubric": {
+      "factualAccuracy": 10,
+      "explanationStrength": 10,
+      "ageAppropriateness": 10,
+      "educationalValue": 10,
+      "varietyDistinctness": 10
+    },
+    "pipelineModel": "claude-opus-4-20250514",
+    "generatedAt": "2026-03-12T00:27:20.053Z",
+    "ratings": {
+      "factualAccuracy": 10,
+      "explanationStrength": 10,
+      "ageAppropriateness": 10,
+      "educationalValue": 10,
+      "varietyEngagement": 10
+    },
+    "preferredExplanation": 0,
+    "coachComments": null,
+    "ratedAt": "2026-03-12T00:52:39.414Z",
+    "overallScore": 10
+  },
+  {
+    "id": "rate_1773275283504_7",
+    "position": "shortstop",
+    "difficulty": "beginner",
+    "scenario": {
+      "title": "Double Play Pivot — Avoiding the Slide",
+      "description": "Bot 5, no outs, your team trails 3-2. Runner on first takes off with the pitch. The batter hits a sharp grounder to second base. Your second baseman fields it cleanly and flips to you covering the bag.",
+      "situation": {
+        "inning": "Bot 5",
+        "outs": 0,
+        "count": null,
+        "runners": [
+          1
+        ],
+        "score": [
+          3,
+          2
+        ]
+      },
+      "options": [
+        "Catch the ball, touch the bag, then jump to your right while throwing",
+        "Stay planted on the bag and make a strong throw",
+        "Jump straight up to avoid the runner",
+        "Catch and immediately leap backwards while throwing"
+      ],
+      "best": 0,
+      "explanations": [
+        "This is the proper pivot technique — you secure the out at second, then use your momentum to jump toward first base while throwing. This gets you clear of the sliding runner while maintaining accuracy on your throw.",
+        "Staying planted on the bag puts you directly in the path of the sliding runner. You'll likely get taken out before completing your throw, and the contact could cause an errant throw or injury.",
+        "Jumping straight up leaves you hanging in the air with no balance or momentum for your throw. You'll have no power behind the throw and poor accuracy while airborne.",
+        "Leaping backwards takes you away from first base, making your throw longer and weaker. You also risk landing awkwardly or losing sight of first base."
+      ],
+      "rates": [
+        85,
+        45,
+        25,
+        20
+      ],
+      "concept": "On double play pivots, jump toward first base while throwing to avoid the sliding runner and maintain throwing accuracy",
+      "conceptTag": "double-play-pivot-mechanics",
+      "diff": 2,
+      "anim": "doubleplay",
+      "id": "ma_1773275283505_9slrkm",
+      "isAI": true,
+      "cat": "ai-generated",
+      "scenarioSource": "multi-agent-opus",
+      "agentGrade": 100,
+      "agentPlan": {
+        "goal": "introduce",
+        "concept": "double play pivot mechanics",
+        "difficulty": 2
+      },
+      "pipelineStats": {
+        "totalElapsed": 28285,
+        "stages": [
+          "planner",
+          "generator",
+          "critic"
+        ],
+        "totalInputTokens": 4028,
+        "totalOutputTokens": 904,
+        "critiquePass": true,
+        "critiqueScore": 10,
+        "ragHits": 9
+      }
+    },
+    "critiqueScore": 10,
+    "critiqueRubric": {
+      "factualAccuracy": 10,
+      "explanationStrength": 10,
+      "ageAppropriateness": 10,
+      "educationalValue": 10,
+      "varietyDistinctness": 10
+    },
+    "pipelineModel": "claude-opus-4-20250514",
+    "generatedAt": "2026-03-12T00:28:03.504Z",
+    "ratings": {
+      "factualAccuracy": 7,
+      "explanationStrength": 8,
+      "ageAppropriateness": 7,
+      "educationalValue": 8,
+      "varietyEngagement": 9
+    },
+    "preferredExplanation": 0,
+    "coachComments": "If the runner takes off on the pitch, it is most likely a hit and run and the second baseman might not be able to field the ball. But also, the runner could be sliding to the left side of the bag and if the SS jumps to his right he might mess up his throw. The shortstop should probably play through the bag and go towards the 2nd basemans side of the bag to avoid the tag, but honestly this needs to be a judgment call by the shortstop based on the throw from the second baseman and the read of the slide before he catches the ball. The scenario needs more context about the runner and the slide to properly educate the user on this scenario",
+    "ratedAt": "2026-03-12T00:55:58.953Z",
+    "overallScore": 7.8
+  },
+  {
+    "id": "rate_1773275328959_8",
+    "position": "secondBase",
+    "difficulty": "beginner",
+    "scenario": {
+      "title": "Extra-Base Hit Relay Positioning",
+      "description": "You're playing second base with your team trailing 4-3 in the bottom of the 6th. Nobody on, nobody out. The batter crushes a line drive that splits the right-center gap and rolls toward the wall.",
+      "situation": {
+        "inning": "Bot 6",
+        "outs": 0,
+        "count": null,
+        "runners": [],
+        "score": [
+          4,
+          3
+        ]
+      },
+      "options": [
+        "Sprint out and line yourself up between the right fielder and home plate, arms up high",
+        "Stand directly on second base to be closer to home for a quicker relay",
+        "Run all the way to shallow right field to meet the throw halfway",
+        "Position yourself between the right fielder and third base instead"
+      ],
+      "best": 0,
+      "explanations": [
+        "You create the perfect relay line from right field through you to home plate. Your arms-up position helps the outfielder spot you quickly, and you're in position to catch and fire home if the runner tries to score.",
+        "Standing on second base breaks the relay line and forces the outfielder to make a longer, harder throw. You need to move out toward right field to create proper alignment.",
+        "Running too far into the outfield leaves you with a long throw to home and poor body positioning. You want to split the distance properly, not get too close to the outfielder.",
+        "Lining up toward third base puts you in the wrong relay position. With nobody on base, the batter-runner could try for home on a ball to the wall, so you need to align with home plate."
+      ],
+      "rates": [
+        85,
+        25,
+        20,
+        35
+      ],
+      "concept": "Proper relay alignment creates a straight line from outfielder through relay man to target base",
+      "conceptTag": "relay-positioning",
+      "diff": 2,
+      "anim": "hit",
+      "id": "ma_1773275328958_19w8fl",
+      "isAI": true,
+      "cat": "ai-generated",
+      "scenarioSource": "multi-agent-opus",
+      "agentGrade": 100,
+      "agentPlan": {
+        "goal": "reinforce",
+        "concept": "relay positioning",
+        "difficulty": 2
+      },
+      "pipelineStats": {
+        "totalElapsed": 30322,
+        "stages": [
+          "planner",
+          "generator",
+          "critic"
+        ],
+        "totalInputTokens": 3891,
+        "totalOutputTokens": 947,
+        "critiquePass": true,
+        "critiqueScore": 10,
+        "ragHits": 9
+      }
+    },
+    "critiqueScore": 10,
+    "critiqueRubric": {
+      "factualAccuracy": 10,
+      "explanationStrength": 10,
+      "ageAppropriateness": 10,
+      "educationalValue": 10,
+      "varietyDistinctness": 10
+    },
+    "pipelineModel": "claude-opus-4-20250514",
+    "generatedAt": "2026-03-12T00:28:48.959Z",
+    "ratings": {
+      "factualAccuracy": 1,
+      "explanationStrength": 1,
+      "ageAppropriateness": 7,
+      "educationalValue": 3,
+      "varietyEngagement": 6
+    },
+    "preferredExplanation": 0,
+    "coachComments": "If there is no one on and the batter hits the ball to the wall, the correct base to be thrwoing to is 3rd, not home. The second baseman can get in position to be the double cut to third if necessary but the play is at third, not home. ",
+    "ratedAt": "2026-03-12T00:57:57.067Z",
+    "overallScore": 3.6
+  },
+  {
+    "id": "rate_1773275373924_9",
+    "position": "baserunner",
+    "difficulty": "advanced",
+    "scenario": {
+      "title": "Reading the Hit-and-Run Signal",
+      "description": "Bottom 5th, game tied 2-2. You're on first base with 1 out. Your manager gives you the hit-and-run sign — you must go on the pitcher's first move to help the batter avoid a double play.",
+      "situation": {
+        "inning": "Bot 5",
+        "outs": 1,
+        "count": "2-1",
+        "runners": [
+          1
+        ],
+        "score": [
+          2,
+          2
+        ]
+      },
+      "options": [
+        "Break for second as soon as the pitcher starts his motion toward home",
+        "Wait to see if the batter makes contact before running",
+        "Hold until the ball crosses the plate, then decide",
+        "Take a big lead but only go if you see a good pitch to hit"
+      ],
+      "best": 0,
+      "explanations": [
+        "On the hit-and-run, you must break immediately when the pitcher commits to home. This forces the defense to cover second base, creating holes for the batter. Your early jump also prevents double plays on ground balls.",
+        "Waiting for contact defeats the purpose of the hit-and-run. If you wait, the defense won't have to cover second base early, and you'll be an easy double play victim on any ground ball.",
+        "Waiting until the ball crosses the plate is way too late. You'd have no chance to reach second on a ground ball, resulting in an easy double play that kills your rally.",
+        "The hit-and-run requires total commitment — you go regardless of the pitch location. Taking a big lead without running just makes you vulnerable to a pickoff."
+      ],
+      "rates": [
+        85,
+        45,
+        20,
+        25
+      ],
+      "concept": "Hit-and-run requires the runner to break on the pitcher's first move, creating defensive holes and preventing double plays",
+      "conceptTag": "hit-and-run-execution",
+      "diff": 2,
+      "anim": "steal",
+      "id": "ma_1773275373922_5q8z2s",
+      "isAI": true,
+      "cat": "ai-generated",
+      "scenarioSource": "multi-agent-opus",
+      "agentGrade": 95,
+      "agentPlan": {
+        "goal": "introduce",
+        "concept": "reading the hit-and-run play",
+        "difficulty": 2
+      },
+      "pipelineStats": {
+        "totalElapsed": 29840,
+        "stages": [
+          "planner",
+          "generator",
+          "critic"
+        ],
+        "totalInputTokens": 4244,
+        "totalOutputTokens": 1010,
+        "critiquePass": true,
+        "critiqueScore": 9.5,
+        "ragHits": 9
+      }
+    },
+    "critiqueScore": 9.5,
+    "critiqueRubric": {
+      "factualAccuracy": 10,
+      "explanationStrength": 9,
+      "ageAppropriateness": 10,
+      "educationalValue": 9,
+      "varietyDistinctness": 9
+    },
+    "pipelineModel": "claude-opus-4-20250514",
+    "generatedAt": "2026-03-12T00:29:33.924Z",
+    "ratings": {
+      "factualAccuracy": 10,
+      "explanationStrength": 10,
+      "ageAppropriateness": 10,
+      "educationalValue": 10,
+      "varietyEngagement": 10
+    },
+    "preferredExplanation": 0,
+    "coachComments": "Only thing I would add is more context to if it is a right handed pitcher or a left handed pitcher. Then i would give more detail on when to break. You have to make sure the pitcher is going home but that is different from a right handed pitcher versus a left handed pitcher. For a right handed pitcher, you read his left heel. If he picks up his left heel, he has to go home. For a left handed pitcher it is more difficult because he can pick up his leg and throw over to first, so most hit and runs against a left handed pitcher teach \"ball past face\" you wait until the ball from the pitcher crosses his face then you take off. ",
+    "ratedAt": "2026-03-12T01:01:27.055Z",
+    "overallScore": 10
+  }
+]

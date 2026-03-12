@@ -21,3 +21,13 @@ Thumbs.db
 
 # Node
 node_modules/
+
+# Model adapters (binary, too large for git)
+bsm-13b-test-adapter/
+bsm-70b-*/
+
+# Synthetic pipeline temp files
+phase1-finetune/synthetic_batch_*.json
+phase1-finetune/golden_candidates_*.json
+phase1-finetune/judge_results_*.json
+phase1-finetune/logs/

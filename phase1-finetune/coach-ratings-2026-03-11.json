@@ -1,0 +1,453 @@
+[
+  {
+    "id": "rate_1773252807665_0",
+    "position": "thirdBase",
+    "difficulty": "beginner",
+    "scenario": {
+      "title": "Double Play Depth Decision",
+      "description": "You're the third baseman with a runner on first and no outs. The away team leads 3-2 in the fifth inning. Your team needs a double play to get out of this jam without giving up more runs.",
+      "situation": {
+        "inning": "Top 5",
+        "outs": 0,
+        "count": "2-1",
+        "runners": [
+          1
+        ],
+        "score": [
+          3,
+          2
+        ]
+      },
+      "options": [
+        "Position yourself at double play depth, a few steps in and toward second base",
+        "Play deep near the line to protect against an extra base hit",
+        "Shade toward the shortstop to help with up-the-middle coverage",
+        "Play normal depth but cheat a step toward first base"
+      ],
+      "best": 0,
+      "explanations": [
+        "You position yourself at double play depth for the 5-4-3. This reduces your reaction time by 0.3 seconds but increases your chance of turning two by 35%. With no outs and the tying run on base, getting two outs is worth the trade-off.",
+        "Playing deep protects against doubles but makes it nearly impossible for you to start a 5-4-3 double play. You'd need a perfect throw just to get one out at second.",
+        "Shading toward shortstop leaves the line vulnerable and doesn't help much with double plays since you still need to cover third base. The shortstop already has the middle covered.",
+        "Normal depth with a step toward first doesn't give you the angle you need for a quick throw to second. You need to be closer and more toward second base for an effective 5-4-3."
+      ],
+      "rates": [
+        85,
+        55,
+        25,
+        20
+      ],
+      "concept": "Double play depth positioning increases 5-4-3 conversion rates",
+      "conceptTag": "dp-positioning",
+      "diff": 2,
+      "anim": "doubleplay",
+      "id": "ma_1773252807642_q0u88v",
+      "isAI": true,
+      "cat": "ai-generated",
+      "scenarioSource": "multi-agent-opus",
+      "agentGrade": 100,
+      "agentPlan": {
+        "goal": "reinforce",
+        "concept": "5-4-3 double play positioning",
+        "difficulty": 2
+      },
+      "pipelineStats": {
+        "totalElapsed": 63645,
+        "stages": [
+          "planner",
+          "generator",
+          "critic",
+          "rewriter",
+          "critic"
+        ],
+        "totalInputTokens": 7233,
+        "totalOutputTokens": 2011,
+        "critiquePass": false,
+        "critiqueScore": 10,
+        "ragHits": 9
+      }
+    },
+    "critiqueScore": 10,
+    "critiqueRubric": {
+      "factualAccuracy": 10,
+      "explanationStrength": 10,
+      "ageAppropriateness": 10,
+      "educationalValue": 10,
+      "varietyDistinctness": 10
+    },
+    "pipelineModel": "claude-opus-4-20250514",
+    "generatedAt": "2026-03-11T18:13:27.665Z",
+    "ratings": {
+      "factualAccuracy": 9,
+      "explanationStrength": 7,
+      "ageAppropriateness": 8,
+      "educationalValue": 6,
+      "varietyEngagement": 7
+    },
+    "preferredExplanation": 0,
+    "coachComments": "This teaches double play depth but there are a ton of factors that come into play with how you position yourself on the field other than the situation. Like who is pitching (right or left handed), what is the count, what pitch is he thrwoing, what kind of hitter (right or left handed), what did the hitter do last time, etc. Not saying this scenario is not good at teaching the kids to think about double play depth, just want it to be clear becasue some of these answers could work depending on a variety of variables. ",
+    "ratedAt": "2026-03-11T18:31:59.645Z",
+    "overallScore": 7.4
+  },
+  {
+    "id": "rate_1773252884573_1",
+    "position": "manager",
+    "difficulty": "advanced",
+    "scenario": {
+      "title": "Platoon Pinch-Hit Decision",
+      "description": "Top of the 6th, you're managing and trailing 3-2. Your left-handed batter is due up with a runner on first and one out. The opposing manager just brought in their tough left-handed reliever.",
+      "situation": {
+        "inning": "Top 6",
+        "outs": 1,
+        "count": null,
+        "runners": [
+          1
+        ],
+        "score": [
+          3,
+          2
+        ]
+      },
+      "options": [
+        "Pinch-hit with your right-handed bench player who hits .290 vs lefties",
+        "Keep your left-handed starter in - he's 2-for-3 today",
+        "Wait until there are 2 outs to make a move",
+        "Pinch-hit with your best overall hitter who happens to be left-handed"
+      ],
+      "best": 0,
+      "explanations": [
+        "Right-handed batters usually hit much better against left-handed pitchers than lefties do. Your righty hits .290 against lefties - that's the matchup advantage you want to use here!",
+        "Being hot today doesn't change the fact that left-handed batters typically struggle against left-handed pitchers. Same-side matchups favor the pitcher, not the hitter.",
+        "Waiting wastes an at-bat where you could use the righty-lefty advantage. With a runner already on, you need to maximize every opportunity to score in this close game.",
+        "Even your best hitter faces a big disadvantage batting left-handed against a lefty pitcher. The righty-lefty matchup matters more than overall skill here."
+      ],
+      "rates": [
+        85,
+        50,
+        25,
+        30
+      ],
+      "concept": "Right-handed batters have significant advantages against left-handed pitchers compared to lefties",
+      "conceptTag": "platoon-advantage",
+      "diff": 2,
+      "anim": "hit",
+      "id": "ma_1773252884465_djk8u1",
+      "isAI": true,
+      "cat": "ai-generated",
+      "scenarioSource": "multi-agent-opus",
+      "agentGrade": 97,
+      "agentPlan": {
+        "goal": "introduce",
+        "concept": "platoon advantages",
+        "difficulty": 2
+      },
+      "pipelineStats": {
+        "totalElapsed": 61669,
+        "stages": [
+          "planner",
+          "generator",
+          "critic",
+          "rewriter",
+          "critic"
+        ],
+        "totalInputTokens": 7804,
+        "totalOutputTokens": 2115,
+        "critiquePass": false,
+        "critiqueScore": 9.67,
+        "ragHits": 9
+      }
+    },
+    "critiqueScore": 9.67,
+    "critiqueRubric": {
+      "factualAccuracy": 10,
+      "explanationStrength": 9,
+      "ageAppropriateness": 10,
+      "educationalValue": 10,
+      "varietyDistinctness": 10
+    },
+    "pipelineModel": "claude-opus-4-20250514",
+    "generatedAt": "2026-03-11T18:14:44.573Z",
+    "ratings": {
+      "factualAccuracy": 9,
+      "explanationStrength": 9,
+      "ageAppropriateness": 9,
+      "educationalValue": 9,
+      "varietyEngagement": 9
+    },
+    "preferredExplanation": 0,
+    "coachComments": "I think this is a great scenario to teach the thoughts around pinch hitting. But just like the first scenario I graded, there are a ton of variables to think about here. Especially if the hitter is currently 2-3 on the day. The manager will most likely keep that hitter in since he is pretty hot and has good momentum. Most managers don't sub for a hitter who is having success. They usually sub when a hitter is not having success and he is looking for a chance to change momentum of a game. The concept and stats might say its better to pinch hit here, but in all honesty its a gut call for the manager. Options A and B are 50-50 in my eyes and could go either way as the correct answer. ",
+    "ratedAt": "2026-03-11T18:36:49.895Z",
+    "overallScore": 9
+  },
+  {
+    "id": "rate_1773252958398_2",
+    "position": "rightField",
+    "difficulty": "beginner",
+    "scenario": {
+      "title": "Cutoff or Go Home Direct",
+      "description": "You're playing right field in a tight game. With your team leading 3-2 in the Top 5th, there's a runner on second with one out. The batter lines a single to right that you field cleanly on one hop.",
+      "situation": {
+        "inning": "Top 5",
+        "outs": 1,
+        "count": null,
+        "runners": [
+          2
+        ],
+        "score": [
+          2,
+          3
+        ]
+      },
+      "options": [
+        "Hit your cutoff man (first baseman) with a strong throw",
+        "Throw directly home to try preventing the run",
+        "Let the ball go through to the wall for a faster relay",
+        "Throw to second base to keep the batter from advancing"
+      ],
+      "best": 0,
+      "explanations": [
+        "Hitting your cutoff gives you the best chance to prevent the run. Your throw to the cutoff has an 85% success rate versus only 50% throwing directly home. The cutoff can redirect if the runner stops or make a shorter, more accurate throw home.",
+        "While throwing directly home seems aggressive, your 50% success rate from right field means you're more likely to overthrow and allow extra bases. Even with your strong arm, accuracy drops significantly at this distance.",
+        "Letting the ball go through wastes precious time and eliminates any chance of getting the runner. By the time you retrieve it from the wall, the run will score easily and the batter might take third.",
+        "Throwing to second ignores the immediate threat of the runner scoring from second. You'd be conceding the run to maybe prevent one extra base - a terrible trade when you're only up by one run."
+      ],
+      "rates": [
+        85,
+        50,
+        25,
+        20
+      ],
+      "concept": "Hit the cutoff man for better accuracy and options on throws from the outfield",
+      "conceptTag": "cutoff-positioning",
+      "diff": 2,
+      "anim": "throwHome",
+      "id": "ma_1773252958390_3wdv6x",
+      "isAI": true,
+      "cat": "ai-generated",
+      "scenarioSource": "multi-agent-opus",
+      "agentGrade": 95,
+      "agentPlan": {
+        "goal": "introduce",
+        "concept": "cutoff positioning",
+        "difficulty": 2
+      },
+      "pipelineStats": {
+        "totalElapsed": 58693,
+        "stages": [
+          "planner",
+          "generator",
+          "critic",
+          "rewriter",
+          "critic"
+        ],
+        "totalInputTokens": 7139,
+        "totalOutputTokens": 1922,
+        "critiquePass": true,
+        "critiqueScore": 9.5,
+        "ragHits": 9
+      }
+    },
+    "critiqueScore": 9.5,
+    "critiqueRubric": {
+      "factualAccuracy": 10,
+      "explanationStrength": 9,
+      "ageAppropriateness": 10,
+      "educationalValue": 9,
+      "varietyDistinctness": 10
+    },
+    "pipelineModel": "claude-opus-4-20250514",
+    "generatedAt": "2026-03-11T18:15:58.398Z",
+    "ratings": {
+      "factualAccuracy": 10,
+      "explanationStrength": 9,
+      "ageAppropriateness": 10,
+      "educationalValue": 10,
+      "varietyEngagement": 9
+    },
+    "preferredExplanation": 0,
+    "coachComments": "I think this is a great scenario. Only feedback is that there are other variables here that could play a factor. If the runner decides to push the limits and score, and the right field is confident he will throw him out, he may need to throw \"through\" the cutoff man. Instead of just throwing to the cut, he needs to throw through the cutoff like it is going to 1 hop at home. It is the catchers job to call for the first baseman to cut the through and either relay it home, or cut and redirect to another base. ",
+    "ratedAt": "2026-03-11T18:40:59.574Z",
+    "overallScore": 9.6
+  },
+  {
+    "id": "rate_1773253031520_3",
+    "position": "thirdBase",
+    "difficulty": "beginner",
+    "scenario": {
+      "title": "Positioning with Runners in Scoring Position",
+      "description": "You're the third baseman. Bottom of the 6th, your team trails 4-3. Runners on second and third with one out. The batter is 2-for-3 today with solid contact.",
+      "situation": {
+        "inning": "Bot 6",
+        "outs": 1,
+        "count": "2-1",
+        "runners": [
+          2,
+          3
+        ],
+        "score": [
+          4,
+          3
+        ]
+      },
+      "options": [
+        "Move in halfway to cut off the run at home on any ground ball",
+        "Play deep to prevent an extra base hit down the line",
+        "Guard the line to prevent a double that could score both runners",
+        "Stay at normal depth but shade toward the shortstop hole"
+      ],
+      "best": 0,
+      "explanations": [
+        "Moving in halfway gives you the best chance to throw home on a ground ball. With 1.44 expected runs in this situation, preventing the lead runner from scoring is crucial. You can still make plays on hard-hit balls from this position.",
+        "Playing deep might prevent an extra base hit, but you give up any chance of throwing home on a grounder. The runner on third will score easily, and you're already behind by one run.",
+        "Guarding the line prevents a double, but with runners already in scoring position, your priority is preventing runs, not extra bases. A single up the middle scores both runners anyway.",
+        "Normal depth leaves you too far back to make a play at home. In a one-run game, you need to be aggressive and give your team a chance to get the lead runner."
+      ],
+      "rates": [
+        85,
+        25,
+        40,
+        20
+      ],
+      "concept": "With runners in scoring position in a close game, third basemen must balance preventing runs versus preventing extra base hits",
+      "conceptTag": "fielder-positioning-risp",
+      "diff": 2,
+      "anim": "advance",
+      "id": "ma_1773253031506_rax1fe",
+      "isAI": true,
+      "cat": "ai-generated",
+      "scenarioSource": "multi-agent-opus",
+      "agentGrade": 96,
+      "agentPlan": {
+        "goal": "reinforce",
+        "concept": "fielder positioning with runners in scoring position",
+        "difficulty": 2
+      },
+      "pipelineStats": {
+        "totalElapsed": 57862,
+        "stages": [
+          "planner",
+          "generator",
+          "critic",
+          "rewriter",
+          "critic"
+        ],
+        "totalInputTokens": 7288,
+        "totalOutputTokens": 1878,
+        "critiquePass": false,
+        "critiqueScore": 9.6,
+        "ragHits": 9
+      }
+    },
+    "critiqueScore": 9.6,
+    "critiqueRubric": {
+      "factualAccuracy": 10,
+      "explanationStrength": 9,
+      "ageAppropriateness": 9,
+      "educationalValue": 10,
+      "varietyDistinctness": 10
+    },
+    "pipelineModel": "claude-opus-4-20250514",
+    "generatedAt": "2026-03-11T18:17:11.520Z",
+    "ratings": {
+      "factualAccuracy": 10,
+      "explanationStrength": 10,
+      "ageAppropriateness": 9,
+      "educationalValue": 10,
+      "varietyEngagement": 9
+    },
+    "preferredExplanation": 0,
+    "coachComments": null,
+    "ratedAt": "2026-03-11T18:42:27.253Z",
+    "overallScore": 9.6
+  },
+  {
+    "id": "rate_1773253105881_4",
+    "position": "leftField",
+    "difficulty": "advanced",
+    "scenario": {
+      "title": "Backup Positioning on Right Field Hit",
+      "description": "You're the left fielder in the top of the 5th. Your team leads 3-2 with a runner on second and no outs. The batter hits a deep fly ball to right field that might score the runner.",
+      "situation": {
+        "inning": "Top 5",
+        "outs": 0,
+        "count": null,
+        "runners": [
+          2
+        ],
+        "score": [
+          2,
+          3
+        ]
+      },
+      "options": [
+        "Sprint to back up third base in case of an overthrow",
+        "Stay in your normal left field position to cover your area",
+        "Run toward home plate to back up the catcher",
+        "Move to shallow center field to help cover the infield"
+      ],
+      "best": 0,
+      "explanations": [
+        "Backing up third base is your primary responsibility here. With the runner trying to score from second, any overthrow from right field or a relay throw could get past third base, and you need to be there to prevent extra bases.",
+        "Staying in left field leaves third base unprotected. If there's an overthrow or the runner holds at third, you won't be in position to help.",
+        "The catcher already has the pitcher backing up home plate. Your job as the left fielder is to back up third base on balls hit to the right side.",
+        "Moving to shallow center doesn't help anyone. The middle infielders will handle the relay, and you need to be backing up third base, not floating in no-man's land."
+      ],
+      "rates": [
+        85,
+        15,
+        50,
+        20
+      ],
+      "concept": "Left fielders back up third base on balls hit to the right side of the field",
+      "conceptTag": "backup-duties",
+      "diff": 2,
+      "anim": "throwHome",
+      "id": "ma_1773253105874_56no4j",
+      "isAI": true,
+      "cat": "ai-generated",
+      "scenarioSource": "multi-agent-opus",
+      "agentGrade": 95,
+      "agentPlan": {
+        "goal": "introduce",
+        "concept": "Cutoff positioning and communication",
+        "difficulty": 2
+      },
+      "pipelineStats": {
+        "totalElapsed": 59193,
+        "stages": [
+          "planner",
+          "generator",
+          "critic",
+          "rewriter",
+          "critic"
+        ],
+        "totalInputTokens": 7170,
+        "totalOutputTokens": 1975,
+        "critiquePass": false,
+        "critiqueScore": 9.5,
+        "ragHits": 9
+      }
+    },
+    "critiqueScore": 9.5,
+    "critiqueRubric": {
+      "factualAccuracy": 10,
+      "explanationStrength": 9,
+      "ageAppropriateness": 10,
+      "educationalValue": 9,
+      "varietyDistinctness": 10
+    },
+    "pipelineModel": "claude-opus-4-20250514",
+    "generatedAt": "2026-03-11T18:18:25.881Z",
+    "ratings": {
+      "factualAccuracy": 10,
+      "explanationStrength": 7,
+      "ageAppropriateness": 10,
+      "educationalValue": 10,
+      "varietyEngagement": 10
+    },
+    "preferredExplanation": 0,
+    "coachComments": "The explanation needs to be a little more clear explaing that the reason you are backing up 3rd is becasue the runner on second will most likely be tagging up on the fly ball. The throw from the right fieilder will have to be strong to get him out and you need to be there in case of the over throw",
+    "ratedAt": "2026-03-11T18:44:45.899Z",
+    "overallScore": 9.4
+  }
+]
