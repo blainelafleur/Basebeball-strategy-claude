@@ -80,8 +80,6 @@ save_total_limit: 3
 output_dir: ./bsm-70b-sft
 
 # ── Logging ───────────────────────────────────────────────────────────
-wandb_project: bsm-70b
-wandb_run_name: bsm-70b-sft-v1
 logging_steps: 10
 
 # ── Eval ──────────────────────────────────────────────────────────────
