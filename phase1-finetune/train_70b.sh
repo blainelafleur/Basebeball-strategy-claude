@@ -149,7 +149,7 @@ log "  Golden weighted 3x. Effective: $EFFECTIVE examples/epoch x 3 epochs"
 log "  Estimated: 4-6 hours on H100..."
 
 SFT_START=$SECONDS
-accelerate launch -m axolotl.cli.train axolotl_config.yaml 2>&1 | tee -a "$LOG_FILE"
+python3 -m axolotl.cli.train axolotl_config.yaml 2>&1 | tee -a "$LOG_FILE"
 SFT_ELAPSED=$(( SECONDS - SFT_START ))
 log "SFT done in $(( SFT_ELAPSED / 3600 ))h $(( (SFT_ELAPSED % 3600) / 60 ))m"
 
@@ -197,7 +197,7 @@ if [ "$DPO_COUNT" -ge "$DPO_MIN" ]; then
   log "  Estimated: 1-2 hours..."
 
   DPO_START=$SECONDS
-  accelerate launch -m axolotl.cli.train axolotl_dpo_config.yaml 2>&1 | tee -a "$LOG_FILE"
+  python3 -m axolotl.cli.train axolotl_dpo_config.yaml 2>&1 | tee -a "$LOG_FILE"
   DPO_ELAPSED=$(( SECONDS - DPO_START ))
   log "DPO done in $(( DPO_ELAPSED / 3600 ))h $(( (DPO_ELAPSED % 3600) / 60 ))m"
 
