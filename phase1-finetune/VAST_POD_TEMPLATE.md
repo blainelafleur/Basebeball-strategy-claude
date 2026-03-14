@@ -1,19 +1,30 @@
 # BSM 70B — Vast.ai Pod Setup
 
-## One-Click Pod Template
+## Pod Specs (TESTED — do not reduce)
 
 **Search filters on vast.ai/create:**
 
-| Setting | Value |
-|---------|-------|
-| GPU Type | H100 SXM |
-| GPU Count | 2 |
-| GPU RAM | >= 80 GB |
-| Disk Space | 200 GB |
-| Docker Image | `pytorch/pytorch:2.3.1-cuda12.1-cudnn8-devel` |
-| On-start script | (leave blank — we run manually) |
+| Setting | Value | Why |
+|---------|-------|-----|
+| GPU Type | H100 SXM | ZeRO-3 needs fast interconnect |
+| GPU Count | 2 | FSDP/ZeRO-3 shards across both |
+| GPU RAM | >= 80 GB | 70B QLoRA needs ~35GB/GPU |
+| **Disk Space** | **400 GB** | Base model 141GB + merged output 140GB + overhead |
+| RAM | >= 256 GB | Merge clones 140GB state dict to CPU RAM |
+| Docker Image | `axolotl/axolotl:main-latest` | Axolotl pre-installed, saves ~10 min setup |
+| On-start script | (leave blank — we run manually) | |
 
-**Typical spot price:** $2.50-3.50/hr (total run ~$20-25)
+**Why 400GB disk (not 200GB):**
+- HF cache (base model download): ~141GB
+- Merged model output: ~140GB
+- DeepSpeed offload files: ~10-20GB
+- Docker image + OS: ~15-20GB
+- Vast.ai `/workspace/data` junk: up to 132GB (auto-appears!)
+- pip/torch caches: ~5-10GB
+- Peak during merge: 281GB before cache deletion
+- **200GB WILL brick the pod — full disk breaks SSH + Jupyter**
+
+**Typical spot price:** $2.50-3.50/hr (total run ~$25-35)
 
 ## Step-by-Step
 
@@ -21,19 +32,29 @@
 
 Go to [vast.ai/create](https://vast.ai/create), set filters above, pick cheapest H100 SXM, click "RENT".
 
-### 2. Upload training data
+### 2. First thing after SSH — delete Vast.ai junk data
 
 ```bash
-# From your local machine:
-scp -r phase1-finetune/ root@<pod-ip>:/workspace/bsm/
+# Vast.ai template images eat 132GB — delete IMMEDIATELY
+rm -rf /workspace/data 2>/dev/null
+rm -rf ~/.cache/pip 2>/dev/null
+df -h .
+# Should show ~370GB+ free
+```
+
+### 3. Upload training data
+
+```bash
+# From your local machine (use the port from Vast dashboard):
+scp -P <port> -r phase1-finetune/ root@<pod-ip>:/workspace/bsm/
 ```
 
 Or use the Vast.ai file manager to upload the `phase1-finetune/` directory.
 
-### 3. SSH in and authenticate
+### 4. SSH in and authenticate
 
 ```bash
-ssh root@<pod-ip>
+ssh -p <port> root@<pod-ip> -i ~/.ssh/id_ed25519
 
 cd /workspace/bsm
 
@@ -47,7 +68,7 @@ huggingface-cli login
 export WANDB_API_KEY=your_key_here
 ```
 
-### 4. Run training
+### 5. Run training
 
 ```bash
 chmod +x train_70b.sh
@@ -55,23 +76,40 @@ chmod +x train_70b.sh
 ```
 
 This runs the full pipeline:
-- Step 1: Install deps (~5 min)
+- Step 1: Install deps (~5 min — faster with axolotl image)
 - Step 2: Auth check
+- Step 2b: Dataset preparation
 - Step 3: SFT training (~4-6 hrs)
 - Step 4: Merge SFT LoRA (~15 min)
 - Step 5: DPO training (~1-2 hrs, if >= 50 pairs)
 - Step 6: Validation (3 test generations)
 
-### 5. Download the model
+### 6. Download the model
 
 ```bash
 # From your local machine:
-scp -r root@<pod-ip>:/workspace/bsm/bsm-70b-final/ ./bsm-70b-final/
+scp -P <port> -r root@<pod-ip>:/workspace/bsm/bsm-70b-final/ ./bsm-70b-final/
 ```
 
-### 6. Deploy
+### 7. Deploy
 
 See deployment options below.
+
+## Troubleshooting
+
+### SSH "Permission denied (publickey)"
+- Vast.ai pods can take 1-2 minutes after boot to accept SSH
+- Always use `-i ~/.ssh/id_ed25519` explicitly
+- If persists, check `vastai logs <instance-id>` for "bad ownership or modes for authorized_keys" — means disk is full and pod is bricked
+- Use `vastai set api-key <key>` + `vastai logs <id>` to debug remotely
+
+### Jupyter not loading (blank white screen)
+- Usually means disk is full — Jupyter can't write temp/SSL files
+- If both SSH and Jupyter are broken, the pod is bricked. Destroy and re-rent with more disk.
+
+### Disk full during merge
+- The standalone `merge_sft.py` script handles this by: cloning state dict to CPU RAM → deleting model → deleting HF cache → saving shard-by-shard
+- But if the disk fills during *training*, there's no recovery without shell access
 
 ## Deployment Options
 
@@ -147,7 +185,7 @@ Then in the app: **Settings > Pro Lab > BSM 70B Model > ON**
 | DPO training | 1-2 hrs | $2.50-6 |
 | DPO merge | 15 min | $0.75 |
 | Validation | 10 min | $0.50 |
-| **Total** | **6-9 hrs** | **$15-26** |
+| **Total** | **6-9 hrs** | **$20-35** |
 
 ## Inference Cost (Together.ai)
 
