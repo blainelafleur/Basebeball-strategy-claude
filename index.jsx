@@ -12558,99 +12558,193 @@ function useSound() {
   return{play,setEnabled:(v)=>{enabled.current=v}};
 }
 
-// Confetti burst — SVG particle effect for level-ups and achievements
-function Confetti({active}){
+
+// === PARTICLE EFFECTS (replaces Confetti) ===
+// Extends to support dust, trails, celebration burst — Sprint 4 will add more types
+function ParticleFX({active,type="confetti"}){
   if(!active)return null;
-  const colors=["#22c55e","#f59e0b","#3b82f6","#ef4444","#a855f7","#ec4899","#14b8a6"];
-  const particles=Array.from({length:28},(_,i)=>({
-    x:200+Math.cos(i*0.45)*10,y:150,
-    dx:(Math.random()-.5)*8,dy:-(Math.random()*4+2),
-    c:colors[i%colors.length],s:Math.random()*4+2,d:Math.random()*0.6+0.4
+  const colors=type==="confetti"
+    ?["#22c55e","#f59e0b","#3b82f6","#ef4444","#a855f7","#ec4899","#14b8a6"]
+    :["#c8a060","#b09060","#a07848","#d0b078","#e0c088"]; // dust colors
+  const count=type==="confetti"?28:12;
+  const particles=Array.from({length:count},(_,i)=>({
+    x:200+Math.cos(i*0.45)*10,y:type==="confetti"?150:280,
+    dx:(Math.random()-.5)*(type==="confetti"?8:3),
+    dy:type==="confetti"?-(Math.random()*4+2):(Math.random()*1.5+.5),
+    c:colors[i%colors.length],
+    s:Math.random()*(type==="confetti"?4:3)+(type==="confetti"?2:1.5),
+    d:Math.random()*0.6+0.4
   }));
-  return(<svg viewBox="0 0 400 300" style={{position:"absolute",top:0,left:0,width:"100%",height:"100%",pointerEvents:"none",zIndex:50}}>
+  return(<svg viewBox="0 0 400 310" style={{position:"absolute",top:0,left:0,width:"100%",height:"100%",pointerEvents:"none",zIndex:50}}>
     {particles.map((p,i)=>(
-      <rect key={i} width={p.s} height={p.s} rx={1} fill={p.c} opacity={0.9}>
+      <rect key={i} width={p.s} height={p.s} rx={type==="confetti"?1:p.s/2} fill={p.c} opacity={0.9}>
         <animate attributeName="x" from={p.x} to={p.x+p.dx*40} dur={`${p.d+0.5}s`} fill="freeze"/>
-        <animate attributeName="y" from={p.y} to={p.y+p.dy*20+120} dur={`${p.d+0.5}s`} fill="freeze"/>
+        <animate attributeName="y" from={p.y} to={p.y+p.dy*20+(type==="confetti"?120:30)} dur={`${p.d+0.5}s`} fill="freeze"/>
         <animate attributeName="opacity" from="0.9" to="0" dur={`${p.d+0.5}s`} fill="freeze"/>
-        <animateTransform attributeName="transform" type="rotate" from="0" to={`${Math.random()>0.5?360:-360}`} dur={`${p.d+0.3}s`} fill="freeze"/>
+        {type==="confetti"&&<animateTransform attributeName="transform" type="rotate" from="0" to={`${Math.random()>0.5?360:-360}`} dur={`${p.d+0.3}s`} fill="freeze"/>}
       </rect>
     ))}
   </svg>);
 }
 
-// Field SVG — Bright, fun, kid-friendly baseball field
-// Sprint 4.5: React.memo for heavy SVG component
+// === FIELD SVG — Full graphics overhaul ===
 const Field=React.memo(function Field({runners=[],outcome=null,ak=0,anim=null,theme=null,avatar=null,pos=null}){
   const t=theme||FIELD_THEMES[0];
   const on=n=>runners.includes(n);
+
   // Coords: Home(200,290) 1B(290,210) 2B(200,135) 3B(110,210) Mound(200,218)
-  // Player sprite — 40% smaller, pose-aware with distinct silhouettes per pose
+
+  // === GUY COMPONENT — Full-body proportional player with 10 baseball poses ===
+  // Stroke-based limbs with rounded caps for clean silhouettes at 20px render height
   const Guy=({x,y,jersey="#2563eb",cap="#1d4ed8",pants="#eee",o=1,ring=false,bat=false,mask=false,batColor="#c8a060",pose="stand"})=>{
-    const p=pose;const showBat=bat||p==="batter";const showMask=mask||p==="catcher";
-    // Each pose gets a unique body transform for silhouette distinction
-    const pxf=p==="runner"?" rotate(15)":p==="catcher"?" translate(0,8)":p==="pitcher"?" rotate(-8)":p==="batter"?" rotate(-8)":p==="infielder"?" translate(0,3)":"";
-    // Catcher squat lowers head & cap
-    const hy=p==="catcher"?-12:-16;
+    const showMask=mask||pose==="catcher"||pose==="catcher-squat";
+    // Map pose names to internal codes
+    const p=({pitcher:'pw','pitcher-windup':'pw','pitcher-set':'ps',catcher:'cs','catcher-squat':'cs',batter:'br','batter-ready':'br','batter-swing':'bs',infielder:'ir','infielder-ready':'ir','infielder-throw':'it',outfielder:'or','outfielder-ready':'or','outfielder-catch':'oc',runner:'rs','runner-sprint':'rs',stand:'or'})[pose]||'or';
+
+    // Head y-position (catcher squats lower)
+    const hy=p==='cs'?-10:-16;
+    // Pose-specific body rotation
+    const pxf=p==='rs'?' rotate(12)':p==='cs'?' translate(0,6)':p==='pw'?' rotate(-6)':p==='bs'?' rotate(-5)':'';
+
+    // === LEG GEOMETRY per pose: [leftX, leftEndY, rightX, rightEndY] ===
+    // All legs start from hip (~y=4), these are the foot endpoints
+    const legs=(()=>{switch(p){
+      case 'pw': return[[-4,8,3,14]];    // left kicked up, right planted
+      case 'ps': return[[-4,13,4,13]];    // set position, balanced
+      case 'cs': return[[-7,8,7,8]];      // wide squat
+      case 'br': return[[-4,14,4,14]];    // balanced stance
+      case 'bs': return[[-5,13,4,12]];    // weight shifted forward
+      case 'ir': return[[-5,12,4,12]];    // athletic crouch
+      case 'it': return[[-6,13,3,12]];    // stepping to throw
+      case 'rs': return[[-6,10,6,10]];    // full stride
+      case 'oc': return[[-4,14,4,14]];    // balanced, looking up
+      default:   return[[-4,14,4,14]];    // standard standing
+    }})();
+    const [lLx,lLy,lRx,lRy]=legs[0];
+
+    // === ARM GEOMETRY per pose: [leftArmPath, rightArmPath] as SVG path strings ===
+    // Arms connect from shoulder (~y=-6) to hand positions
+    const arms=(()=>{switch(p){
+      case 'pw': return["M-5,-6 Q-10,-2 -12,4","M5,-6 Q12,-10 14,-6"]; // windup — glove out, arm back
+      case 'ps': return["M-5,-6 Q-8,-2 -8,0","M5,-6 Q6,-2 6,0"];       // set — both near chest
+      case 'cs': return["M-5,-4 Q-10,0 -12,2","M5,-4 Q10,0 12,2"];     // squat — mitt out, hand ready
+      case 'br': return["M-5,-6 Q-8,-2 -7,2","M5,-6 Q10,-12 8,-16"];   // bat back, hands up
+      case 'bs': return["M-5,-6 Q-2,-2 2,0","M5,-6 Q12,-4 16,-8"];     // mid-swing, bat through zone
+      case 'ir': return["M-5,-6 Q-9,-2 -9,2","M5,-6 Q9,-2 9,2"];       // athletic, glove low
+      case 'it': return["M-5,-6 Q-8,-2 -8,2","M5,-6 Q10,-14 12,-16"];  // arm back to throw
+      case 'oc': return["M-5,-6 Q-8,-10 -6,-16","M5,-6 Q8,-10 6,-16"]; // both arms up for catch
+      case 'rs': return["M-5,-6 Q-8,0 -10,4","M5,-6 Q8,0 10,4"];       // pumping arms
+      default:   return["M-5,-6 Q-9,-2 -8,2","M5,-6 Q9,-2 8,2"];       // relaxed at sides
+    }})();
+
+    // Torso dimensions
+    const torsoH=p==='cs'?10:14;
+    const torsoY=p==='cs'?-4:-8;
+    const torsoW=p==='cs'?12:10;
+
+    // Show bat for batter poses
+    const showBat=p==='br'||p==='bs';
+    // Show glove for fielder poses
+    const showGlove=p==='pw'||p==='ps'||p==='cs'||p==='ir'||p==='it'||p==='or'||p==='oc';
+
+    // Glove position per pose
+    const glovePos=(()=>{switch(p){
+      case 'pw': return[-12,4];
+      case 'ps': return[-8,0];
+      case 'cs': return[-12,2];
+      case 'ir': return[-9,2];
+      case 'it': return[-8,2];
+      case 'oc': return[-6,-16];
+      default:   return[-8,2];
+    }})();
+
     return(
     <g transform={`translate(${x},${y})`} opacity={o}>
+      {/* Selection ring — SMIL ok here, it's a perpetual loop */}
       {ring&&<><circle r="16" fill="none" stroke="#f59e0b" strokeWidth="2" opacity=".6"><animate attributeName="r" values="16;19;16" dur="1.3s" repeatCount="indefinite"/><animate attributeName="opacity" values=".6;.2;.6" dur="1.3s" repeatCount="indefinite"/></circle><circle r="16" fill="rgba(245,158,11,.06)"/></>}
+
       <g transform={`scale(0.6)${pxf}`}>
-        <ellipse cy="18" rx="10" ry="3.5" fill="rgba(0,0,0,.25)"/>
-        {/* Feet — wider for catcher/batter/infielder; pitcher left foot raised */}
-        <rect x={p==="catcher"?-9:p==="infielder"||p==="batter"?-8:-7.5} y={p==="pitcher"?8:13} width="6" height="4" rx="1.5" fill="#222"/>
-        <rect x={p==="catcher"||p==="batter"?3:p==="infielder"?2:1.5} y={p==="runner"?10:13} width="6" height="4" rx="1.5" fill="#222"/>
-        {/* Legs — pitcher: raised left knee; catcher: shorter squat */}
-        {p==="catcher"?<>
-          <rect x="-8" y="5" width="6" height="8" rx="2" fill={pants}/>
-          <rect x="2" y="5" width="6" height="8" rx="2" fill={pants}/>
-        </>:p==="pitcher"?<>
-          <rect x="-7" y="5" width="6" height="6" rx="2" fill={pants}/>
-          <rect x="1" y="5" width="6" height="10" rx="2" fill={pants}/>
-        </>:<>
-          <rect x="-7" y="5" width="6" height="10" rx="2" fill={pants}/>
-          <rect x="1" y="5" width="6" height="10" rx="2" fill={pants}/>
+        {/* Ground shadow */}
+        <ellipse cy={p==='cs'?10:18} rx={p==='cs'?13:11} ry="3.5" fill="rgba(0,0,0,.25)"/>
+
+        {/* === LEGS (pants color, stroke-based for clean look) === */}
+        <line x1={0} y1={4} x2={lLx} y2={lLy} stroke={pants} strokeWidth="4.5" strokeLinecap="round"/>
+        <line x1={0} y1={4} x2={lRx} y2={lRy} stroke={pants} strokeWidth="4.5" strokeLinecap="round"/>
+        {/* Shoes */}
+        <circle cx={lLx} cy={lLy} r="2.2" fill="#333"/>
+        <circle cx={lRx} cy={lRy} r="2.2" fill="#333"/>
+
+        {/* === TORSO (jersey color) === */}
+        <rect x={-torsoW/2} y={torsoY} width={torsoW} height={torsoH} rx="3" fill={jersey}/>
+        {/* Jersey stripe detail */}
+        <line x1={-torsoW/2+1.5} y1={torsoY+3} x2={torsoW/2-1.5} y2={torsoY+3} stroke="rgba(255,255,255,.18)" strokeWidth=".8"/>
+
+        {/* === ARMS (jersey color stroke with skin-colored hands) === */}
+        <path d={arms[0]} fill="none" stroke={jersey} strokeWidth="3.5" strokeLinecap="round"/>
+        <path d={arms[1]} fill="none" stroke={jersey} strokeWidth="3.5" strokeLinecap="round"/>
+
+        {/* === GLOVE (brown circle at end of glove-hand arm) === */}
+        {showGlove&&<circle cx={glovePos[0]} cy={glovePos[1]} r="3.2" fill="#8B5A2B" stroke="#6B3A1B" strokeWidth=".6"/>}
+
+        {/* === BAT (for batter poses) === */}
+        {showBat&&p==='br'&&<line x1="8" y1="-16" x2="6" y2="-28" stroke={batColor} strokeWidth="2.5" strokeLinecap="round"/>}
+        {showBat&&p==='bs'&&<line x1="16" y1="-8" x2="24" y2="-14" stroke={batColor} strokeWidth="2.5" strokeLinecap="round"/>}
+
+        {/* === HEAD === */}
+        <circle cy={hy} r="7.5" fill="#e8c4a0"/>
+        {/* Eyes */}
+        <circle cx="-2.5" cy={hy-1} r="1.1" fill="#333"/>
+        <circle cx="2.5" cy={hy-1} r="1.1" fill="#333"/>
+        {/* Mouth */}
+        <path d={`M-2,${hy+2.5} Q0,${hy+4} 2,${hy+2.5}`} fill="none" stroke="#a0785a" strokeWidth=".7"/>
+
+        {/* === CAP === */}
+        <ellipse cy={hy-5} rx="9" ry="3.5" fill={cap}/>
+        <rect x="-9" y={hy-7} width="18" height="4.5" rx="3" fill={cap}/>
+        {/* Brim */}
+        <rect x="-1.5" y={hy-1} width="11" height="2.8" rx="1.5" fill={cap} opacity=".55"/>
+
+        {/* === CATCHER MASK === */}
+        {showMask&&<>
+          <rect x="-6" y={hy+1} width="12" height="9" rx="2" fill="none" stroke="#555" strokeWidth="1" opacity=".6"/>
+          <line x1="-5" y1={hy+4} x2="5" y2={hy+4} stroke="#555" strokeWidth=".5" opacity=".4"/>
+          <line x1="-5" y1={hy+7} x2="5" y2={hy+7} stroke="#555" strokeWidth=".5" opacity=".4"/>
         </>}
-        {/* Torso — catcher: shorter */}
-        <rect x="-9" y={p==="catcher"?-6:-10} width="18" height={p==="catcher"?13:17} rx="4" fill={jersey} stroke="rgba(255,255,255,.2)" strokeWidth=".8"/>
-        {/* Left arm + hand — outfielder: raised shading eyes; runner: forward swing */}
-        {p==="outfielder"?
-          <g><rect x="-13" y="-14" width="5" height="10" rx="2" fill={jersey}/><circle cx="-10.5" cy="-10" r="2.5" fill="#e8c4a0"/></g>
-        :p==="runner"?
-          <g transform="rotate(20,-10.5,-3)"><rect x="-13" y="-8" width="5" height="10" rx="2" fill={jersey}/><circle cx="-10.5" cy="4" r="2.5" fill="#e8c4a0"/></g>
-        :<>
-          <rect x="-13" y="-8" width="5" height="10" rx="2" fill={jersey}/>
-          <circle cx="-10.5" cy="4" r="2.5" fill="#e8c4a0"/>
-        </>}
-        {/* Right arm + hand/equipment — pitcher: wind-up -60deg w/ ball; runner: back swing */}
-        {p==="pitcher"?
-          <g transform="rotate(-60,10.5,-3)"><rect x="8" y="-12" width="5" height="10" rx="2" fill={jersey}/><circle cx="12" cy="-18" r="2" fill="white"/></g>
-        :p==="runner"?
-          <g transform="rotate(-20,10.5,-3)"><rect x="8" y="-8" width="5" height="10" rx="2" fill={jersey}/><circle cx="10.5" cy="4" r="2.5" fill="#e8c4a0"/></g>
-        :<>
-          <rect x="8" y="-8" width="5" height="10" rx="2" fill={jersey}/>
-          {p==="infielder"?<ellipse cx="16" cy="8" rx="4" ry="3" fill="#8B5E3C"/>
-            :p==="outfielder"?<ellipse cx="14" cy="0" rx="4" ry="3" fill="#8B5E3C"/>
-            :p==="catcher"?<ellipse cx="14" cy="2" rx="5" ry="4" fill="#8B5E3C"/>
-            :<circle cx="10.5" cy="4" r="2.5" fill="#e8c4a0"/>}
-        </>}
-        {/* Head — catcher head lowered via hy */}
-        <circle cy={hy} r="8" fill="#e8c4a0"/>
-        <circle cx="-3" cy={hy-1} r="1.2" fill="#333"/>
-        <circle cx="3" cy={hy-1} r="1.2" fill="#333"/>
-        <path d={`M-2.5,${hy+2.5} Q0,${hy+4.5} 2.5,${hy+2.5}`} fill="none" stroke="#a0785a" strokeWidth=".8" strokeLinecap="round"/>
-        {/* Cap — position tracks head */}
-        <ellipse cy={hy-5} rx="9.5" ry="4" fill={cap}/>
-        <rect x="-9.5" y={hy-7} width="19" height="5" rx="3" fill={cap}/>
-        <rect x="-2" y={hy-1} width="12" height="3" rx="1.5" fill={cap} opacity=".6"/>
-        {/* Catcher mask */}
-        {showMask&&<><rect x="-6.5" y={hy+1} width="13" height="10" rx="2" fill="none" stroke="#555" strokeWidth="1" opacity=".6"/><line x1="-5" y1={hy+4} x2="5" y2={hy+4} stroke="#555" strokeWidth=".6" opacity=".4"/><line x1="-5" y1={hy+7} x2="5" y2={hy+7} stroke="#555" strokeWidth=".6" opacity=".4"/></>}
-        {/* Bat */}
-        {showBat&&<><line x1="8" y1="-8" x2="20" y2="-28" stroke={batColor} strokeWidth="3" strokeLinecap="round"/><line x1="19.5" y1="-27.5" x2="22.5" y2="-33" stroke={batColor} strokeWidth="4.5" strokeLinecap="round" opacity=".8"/></>}
       </g>
     </g>
     );
   };
+
+  // === CROWD GENERATION (deterministic from theme, not random per render) ===
+  const crowdDots=React.useMemo(()=>{
+    const dots=[];
+    const colors=t.crowd||[];
+    if(!colors.length)return dots;
+    // Seed-based pseudo-random for consistency across renders
+    let seed=t.id.charCodeAt(0)*137;
+    const rand=()=>{seed=(seed*16807+1)%2147483647;return(seed%1000)/1000;};
+    for(let i=0;i<48;i++){
+      const progress=i/48;
+      // Distribute along the curved wall top
+      const x=12+progress*376;
+      const baseY=30-Math.sin(progress*Math.PI)*26; // follow wall curve
+      const y=baseY-rand()*10-4;
+      dots.push({x,y,c:colors[i%colors.length],r:rand()*1.5+1.2,delay:rand()*3});
+    }
+    return dots;
+  },[t.id,t.crowd]);
+
+  // === BANNER PENNANTS (triangular, along wall top) ===
+  const bannerPennants=React.useMemo(()=>{
+    const banners=t.banner||[];
+    if(!banners.length)return[];
+    return banners.map((color,i)=>{
+      const x=100+i*100; // spread across field
+      const baseY=30-Math.sin((x/400)*Math.PI)*26;
+      return{x,y:baseY-2,color,i};
+    });
+  },[t.id,t.banner]);
+
   return(
     <svg viewBox="0 0 400 310" style={{width:"100%",maxWidth:420,display:"block",margin:"0 auto"}}>
       <defs>
@@ -12661,6 +12755,11 @@ const Field=React.memo(function Field({runners=[],outcome=null,ak=0,anim=null,th
         <linearGradient id="wal" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor={t.wall[0]}/>
           <stop offset="100%" stopColor={t.wall[1]}/>
+        </linearGradient>
+        {/* Sky gradient — renders skyTop/skyBot (previously unused!) */}
+        <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={t.skyTop||t.sky}/>
+          <stop offset="100%" stopColor={t.skyBot||t.sky}/>
         </linearGradient>
         <filter id="gl"><feGaussianBlur stdDeviation="1.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
         <clipPath id="fc"><path d="M200,295 L5,25 Q5,0 200,0 Q395,0 395,25 Z"/></clipPath>
@@ -12680,8 +12779,11 @@ const Field=React.memo(function Field({runners=[],outcome=null,ak=0,anim=null,th
         </radialGradient>
       </defs>
 
+      {/* === SKY GRADIENT (behind everything, above wall) === */}
+      <rect width="400" height="35" fill="url(#skyGrad)"/>
+
       {/* === FULL-CANVAS GRASS === */}
-      <rect width="400" height="310" fill={t.grass[0]}/>
+      <rect y="30" width="400" height="280" fill={t.grass[0]}/>
 
       {/* === BOLD MOWING STRIPES (clipped to fan) === */}
       <g clipPath="url(#fc)">
@@ -12692,23 +12794,41 @@ const Field=React.memo(function Field({runners=[],outcome=null,ak=0,anim=null,th
       {/* === GRASS TEXTURE OVERLAY === */}
       <rect width="400" height="310" fill="url(#grassTex)" clipPath="url(#fc)"/>
 
-      {/* === DEPTH DARKENING (outfield fades darker — full height) === */}
+      {/* === DEPTH DARKENING (outfield fades darker) === */}
       <rect width="400" height="310" fill="url(#depthGrad)" clipPath="url(#fc)"/>
 
+      {/* === CROWD (colored dots above wall with gentle sway) === */}
+      <g opacity=".75">
+        {crowdDots.map((d,i)=>(
+          <circle key={`cr${i}`} cx={d.x} cy={d.y} r={d.r} fill={d.c} opacity=".7"
+            style={{animation:`crowdSway ${2.5+d.delay*.5}s ease-in-out ${d.delay}s infinite alternate`}}/>
+        ))}
+      </g>
+
+      {/* === CROWD BACKGROUND (dim band behind crowd) === */}
+      <path d="M0,0 L400,0 L400,25 Q200,-2 0,25 Z" fill={t.crowdBg||"rgba(0,0,0,.3)"} opacity=".5"/>
+
       {/* === OUTFIELD WALL (padded) === */}
-      <path d="M0,0 L400,0 L400,30 Q200,2 0,30 Z" fill="url(#wal)"/>
+      <path d="M0,18 L400,18 L400,32 Q200,4 0,32 Z" fill="url(#wal)"/>
       {/* Wall padding seam lines */}
-      {[8,16,24].map(y=><path key={`ws${y}`} d={`M10,${y} Q200,${y-4} 390,${y}`}
+      {[22,26,30].map(y=><path key={`ws${y}`} d={`M10,${y} Q200,${y-6} 390,${y}`}
         fill="none" stroke="rgba(255,255,255,.06)" strokeWidth=".5"/>)}
       {/* Batter's eye (dark center field section) */}
-      <path d="M160,0 L240,0 L240,30 Q200,2 160,30 Z" fill="rgba(0,0,0,.25)"/>
-      <path d="M0,30 Q200,2 400,30" fill="none" stroke={t.wall[0]} strokeWidth=".8" strokeDasharray="3,2" opacity=".4"/>
+      <path d="M160,18 L240,18 L240,32 Q200,4 160,32 Z" fill="rgba(0,0,0,.25)"/>
+
+      {/* === BANNER PENNANTS (triangular, team-colored) === */}
+      {bannerPennants.map(b=>(
+        <g key={`bn${b.i}`} style={{animation:`bannerWave 3s ease-in-out ${b.i*0.7}s infinite alternate`}}>
+          <polygon points={`${b.x},${b.y} ${b.x+5},${b.y-10} ${b.x+10},${b.y}`} fill={b.color} opacity=".65"/>
+          <line x1={b.x+5} y1={b.y} x2={b.x+5} y2={b.y-12} stroke="rgba(255,255,255,.3)" strokeWidth=".5"/>
+        </g>
+      ))}
 
       {/* === FENCE CAP === */}
-      <path d="M0,30 Q200,2 400,30" fill="none" stroke={t.fence} strokeWidth="3"/>
+      <path d="M0,32 Q200,4 400,32" fill="none" stroke={t.fence} strokeWidth="3"/>
 
       {/* === WALL SHADOW (cast onto field) === */}
-      <path d="M0,32 Q200,4 400,32 L400,38 Q200,10 0,38 Z" fill="rgba(0,0,0,.12)"/>
+      <path d="M0,34 Q200,6 400,34 L400,40 Q200,12 0,40 Z" fill="rgba(0,0,0,.12)"/>
 
       {/* === FOUL POLES === */}
       <line x1="12" y1="8" x2="12" y2="34" stroke={t.foulPole} strokeWidth="2" opacity=".8"/>
@@ -12724,7 +12844,7 @@ const Field=React.memo(function Field({runners=[],outcome=null,ak=0,anim=null,th
       </g>
 
       {/* === WARNING TRACK === */}
-      <path d="M2,34 Q200,6 398,34 L394,42 Q200,14 6,42 Z" fill={t.warn} opacity=".5"/>
+      <path d="M2,36 Q200,8 398,36 L394,44 Q200,16 6,44 Z" fill={t.warn} opacity=".5"/>
 
       {/* === FOUL LINES === */}
       <line x1="200" y1="290" x2="12" y2="30" stroke="white" strokeWidth="1.8" opacity=".7"/>
@@ -12766,12 +12886,13 @@ const Field=React.memo(function Field({runners=[],outcome=null,ak=0,anim=null,th
         <ellipse key={`bs${i}`} cx={x+1} cy={y+3} rx="7" ry="2.5" fill="rgba(0,0,0,.1)"/>
       )}
 
-      {/* === BASES === */}
+      {/* === BASES (glow when occupied) === */}
       {[[290,210,1],[200,135,2],[110,210,3]].map(([x,y,n])=>(
         <g key={`b${n}`} transform={`translate(${x},${y}) rotate(45)`}>
-          <rect x="-6" y="-6" width="12" height="12" rx="1.2" fill={on(n)?"#3b82f6":"white"} stroke={on(n)?"#60a5fa":"#ccc"} strokeWidth="1.5">
-            {on(n)&&<animate attributeName="opacity" values="1;.5;1" dur="1.2s" repeatCount="indefinite"/>}
-          </rect>
+          {on(n)&&<rect x="-9" y="-9" width="18" height="18" rx="2" fill="rgba(59,130,246,.15)" opacity=".6">
+            <animate attributeName="opacity" values=".6;.2;.6" dur="1.6s" repeatCount="indefinite"/>
+          </rect>}
+          <rect x="-6" y="-6" width="12" height="12" rx="1.2" fill={on(n)?"#3b82f6":"white"} stroke={on(n)?"#60a5fa":"#ccc"} strokeWidth="1.5"/>
         </g>
       ))}
 
@@ -12789,7 +12910,7 @@ const Field=React.memo(function Field({runners=[],outcome=null,ak=0,anim=null,th
       {!outcome&&<Guy x={200} y={212} jersey="#1e40af" cap="#1e3a8a" ring={pos==="pitcher"} pose="pitcher"/>}
 
       {/* === CATCHER (home team — always blue) === */}
-      {!outcome&&<Guy x={200} y={300} jersey="#1e3a5f" cap="#1a3050" ring={pos==="catcher"} pose="catcher"/>}
+      {!outcome&&<Guy x={200} y={300} jersey="#1e3a5f" cap="#1a3050" ring={pos==="catcher"} pose="catcher" mask={true}/>}
 
       {/* === BATTER (away team — always red) === */}
       {!outcome&&<Guy x={215} y={285} jersey="#dc2626" cap="#b91c1c" pants="#d1d5db" batColor={avatar?AVATAR_OPTS.bat[avatar.b||0]:"#c8a060"} ring={pos==="batter"} pose="batter"/>}
@@ -12799,23 +12920,24 @@ const Field=React.memo(function Field({runners=[],outcome=null,ak=0,anim=null,th
       {on(2)&&<Guy x={200} y={125} jersey="#dc2626" cap="#b91c1c" pants="#d1d5db" ring={true} pose="runner"/>}
       {on(3)&&<Guy x={102} y={200} jersey="#dc2626" cap="#b91c1c" pants="#d1d5db" ring={true} pose="runner"/>}
 
-      {/* ============ ANIMATIONS ============ */}
-      {outcome&&<circle key={ak} cx="200" cy="215" r="0" fill={outcome==="success"?"rgba(34,197,94,.18)":outcome==="warning"?"rgba(245,158,11,.12)":"rgba(239,68,68,.12)"}><animate attributeName="r" from="0" to="180" dur=".55s" fill="freeze"/><animate attributeName="opacity" from=".5" to="0" dur=".55s" fill="freeze"/></circle>}
+      {/* ============ ANIMATIONS — spline easing for natural motion ============ */}
+      {/* Easing: ball-launch 0.12,0.8,0.3,1 | throw 0.15,0.6,0.35,1 | runner 0.4,0,0.2,1 | ground 0.3,0,0.65,1 | fly 0.2,0.7,0.4,1 | gravity 0.6,0,0.8,0.2 | pulse 0.25,0.1,0.25,1 */}
+      {outcome&&<circle key={ak} cx="200" cy="215" r="0" fill={outcome==="success"?"rgba(34,197,94,.18)":outcome==="warning"?"rgba(245,158,11,.12)":"rgba(239,68,68,.12)"}><animate attributeName="r" from="0" to="180" dur=".55s" fill="freeze" calcMode="spline" keyTimes="0;1" keySplines="0.25 0.1 0.25 1"/><animate attributeName="opacity" from=".5" to="0" dur=".55s" fill="freeze"/></circle>}
 
-      {anim==="steal"&&outcome==="success"&&<g key={`a${ak}`}><circle r="5" fill="#22c55e" filter="url(#gl)"><animateMotion dur=".6s" fill="freeze" path="M290,210 Q248,170 200,135"/></circle><text x="248" y="158" textAnchor="middle" fontSize="12" fill="#22c55e" fontWeight="900" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0" dur="1.2s" fill="freeze"/>SAFE!</text></g>}
-      {anim==="score"&&outcome==="success"&&<g key={`s${ak}`}><circle r="5" fill="#22c55e" filter="url(#gl)"><animateMotion dur=".5s" fill="freeze" path="M110,210 Q160,252 200,290"/></circle><text x="200" y="265" textAnchor="middle" fontSize="14" fill="#22c55e" fontWeight="900" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0" dur="1.3s" fill="freeze"/>SAFE!</text></g>}
-      {anim==="hit"&&outcome==="success"&&<g key={`h${ak}`}><circle r="3" fill="#f59e0b" filter="url(#gl)"><animateMotion dur=".45s" fill="freeze" path="M200,290 Q252,178 306,75"/></circle><text x="265" y="112" textAnchor="middle" fontSize="10" fill="#f59e0b" fontWeight="800" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0" dur="1s" fill="freeze"/>BASE HIT</text></g>}
-      {anim==="throwHome"&&<g key={`t${ak}`}><line x1="200" y1="135" x2="200" y2="290" stroke="#ef4444" strokeWidth="2" strokeDasharray="6,4" opacity="0"><animate attributeName="opacity" from=".65" to="0" dur=".9s" fill="freeze"/></line><circle r="2.5" fill="#ef4444"><animateMotion dur=".35s" fill="freeze" path="M200,135 L200,290"/></circle></g>}
-      {anim==="doubleplay"&&outcome==="success"&&<g key={`dp${ak}`}><circle r="3.5" fill="#22c55e" filter="url(#gl)"><animateMotion dur=".25s" fill="freeze" path="M290,210 Q248,170 200,135"/></circle><circle r="3.5" fill="#22c55e" filter="url(#gl)"><animateMotion dur=".25s" begin=".28s" fill="freeze" path="M200,135 Q248,170 290,210"/></circle><text x="200" y="175" textAnchor="middle" fontSize="10" fill="#22c55e" fontWeight="800" opacity="0"><animate attributeName="opacity" values="0;0;0;1;1;0" dur="1.1s" fill="freeze"/>DOUBLE PLAY!</text></g>}
-      {(anim==="strike"||anim==="strikeout")&&outcome==="success"&&<g key={`st${ak}`}><circle r="2.5" fill="white" opacity=".9"><animateMotion dur=".4s" fill="freeze" path="M200,218 L200,288"/></circle><text x="200" y="263" textAnchor="middle" fontSize={anim==="strikeout"?13:10} fill={anim==="strikeout"?"#ef4444":"#f59e0b"} fontWeight="900" opacity="0"><animate attributeName="opacity" values="0;1;1;0" dur="1.6s" fill="freeze"/>{anim==="strikeout"?"STRUCK OUT!":"STRIKE!"}</text></g>}
-      {anim==="groundout"&&outcome==="success"&&<g key={`go${ak}`}><circle r="2.5" fill="white" filter="url(#gl)"><animateMotion dur=".5s" fill="freeze" path="M200,290 Q240,252 260,230"/></circle><circle r="2.5" fill="#22c55e"><animateMotion dur=".35s" begin=".52s" fill="freeze" path="M260,230 L290,210"/></circle><text x="276" y="198" textAnchor="middle" fontSize="10" fill="#22c55e" fontWeight="800" opacity="0"><animate attributeName="opacity" values="0;0;0;1;1;0" dur="1.4s" fill="freeze"/>OUT!</text></g>}
-      {anim==="flyout"&&outcome==="success"&&<g key={`fl${ak}`}><circle r="3" fill="white" filter="url(#gl)"><animateMotion dur=".55s" fill="freeze" path="M200,290 Q242,118 282,108"/></circle><text x="282" y="95" textAnchor="middle" fontSize="10" fill="#22c55e" fontWeight="800" opacity="0"><animate attributeName="opacity" values="0;0;0;1;1;0" dur="1.2s" fill="freeze"/>CAUGHT!</text></g>}
-      {anim==="catch"&&outcome==="success"&&<g key={`ca${ak}`}><circle r="2.5" fill="white"><animateMotion dur=".35s" fill="freeze" path="M238,92 Q216,140 192,172"/></circle><circle cx="192" cy="172" r="0" fill="rgba(34,197,94,.25)"><animate attributeName="r" from="0" to="16" dur=".25s" begin=".35s" fill="freeze"/><animate attributeName="opacity" from=".6" to="0" dur=".25s" begin=".35s" fill="freeze"/></circle><text x="192" y="162" textAnchor="middle" fontSize="10" fill="#22c55e" fontWeight="800" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0" dur="1s" fill="freeze"/>GOT IT!</text></g>}
-      {anim==="advance"&&outcome==="success"&&<g key={`ad${ak}`}><circle r="4.5" fill="#3b82f6" filter="url(#gl)"><animateMotion dur=".5s" fill="freeze" path="M290,210 Q248,170 200,135"/></circle><text x="248" y="163" textAnchor="middle" fontSize="9" fill="#3b82f6" fontWeight="800" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0" dur="1s" fill="freeze"/>ADVANCING!</text></g>}
-      {anim==="walk"&&outcome==="success"&&<g key={`wk${ak}`}><circle r="4.5" fill="#3b82f6"><animateMotion dur=".7s" fill="freeze" path="M200,290 Q248,252 290,210"/></circle><text x="200" y="263" textAnchor="middle" fontSize="11" fill="#3b82f6" fontWeight="800" opacity="0"><animate attributeName="opacity" values="0;1;1;0" dur="1.2s" fill="freeze"/>BALL FOUR</text></g>}
-      {anim==="bunt"&&outcome==="success"&&<g key={`bn${ak}`}><circle r="2" fill="white"><animateMotion dur=".5s" fill="freeze" path="M200,290 Q198,272 192,258"/></circle><text x="180" y="250" textAnchor="middle" fontSize="9" fill="#22c55e" fontWeight="800" opacity="0"><animate attributeName="opacity" values="0;0;0;1;1;0" dur="1s" fill="freeze"/>BUNT!</text></g>}
-      {anim==="safe"&&outcome==="success"&&<g key={`sf${ak}`}><circle cx="200" cy="210" r="0" fill="none" stroke="#22c55e" strokeWidth="2.5"><animate attributeName="r" from="0" to="32" dur=".45s" fill="freeze"/><animate attributeName="opacity" from=".8" to="0" dur=".45s" fill="freeze"/></circle><text x="200" y="196" textAnchor="middle" fontSize="13" fill="#22c55e" fontWeight="900" opacity="0"><animate attributeName="opacity" values="0;1;1;0" dur="1.2s" fill="freeze"/>SAFE!</text></g>}
-      {anim==="freeze"&&outcome==="success"&&<g key={`fr${ak}`}><text x="200" y="174" textAnchor="middle" fontSize="20" opacity="0"><animate attributeName="opacity" values="0;1;1;0" dur="1.5s" fill="freeze"/><animate attributeName="y" from="180" to="168" dur=".35s" fill="freeze"/>⚠️</text><text x="200" y="192" textAnchor="middle" fontSize="10" fill="#f59e0b" fontWeight="800" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0" dur="1.3s" fill="freeze"/>FREEZE!</text></g>}
+      {anim==="steal"&&outcome==="success"&&<g key={`a${ak}`}><circle r="5" fill="#22c55e" filter="url(#gl)"><animateMotion dur=".6s" fill="freeze" path="M290,210 Q248,170 200,135" calcMode="spline" keyTimes="0;1" keySplines="0.4 0 0.2 1"/></circle><text x="248" y="158" textAnchor="middle" fontSize="12" fill="#22c55e" fontWeight="900" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0" dur="1.2s" fill="freeze"/>SAFE!</text></g>}
+      {anim==="score"&&outcome==="success"&&<g key={`s${ak}`}><circle r="5" fill="#22c55e" filter="url(#gl)"><animateMotion dur=".5s" fill="freeze" path="M110,210 Q160,252 200,290" calcMode="spline" keyTimes="0;1" keySplines="0.4 0 0.2 1"/></circle><text x="200" y="265" textAnchor="middle" fontSize="14" fill="#22c55e" fontWeight="900" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0" dur="1.3s" fill="freeze"/>SAFE!</text></g>}
+      {anim==="hit"&&outcome==="success"&&<g key={`h${ak}`}><circle r="3" fill="#f59e0b" filter="url(#gl)"><animateMotion dur=".45s" fill="freeze" path="M200,290 Q252,178 306,75" calcMode="spline" keyTimes="0;1" keySplines="0.12 0.8 0.3 1"/></circle><text x="265" y="112" textAnchor="middle" fontSize="10" fill="#f59e0b" fontWeight="800" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0" dur="1s" fill="freeze"/>BASE HIT</text></g>}
+      {anim==="throwHome"&&<g key={`t${ak}`}><line x1="200" y1="135" x2="200" y2="290" stroke="#ef4444" strokeWidth="2" strokeDasharray="6,4" opacity="0"><animate attributeName="opacity" from=".65" to="0" dur=".9s" fill="freeze"/></line><circle r="2.5" fill="#ef4444"><animateMotion dur=".35s" fill="freeze" path="M200,135 L200,290" calcMode="spline" keyTimes="0;1" keySplines="0.15 0.6 0.35 1"/></circle></g>}
+      {anim==="doubleplay"&&outcome==="success"&&<g key={`dp${ak}`}><circle r="3.5" fill="#22c55e" filter="url(#gl)"><animateMotion dur=".25s" fill="freeze" path="M290,210 Q248,170 200,135" calcMode="spline" keyTimes="0;1" keySplines="0.15 0.6 0.35 1"/></circle><circle r="3.5" fill="#22c55e" filter="url(#gl)"><animateMotion dur=".25s" begin=".28s" fill="freeze" path="M200,135 Q248,170 290,210" calcMode="spline" keyTimes="0;1" keySplines="0.15 0.6 0.35 1"/></circle><text x="200" y="175" textAnchor="middle" fontSize="10" fill="#22c55e" fontWeight="800" opacity="0"><animate attributeName="opacity" values="0;0;0;1;1;0" dur="1.1s" fill="freeze"/>DOUBLE PLAY!</text></g>}
+      {(anim==="strike"||anim==="strikeout")&&outcome==="success"&&<g key={`st${ak}`}><circle r="2.5" fill="white" opacity=".9"><animateMotion dur=".4s" fill="freeze" path="M200,218 L200,288" calcMode="spline" keyTimes="0;1" keySplines="0.15 0.6 0.35 1"/></circle><text x="200" y="263" textAnchor="middle" fontSize={anim==="strikeout"?13:10} fill={anim==="strikeout"?"#ef4444":"#f59e0b"} fontWeight="900" opacity="0"><animate attributeName="opacity" values="0;1;1;0" dur="1.6s" fill="freeze"/>{anim==="strikeout"?"STRUCK OUT!":"STRIKE!"}</text></g>}
+      {anim==="groundout"&&outcome==="success"&&<g key={`go${ak}`}><circle r="2.5" fill="white" filter="url(#gl)"><animateMotion dur=".5s" fill="freeze" path="M200,290 Q240,252 260,230" calcMode="spline" keyTimes="0;1" keySplines="0.3 0 0.65 1"/></circle><circle r="2.5" fill="#22c55e"><animateMotion dur=".35s" begin=".52s" fill="freeze" path="M260,230 L290,210" calcMode="spline" keyTimes="0;1" keySplines="0.15 0.6 0.35 1"/></circle><text x="276" y="198" textAnchor="middle" fontSize="10" fill="#22c55e" fontWeight="800" opacity="0"><animate attributeName="opacity" values="0;0;0;1;1;0" dur="1.4s" fill="freeze"/>OUT!</text></g>}
+      {anim==="flyout"&&outcome==="success"&&<g key={`fl${ak}`}><circle r="3" fill="white" filter="url(#gl)"><animateMotion dur=".55s" fill="freeze" path="M200,290 Q242,118 282,108" calcMode="spline" keyTimes="0;1" keySplines="0.2 0.7 0.4 1"/></circle><text x="282" y="95" textAnchor="middle" fontSize="10" fill="#22c55e" fontWeight="800" opacity="0"><animate attributeName="opacity" values="0;0;0;1;1;0" dur="1.2s" fill="freeze"/>CAUGHT!</text></g>}
+      {anim==="catch"&&outcome==="success"&&<g key={`ca${ak}`}><circle r="2.5" fill="white"><animateMotion dur=".35s" fill="freeze" path="M238,92 Q216,140 192,172" calcMode="spline" keyTimes="0;1" keySplines="0.6 0 0.8 0.2"/></circle><circle cx="192" cy="172" r="0" fill="rgba(34,197,94,.25)"><animate attributeName="r" from="0" to="16" dur=".25s" begin=".35s" fill="freeze" calcMode="spline" keyTimes="0;1" keySplines="0.25 0.1 0.25 1"/><animate attributeName="opacity" from=".6" to="0" dur=".25s" begin=".35s" fill="freeze"/></circle><text x="192" y="162" textAnchor="middle" fontSize="10" fill="#22c55e" fontWeight="800" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0" dur="1s" fill="freeze"/>GOT IT!</text></g>}
+      {anim==="advance"&&outcome==="success"&&<g key={`ad${ak}`}><circle r="4.5" fill="#3b82f6" filter="url(#gl)"><animateMotion dur=".5s" fill="freeze" path="M290,210 Q248,170 200,135" calcMode="spline" keyTimes="0;1" keySplines="0.4 0 0.2 1"/></circle><text x="248" y="163" textAnchor="middle" fontSize="9" fill="#3b82f6" fontWeight="800" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0" dur="1s" fill="freeze"/>ADVANCING!</text></g>}
+      {anim==="walk"&&outcome==="success"&&<g key={`wk${ak}`}><circle r="4.5" fill="#3b82f6"><animateMotion dur=".7s" fill="freeze" path="M200,290 Q248,252 290,210" calcMode="spline" keyTimes="0;1" keySplines="0.4 0 0.2 1"/></circle><text x="200" y="263" textAnchor="middle" fontSize="11" fill="#3b82f6" fontWeight="800" opacity="0"><animate attributeName="opacity" values="0;1;1;0" dur="1.2s" fill="freeze"/>BALL FOUR</text></g>}
+      {anim==="bunt"&&outcome==="success"&&<g key={`bn${ak}`}><circle r="2" fill="white"><animateMotion dur=".5s" fill="freeze" path="M200,290 Q198,272 192,258" calcMode="spline" keyTimes="0;1" keySplines="0.3 0 0.65 1"/></circle><text x="180" y="250" textAnchor="middle" fontSize="9" fill="#22c55e" fontWeight="800" opacity="0"><animate attributeName="opacity" values="0;0;0;1;1;0" dur="1s" fill="freeze"/>BUNT!</text></g>}
+      {anim==="safe"&&outcome==="success"&&<g key={`sf${ak}`}><circle cx="200" cy="210" r="0" fill="none" stroke="#22c55e" strokeWidth="2.5"><animate attributeName="r" from="0" to="32" dur=".45s" fill="freeze" calcMode="spline" keyTimes="0;1" keySplines="0.25 0.1 0.25 1"/><animate attributeName="opacity" from=".8" to="0" dur=".45s" fill="freeze"/></circle><text x="200" y="196" textAnchor="middle" fontSize="13" fill="#22c55e" fontWeight="900" opacity="0"><animate attributeName="opacity" values="0;1;1;0" dur="1.2s" fill="freeze"/>SAFE!</text></g>}
+      {anim==="freeze"&&outcome==="success"&&<g key={`fr${ak}`}><text x="200" y="174" textAnchor="middle" fontSize="20" opacity="0"><animate attributeName="opacity" values="0;1;1;0" dur="1.5s" fill="freeze"/><animate attributeName="y" from="180" to="168" dur=".35s" fill="freeze" calcMode="spline" keyTimes="0;1" keySplines="0.25 0.1 0.25 1"/>⚠️</text><text x="200" y="192" textAnchor="middle" fontSize="10" fill="#f59e0b" fontWeight="800" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0" dur="1.3s" fill="freeze"/>FREEZE!</text></g>}
 
       {outcome&&outcome!=="success"&&(anim==="strike"||anim==="strikeout")&&<text key={`ws${ak}`} x="200" y="266" textAnchor="middle" fontSize="11" fill="#ef4444" fontWeight="800" opacity="0"><animate attributeName="opacity" values="0;1;1;0" dur="1.2s" fill="freeze"/>BALL</text>}
       {outcome&&outcome!=="success"&&anim==="steal"&&<text key={`wo${ak}`} x="248" y="165" textAnchor="middle" fontSize="11" fill="#ef4444" fontWeight="800" opacity="0"><animate attributeName="opacity" values="0;1;1;0" dur="1.2s" fill="freeze"/>OUT!</text>}
@@ -14714,7 +14836,7 @@ export default function App(){
 
       {/* Level Up Overlay */}
       {lvlUp&&<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.7)",zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",animation:"fi .3s ease-out"}} onClick={()=>setLvlUp(null)}>
-        <Confetti active={true}/>
+        <ParticleFX active={true} type="confetti"/>
         <div style={{textAlign:"center",animation:"su .4s ease-out",position:"relative",zIndex:1}} onClick={e=>e.stopPropagation()}>
           <div style={{fontSize:64,marginBottom:8}}>{lvlUp.e}</div>
           <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:14,color:"#f59e0b",letterSpacing:2}}>LEVEL UP!</div>
@@ -14725,7 +14847,7 @@ export default function App(){
 
       {/* Sprint D2: Achievement Celebration Overlay */}
       {achCelebration&&<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.8)",zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",animation:"fi .3s ease-out"}} onClick={()=>setAchCelebration(null)}>
-        <Confetti active={true}/>
+        <ParticleFX active={true} type="confetti"/>
         <div style={{textAlign:"center",animation:"su .4s ease-out",position:"relative",zIndex:1}} onClick={e=>e.stopPropagation()}>
           <div style={{fontSize:80,marginBottom:8,animation:"pulse 1s ease-in-out infinite"}}>{achCelebration.e}</div>
           <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:14,color:"#f59e0b",letterSpacing:3,marginBottom:4}}>ACHIEVEMENT UNLOCKED!</div>
@@ -16823,6 +16945,8 @@ export default function App(){
         @keyframes sitPulse{0%,100%{box-shadow:0 0 0 0 rgba(59,130,246,.4)}50%{box-shadow:0 0 0 6px rgba(59,130,246,0)}}
         @keyframes sitSlide{from{width:0}to{width:100%}}
         @keyframes filmBar{from{width:0}to{width:100%}}
+        @keyframes crowdSway{0%{transform:translateY(0)}100%{transform:translateY(1.5px)}}
+        @keyframes bannerWave{0%{transform:rotate(0deg)}100%{transform:rotate(3deg)}}
         *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
         button:hover{filter:brightness(1.05)}
         button:active{transform:scale(.98)}
