@@ -28,7 +28,7 @@ CLAUDE.md          — This file
 ### index.jsx layout (approximate ranges)
 ```
 Lines 1-10:         Imports and header
-Lines 11-2800:      SCENARIOS object (584 handcrafted scenarios across 15 categories)
+Lines 11-3800:      SCENARIOS object (623 handcrafted scenarios across 15 categories)
 Lines 2800-2870:    Position metadata, field themes, achievements
 Lines 2870-2920:    DEFAULT state object, position suggestions, difficulty graduation
 Lines 2920-3050:    Helper functions: sound system, spaced repetition
@@ -46,7 +46,7 @@ Lines 8800-12200:   Main App() component (game state, UI, all screens)
 
 ## Key Architecture Decisions
 1. **Single file** — Intentional. Designed for easy iteration. Don't split into multiple files.
-2. **Handcrafted scenarios first** — 584 scenarios with carefully tuned difficulty, explanations, and success rates. AI scenarios supplement these, they don't replace them.
+2. **Handcrafted scenarios first** — 623 scenarios with carefully tuned difficulty, explanations, and success rates. AI scenarios supplement these, they don't replace them.
 3. **Cloudflare Worker as AI proxy** — API key stored as Worker secret, never exposed to browser. Free tier covers 100K requests/day.
 4. **localStorage persistence** — Player progress, achievements, settings, and stats persist in the browser (key: `bsm_v5`).
 5. **Pro gating client-side** — `stats.isPro` in localStorage. Known spoofable; acceptable at current scale. Server-side verification planned for Phase 3.
@@ -63,20 +63,23 @@ Lines 8800-12200:   Main App() component (game state, UI, all screens)
 - **Pro tier**: Unlimited plays, AI scenarios, all themes/avatar, streak freeze, 2x XP
 
 ## AI Integration
-- Uses xAI Grok (`grok-4` flagship) via Cloudflare Worker proxy
+- **Primary**: Claude Opus 4 (`claude-opus-4-20250514`) via multi-agent pipeline in Cloudflare Worker
+- **Fallback**: xAI Grok (`grok-4`) via Worker proxy when Claude fails or for batch jobs
 - Worker URL: `AI_PROXY_URL` constant in index.jsx (worker timeout: 55s)
 - AI_BUDGET: 90s total for AI generation (setup network calls excluded from clock)
-- **Agent pipeline**: Plan→Generate→Grade architecture with `generateWithAgentPipeline()`, 25 OPTION_ARCHETYPES, QUALITY_FIREWALL grading (10 Tier 1 checks)
-- **Standard pipeline**: Direct xAI call with full prompt (position rules, brain data, knowledge maps, few-shot example)
+- **Multi-agent pipeline (primary)**: Planner→Generator→Critic→Rewriter via Claude Opus with Vectorize RAG, 21-item checklist + 5-dimension rubric, 9.5/10 pass threshold
+- **Agent pipeline (fallback)**: Plan→Generate→Grade via xAI Grok with `generateWithAgentPipeline()`, 25 OPTION_ARCHETYPES, QUALITY_FIREWALL grading (8 Tier 1 + 19 Tier 2 + 5 Tier 3 = 32 checks, 12 CONSISTENCY_RULES)
+- **Standard pipeline (fallback)**: Direct xAI call with full prompt (position rules, brain data, knowledge maps, few-shot example)
 - **Pre-cache**: Unified AI scenario cache with concept-aware prefetch (`skipAgent=true` for speed), local pool fallback
 - **Self-learning**: Semantic feedback patterns + dynamic prompt patches from D1, real game feel injection, coaching voice guidance, decision windows
 - **A/B testing**: 9 active configs (ai_temperature, ai_system_prompt, bible_injection, brain_data_level, few_shot_count, agent_pipeline, coach_persona, session_planner, explanation_depth)
 - 21 knowledge maps conditionally injected into AI prompts by position relevance
-- 48 concepts in BRAIN.concepts with prerequisite graph, age minimums, difficulty levels
-- ROLE_VIOLATIONS regex validation, CONSISTENCY_RULES cross-checks
+- 46 concepts in BRAIN.concepts with prerequisite graph, age minimums, difficulty levels
+- ROLE_VIOLATIONS regex validation, CONSISTENCY_RULES cross-checks (12 rules)
+- Worker secrets: `ANTHROPIC_API_KEY` (Claude Opus), `XAI_API_KEY` (Grok fallback), `ADMIN_KEY`
 - Triggers: "AI Coach's Challenge" button (Pro only) or when scenarios exhausted
 - Purple "AI" badge shown during AI-generated scenarios
-- Fallback to handcrafted on timeout, parse error, role violation, or quality failure
+- Fallback chain: Claude Opus → xAI Grok → handcrafted pool (on timeout, parse error, role violation, or quality failure)
 - Automatic retry (up to 2x) on retryable errors if budget remains
 
 ## Field Visualization
@@ -86,11 +89,11 @@ Lines 8800-12200:   Main App() component (game state, UI, all screens)
 - Key coordinates: Home(200,290) 1B(290,210) 2B(200,135) 3B(110,210) Mound(200,218)
 - 15 animation types: steal, score, hit, throwHome, doubleplay, strike, strikeout, groundout, flyout, catch, advance, walk, bunt, safe, freeze
 
-## Scenario Counts (584 total)
+## Scenario Counts (644 total)
 ```
-pitcher:62  catcher:40  firstBase:31  secondBase:26  shortstop:27  thirdBase:26
-leftField:25  centerField:27  rightField:25
-batter:59  baserunner:68  manager:79
+pitcher:72  catcher:48  firstBase:31  secondBase:27  shortstop:27  thirdBase:28
+leftField:28  centerField:34  rightField:32
+batter:63  baserunner:81  manager:84
 famous:21  rules:40  counts:28
 ```
 
@@ -128,6 +131,7 @@ famous:21  rules:40  counts:28
 - **Modify game logic**: Edit the App() function's state management and handlers
 - **Adjust AI behavior**: Edit generateAIScenario() and the system prompt
 - **Update AI proxy**: Edit `worker/index.js`, deploy with `cd worker && npx wrangler deploy`
+- **Run audit scripts**: Scripts in `scripts/` directory — `critic_audit.js` (full audit pipeline), `audit_firewall_rules.js` (firewall rule validation), `validate-scenarios.js` (structural checks)
 - **Preview locally**: `npx serve .` then open localhost:3000/preview
 
 ## Living Document Protocol — MANDATORY

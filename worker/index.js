@@ -3355,9 +3355,9 @@ JSON SCHEMA:
 
 const CRITIC_SYSTEM = `You are a quality auditor for Baseball Strategy Master, an educational baseball app for kids ages 6-18.
 
-Evaluate the scenario against a 21-item checklist and a 5-dimension rubric. Be STRICT — only truly excellent scenarios should score 9.5+.
+Evaluate the scenario against a 31-item checklist and a 6-dimension rubric. Be STRICT — only truly excellent scenarios should score 9.5+.
 
-THE 21-ITEM CHECKLIST:
+THE 31-ITEM CHECKLIST:
 1. Does the scenario have exactly 4 options?
 2. Is the best answer index valid (0-3)?
 3. Does each explanation specifically discuss THAT option (not a generic response)?
@@ -3379,27 +3379,58 @@ THE 21-ITEM CHECKLIST:
 19. Are all four options strategically distinct (not just variations of the same action)?
 20. Is the language age-appropriate for the stated difficulty/ageMin?
 21. Would a real youth baseball coach agree with the correct answer?
+22. Does the conceptTag match what the scenario actually teaches?
+23. Is the count field a specific balls-strikes value (not placeholder "-")?
+24. Does the score perspective match the inning half? (Top=away bats, Bot=home bats)
+25. Does each explanation address its corresponding option (not a generic response)?
+26. Are the 4 explanations teaching 4 DIFFERENT principles?
+27. Are force/tag play mechanics correct? (stepping on base removes force at next base)
+28. Is vocabulary complexity appropriate for the difficulty level?
+29. BSM uses 15 categories including 'famous' (historical strategic lessons), 'rules' (rule knowledge), and 'counts' (count-leverage strategy) — these are VALID categories, not errors.
+30. Does the relay/cutoff terminology match the throw distance? ('relay' for deep throws, 'cutoff' for shorter throws)
+31. Does the scenario teach a CLEAR single concept (not muddled)?
 
-THE 5-DIMENSION RUBRIC (score each 1-10):
+EXPLANATION QUALITY DEEP CHECK (applies to all 4 explanations, not just best):
+- Each explanation must contain causal reasoning ("because", "which means", "the key", "since", "otherwise")
+- Each explanation must teach a DIFFERENT principle from the other 3
+- Wrong-answer explanations must explain WHY the option fails, not just say "this is wrong" or "not ideal"
+- Explanations should be 40-120 words each (not too short to teach, not too long to read)
+- The best explanation must argue POSITIVELY for the choice (not just "others are worse")
+
+POSITION-SPECIFIC VALIDATION:
+- pitcher: pitch selection must match age/difficulty; pickoff scenarios must involve actual pickoff mechanics
+- catcher: framing/blocking descriptions must be technically correct
+- infield positions: force/tag plays must be accurate for the base; DP mechanics must be correct
+- outfield: backup duties must be correct (LF→3B, RF→1B, CF→2B); relay targets must be correct
+- batter: count leverage must be properly taught
+- baserunner: steal/tag-up mechanics must be accurate
+- manager: must involve strategic decisions, not physical play descriptions
+- famous: must teach strategy through history, not just describe what happened
+- rules: must test rule KNOWLEDGE with strategic implications
+- counts: must involve count-specific strategic decisions
+
+THE 6-DIMENSION RUBRIC (score each 1-10):
 - factualAccuracy: Are all baseball facts, rules, and statistics correct?
 - explanationStrength: Do explanations teach WHY, not just WHAT?
 - ageAppropriateness: Language matches the difficulty level?
 - educationalValue: Would a kid actually learn something from this?
 - varietyDistinctness: Are the 4 options genuinely different strategic choices?
+- conceptClarity: Does the scenario teach one clear, focused concept?
 
-OVERALL SCORE: weighted average (factualAccuracy 2x, explanationStrength 2x, others 1x), scaled to 1-10.
+OVERALL SCORE: weighted average (factualAccuracy 2x, explanationStrength 2x, conceptClarity 1x, others 1x), scaled to 1-10.
 PASS: overallScore >= 9.5 AND zero checklist failures.
 
 Output ONLY valid JSON:
 {
-  "checklist": { "item_1": true, "item_2": true, ..., "item_21": true },
+  "checklist": { "item_1": true, "item_2": true, ..., "item_31": true },
   "checklistFailures": ["item_5: Score perspective wrong — Bot 3rd but uses score[0] for batting team"],
   "rubric": {
     "factualAccuracy": 9,
     "explanationStrength": 8,
     "ageAppropriateness": 10,
     "educationalValue": 9,
-    "varietyDistinctness": 8
+    "varietyDistinctness": 8,
+    "conceptClarity": 9
   },
   "overallScore": 8.75,
   "pass": false,
@@ -4280,6 +4311,50 @@ export default {
           limit: Math.min(body.limit || 5, 10)
         });
         return jsonResponse(result, result.error ? 500 : 200, cors);
+      } catch (e) {
+        return jsonResponse({ error: e.message }, 500, cors);
+      }
+    }
+
+    // Admin audit endpoint — routes scenario scoring through Claude via stored ANTHROPIC_API_KEY
+    if (path === "/admin/audit-scenario" && request.method === "POST") {
+      const adminKey = request.headers.get("X-Admin-Key");
+      if (!adminKey || adminKey !== env.ADMIN_KEY) {
+        return jsonResponse({ error: "Unauthorized" }, 401, cors);
+      }
+      try {
+        const body = await request.json();
+        const { scenario, systemPrompt, maxTokens } = body;
+        if (!scenario || !systemPrompt) {
+          return jsonResponse({ error: "Missing scenario or systemPrompt" }, 400, cors);
+        }
+        const { text, usage } = await callClaude(systemPrompt, JSON.stringify(scenario, null, 2), env, maxTokens || 1024, 50000);
+        let parsed;
+        try { parsed = JSON.parse(text); }
+        catch { const m = text.match(/\{[\s\S]*\}/); parsed = m ? JSON.parse(m[0]) : { raw: text }; }
+        return jsonResponse({ result: parsed, usage }, 200, cors);
+      } catch (e) {
+        return jsonResponse({ error: e.message }, 500, cors);
+      }
+    }
+
+    // Admin meta-analysis endpoint — for pattern mining and synthesis calls
+    if (path === "/admin/audit-analyze" && request.method === "POST") {
+      const adminKey = request.headers.get("X-Admin-Key");
+      if (!adminKey || adminKey !== env.ADMIN_KEY) {
+        return jsonResponse({ error: "Unauthorized" }, 401, cors);
+      }
+      try {
+        const body = await request.json();
+        const { systemPrompt, data, maxTokens } = body;
+        if (!systemPrompt || !data) {
+          return jsonResponse({ error: "Missing systemPrompt or data" }, 400, cors);
+        }
+        const { text, usage } = await callClaude(systemPrompt, JSON.stringify(data, null, 2), env, maxTokens || 4096, 120000);
+        let parsed;
+        try { parsed = JSON.parse(text); }
+        catch { const m = text.match(/\{[\s\S]*\}/); parsed = m ? JSON.parse(m[0]) : { raw: text }; }
+        return jsonResponse({ result: parsed, usage }, 200, cors);
       } catch (e) {
         return jsonResponse({ error: e.message }, 500, cors);
       }

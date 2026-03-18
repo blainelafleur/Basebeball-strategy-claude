@@ -151,36 +151,36 @@ Which other maps, positions, or scenarios does this touch? Does any existing sce
 
 | Item | Status |
 |------|--------|
-| Handcrafted scenarios | 584 across 15 position categories |
-| AI generation | Live via xAI Grok (`grok-4` flagship) through Cloudflare Worker proxy |
+| Handcrafted scenarios | 608 across 15 position categories |
+| AI generation | Primary: Claude Opus 4 via multi-agent pipeline. Fallback: xAI Grok (`grok-4`) via Worker proxy |
 | Knowledge maps | 21 authoritative maps integrated into AI prompt (cutoff/relay, bunt defense, first-third, backup, rundown, DP positioning, hit-run, pickoff, pitch clock, WP/PB, squeeze, infield fly, OF communication, popup priority, obstruction/interference, tag-up/sac fly, pitching change, IBB, legal shift, baserunner reads, pre-pitch positioning) |
-| Quality firewall | 10 Tier 1 checks + Tier 2/3 checks run on every AI-generated scenario |
+| Quality firewall | 8 Tier 1 + 19 Tier 2 + 5 Tier 3 = 32 checks + 12 CONSISTENCY_RULES run on every AI-generated scenario |
 | Agent pipeline | A/B tested AI generation with plan→generate→grade stages, OPTION_ARCHETYPES, QUALITY_FIREWALL grading |
 | Self-learning AI | Semantic feedback patterns, prompt patches, real game feel injection, coaching voice, decision windows |
 | Pre-cache system | Unified AI scenario cache with concept-aware prefetch, local pool fallback, skipAgent for speed |
 | A/B testing | 9 active configs: ai_temperature, ai_system_prompt, bible_injection, brain_data_level, few_shot_count, agent_pipeline, coach_persona, session_planner, explanation_depth |
 | AI budget | 90s total (worker timeout 55s), setup fetches excluded from budget clock |
 | BRAIN version | 2.4.0 — see KNOWLEDGE_CHANGELOG in index.jsx for full history |
-| BRAIN concepts | 48 concept tags with prerequisite graph, age minimums, difficulty levels |
+| BRAIN concepts | 46 concept tags with prerequisite graph, age minimums, difficulty levels |
 
-### Positions by Scenario Count (584 total)
+### Positions by Scenario Count (644 total)
 
 | Position | Count | Notes |
 |----------|-------|-------|
-| Manager | 79 | Rich |
-| Baserunner | 68 | Rich |
-| Pitcher | 62 | Rich |
-| Batter | 59 | Rich |
-| Catcher | 40 | Solid |
+| Manager | 84 | Rich |
+| Baserunner | 81 | Rich |
+| Pitcher | 72 | Rich |
+| Batter | 63 | Rich |
+| Catcher | 48 | Solid |
 | Rules | 40 | Solid |
+| CenterField | 34 | Strong |
+| RightField | 32 | Strong |
 | FirstBase | 31 | Good |
 | Counts | 28 | Good |
+| ThirdBase | 28 | Good |
+| LeftField | 28 | Good |
 | Shortstop | 27 | Good |
-| CenterField | 27 | Good |
-| SecondBase | 26 | Good |
-| ThirdBase | 26 | Good |
-| LeftField | 25 | Good |
-| RightField | 25 | Good |
+| SecondBase | 27 | Good |
 | Famous | 21 | Good |
 
 ---
@@ -190,10 +190,12 @@ Which other maps, positions, or scenarios does this touch? Does any existing sce
 | Order | Task | Context |
 |-------|------|---------|
 | 1 | Soft Launch & Production Testing | Deploy to Cloudflare Pages, generate promo codes, pre-launch QA sweep, validate Stripe checkout flow |
-| 2 | AI Reliability Monitoring | Monitor AI generation success rate post-fixes (90s budget, 55s worker timeout, skipAgent prefetch, trimmed prompts) |
-| 3 | User Accounts (Phase 2.7) | Cloudflare D1 accounts, email auth, progress sync, claim existing localStorage data |
-| 4 | COPPA Compliance (Phase 4.4) | Deadline: April 22, 2026 — neutral age gate, parent consent, deletion endpoint, privacy policy |
-| 5 | Coach Dashboard (Phase 4.2) | Team tier for travel ball coaches — requires backend from Phase 2.7/3 |
+| 2 | Fix Remaining 32 Scenarios Below Threshold | Gold Standard audit projected 94.6% pass; ~32 scenarios still need fixes to reach >98% target |
+| 3 | Add Scenarios for 3 Under-covered Concepts | 3 BRAIN concepts lack dedicated scenarios — need at least 2 scenarios each |
+| 4 | AI Reliability Monitoring | Monitor AI generation success rate post-fixes (90s budget, 55s worker timeout, skipAgent prefetch, trimmed prompts) |
+| 5 | User Accounts (Phase 2.7) | Cloudflare D1 accounts, email auth, progress sync, claim existing localStorage data |
+| 6 | COPPA Compliance (Phase 4.4) | Deadline: April 22, 2026 — neutral age gate, parent consent, deletion endpoint, privacy policy |
+| 7 | Coach Dashboard (Phase 4.2) | Team tier for travel ball coaches — requires backend from Phase 2.7/3 |
 
 ---
 

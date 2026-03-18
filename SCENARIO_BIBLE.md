@@ -1,6 +1,6 @@
 # Baseball Strategy Master — Scenario Quality & Knowledge Framework
 
-> The 584 scenarios are the core product. Every scenario must teach correct baseball strategy backed by authoritative sources. This document defines WHAT knowledge to teach, WHERE it comes from, and HOW to verify it.
+> The 608 scenarios are the core product. Every scenario must teach correct baseball strategy backed by authoritative sources. This document defines WHAT knowledge to teach, WHERE it comes from, and HOW to verify it.
 
 ---
 
@@ -1446,7 +1446,7 @@ When a rule change makes a scenario incorrect:
 
 ### 11F. Cross-Position Verification Protocol
 
-Before adding any new scenario, run these 10 consistency checks (implemented as `CONSISTENCY_RULES` in index.jsx):
+Before adding any new scenario, run these 12 consistency checks (implemented as `CONSISTENCY_RULES` in index.jsx):
 
 | Rule | What It Checks |
 |------|---------------|
@@ -1460,6 +1460,8 @@ Before adding any new scenario, run these 10 consistency checks (implemented as 
 | CR8 | SS never covers 1B on bunt plays |
 | CR9 | Steal break-even rate ~72% |
 | CR10 | Force play consistency (runner on 1st = force at 2nd) |
+| CR11 | DP depth with 2 outs (no DP positioning with 2 outs) |
+| CR12 | Pitcher covers 1st on grounders to right side |
 
 ---
 
@@ -1532,22 +1534,22 @@ Run the Quality Checklist before finalizing.
 
 ---
 
-## Scenario Counts (584 total)
+## Scenario Counts (644 total)
 
 | Position | Count | Notes |
 |----------|-------|-------|
-| pitcher | 62 | |
-| catcher | 40 | |
+| pitcher | 72 | |
+| catcher | 48 | |
 | firstBase | 31 | |
-| secondBase | 26 | |
+| secondBase | 27 | |
 | shortstop | 27 | |
-| thirdBase | 26 | |
-| leftField | 25 | |
-| centerField | 27 | |
-| rightField | 25 | |
-| batter | 59 | |
-| baserunner | 68 | |
-| manager | 79 | |
+| thirdBase | 28 | |
+| leftField | 28 | |
+| centerField | 34 | |
+| rightField | 32 | |
+| batter | 63 | |
+| baserunner | 81 | |
+| manager | 84 | |
 | famous | 21 | |
 | rules | 40 | |
 | counts | 28 | |
@@ -1568,6 +1570,66 @@ When a player answers a scenario wrong, spaced repetition should **not** replay 
    - **Priority 3**: Random from the full pool
 
 4. **Mastery screen**: Shows only once per position when a free user exhausts all scenarios. On subsequent plays, a "Review Mode" toast appears and smart recycling provides the next scenario.
+
+---
+
+## Explanation Quality Rules
+
+### Banned Phrases
+
+These phrases signal empty or generic explanations. They must never appear in scenario explanations (handcrafted or AI-generated):
+
+- "That's not the right call" -- explains nothing; say WHY it's wrong
+- "This isn't ideal" -- vague; specify the consequence
+- "Good effort, but..." -- empty praise padding
+- "While this might work sometimes..." -- hedge without teaching
+- "This is risky" -- say WHAT the risk is and WHY
+- "Not the best option" -- say which option IS best and why
+- "This could go wrong" -- specify HOW it goes wrong in this situation
+
+### Writing Guidelines for Explanations
+
+1. **Lead with the consequence.** "The runner scores because..." not "You should have..."
+2. **Name the principle.** Every explanation should reference a specific baseball concept (relay alignment, fly ball priority, count leverage, force play mechanics, etc.).
+3. **Differentiate all four explanations.** Each must teach a different angle. If two explanations make the same point, rewrite the weaker one.
+4. **Match vocabulary to difficulty.** Diff 1: simple cause-and-effect. Diff 2: situational reasoning. Diff 3: data-informed strategic analysis.
+5. **Address the specific option.** Explanation[i] must discuss option[i] directly -- never discuss a different option in that slot.
+6. **Keep it concise.** 2-3 sentences per explanation for diff 1-2. Up to 4 sentences for diff 3. No filler.
+
+---
+
+## Audit-Discovered Quality Rules
+
+The following rules were discovered through the Gold Standard audit process (4 audits, 608 scenarios, Claude Opus CRITIC). These are now enforced by both the client-side QUALITY_FIREWALL and the server-side CRITIC in the multi-agent pipeline.
+
+### Tier 1 Rules (Hard Reject)
+
+| Rule | What It Catches |
+|------|----------------|
+| `bestAnswerRateCheck` | rates[best] must be the highest rate value -- prevents feedback showing the wrong option as "best" |
+| `conceptTagAlignmentCheck` | conceptTag must match scenario content keywords -- prevents mastery system tracking wrong concepts |
+| `explanationIndexAlignmentCheck` | explanation[i] must address option[i] -- prevents swapped or mismatched explanations |
+
+### Tier 2 Rules (Warnings)
+
+| Rule | What It Catches |
+|------|----------------|
+| `countFormatCheck` | count must be "X-Y" format, not "-" placeholder (except manager/rules/famous where count may not apply) |
+| `scoreInningConsistencyCheck` | score array must match Top/Bot perspective -- score[0]=AWAY, score[1]=HOME |
+| `ageAppropriateComplexityCheck` | no advanced stats (OPS, WAR, BABIP, wOBA) in diff:1 scenarios |
+| `forcePlayAccuracyCheck` | force play mechanics must be correct given runner/base state |
+| `explanationVarietyCheck` | each of 4 explanations must teach a different principle (Jaccard similarity <0.4 between any pair) |
+
+### Tier 3 Rules (Suggestions)
+
+| Rule | What It Catches |
+|------|----------------|
+| `rateDistributionReasonableCheck` | all rates 5-95 with minimum 20-point spread between best and worst |
+| `historicalScenarioCheck` | famous scenarios must teach strategy, not just history trivia |
+
+### CONSISTENCY_RULES (12 Cross-Position Checks)
+
+CR1-CR12 are cross-position contradiction rules that verify cutoff/relay assignments, fly ball priority, bunt defense, force plays, and DP positioning are consistent across all 15 categories. See Section 11F for the full list.
 
 ---
 

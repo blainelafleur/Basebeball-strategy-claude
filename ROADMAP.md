@@ -2,7 +2,7 @@
 
 ## Context
 
-**Where We Are:** A polished educational baseball game — 584 handcrafted scenarios across 15 categories, SVG field with 10 themes, avatar customization, season mode, coach mascot, survival/speed/daily modes, AI scenarios via xAI Grok (`grok-4`) + Cloudflare Worker proxy — running as a single-file React app (`index.jsx`, ~12,200 lines) on Cloudflare Pages. Free tier gives 8 plays/day with Daily Diamond always free. Pro gating, upgrade panel, and Stripe Payment Links are implemented. BRAIN knowledge system (v2.4.0) includes QUALITY_FIREWALL, CONSISTENCY_RULES, 21 knowledge maps, POS_PRINCIPLES, 48 concepts with prerequisite graph, and Living Document System. Self-learning AI system with semantic feedback patterns, prompt patches, real game feel injection, agent pipeline with A/B testing (9 configs), unified pre-cache, and budget-aware timeouts (90s budget, 55s worker). Stickiness features (parent reports, coach mode, session recap, practice recommendations, onboarding) are complete. Preparing for soft launch to 20-50 coaches/families.
+**Where We Are:** A polished educational baseball game — 608 handcrafted scenarios across 15 categories, SVG field with 10 themes, avatar customization, season mode, coach mascot, survival/speed/daily modes, AI scenarios via Claude Opus 4 (primary) + xAI Grok (fallback) + Cloudflare Worker proxy — running as a single-file React app (`index.jsx`, ~12,200 lines) on Cloudflare Pages. Free tier gives 8 plays/day with Daily Diamond always free. Pro gating, upgrade panel, and Stripe Payment Links are implemented. BRAIN knowledge system (v2.4.0) includes QUALITY_FIREWALL (32 checks), CONSISTENCY_RULES (12 rules), 21 knowledge maps, POS_PRINCIPLES, 46 concepts with prerequisite graph, and Living Document System. Self-learning AI system with semantic feedback patterns, prompt patches, real game feel injection, agent pipeline with A/B testing (9 configs), unified pre-cache, and budget-aware timeouts (90s budget, 55s worker). Gold Standard audit complete: 4 audits run, 94.6% projected pass rate. Stickiness features (parent reports, coach mode, session recap, practice recommendations, onboarding) are complete. Preparing for soft launch to 20-50 coaches/families.
 
 **The Strategy:** Soft launch the current single-file app to validate with real users. Then build production infrastructure (user accounts, server-side auth). Then grow with social features and coach tools.
 
@@ -197,15 +197,15 @@ Built the knowledge engine that powers scenario quality, AI validation, and adap
 - POS_PRINCIPLES for all 15 positions (authoritative coaching reference)
 - Brain API functions: getRelevantMaps(), formatBrainStats(), getTeachingContext()
 
-### 2.92.2 Scenario Expansion (460 → 539 → 584) — DONE
+### 2.92.2 Scenario Expansion (460 → 539 → 584 → 608) — DONE
 - Situational mastery clusters: 16 scenarios across pitcher/batter/baserunner/manager
 - Outfield expansion: LF/CF/RF each expanded to 25+ scenarios (was ~21 each)
 - Rules edge cases: 6 new scenarios (batting out of order, interference, time play, pitch clock, fan interference)
-- Additional expansion in release prep: 584 handcrafted scenarios across 15 categories
+- Additional expansion in release prep and Gold Standard audit: 608 handcrafted scenarios across 15 categories
 
 ### 2.92.3 AI Quality Systems — DONE
-- QUALITY_FIREWALL: 10 automated checks (Tier 1 reject, Tier 2 warn, Tier 3 suggest) integrated into generateAIScenario()
-- CONSISTENCY_RULES: 10 cross-position contradiction rules (CR1-CR10), integrated into AI pipeline
+- QUALITY_FIREWALL: 32 automated checks (8 Tier 1 reject, 19 Tier 2 warn, 5 Tier 3 suggest) integrated into generateAIScenario() — expanded from original 10 via Gold Standard audit
+- CONSISTENCY_RULES: 12 cross-position contradiction rules (CR1-CR12), integrated into AI pipeline
 - ROLE_VIOLATIONS: Position-specific regex validation for AI-generated scenarios
 - Error classification: timeout, parse, structure, rate, role-violation, consistency-violation
 
@@ -257,7 +257,7 @@ Hardened the AI generation pipeline for reliability and quality.
 ### 2.94.1 Agent Pipeline — DONE
 - Plan→Generate→Grade architecture with `generateWithAgentPipeline()`
 - `OPTION_ARCHETYPES` (25 entries) for structural guidance
-- `QUALITY_FIREWALL` grading (10 Tier 1 checks) with score threshold
+- `QUALITY_FIREWALL` grading (8 Tier 1 + 19 Tier 2 + 5 Tier 3 = 32 checks) with score threshold
 - Auto-normalization before grading (rates, runners, outs, count)
 
 ### 2.94.2 A/B Testing Framework — DONE
@@ -278,9 +278,15 @@ Hardened the AI generation pipeline for reliability and quality.
 
 ---
 
-## Phase 2.95: "Quality & Intelligence" (Audit Sprints) — COMPLETE
+## Phase 2.95: "Quality & Intelligence" (Audit Sprints + Gold Standard) — COMPLETE
 
-Comprehensive improvement plan based on full audit (see `AUDIT_REPORT.md`). Four sprints to fix the data model, make the AI intelligent, build adaptive learning, and prepare for scale.
+Comprehensive improvement plan based on full audit (see `AUDIT_REPORT.md`). Four sprints to fix the data model, make the AI intelligent, build adaptive learning, and prepare for scale. Capped by Gold Standard audit (see `BSM_GOLD_STANDARD_PLAN.md`): 4 audits run, QUALITY_FIREWALL upgraded to 32 checks (8 Tier 1 + 19 Tier 2 + 5 Tier 3), CONSISTENCY_RULES expanded to 12, CRITIC prompt enhanced, 94.6% projected pass rate across 608 scenarios.
+
+**Gold Standard Audit Results:**
+- Phase A (Fix the Machine): QUALITY_FIREWALL expanded from 10 to 32 checks, Worker CRITIC prompt enhanced with 10 audit-discovered rules, audit pipeline updated for 15 BSM categories
+- Phase B (Fix Scenarios): 26 audit-recommended scenarios fixed, count placeholders resolved, conceptTag mismatches corrected, rate/best conflicts fixed, explanation quality improved
+- Phase C (Re-Audit): 4 complete audits run, projected 94.6% pass rate (target was >95%)
+- **Remaining work:** ~32 scenarios still below threshold, 3 BRAIN concepts need dedicated scenarios
 
 ### Sprint 1: Stop the Bleeding (Weeks 1-2) — COMPLETE
 **Goal:** Fix the data model so the learning engine actually works.
@@ -337,7 +343,7 @@ Autonomous release preparation. See `AUTONOMOUS_RELEASE_PLAN.md` for detailed ta
 - Verified existing implementations: sign-up validation, Pro toast, share feedback, challenge completion
 
 ### Scenario Quality — DONE
-- 100% conceptTag coverage (584/584)
+- 100% conceptTag coverage (608/608)
 - explSimple coverage: 175 Diff 1 + 238 Diff 2 = 413 total
 - 20 weakest explanations rewritten with strategic reasoning
 - AI prompt verified comprehensive
@@ -464,7 +470,7 @@ Major scope change: port to Next.js for SSR, move to PostgreSQL for scale, add a
 
 | Feature | Included |
 |---------|----------|
-| All 584 handcrafted scenarios | Yes |
+| All 608 handcrafted scenarios | Yes |
 | All 15 positions | Yes |
 | 8 plays per day | Yes |
 | Daily Diamond Play (exempt from limit) | Yes |
@@ -537,7 +543,7 @@ Major scope change: port to Next.js for SSR, move to PostgreSQL for scale, add a
 
 ## What NOT to Do
 
-1. **Don't gate educational content.** All 584 scenarios stay free. Always.
+1. **Don't gate educational content.** All 608 scenarios stay free. Always.
 2. **Don't show purchase prompts during active gameplay.** Only in natural pauses.
 3. **Don't use punishing language.** Celebrate progress, don't emphasize restrictions.
 4. **Don't require accounts for free play.** localStorage-only is fine.
