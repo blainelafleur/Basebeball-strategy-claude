@@ -4782,10 +4782,10 @@ const ACHS=[
   {id:"s3",n:"On a Roll",d:"3 optimal in a row",e:"🔥",ck:s=>s.bs>=3},
   {id:"s5",n:"Hot Streak",d:"5 in a row",e:"💥",ck:s=>s.bs>=5},
   {id:"s10",n:"Unstoppable",d:"10 in a row!",e:"⚡",ck:s=>s.bs>=10},
-  {id:"g10",n:"Dedicated",d:"Play 10 scenarios",e:"📚",ck:s=>s.gp>=10},
-  {id:"g25",n:"Student",d:"Play 25 scenarios",e:"🎓",ck:s=>s.gp>=25},
-  {id:"g50",n:"Scholar",d:"Play 50 scenarios",e:"🏅",ck:s=>s.gp>=50},
-  {id:"g100",n:"Veteran",d:"Play 100 scenarios",e:"💎",ck:s=>s.gp>=100},
+  {id:"g10",n:"Dedicated",d:"Play 10 challenges",e:"📚",ck:s=>s.gp>=10},
+  {id:"g25",n:"Student",d:"Play 25 challenges",e:"🎓",ck:s=>s.gp>=25},
+  {id:"g50",n:"Scholar",d:"Play 50 challenges",e:"🏅",ck:s=>s.gp>=50},
+  {id:"g100",n:"Veteran",d:"Play 100 challenges",e:"💎",ck:s=>s.gp>=100},
   {id:"a80",n:"Sharp Eye",d:"80%+ accuracy (10+ games)",e:"🎯",ck:s=>s.gp>=10&&(s.co/s.gp)>=0.8},
   {id:"util",n:"Utility Player",d:"Play all 12 positions",e:"🔄",ck:s=>ALL_POS.every(p=>(s.ps[p]?.p||0)>=1)},
   {id:"c10",n:"Baseball Brain",d:"Learn 10 concepts",e:"🧠",ck:s=>(s.cl?.length||0)>=10},
@@ -4980,7 +4980,7 @@ const STORAGE_KEY = "bsm_v5";
 const LB_KEY = "bsm_lb";
 function getWeek(){const d=new Date();const jan1=new Date(d.getFullYear(),0,1);return Math.ceil(((d-jan1)/86400000+jan1.getDay()+1)/7)+"-"+d.getFullYear();}
 const BASEBALL_NAMES=["Slugger","Ace","Rookie","MVP","Clutch","Hammer","Flash","Blaze","Storm","Thunder","Captain","Dash","Nitro","Phoenix","Cobra","Falcon","Eagle","Mustang","Raptor","Viking"];
-const AGE_GROUPS=[{id:"6-8",label:"Ages 6-8",desc:"Basic concepts, simple language",maxDiff:1},{id:"9-10",label:"Ages 9-10",desc:"Force plays, cutoffs, stealing",maxDiff:2},{id:"11-12",label:"Ages 11-12",desc:"Full situational awareness",maxDiff:3},{id:"13+",label:"Ages 13+",desc:"Advanced strategy & sabermetrics",maxDiff:3}];
+const AGE_GROUPS=[{id:"6-8",label:"Ages 6-8",desc:"Rising Rookie — Learn the game the right way",maxDiff:1},{id:"9-10",label:"Ages 9-10",desc:"Starter — Force plays, cutoffs, stealing",maxDiff:2},{id:"11-12",label:"Ages 11-12",desc:"Competitor — Full game situations",maxDiff:3},{id:"13-15",label:"Ages 13-15",desc:"Travel Ball — Advanced strategy",maxDiff:3},{id:"16-18",label:"Ages 16-18",desc:"Varsity — Analytics & game management",maxDiff:3},{id:"18+",label:"Ages 18+",desc:"College / Pro — Full sabermetrics",maxDiff:3}];
 const CONCEPT_GATES = {
   "6-8": {
     allowed: ["force-vs-tag","fly-ball-priority","backup-duties","rundown-mechanics",
@@ -5018,6 +5018,27 @@ const CONCEPT_GATES = {
       bunting: "Starting to resemble standard RE24 analysis"
     }
   },
+  "13-15": {
+    forbidden: [],
+    adjustments: {
+      stealing: "Standard 72% break-even applies",
+      bunting: "Full RE24 analysis applies"
+    }
+  },
+  "16-18": {
+    forbidden: [],
+    adjustments: {
+      stealing: "Standard 72% break-even applies",
+      bunting: "Full RE24 analysis applies"
+    }
+  },
+  "18+": {
+    forbidden: [],
+    adjustments: {
+      stealing: "Standard 72% break-even applies",
+      bunting: "Full RE24 analysis applies"
+    }
+  },
   "13+": {
     forbidden: [],
     adjustments: {
@@ -5047,7 +5068,7 @@ function getCoachVoice(stats) {
   const ag = stats?.ageGroup || "11-12"
   const lvl = getLvl(stats?.pts || 0).n
   if (ag === "6-8" || (ag === "9-10" && lvl < 5)) return COACH_VOICES.rookie
-  if (ag === "13+" || lvl >= 15) return COACH_VOICES.scout
+  if (ag === "13+" || ag === "13-15" || ag === "16-18" || ag === "18+" || lvl >= 15) return COACH_VOICES.scout
   return COACH_VOICES.varsity
 }
 // ── Learning Paths (Pillar 3A) — structured multi-session progressions ──
@@ -7367,7 +7388,7 @@ function isConceptReady(tag, mastered, ageGroup) {
   if (!concept) return {ready: true, missing: []};
   // Age check
   const ageMin = concept.ageMin || 6;
-  const ageNum = ageGroup === "6-8" ? 7 : ageGroup === "9-10" ? 9 : ageGroup === "11-12" ? 11 : 13;
+  const ageNum = ageGroup === "6-8" ? 7 : ageGroup === "9-10" ? 9 : ageGroup === "11-12" ? 11 : ageGroup === "13-15" ? 14 : ageGroup === "16-18" ? 17 : ageGroup === "18+" ? 19 : 14;
   if (ageNum < ageMin) return {ready: false, missing: [`Age ${ageMin}+ required`]};
   // Prerequisite check
   const missing = (concept.prereqs || []).filter(p => !mastered.includes(p));
@@ -14877,7 +14898,7 @@ export default function App(){
       outcomeStartRef.current=0;
     }
     setLvlUp(null);setExplainMore(null);setExplainLoading(false);setDeepAnalysis(null);setDeepAnalysisLoading(false);setFlagOpen(false);setFlagComment("");if(speedMode){speedNextRef.current?.()}else if(survivalMode){survivalNextRef.current?.()}else if(realGameMode){realGameNextRef.current?.()}else if(seasonMode){seasonNextRef.current?.()}else if(challengePack&&challengePack.done){setScreen("play")/* shows challenge results overlay */}else if(sitMode&&sitSet){const nq=sitQ+1;if(nq<sitSet.questions.length){const nxQ=sitSet.questions[nq];const pm=POS_META[nxQ.pos];setSitTransition({qIdx:nq,pos:nxQ.pos,label:pm?.label||nxQ.pos,emoji:pm?.emoji||"⚾",color:pm?.color||"#3b82f6",total:sitSet.questions.length});setTimeout(()=>{setSitTransition(null);launchSitQuestion(sitSet,nq);setSitQ(nq)},1500)}else{setFilmStep(-1);setScreen("sitResults")}}else if(dailyMode){goHomeRef.current?.()}else if(atLimit){setScreen("home");setTimeout(()=>setPanel('limit'),100)}else{startGame(pos,aiMode)}},[pos,startGame,dailyMode,speedMode,survivalMode,realGameMode,seasonMode,challengePack,sitMode,sitSet,sitQ,atLimit,aiMode,sc,explainMore,launchSitQuestion]);
-  const finishOnboard=useCallback(()=>{setStats(p=>({...p,onboarded:true,todayDate:new Date().toDateString()}));setScreen("home");trackAnalyticsEvent("onboard_complete",null,{ageGroup:stats.ageGroup,isPro:stats.isPro})},[stats.ageGroup,stats.isPro]);
+  const finishOnboard=useCallback((autoStartPos)=>{setStats(p=>({...p,onboarded:true,tutorialDone:true,todayDate:new Date().toDateString(),favoritePosition:autoStartPos||"batter"}));trackAnalyticsEvent("onboard_complete",null,{ageGroup:stats.ageGroup,isPro:stats.isPro});if(autoStartPos){startGame(autoStartPos)}else{setScreen("home")}},[stats.ageGroup,stats.isPro,startGame]);
 
   // Auth: signup
   const handleSignup=useCallback(async(formData)=>{
@@ -15209,7 +15230,7 @@ export default function App(){
             <button onClick={()=>setShowProBenefits(false)} style={{background:"none",border:"none",color:"#9ca3af",cursor:"pointer",fontSize:14,padding:0}}>✕</button>
           </div>
           <div style={{display:"flex",flexDirection:"column",gap:3}}>
-            {["Unlimited daily plays","🤖 AI Coach scenarios","All 10 field themes","Full avatar customization","2x XP on every play","Weekly streak freeze"].map((b,i)=>
+            {["Unlimited daily plays","🤖 AI Coach challenges","All 10 field themes","Full avatar customization","2x XP on every play","Weekly streak freeze"].map((b,i)=>
               <div key={i} style={{fontSize:10,color:"#d1d5db",display:"flex",alignItems:"center",gap:5}}><span style={{color:"#22c55e",fontSize:11}}>✓</span>{b}</div>
             )}
           </div>
@@ -15260,7 +15281,7 @@ export default function App(){
         {screen==="onboard"&&<div style={{textAlign:"center",padding:"60px 20px 40px"}}>
           <div style={{fontSize:64,marginBottom:12}}>⚾</div>
           <h1 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:42,letterSpacing:2,color:"#f59e0b",lineHeight:1,marginBottom:6}}>BASEBALL<br/>STRATEGY MASTER</h1>
-          <p style={{color:"#9ca3af",fontSize:14,maxWidth:320,margin:"0 auto 24px",lineHeight:1.6}}>Think like a pro. Make real strategic decisions across {totalSc} game scenarios.</p>
+          <p style={{color:"#9ca3af",fontSize:14,maxWidth:320,margin:"0 auto 24px",lineHeight:1.6}}>Think like a pro. {totalSc} real baseball challenges across 15 positions.</p>
           <div style={{display:"flex",flexDirection:"column",gap:10,maxWidth:300,margin:"0 auto 24px"}}>
             {[{e:"🎯",t:"Choose wisely",d:"Read the situation and pick the best strategy"},{e:"💡",t:"Learn the WHY",d:"Every answer teaches real MLB strategy"},{e:"📈",t:"Level up",d:"Track your progress from Rookie to Hall of Fame"}].map((it,i)=>(
               <div key={i} style={{display:"flex",gap:10,alignItems:"center",textAlign:"left",background:"rgba(255,255,255,.02)",borderRadius:10,padding:"10px 12px"}}>
@@ -15287,7 +15308,20 @@ export default function App(){
               ))}
             </div>
           </div>
-          <button onClick={finishOnboard} style={{...btn("linear-gradient(135deg,#d97706,#f59e0b)"),...{boxShadow:"0 4px 15px rgba(245,158,11,.3)",maxWidth:300}}}>Let's Play! →</button>
+          <div style={{maxWidth:300,margin:"0 auto 20px",textAlign:"center"}}>
+            <div style={{fontSize:11,color:"#9ca3af",textTransform:"uppercase",letterSpacing:1,fontWeight:700,marginBottom:6}}>What do you want to try first?</div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6}}>
+              {[{label:"Batter",emoji:"🎯",pos:"batter"},{label:"Pitcher",emoji:"⚾",pos:"pitcher"},{label:"Fielder",emoji:"🧤",pos:"shortstop"},{label:"Manager",emoji:"📋",pos:"manager"}].map(cat=>(
+                <button key={cat.pos} onClick={()=>setStats(p=>({...p,favoritePosition:cat.pos}))}
+                  style={{background:stats.favoritePosition===cat.pos?"rgba(59,130,246,.15)":"rgba(255,255,255,.02)",border:`1.5px solid ${stats.favoritePosition===cat.pos?"#3b82f6":"rgba(255,255,255,.06)"}`,borderRadius:10,padding:"10px 8px",cursor:"pointer",color:stats.favoritePosition===cat.pos?"#93c5fd":"#9ca3af",textAlign:"center",transition:"all .2s"}}>
+                  <div style={{fontSize:20}}>{cat.emoji}</div>
+                  <div style={{fontSize:12,fontWeight:700}}>{cat.label}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+          <button onClick={()=>finishOnboard(stats.favoritePosition||"batter")} style={{...btn("linear-gradient(135deg,#d97706,#f59e0b)"),...{boxShadow:"0 4px 15px rgba(245,158,11,.3)",maxWidth:300}}}>Let's Play! →</button>
+          <div style={{fontSize:11,color:"#6b7280",marginTop:8,textAlign:"center"}}>Green = great play, Yellow = okay, Red = needs work</div>
           {!authUser&&<button onClick={()=>setScreen("login")} style={{...ghost,fontSize:11,display:"block",margin:"8px auto",color:"#9ca3af"}}>Already have an account? Log In</button>}
         </div>}
 
@@ -15322,56 +15356,14 @@ export default function App(){
               <button onClick={()=>setSessionRecap(null)} style={{...btn("linear-gradient(135deg,#2563eb,#3b82f6)"),...{fontSize:13,padding:"10px 28px"}}}>{stats.gp>0?"Continue":"Let's Play!"}→</button>
             </div>
           </div>}
+          {/* Tutorial overlay removed — onboard screen now handles age + position interest + auto-starts first game */}
           {stats.gp===0&&!stats.tutorialDone&&<div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,.85)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
             <div style={{background:"#1e293b",borderRadius:20,padding:"32px 24px",maxWidth:340,width:"100%",textAlign:"center",border:"2px solid rgba(245,158,11,.3)"}}>
-              {/* Phase 3.5: Step -1: Age Selection */}
-              {tutStep===-1&&<div>
-                <div style={{fontSize:40,marginBottom:8}}>🎂</div>
-                <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:22,color:"#f59e0b",letterSpacing:1,marginBottom:8}}>How Old Are You?</div>
-                <p style={{fontSize:13,color:"#d1d5db",lineHeight:1.6,marginBottom:16}}>We'll adjust the game to match your level!</p>
-                <div style={{display:"flex",flexDirection:"column",gap:6}}>
-                  {AGE_GROUPS.map(ag=>(
-                    <button key={ag.id} onClick={()=>{setStats(p=>({...p,ageGroup:ag.id}));setTutStep(0)}} style={{background:stats.ageGroup===ag.id?"rgba(245,158,11,.2)":"rgba(255,255,255,.04)",border:"1px solid "+(stats.ageGroup===ag.id?"rgba(245,158,11,.3)":"rgba(255,255,255,.1)"),borderRadius:8,padding:"8px 12px",color:"#d1d5db",fontSize:12,fontWeight:600,cursor:"pointer",transition:"all .2s"}}>
-                      {ag.label}
-                    </button>
-                  ))}
-                </div>
-              </div>}
-              {/* Steps 0-2: Original Tutorial */}
-              {tutStep>=0&&tutStep<=2&&[
-                {e:"👆",t:"Pick a Position",d:"Choose any baseball position to start. Each one teaches different strategy skills!"},
-                {e:"🤔",t:"Read & Choose",d:"You'll see a real game situation with 4 options. Pick the best baseball play!"},
-                {e:"🟢",t:"Learn from Every Play",d:"Green = great choice, Yellow = okay, Red = needs work. Every answer teaches you something!"}
-              ].map((s,i)=>i===tutStep&&<div key={i}>
-                <div style={{fontSize:48,marginBottom:8}}>{s.e}</div>
-                <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:22,color:"#f59e0b",letterSpacing:1,marginBottom:8}}>{s.t}</div>
-                <p style={{fontSize:13,color:"#d1d5db",lineHeight:1.6,marginBottom:20}}>{s.d}</p>
-              </div>)}
-              {/* Phase 3.5: Step 3: Position Interest */}
-              {tutStep===3&&<div>
-                <div style={{fontSize:40,marginBottom:8}}>⚾</div>
-                <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:22,color:"#f59e0b",letterSpacing:1,marginBottom:8}}>What Interests You?</div>
-                <p style={{fontSize:13,color:"#d1d5db",lineHeight:1.6,marginBottom:14}}>Start with your favorite role!</p>
-                <div style={{display:"flex",flexDirection:"column",gap:6}}>
-                  {[
-                    {label:"At the Plate",emoji:"🎯",pos:"batter"},
-                    {label:"On the Bases",emoji:"💨",pos:"baserunner"},
-                    {label:"In the Field",emoji:"🧤",pos:"pitcher"},
-                    {label:"In the Dugout",emoji:"📋",pos:"manager"}
-                  ].map(cat=>(
-                    <button key={cat.pos} onClick={()=>{setStats(p=>({...p,favoritePosition:cat.pos}));setTutStep(0);setStats(p=>({...p,tutorialDone:true}))}} style={{background:"rgba(59,130,246,.1)",border:"1px solid rgba(59,130,246,.2)",borderRadius:8,padding:"10px 12px",color:"#93c5fd",fontSize:12,fontWeight:600,cursor:"pointer",transition:"all .2s",textAlign:"left"}}>
-                      <span style={{marginRight:8}}>{cat.emoji}</span>{cat.label}
-                    </button>
-                  ))}
-                </div>
-              </div>}
-              <div style={{display:"flex",gap:6,justifyContent:"center",marginBottom:16,marginTop:tutStep===-1||tutStep===3?0:16}}>
-                {tutStep===-1?<div style={{width:8,height:8,borderRadius:4,background:"#f59e0b"}}/>:[...Array(4)].map((_,i)=><div key={i} style={{width:8,height:8,borderRadius:4,background:i===tutStep?"#f59e0b":"rgba(255,255,255,.15)"}}/>)}
-              </div>
-              <div style={{display:"flex",gap:8,justifyContent:"center"}}>
-                <button onClick={()=>{setTutStep(0);setStats(p=>({...p,tutorialDone:true}))}} style={{...ghost,fontSize:11}}>Skip</button>
-                <button onClick={()=>{if(tutStep===-1){setTutStep(0)}else if(tutStep<3){setTutStep(tutStep+1)}else{setStats(p=>({...p,tutorialDone:true}))}}} style={{...btn("linear-gradient(135deg,#d97706,#f59e0b)"),...{fontSize:13,padding:"10px 28px"}}}>{tutStep<3?"Next":"Let's Play!"}</button>
-              </div>
+              <div style={{fontSize:48,marginBottom:8}}>⚾</div>
+              <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:22,color:"#f59e0b",letterSpacing:1,marginBottom:8}}>Welcome!</div>
+              <p style={{fontSize:13,color:"#d1d5db",lineHeight:1.6,marginBottom:16}}>Green = great play, Yellow = okay, Red = needs work. Every answer teaches you real baseball strategy!</p>
+              <button onClick={()=>setStats(p=>({...p,tutorialDone:true}))} style={{...btn("linear-gradient(135deg,#d97706,#f59e0b)"),...{fontSize:13,padding:"10px 28px"}}}>Got it!</button>
+            </div>
             </div>
           </div>}
           {masteryPos&&<div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,.85)",zIndex:9998,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
@@ -15399,7 +15391,7 @@ export default function App(){
           <div style={{textAlign:"center",padding:"20px 0 14px"}}>
             <div style={{fontSize:48,marginBottom:4}}>⚾</div>
             <h1 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:32,letterSpacing:2,color:"#f59e0b",lineHeight:1,marginBottom:4}}>STRATEGY MASTER</h1>
-            <p style={{color:"#9ca3af",fontSize:12,maxWidth:340,margin:"0 auto"}}>{totalSc} scenarios · {Object.keys(SCENARIOS).length} positions · Real MLB strategy</p>
+            <p style={{color:"#9ca3af",fontSize:12,maxWidth:340,margin:"0 auto"}}>{totalSc} challenges · {Object.keys(SCENARIOS).length} positions · Real baseball strategy</p>
           </div>
 
           {/* Stats card */}
@@ -15890,7 +15882,7 @@ export default function App(){
                 </div>
               </div>
               <div style={{textAlign:"left",background:"rgba(255,255,255,.02)",border:"1px solid rgba(255,255,255,.04)",borderRadius:10,padding:"10px 12px",marginBottom:10}}>
-                {[["Unlimited plays every day","No daily limit"],["AI Coach personalized scenarios","Targets your weak spots"],["All 10 field themes","Classic, Night, Dome, and more"],["Full avatar customization","6 jerseys, 6 caps, 3 bats"],["Streak freezes (1/week)","Never lose your streak"],["2x XP on every play","Level up twice as fast"],["All-Star badge","Show off your commitment"]].map(([t,d],i)=>(
+                {[["Unlimited plays every day","No daily limit"],["AI Coach personalized challenges","Targets your weak spots"],["All 10 field themes","Classic, Night, Dome, and more"],["Full avatar customization","6 jerseys, 6 caps, 3 bats"],["Streak freezes (1/week)","Never lose your streak"],["2x XP on every play","Level up twice as fast"],["All-Star badge","Show off your commitment"]].map(([t,d],i)=>(
                   <div key={i} style={{display:"flex",alignItems:"center",gap:8,padding:"4px 0"}}>
                     <span style={{color:"#22c55e",fontSize:12,flexShrink:0}}>✓</span>
                     <span style={{fontSize:12,color:"#d1d5db",fontWeight:600}}>{t}</span>
@@ -16110,7 +16102,7 @@ export default function App(){
                       <div style={{fontSize:group.positions.length>=3?22:30,marginBottom:1}}>{m.emoji}</div>
                       <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:group.positions.length>=3?12:17,letterSpacing:1}}>{m.label.toUpperCase()}</div>
                       <div style={{fontSize:group.positions.length>=3?8:10,color:"rgba(255,255,255,.55)",marginTop:1}}>{m.desc}</div>
-                      <div style={{fontSize:8,color:"rgba(255,255,255,.35)",marginTop:2}}>{SCENARIOS[p]?.length||0} scenarios</div>
+                      <div style={{fontSize:8,color:"rgba(255,255,255,.35)",marginTop:2}}>{SCENARIOS[p]?.length||0} challenges</div>
                       {ps&&ps.p>0&&<div style={{fontSize:8,color:"rgba(255,255,255,.6)",marginTop:1}}>{ps.p>=5?`${a}% · `:""}{ps.p} played</div>}
                       {(()=>{const seen=(hist[p]||[]);const total=(SCENARIOS[p]||[]).length;if(seen.length>=total&&total>0)return<div style={{fontSize:7,color:"#22c55e",fontWeight:700,marginTop:1}}>All {total} mastered{!stats.isPro?" · Go Pro for AI":""}</div>;return null})()}
                     </div>
