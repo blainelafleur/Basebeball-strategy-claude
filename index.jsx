@@ -13315,7 +13315,7 @@ function PromoCodeInput({setStats,setToast,snd,setPanel,email}){
         if(d.valid){
           const expiry=d.type==="30day"?Date.now()+30*86400000:null;
           setStats(p=>({...p,isPro:true,proPlan:"promo-"+d.type,proExpiry:expiry,promoCode:code,promoActivatedDate:Date.now(),funnel:[...(p.funnel||[]).slice(-99),{event:"promo_redeemed",ts:Date.now()}]}));
-          setErr("!"+(d.type==="lifetime"?"Lifetime Pro activated!":"30-day Pro activated!"));
+          setErr("!"+(d.type==="lifetime"?"Lifetime All-Star Pass activated!":"30-day All-Star Pass activated!"));
           snd.play('ach');
           setTimeout(()=>{setToast({e:"🎟️",n:"Promo Code Activated!",d:d.type==="lifetime"?"Lifetime All-Star Pass unlocked!":"30-day All-Star Pass unlocked!"});setTimeout(()=>setToast(null),4000)},300);
           setTimeout(()=>setPanel(null),2000);
@@ -13331,7 +13331,7 @@ function PromoCodeInput({setStats,setToast,snd,setPanel,email}){
   return(<div style={{marginTop:8,background:"rgba(255,255,255,.02)",border:"1px solid rgba(255,255,255,.06)",borderRadius:10,padding:"10px 12px"}}>
     <div style={{fontSize:11,color:"#9ca3af",marginBottom:6,fontWeight:600}}>Enter Promo Code</div>
     <div style={{display:"flex",gap:6,alignItems:"center"}}>
-      <input type="text" placeholder="BSM-XXXXXX" value={val} onChange={e=>setVal(e.target.value.toUpperCase())} maxLength={10}
+      <input type="text" placeholder="CODE" value={val} onChange={e=>setVal(e.target.value.toUpperCase())} maxLength={20}
         style={{flex:1,background:"rgba(255,255,255,.04)",border:"1.5px solid rgba(255,255,255,.1)",borderRadius:8,padding:"8px 10px",color:"white",fontSize:13,fontFamily:"monospace",letterSpacing:1,outline:"none",textTransform:"uppercase"}}
         onKeyDown={e=>{if(e.key==="Enter"&&val.trim()&&!loading)redeem()}}/>
       <button disabled={!val.trim()||loading} onClick={redeem}
@@ -14713,9 +14713,9 @@ export default function App(){
         setStats(p=>({...p,placementDiff:{...(p.placementDiff||{}),[placementData.pos]:placedDiff}}));
         setPlacementMode(false);setPlacementData(null);
         const label=placedDiff===1?"Rookie":placedDiff===2?"Pro":"All-Star";
-        setTimeout(()=>{setToast({e:"📊",n:"Placement: "+label+"!",d:newCorrect+"/"+placementData.scenarios.length+" correct — starting at "+label+" difficulty"});setTimeout(()=>setToast(null),4000)},400);
-        // Start real game at placed difficulty
-        setTimeout(()=>{startGame(placementData.pos)},800);
+        setTimeout(()=>{setToast({e:"📊",n:"Placement: "+label+"!",d:newCorrect+"/"+placementData.scenarios.length+" correct — starting at "+label+" difficulty"});setTimeout(()=>setToast(null),5000)},300);
+        // Start real game at placed difficulty (delay to let toast be visible)
+        setTimeout(()=>{startGame(placementData.pos)},2000);
       }else{
         // Next placement question — brief flash then advance
         setTimeout(()=>{
@@ -15496,7 +15496,7 @@ export default function App(){
 
           {/* Stats card */}
           {stats.gp>0&&<div style={{...card,marginBottom:12}}>
-            {stats.gp>=5&&(()=>{const iq=computeBaseballIQ(stats);const iqC=getIQColor(iq);const iqLabel=iq>=140?"Elite":iq>=120?"Advanced":iq>=100?"Solid":iq>=80?"Developing":"Rookie";const iqPct=Math.min(100,Math.round(((iq-50)/110)*100));const topPos=Object.entries(stats.ps||{}).filter(([,v])=>v.p>=3).sort((a,b)=>(b[1].c/b[1].p)-(a[1].c/a[1].p))[0];return(
+            {(stats.isPro||stats.gp>=5)&&(()=>{const iq=computeBaseballIQ(stats);const iqC=getIQColor(iq);const iqLabel=iq>=140?"Elite":iq>=120?"Advanced":iq>=100?"Solid":iq>=80?"Developing":"Rookie";const iqPct=Math.min(100,Math.round(((iq-50)/110)*100));const topPos=Object.entries(stats.ps||{}).filter(([,v])=>v.p>=3).sort((a,b)=>(b[1].c/b[1].p)-(a[1].c/a[1].p))[0];return(
               <div style={{textAlign:"center",marginBottom:10,padding:"14px 16px",background:"linear-gradient(135deg,rgba(0,0,0,.4),rgba(0,0,0,.25))",border:`1.5px solid ${iqC}30`,borderRadius:16,boxShadow:`0 4px 20px ${iqC}15`}}>
                 <div style={{fontSize:9,color:"#9ca3af",textTransform:"uppercase",letterSpacing:2,fontWeight:700,marginBottom:4}}>Baseball IQ</div>
                 <div style={{fontSize:40,fontWeight:900,color:iqC,letterSpacing:2,textShadow:`0 0 20px ${iqC}40`}}>{iq}</div>
@@ -15878,7 +15878,7 @@ export default function App(){
 
             {/* 70B Model Toggle — Pro Lab */}
             {stats.isPro&&<div style={{marginTop:12}}>
-              <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:14,color:"#3b82f6",letterSpacing:1,marginBottom:6}}>PRO LAB</div>
+              <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:14,color:"#3b82f6",letterSpacing:1,marginBottom:6}}>ALL-STAR LAB</div>
               <div style={{background:"rgba(59,130,246,.06)",border:"1px solid rgba(59,130,246,.12)",borderRadius:10,padding:10}}>
                 <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
                   <div>
@@ -16059,7 +16059,7 @@ export default function App(){
           })()}
 
           {/* Sprint D4: Scenario of the Week */}
-          {stats.gp>=5&&(()=>{const weekly=getWeeklyScenario();const wm=POS_META[weekly._pos];const now=new Date();const weekKey=`${now.getFullYear()}-W${Math.ceil(((now-new Date(now.getFullYear(),0,1))/86400000+new Date(now.getFullYear(),0,1).getDay()+1)/7)}`;const done=(stats.weeklyDone===weekKey);return(
+          {(stats.isPro||stats.gp>=5)&&(()=>{const weekly=getWeeklyScenario();const wm=POS_META[weekly._pos];const now=new Date();const weekKey=`${now.getFullYear()}-W${Math.ceil(((now-new Date(now.getFullYear(),0,1))/86400000+new Date(now.getFullYear(),0,1).getDay()+1)/7)}`;const done=(stats.weeklyDone===weekKey);return(
             <div style={{marginBottom:12,background:done?"rgba(59,130,246,.04)":"linear-gradient(135deg,rgba(59,130,246,.08),rgba(37,99,235,.04))",border:`1.5px solid ${done?"rgba(59,130,246,.15)":"rgba(59,130,246,.25)"}`,borderRadius:14,padding:14,position:"relative",overflow:"hidden"}}
               onClick={done?undefined:()=>{setPos(weekly._pos);setSc(weekly);setChoice(null);setOd(null);setRi(-1);setFo(null);setShowC(false);setShowExp(true);setScreen("play");weekly.options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80)})}}>
               <div style={{display:"flex",alignItems:"center",gap:12,position:"relative"}}>
@@ -16096,7 +16096,7 @@ export default function App(){
                   </div>
                   <div style={{fontSize:11,color:done?"#9ca3af":"#d1d5db",lineHeight:1.3}}>
                     {done?<>Completed!{sitGrade&&` Grade: ${sitGrade}`} Come back tomorrow!</>
-                      :<>{dailySit.emoji} {dailySit.title} · ⭐⭐ Pro</>}
+                      :<>{dailySit.emoji} {dailySit.title} · ⭐⭐ Varsity</>}
                   </div>
                 </div>
                 {!done&&<div style={{color:"#06b6d4",fontSize:20,flexShrink:0,cursor:"pointer"}}>▶</div>}
@@ -16131,8 +16131,8 @@ export default function App(){
             </div>
           );})()}
 
-          {/* Game Modes */}
-          {stats.gp>=3&&<div style={{display:"flex",gap:8,marginBottom:12,flexWrap:"wrap"}}>
+          {/* Game Modes — always visible for All-Star users, gp>=3 for free */}
+          {(stats.isPro||stats.gp>=3)&&<div style={{display:"flex",gap:8,marginBottom:12,flexWrap:"wrap"}}>
             <div onClick={()=>setSpeedFilter([])} style={{flex:"1 1 45%",background:"linear-gradient(135deg,rgba(239,68,68,.08),rgba(220,38,38,.04))",border:"1px solid rgba(239,68,68,.2)",borderRadius:14,padding:"16px 12px",textAlign:"center",cursor:"pointer",minHeight:48}}>
               <div style={{fontSize:22,marginBottom:3}}>⚡</div>
               <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:14,color:"#ef4444",letterSpacing:1}}>SPEED ROUND</div>
@@ -16164,7 +16164,7 @@ export default function App(){
           </div>}
 
           {/* Special Modes — Famous Plays, Rule IQ, Count IQ */}
-          {stats.gp>=5&&<div style={{display:"flex",gap:8,marginBottom:12,flexWrap:"wrap"}}>
+          {(stats.isPro||stats.gp>=5)&&<div style={{display:"flex",gap:8,marginBottom:12,flexWrap:"wrap"}}>
             {[{key:"famous",emoji:"🏟️",label:"FAMOUS",color:"#eab308",bg:"linear-gradient(135deg,rgba(234,179,8,.06),rgba(202,138,4,.03))",border:"rgba(234,179,8,.2)",unit:"plays"},
               {key:"rules",emoji:"📖",label:"RULES",color:"#f472b6",bg:"linear-gradient(135deg,rgba(244,114,182,.06),rgba(219,39,119,.03))",border:"rgba(244,114,182,.2)",unit:"rules"},
               {key:"counts",emoji:"🔢",label:"COUNTS",color:"#14b8a6",bg:"linear-gradient(135deg,rgba(20,184,166,.06),rgba(13,148,136,.03))",border:"rgba(20,184,166,.2)",unit:"counts"}
@@ -16178,7 +16178,7 @@ export default function App(){
           </div>}
 
           {/* Sprint 3.5: "What should I practice?" recommendations */}
-          {stats.gp>=10&&(()=>{
+          {(stats.isPro||stats.gp>=10)&&(()=>{
             const recs=getPracticeRecommendations(stats)
             if(recs.length===0)return null
             const topRec=recs[0]
@@ -16239,8 +16239,8 @@ export default function App(){
             </div>
           ))}
 
-          {/* AI Challenge */}
-          {stats.gp>=3&&<div style={{marginTop:12,background:"linear-gradient(135deg,rgba(168,85,247,.06),rgba(59,130,246,.06))",border:"1px solid rgba(168,85,247,.15)",borderRadius:14,padding:14,textAlign:"center",position:"relative"}}>
+          {/* AI Challenge — always visible for All-Star users */}
+          {(stats.isPro||stats.gp>=3)&&<div style={{marginTop:12,background:"linear-gradient(135deg,rgba(168,85,247,.06),rgba(59,130,246,.06))",border:"1px solid rgba(168,85,247,.15)",borderRadius:14,padding:14,textAlign:"center",position:"relative"}}>
             {!stats.isPro&&<div style={{position:"absolute",top:8,right:8,background:"linear-gradient(135deg,#d97706,#f59e0b)",borderRadius:6,padding:"2px 8px",fontSize:8,fontWeight:800,color:"white",letterSpacing:.5}}>ALL-STAR PASS</div>}
             <div style={{fontSize:20,marginBottom:3}}>🤖</div>
             <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:15,color:"#a855f7",letterSpacing:1,marginBottom:2}}>AI COACH'S CHALLENGE</div>
