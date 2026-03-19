@@ -16624,15 +16624,16 @@ export default function App(){
             {sc.options.map((opt,i)=>{
               const vis=ri>=i;const sel=choice===i;
               let bg="rgba(255,255,255,.02)",bd="rgba(255,255,255,.05)";
-              if(sel&&od){if(od.cat==="success"){bg="rgba(34,197,94,.08)";bd="#22c55e"}else if(od.cat==="warning"){bg="rgba(245,158,11,.08)";bd="#f59e0b"}else{bg="rgba(239,68,68,.08)";bd="#ef4444"}}
+              if(sel&&placementMode){if(i===sc.best){bg="rgba(34,197,94,.08)";bd="#22c55e"}else{bg="rgba(239,68,68,.08)";bd="#ef4444"}}
+              else if(sel&&od){if(od.cat==="success"){bg="rgba(34,197,94,.08)";bd="#22c55e"}else if(od.cat==="warning"){bg="rgba(245,158,11,.08)";bd="#f59e0b"}else{bg="rgba(239,68,68,.08)";bd="#ef4444"}}
               if(choice!==null&&i===sc.best&&!sel){bg="rgba(34,197,94,.04)";bd="rgba(34,197,94,.3)"}
               return(
                 <button key={i} aria-label={`Option ${i+1}: ${opt}`} onClick={()=>{if(stats.gp===0&&!stats.firstGameGuide)setStats(p=>({...p,firstGameGuide:true}));snd.play('tap');handleChoice(i)}} disabled={choice!==null}
                   style={{background:bg,border:`1.5px solid ${bd}`,borderRadius:12,padding:"14px 12px",cursor:choice!==null?"default":"pointer",transition:"all .2s",opacity:vis?1:0,transform:vis?"translateX(0)":"translateX(-10px)",textAlign:"left",width:"100%",color:"white",fontSize:fs(14),lineHeight:fontScale>1?1.55:1.4,display:"flex",alignItems:"flex-start",gap:8,minHeight:fs(48)}}>
                   <span style={{width:24,height:24,borderRadius:7,flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",
-                    background:sel?(od?.cat==="success"?"#22c55e":od?.cat==="warning"?"#f59e0b":"#ef4444"):choice!==null&&i===sc.best?"#22c55e":"rgba(255,255,255,.04)",
-                    color:sel||( choice!==null&&i===sc.best)?"white":"#9ca3af",fontSize:fs(10),fontWeight:800,transition:"all .25s"}}>
-                    {sel?(od?.isOpt?"✓":"✗"):choice!==null&&i===sc.best?"✓":i+1}
+                    background:sel?(placementMode?(i===sc.best?"#22c55e":"#ef4444"):(od?.cat==="success"?"#22c55e":od?.cat==="warning"?"#f59e0b":"#ef4444")):choice!==null&&i===sc.best?"#22c55e":"rgba(255,255,255,.04)",
+                    color:sel||(choice!==null&&i===sc.best)?"white":"#9ca3af",fontSize:fs(10),fontWeight:800,transition:"all .25s"}}>
+                    {sel?(placementMode?(i===sc.best?"✓":"✗"):(od?.isOpt?"✓":"✗")):choice!==null&&i===sc.best?"✓":i+1}
                   </span>
                   <span style={{flex:1}}>{opt}{sel&&od?<span style={{fontSize:fs(11),fontWeight:700,marginLeft:6,color:od.cat==="success"?"#22c55e":od.cat==="warning"?"#f59e0b":"#ef4444"}}>{od.isOpt?" ✓ Best Play":od.cat==="warning"?" ~ Okay":""}</span>:choice!==null&&i===sc.best&&!sel?<span style={{fontSize:fs(11),fontWeight:700,marginLeft:6,color:"#22c55e"}}> ← Best</span>:null}</span>
                 </button>
