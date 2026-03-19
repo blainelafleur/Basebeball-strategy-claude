@@ -394,3 +394,278 @@ The fine-tuned 70B model is sitting on HuggingFace doing nothing. If wired in, i
 ---
 
 *This document grows with every build session. Ideas marked with [SHIPPED] when implemented.*
+
+---
+
+## GAME FILM MODE INSIGHTS
+
+**Date:** 2026-03-19
+**Context:** Deep analysis of the Field component (lines 12630-13316), all 22 animation types, scenario-to-anim mapping, outcome screen layout, and educational design considerations for a "Game Film Mode" replay feature on the outcome screen.
+
+---
+
+### 1. ANIMATION TYPE AUDIT: What We Have and How Good It Is
+
+The Field component renders 22 distinct animation types. They break into three quality tiers for replay purposes:
+
+**TIER 1 -- "REPLAY-READY" (tell a clear visual story, multi-stage, already educational)**
+
+| Anim | Count | What It Shows | Replay Quality |
+|------|-------|---------------|----------------|
+| `steal` (success) | ~35+ | Dust burst at 1B, runner sprints to 2B, catcher throw arrives late, slide dust, SAFE text | Excellent -- 4-stage sequence with timing tension (runner vs throw). A kid can SEE why stealing works. |
+| `score` (success) | ~25+ | Dust at 3B, runner sprints home, slide dust, SAFE text | Good -- shows the race to home plate. Missing: the throw that was too late. |
+| `doubleplay` (success) | ~15+ | Contact flash, ball to 2B, catch flash, relay to 1B, catch flash, DOUBLE PLAY text | Excellent -- the signature two-part throw is perfectly visualized. Best animation for replay. |
+| `hit` (success) | ~75+ | Contact flash, ball trail + ball arc to outfield, dust at takeoff, runner to 1B, BASE HIT text | Good -- full sequence of contact-flight-baserunning. |
+| `relay` | 0 in scenarios | OF to cutoff to home, three-stage throw with catch flashes | Excellent animation but ZERO scenarios use it. This is the "throw to the cutoff man" play that should be the most-used animation for outfield/infield scenarios. Major gap. |
+| `squeeze` | 0 in scenarios | Runner from 3B + bunt dribble + outcome text | Good two-action animation, but unused in scenario data. |
+| `groundout` (success) | ~50+ | Contact flash, ball bounces to fielder, dust at bounce, scoop flash, throw to 1B, catch flash, OUT text | Excellent -- 5-stage sequence showing the full defensive play. |
+
+**TIER 2 -- "WATCHABLE" (show the key action but lack multi-stage storytelling)**
+
+| Anim | Count | What It Shows | Replay Quality |
+|------|-------|---------------|----------------|
+| `strike`/`strikeout` (success) | ~65+/~15+ | Pitcher release flash, ball spin trail, ball to catcher, glove pop, POP text, STRIKE/STRUCK OUT text | Good -- shows pitch flight. Missing: pitch movement (curve, slider break). All pitches travel in a straight line. |
+| `flyout` (success) | ~10+ | Contact flash, ball trail, ball arcs to OF, catch flash, CAUGHT text | Decent -- similar to `hit` but less exciting. The OF catch is the key moment. |
+| `catch` (success) | ~60+ | Ball trail, ball drops to fielder, glove flash, GOT IT text | Simple -- just a ball arriving at a glove. No context about who threw it or why. |
+| `bunt` (success) | ~30+ | Soft contact flash, ball dribbles forward, runner breaks for 1B, BUNT text | Good -- two-action (ball + runner) shows the sacrifice concept. |
+| `throwHome` | ~40+ | Dashed throw trail from 2B to home, ball arrives, catch flash | Decent -- shows the throw path. Missing: the runner it is trying to beat. No narrative tension. |
+| `advance` (success) | ~25+ | Dust at 1B, runner sprints to 2B, ADVANCING text | Simple -- just a runner moving. No context for WHY they advance. |
+| `walk` (success) | ~8+ | Runner trots to 1B, BALL FOUR text | Minimal -- a slow jog. Not visually interesting but conceptually important. |
+| `pickoff` | 0 in scenarios | Pitcher throws to 1B, dive-back dust, outcome text | Good animation, but unused. |
+| `wildPitch` | 0 in scenarios | Ball past catcher, runner advances from 1B to 2B | Decent two-stage but unused. |
+| `hitByPitch` | 0 in scenarios | Ball hits batter, impact flash, walk to 1B | Good animation but unused. |
+
+**TIER 3 -- "ABSTRACT" (visual effect or symbol, not a physical play)**
+
+| Anim | Count | What It Shows | Replay Quality |
+|------|-------|---------------|----------------|
+| `safe` (success) | ~15+ | Slide dust, expanding green ring, SAFE text | Pure celebration effect. No ball, no throw, no context. |
+| `freeze` (success) | ~30+ | Warning pulse ring, warning emoji, FREEZE text | Abstract warning. There is nothing physical to replay -- this represents a decision NOT to act. |
+| `tag` | 0 in scenarios | Slide dust + tag flash at a fixed point | Minimal -- just a contact moment. |
+| `popup` | 0 in scenarios | Contact flash, ball pops high then descends, catch flash, INFIELD FLY text | The ball path is physically interesting (high pop then return) but unused. |
+
+**FAILURE ANIMATIONS (7 types):**
+The code has explicit failure versions for: `strike/strikeout`, `steal`, `hit`, `groundout`, `flyout`, `bunt`, `score`. These show what goes WRONG (e.g., failed steal = runner gets tagged out, ball beats him). These are potentially MORE educational than success animations because they show consequences. Currently they only play when `outcome !== "success"` AND the anim prop is set. But due to the gating bug described below, they can never actually render in the current code.
+
+---
+
+### 2. CRITICAL FINDING: Animation Gating Bug
+
+Line 16660: `anim={od?.isOpt?sc.anim:null}`
+
+This means the Field component ONLY receives an animation type when the player chose the optimal answer (`od.isOpt === true`). If the player chose poorly, `anim` is `null` and no animation plays at all. This has two consequences:
+
+1. **The 7 failure animations (steal-fail, hit-fail, etc.) can never render.** They require `outcome !== "success"` AND `anim` to be set, but the code nulls out `anim` for non-optimal choices.
+2. **Game Film Mode's core purpose is to show the correct play when the player got it wrong.** The current gating logic is the exact opposite of what Game Film Mode needs. The replay must pass `sc.anim` to Field regardless of `od.isOpt`, with `outcome="success"` to trigger the success animation path.
+
+---
+
+### 3. SCENARIO-TO-ANIMATION COVERAGE
+
+**Total handcrafted scenarios:** 644
+**Every scenario has an `anim` field** -- no gaps in coverage.
+
+**UNUSED ANIMATION TYPES (defined in code but zero scenarios reference them):**
+- `relay` -- the multi-throw OF-to-cutoff-to-home play
+- `pickoff` -- pitcher throws to base
+- `squeeze` -- suicide/safety squeeze
+- `wildPitch` -- ball gets past catcher
+- `hitByPitch` -- batter gets plunked
+- `tag` -- fielder applies tag
+- `popup` -- infield fly
+
+This is a significant gap. These 7 animations were added in "Sprint 5" but no scenarios were updated to reference them. The `relay` animation in particular is perfect for outfield/infield cutoff scenarios, which currently use generic `throwHome` or `catch` instead.
+
+---
+
+### 4. WHAT MAKES REAL BASEBALL REPLAYS EFFECTIVE (TV Broadcast Analysis)
+
+When a broadcast shows a replay, it uses several techniques the current SVG system could approximate:
+
+**Already possible with SVG:**
+- **Slow motion:** Simply double/triple the SMIL `dur` values. A 0.5s throw becomes 1.5s. The spline easing curves would naturally look better at slow speed.
+- **Trajectory lines:** Show the ball's full path as a dashed/dotted line before or during the animation. The `throwHome` animation already does this (line 13098: dashed trail from 2B to home). Extend to all ball-flight animations.
+- **Circle highlights:** Draw a pulsing circle around the key player/base before the action begins. The `ring` prop on `Guy` already does this with a golden ring animation.
+- **Text annotations:** "Watch the shortstop" or "See how the throw beats the runner" as timed text overlays during the replay. SVG `<text>` with SMIL timing.
+- **Arrow overlays:** SVG `<path>` arrows showing ball direction or runner path, rendered as a preview before the animation starts.
+
+**Harder but possible:**
+- **Camera zoom:** Scale up a portion of the SVG viewport (change `viewBox` to zoom into the action area). Would require a container div with overflow:hidden and animated transform.
+- **Ghost trail:** Show the runner's path as a translucent trail after they move. Some animations already do this (ball ghost trails).
+- **Split-screen comparison:** Show "what you chose" (failure animation) next to "correct play" (success animation). Would require rendering two Field components side by side. Expensive on mobile.
+
+**Not feasible in current SVG approach:**
+- Multiple camera angles (would need 3D or pre-rendered alternatives)
+- True slow-motion with frame interpolation (SMIL is inherently smooth)
+
+---
+
+### 5. EDUCATIONAL DESIGN: Making Replay Teach, Not Just Entertain
+
+The core question: a kid gets the answer wrong, taps "Watch the Play," and sees the correct play animated. What makes this a LEARNING moment?
+
+**Principle 1: Show BEFORE and AFTER states.**
+Before the animation starts, render the game situation (runners, fielder positions) as a static "freeze frame" with labels. After the animation, show the result state (runner safe at 2B, ball in glove at home). The contrast between states IS the lesson.
+
+**Principle 2: Annotate the WHY, not just the WHAT.**
+A ball flying from shortstop to first base is the WHAT. "The shortstop chose 1B because the force play is active" is the WHY. Timed text annotations during the replay ("Force at 1B!" appearing as the throw starts) bridge the gap. This directly uses the scenario's `explanation` text.
+
+**Principle 3: Highlight the decision point.**
+In every scenario, there is a moment of decision. Before the animation, briefly pulse/highlight the player who makes the choice (e.g., the outfielder who has to decide: throw to cutoff or throw home). This says "THIS is the person, THIS is the moment."
+
+**Principle 4: Optional "wrong play" comparison.**
+For the highest-learning-value scenarios (where the player picked the worst option, rate <= 25), consider an optional "See what happens if..." toggle that shows the failure animation. NOT default -- opt-in. This is the "What NOT to do" half of the lesson. The failure animations already exist in the code (7 types) but currently cannot render (see Finding #2).
+
+**Principle 5: Match the coach line to the visual.**
+The coach message on the outcome screen should reference what the player is about to see: "Watch how the double play turns -- the shortstop feeds the second baseman, who pivots and fires to first." This primes the player to look for specific elements.
+
+---
+
+### 6. OUTCOME SCREEN LAYOUT ANALYSIS
+
+The outcome screen (lines 16712-16902) currently stacks:
+
+1. Back button
+2. Result emoji + header ("PERFECT STRATEGY!" etc.) + point badges
+3. Coach line (for ages 11+)
+4. "Your Choice" card with expandable explanation (has Why? / Show Data buttons)
+5. "Best Strategy" card (only if player was wrong)
+6. Try Again button (only if wrong, has plays remaining)
+7. Key Concept card (delayed, with mastery progress)
+8. Historical Note (famous plays only)
+9. Explain More button (Pro only)
+10. Brain Insights (ages 11+)
+11. 70B Deep Analysis (if enabled)
+12. AI flag button (AI scenarios only)
+13. Next Challenge button
+14. Pick Position / Challenge a Friend links
+15. Pro upsell (every 5th game, non-Pro)
+
+This is DENSE. On mobile, this is 4-6 scroll-lengths of content. Adding a full 400x310 SVG field replay would add significant height.
+
+**Recommended placement for Game Film Mode:**
+
+**Option A (Recommended): Collapsible replay between items 2 and 3.**
+After the result header and before the explanation cards, insert a compact "Watch the Play" button. Tapping it expands an inline Field replay. This puts the visual BEFORE the text explanation, establishing a see-then-read learning flow. The field renders at ~60-70% size to save vertical space. A "Replay" button re-triggers the animation.
+
+**Option B: Floating overlay.**
+A "Watch Play" button that opens the Field as a modal/overlay on top of the outcome screen. Avoids layout disruption but feels disconnected from the learning flow. Harder to reference while reading the explanation below.
+
+**Option C: Replace the result emoji.**
+Instead of the static emoji (line 16716), render a tiny Field (200x155) with the animation. This is always visible, does not require a tap, and replaces something that is purely decorative. Risk: too small to see the action clearly on mobile.
+
+**Recommendation: Option A with a twist.** Show the Field at reduced size (60% width) permanently -- no collapse needed -- but make the animation NOT auto-play. Show a static field with the game situation (runners, fielder positions) and a centered play button. Tapping plays the animation once. A small "Replay" button appears after. This avoids the accessibility concern of auto-playing animation, keeps the field small enough to not dominate, and gives the player agency.
+
+---
+
+### 7. WHICH SCENARIOS BENEFIT MOST FROM VISUAL REPLAY
+
+**HIGH VALUE (physical action, clear spatial story):**
+- All `steal` scenarios (~35+) -- runner vs throw is inherently visual tension
+- All `doubleplay` scenarios (~15+) -- multi-throw sequence is the perfect replay
+- All `score` scenarios (~25+) -- race to home plate
+- All `relay`-type plays (currently using `throwHome` or `catch`) -- multi-player coordination
+- `groundout` scenarios (~50+) -- ball path + throw to first shows defensive execution
+- `bunt` scenarios (~30+) -- two simultaneous actions (ball + runner)
+- `hit` scenarios (~75+) -- ball flight + baserunning
+
+**MEDIUM VALUE (single action, still spatial):**
+- `flyout` scenarios (~10+) -- ball arc to outfield
+- `strike`/`strikeout` (~80+) -- pitch delivery (limited by straight-line path)
+- `advance` scenarios (~25+) -- runner movement (context-dependent)
+- `throwHome` scenarios (~40+) -- single throw (missing the runner it races)
+- `catch` scenarios (~60+) -- ball arriving at fielder (missing context)
+- `walk` scenarios (~8+) -- minimal visual (trot to 1B)
+
+**LOW VALUE (abstract/mental decisions -- replay adds little):**
+- `freeze` scenarios (~30+) -- the POINT is NOT moving. Showing a warning emoji does not teach.
+- `safe` scenarios (~15+) -- pure celebration effect, no action to replay
+- Manager scenarios about pitching changes, lineup decisions, emotional management -- no physical play to show
+- Rules scenarios about obstruction, interference definitions -- need diagrams, not animations
+- Counts scenarios about pitch selection strategy -- the count matters, not the animation
+
+**Recommendation:** Show the replay button for ALL scenarios (consistent UI), but for abstract scenarios like `freeze` and `safe`, consider a static SVG diagram (arrows showing "runner stays" or "force play at second") instead of an animation.
+
+---
+
+### 8. PERFORMANCE, MOBILE, AND ACCESSIBILITY CONCERNS
+
+**Performance:**
+- The current animation system uses SMIL (SVG animations via `<animate>` and `<animateMotion>`). SMIL is GPU-accelerated in modern browsers and extremely lightweight. Adding a second Field render on the outcome screen doubles the SVG DOM but NOT the animation cost (the play-screen Field has already unmounted by the time the outcome screen shows).
+- The `React.memo` wrapper on Field means it only re-renders when props change. A replay button changing a `replayKey` prop triggers a clean re-render.
+- SMIL animations auto-start on mount. For opt-in replay, the Field would need to be conditionally mounted (not just hidden) so animations start on button press.
+
+**Mobile:**
+- The Field SVG renders at `maxWidth:420`. On a 375px iPhone screen, the 60% reduction (252px wide) is still legible for the major animations (ball flight, runner movement) but too small for text labels ("SAFE!", "OUT!").
+- Recommendation: Hide the in-animation text labels on the replay Field and instead show the outcome as a text line below the field. This keeps the SVG clean at small sizes.
+- Touch target: the "Watch Play" button must be at least 44x44px for WCAG compliance.
+
+**Accessibility:**
+- **Auto-play concern:** WCAG 2.1 SC 2.2.2 requires that auto-playing animation lasting more than 5 seconds can be paused. The longest animation (steal with slide) is ~1.3s total, well under the limit. However, for users with vestibular disorders, `prefers-reduced-motion` media query should disable the animation entirely and show a static diagram instead.
+- **Color-only information:** The success (green) vs failure (red) color coding is already supplemented with text labels ("SAFE!", "OUT!"). No change needed for replay.
+- **Screen reader:** The SVG field has no `aria-label` or descriptive text. For replay, add an `aria-label` describing the play: "Animation showing runner stealing second base. Catcher throws to second, runner is safe."
+- **Keyboard:** The replay button should be focusable and activatable with Enter/Space.
+
+---
+
+### 9. THE BOARD COMPONENT AND GAME CONTEXT
+
+The Board component (lines 13359-13365) renders: inning, score, count, and outs. It is compact (single row, monospace font) and already renders on the play screen below the Field.
+
+For Game Film Mode, the Board should render ABOVE or INSIDE the replay Field, showing the full game situation. This provides context that makes the animation meaningful:
+- "Bottom 7th, 2-1, runner on first, 1 out" + steal animation = "THAT'S why you steal here -- it is late, you are down, you need the tying run in scoring position"
+- Without the Board, the steal animation is just "a runner ran to second base"
+
+The Board already receives `sit` (the scenario's situation object) which has all needed data. Simply render `<Board sit={sc.situation}/>` above the replay Field.
+
+---
+
+### 10. FUTURE ENHANCEMENT IDEAS FOR THE VISUAL SYSTEM
+
+**E1: Pitch Movement Visualization.**
+Currently all pitches travel in a straight line from mound to plate. For `strike`/`strikeout` scenarios, the pitch type is often specified in the scenario text ("curveball in the dirt", "changeup low"). Render the pitch path as a curve: fastball = straight, curveball = downward arc, slider = lateral break, changeup = speed reduction (longer `dur`). This teaches pitch recognition visually.
+
+**E2: Fielder Repositioning Before the Play.**
+Before the main animation, show fielders shifting to their correct positions (e.g., shortstop moves to cover second for a steal, outfielder shades to the gap). This teaches pre-pitch positioning, which is a core concept with knowledge maps about it. A 0.5s pre-animation phase where one or two fielders slide to new positions.
+
+**E3: Decision Tree Overlay.**
+After the replay, show a branching overlay on the field: "If throw goes to 2B: OUT. If throw goes to 3B: runner advances. If hold ball: status quo." Arrows from the decision point to each outcome, color-coded green/yellow/red. This makes the option evaluation visual.
+
+**E4: "Ghost Runner" for Failure Comparison.**
+When showing the correct play, render the wrong play simultaneously as a transparent ghost. The real runner goes to second (solid), the ghost runner gets thrown out halfway (transparent, fading). The player sees BOTH outcomes overlaid. This is the split-screen comparison without needing two Field components.
+
+**E5: Speed Control Slider.**
+Let the player control replay speed: 0.5x (slow motion), 1x (normal), 2x (fast). Simply multiply all SMIL `dur` values by a factor. Young players (ages 6-8) might need 0.5x to follow the action; experienced players want 2x to quickly rewatch.
+
+**E6: Tap-to-Pause Replay.**
+Tap the field during animation to freeze-frame. Tap again to resume. This lets the player study a specific moment (e.g., the runner's lead when the pitcher throws over). Requires JavaScript control of SMIL animation state via `SVGAnimationElement.pauseAnimations()` / `unpauseAnimations()`.
+
+**E7: "What Happened Next" Continuation.**
+After the main animation, briefly show what happens NEXT in a real game: after the double play, the inning is over and the team jogs off the field. After the stolen base, the next pitch is shown (batter has a better situation). This connects the scenario decision to its downstream impact.
+
+**E8: Crowd Reaction Integration.**
+The crowd dots already have a sway animation. On success replays, make the crowd bounce faster/bigger. On failure, the crowd goes still. This adds atmosphere and makes the field feel alive during replay. Cheap to implement -- just vary the crowd animation parameters based on outcome.
+
+**E9: Contextual Camera Zoom.**
+For `steal` scenarios, zoom the viewBox to the 1B-2B corridor before the animation starts (viewBox="150 100 150 150"). For `hit` scenarios, zoom out to show the full outfield. Then animate the viewBox back to normal during the play. This focuses attention on where the action happens.
+
+**E10: Replay Collection / Highlight Reel.**
+Store the last 10 "correct play" replays. In the profile section, add a "Highlight Reel" that plays them back-to-back with the scenario title as a title card. This is inherently shareable (screen-record worthy) and gives the player a sense of accumulated knowledge. "Look at all these plays I learned."
+
+---
+
+### 11. IMMEDIATE ACTION ITEMS FOR THE MAIN AGENT
+
+1. **Fix the animation gating on line 16660.** The replay Field on the outcome screen should ALWAYS pass `sc.anim` and `outcome="success"` to show the correct play, regardless of what the player chose. The current `od?.isOpt?sc.anim:null` gate blocks the very feature Game Film Mode needs.
+
+2. **The replay should NOT auto-play.** Mount the Field only when the user taps "Watch the Play." Use a state variable (`showReplay`) and increment `ak` (animation key) to trigger fresh SMIL animations on each replay tap.
+
+3. **Include the Board component** in the replay section to show game context (inning, score, count, outs).
+
+4. **For `freeze` and `safe` animations, consider suppressing the replay button** or showing a static field diagram instead. These animations do not tell a spatial story.
+
+5. **Add `prefers-reduced-motion` check.** If the user has reduced motion enabled, show a static field with the game situation instead of animation.
+
+6. **Remap outfield/infield relay scenarios from `throwHome`/`catch` to `relay`.** The `relay` animation exists and is excellent, but zero scenarios use it. This is a scenario data fix, not a code fix.
+
+7. **Consider the 7 unused animation types** (`relay`, `pickoff`, `squeeze`, `wildPitch`, `hitByPitch`, `tag`, `popup`) as a scenario data enrichment opportunity. Dozens of existing scenarios would be better served by these specific animations instead of their current generic ones.
