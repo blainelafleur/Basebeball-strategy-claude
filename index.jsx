@@ -13657,7 +13657,8 @@ export default function App(){
   const[speedMode,setSpeedMode]=useState(false);
   const[speedFilter,setSpeedFilter]=useState(null); // null = show picker, string[] = filtered positions
   const[speedRound,setSpeedRound]=useState(null); // {round,total,results:[],startTime}
-  const[timer,setTimer]=useState(15);
+  const speedTimerMax=stats.ageGroup==="6-8"?30:stats.ageGroup==="9-10"?22:stats.ageGroup==="11-12"?17:15;
+  const[timer,setTimer]=useState(speedTimerMax);
   const[timerActive,setTimerActive]=useState(false);
   const[timerGo,setTimerGo]=useState(false);
   const timerRef=useRef(null);
@@ -14213,10 +14214,17 @@ export default function App(){
     const unseen=src.filter(s=>!seen.includes(s.id));
     const eligible=src.filter(s=>s.id!==lastScId);
     const sessionTags=sessionConceptsRef.current
+    // Phase 2.1: Guarantee first-play diversity — no repeat concepts in first 5 plays
+    const firstPlayDiversity=stats.gp<5;
+    const conceptDedup=(pool)=>{
+      if(!firstPlayDiversity||sessionTags.length===0)return pool;
+      const fresh=pool.filter(s=>{const t=s.conceptTag||findConceptTag(s.concept);return !t||!sessionTags.includes(t)});
+      return fresh.length>0?fresh:pool;
+    };
     // Sprint 3.1: Concept-weighted selection replaces pure random
     // Spaced repetition: wrong scenarios still get priority, but weighted by concept state
     const wc=stats.wrongCounts||{};
-    const wrongInPool=eligible.filter(s=>wc[s.id]>0);
+    const wrongInPool=conceptDedup(eligible.filter(s=>wc[s.id]>0));
     if(wrongInPool.length>0){
       const chance=unseen.length>0?0.4:0.6;
       if(Math.random()<chance){
@@ -14228,8 +14236,9 @@ export default function App(){
         }
       }
     }
-    if(unseen.length>0){
-      const s=weightedPick(unseen,stats.masteryData,wc,sessionTags);
+    const unseenDeduped=conceptDedup(unseen);
+    if(unseenDeduped.length>0){
+      const s=weightedPick(unseenDeduped,stats.masteryData,wc,sessionTags);
       const tag=s.conceptTag||findConceptTag(s.concept)
       if(tag)sessionConceptsRef.current=[...sessionTags,tag].slice(-10)
       setHist(h=>({...h,[p]:[...(h[p]||[]),s.id].slice(-src.length)}));return s;
@@ -14986,7 +14995,9 @@ export default function App(){
     if(atLimit){setPanel('limit');return;}
     snd.play('tap');
     setSpeedMode(true);setDailyMode(false);setAiMode(false);setSpeedFilter(null);
-    const pool=filterPositions&&filterPositions.length>0?filterPositions:[...ALL_POS];
+    // Phase 2.4: Age-filter positions — no Manager/Rules/Counts for young players in random mode
+    const ageAppropriate=stats.ageGroup==="6-8"?ALL_POS.filter(p=>!["manager","famous","rules","counts"].includes(p)):stats.ageGroup==="9-10"?ALL_POS.filter(p=>!["manager","rules","counts"].includes(p)):ALL_POS;
+    const pool=filterPositions&&filterPositions.length>0?filterPositions:[...ageAppropriate];
     // Shuffle and pick 5 positions (dedup via shuffle-slice instead of random-with-replacement)
     const shuffled=[...pool].sort(()=>Math.random()-.5);
     const positions=[];for(let i=0;i<5;i++)positions.push(shuffled[i%shuffled.length]);
@@ -15001,7 +15012,7 @@ export default function App(){
     speedUsedIdsRef.current.add(s.id);speedUsedDescsRef.current.add(descKey(s));
     setSc(s);
     setChoice(null);setOd(null);setRi(-1);setFo(null);setShowC(false);setLvlUp(null);setShowExp(true);
-    setTimer(15);setTimerActive(false);setTimerGo(false);setScreen("play");
+    setTimer(speedTimerMax);setTimerActive(false);setTimerGo(false);setScreen("play");
     s.options.forEach((_,i)=>{setTimeout(()=>setRi(i),80+i*60);});
   },[snd,atLimit,getRand]);
 
@@ -15021,7 +15032,7 @@ export default function App(){
     setSc(s);
     setChoice(null);setOd(null);setRi(-1);setFo(null);setShowC(false);
     setSpeedRound(sr=>({...sr,round:nextRound}));
-    setTimer(15);setTimerActive(false);setTimerGo(false);setScreen("play");
+    setTimer(speedTimerMax);setTimerActive(false);setTimerGo(false);setScreen("play");
     s.options.forEach((_,i)=>{setTimeout(()=>setRi(i),80+i*60);});
   },[speedRound,getRand]);
   speedNextRef.current=speedNext;
@@ -15052,8 +15063,12 @@ export default function App(){
     if(!survivalRun)return;
     const count=survivalRun.count+1;
     // Increase difficulty as you progress: 1-3→diff1, 4-6→diff2, 7+→diff3
-    const targetDiff=count<3?1:count<6?2:3;
-    const p=ALL_POS[Math.floor(Math.random()*ALL_POS.length)];setPos(p);
+    // Phase 2.5: Cap at player's age-group maxDiff so young players don't hit impossible scenarios
+    const rawDiff=count<3?1:count<6?2:3;
+    const targetDiff=Math.min(rawDiff,maxDiff);
+    // Phase 2.4: Age-filter positions in Survival too
+    const survivalPos=stats.ageGroup==="6-8"?ALL_POS.filter(p=>!["manager","famous","rules","counts"].includes(p)):ALL_POS;
+    const p=survivalPos[Math.floor(Math.random()*survivalPos.length)];setPos(p);
     const pool=(SCENARIOS[p]||[]).filter(s=>s.diff<=targetDiff);
     const s=pool.length>0?pool[Math.floor(Math.random()*pool.length)]:getRand(p);
     setSc(s);setChoice(null);setOd(null);setRi(-1);setFo(null);setShowC(false);
@@ -16467,7 +16482,7 @@ export default function App(){
               <span style={{fontSize:10,color:"#9ca3af",fontWeight:600}}>+{timer} speed bonus</span>
             </div>
             <div style={{height:6,background:"rgba(255,255,255,.05)",borderRadius:3,overflow:"hidden"}}>
-              <div style={{height:"100%",width:`${(timer/15)*100}%`,background:timer<=5?"#ef4444":timer<=10?"#f59e0b":"#22c55e",borderRadius:3,transition:"width 1s linear",boxShadow:timer<=5?`0 0 8px ${timer<=5?"rgba(239,68,68,.4)":"none"}`:"none"}}/>
+              <div style={{height:"100%",width:`${(timer/speedTimerMax)*100}%`,background:timer<=5?"#ef4444":timer<=Math.round(speedTimerMax*0.67)?"#f59e0b":"#22c55e",borderRadius:3,transition:"width 1s linear",boxShadow:timer<=5?`0 0 8px ${timer<=5?"rgba(239,68,68,.4)":"none"}`:"none"}}/>
             </div></>}
             {!timerActive&&!timerGo&&<div style={{textAlign:"center",fontSize:10,color:"#9ca3af",fontWeight:600}}>Get ready...</div>}
           </div>}
