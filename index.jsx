@@ -5178,7 +5178,7 @@ const STADIUM_MILESTONES=[
   {games:200,label:"Fireworks",desc:"Fireworks on perfect answers!",icon:"🎆"},
   {games:330,label:"Legend Stadium",desc:"Golden border + Legend title!",icon:"👑"},
 ];
-const DEFAULT = {pts:0,str:0,bs:0,gp:0,co:0,ps:{},achs:[],cl:[],ds:0,lastDay:null,todayPlayed:0,todayDate:null,sp:0,isPro:false,onboarded:false,soundOn:true,recentWrong:[],dailyDone:false,dailyDate:null,weeklyDone:null,streakFreezes:0,survivalBest:0,ageGroup:"11-12",displayName:"",teamCode:"",teamName:"",seasonGame:0,seasonCorrect:0,seasonComplete:false,fieldTheme:"default",avatarJersey:0,avatarCap:0,avatarBat:0,season:1,proPlan:null,proPurchaseDate:null,proExpiry:null,lastStreakFreezeDate:null,wrongCounts:{},posGrad:{},funnel:[],hist:{},posPlayed:{},firstPlayDate:null,lastPlayDate:null,sessionCount:0,tutorialDone:false,promoCode:null,promoActivatedDate:null,masteryShown:[],masteryData:{concepts:{},errorPatterns:{},sessionHistory:[]},qualitySignals:{},flaggedScenarios:{},explanationLog:{},gapDetectionCache:null,lastWrongConceptTag:null,aiHistory:[],aiMetrics:{correct:0,total:0,flagged:0,scores:[]},hcMetrics:{correct:0,total:0,flagged:0},activePath:null,sitMastery:{},dailySitDone:false,dailySitDate:null,dailySitStreak:0,dailySitBestStreak:0,lastDailySitDate:null,aiSitCount:0,useLLM70B:false};
+const DEFAULT = {pts:0,str:0,bs:0,gp:0,co:0,ps:{},achs:[],cl:[],ds:0,lastDay:null,todayPlayed:0,todayDate:null,sp:0,isPro:false,onboarded:false,soundOn:true,recentWrong:[],dailyDone:false,dailyDate:null,weeklyDone:null,streakFreezes:0,survivalBest:0,ageGroup:"11-12",displayName:"",teamCode:"",teamName:"",seasonGame:0,seasonCorrect:0,seasonComplete:false,fieldTheme:"default",avatarJersey:0,avatarCap:0,avatarBat:0,season:1,proPlan:null,proPurchaseDate:null,proExpiry:null,lastStreakFreezeDate:null,wrongCounts:{},posGrad:{},funnel:[],hist:{},posPlayed:{},firstPlayDate:null,lastPlayDate:null,sessionCount:0,tutorialDone:false,promoCode:null,promoActivatedDate:null,masteryShown:[],masteryData:{concepts:{},errorPatterns:{},sessionHistory:[]},qualitySignals:{},flaggedScenarios:{},explanationLog:{},gapDetectionCache:null,lastWrongConceptTag:null,aiHistory:[],aiMetrics:{correct:0,total:0,flagged:0,scores:[]},hcMetrics:{correct:0,total:0,flagged:0},activePath:null,sitMastery:{},dailySitDone:false,dailySitDate:null,dailySitStreak:0,dailySitBestStreak:0,lastDailySitDate:null,aiSitCount:0,useLLM70B:false,adaptiveDiff:{},placementDiff:{}};
 
 // Streak flame visual — grows with daily streak length
 function getFlame(ds){
@@ -14214,14 +14214,13 @@ export default function App(){
     let effMaxDiff=maxDiff;
     if(stats.ageGroup==="6-8"&&(stats.posGrad||{})[p])effMaxDiff=Math.max(effMaxDiff,2);
     const pool=raw.filter(s=>s.diff<=effMaxDiff);const fallback=raw;
-    // Phase 2.2: If placed, prefer scenarios at placed difficulty or higher
-    const placedDiff=(stats.placementDiff||{})[p];
-    const placedPool=placedDiff>1?pool.filter(s=>s.diff>=placedDiff):null;
-    // Prerequisite filter: only show scenarios whose concepts the player is ready for
+    // Adaptive difficulty: use dynamic level from adaptiveDiff (fed by placement + ongoing performance)
+    const adaptiveLevel=(stats.adaptiveDiff||{})[p]?.level||(stats.placementDiff||{})[p]||null;
+    const adaptivePool=adaptiveLevel>1?pool.filter(s=>s.diff>=Math.max(1,adaptiveLevel-1)&&s.diff<=Math.min(3,adaptiveLevel+1)):null;
+    // Prerequisite filter: skip if player has proven adaptive level 2+
     const masteredTags=(stats.cl||[]).map(c=>findConceptTag(c)).filter(Boolean);
-    // Phase 2.2: If placed at diff 2+, skip prerequisite filter (player proved their level)
-    const basePool=placedPool&&placedPool.length>3?placedPool:pool;
-    const ready=placedDiff>1?basePool:filterByReadiness(basePool,masteredTags,stats.ageGroup);
+    const basePool=adaptivePool&&adaptivePool.length>3?adaptivePool:pool;
+    const ready=adaptiveLevel>1?basePool:filterByReadiness(basePool,masteredTags,stats.ageGroup);
     const src=ready.length>0?ready:pool.length>0?pool:fallback;const seen=hist[p]||[];
     const unseen=src.filter(s=>!seen.includes(s.id));
     const eligible=src.filter(s=>s.id!==lastScId);
@@ -14708,9 +14707,12 @@ export default function App(){
       snd.play(isOpt?'correct':'wrong');
       setAk(k=>k+1);setFo(isOpt?"success":"danger");
       if(nextRound>=placementData.scenarios.length){
-        // Placement complete — assign difficulty
+        // Placement complete — assign difficulty via adaptive system
         const placedDiff=newCorrect<=1?1:newCorrect<=3?2:3;
-        setStats(p=>({...p,placementDiff:{...(p.placementDiff||{}),[placementData.pos]:placedDiff}}));
+        setStats(p=>({...p,
+          placementDiff:{...(p.placementDiff||{}),[placementData.pos]:placedDiff},
+          adaptiveDiff:{...(p.adaptiveDiff||{}),[placementData.pos]:{level:placedDiff,history:[],lastChange:null,totalPlays:0,totalCorrect:0}}
+        }));
         setPlacementMode(false);setPlacementData(null);
         const label=placedDiff===1?"Rookie":placedDiff===2?"Pro":"All-Star";
         setTimeout(()=>{setToast({e:"📊",n:"Placement: "+label+"!",d:newCorrect+"/"+placementData.scenarios.length+" correct — starting at "+label+" difficulty"});setTimeout(()=>setToast(null),5000)},300);
@@ -14880,6 +14882,33 @@ export default function App(){
         const prev=scenCal[sc.id]||{attempts:0,correct:0}
         scenCal[sc.id]={attempts:prev.attempts+1,correct:prev.correct+(isOpt?1:0)}
       }
+      // === ADAPTIVE DIFFICULTY ENGINE ===
+      // Track per-position rolling accuracy and adjust difficulty dynamically
+      const _ad={...(p.adaptiveDiff||{})};
+      if(!dailyMode&&!sitMode){
+        const _posAd={...(_ad[pos]||{level:(p.placementDiff||{})[pos]||1,history:[],lastChange:null,totalPlays:0,totalCorrect:0})};
+        _posAd.history=[..._posAd.history,isOpt?1:0].slice(-15);
+        _posAd.totalPlays=(_posAd.totalPlays||0)+1;
+        _posAd.totalCorrect=(_posAd.totalCorrect||0)+(isOpt?1:0);
+        // Check for difficulty adjustment (need 8+ plays in history)
+        if(_posAd.history.length>=8){
+          const recent=_posAd.history.slice(-10);
+          const acc=recent.filter(Boolean).length/recent.length;
+          const timeSince=_posAd.lastChange?Date.now()-_posAd.lastChange:Infinity;
+          const cooldown=90000; // 90s between adjustments
+          if(acc>=0.80&&_posAd.level<3&&timeSince>cooldown){
+            _posAd.level+=1;_posAd.lastChange=Date.now();
+            const lbl=_posAd.level===2?"Varsity":"All-Star";
+            if(!speedMode)setTimeout(()=>{setToast({e:"🚀",n:"Difficulty Up!",d:`Moving to ${lbl} — you're crushing it!`});setTimeout(()=>setToast(null),4000)},800);
+          }else if(acc<=0.35&&_posAd.level>1&&timeSince>cooldown){
+            _posAd.level-=1;_posAd.lastChange=Date.now();
+            const lbl=_posAd.level===1?"Rookie":"Varsity";
+            if(!speedMode)setTimeout(()=>{setToast({e:"💪",n:"Building Foundations",d:`Practicing at ${lbl} level to sharpen your skills`});setTimeout(()=>setToast(null),4000)},800);
+          }
+        }
+        _ad[pos]=_posAd;
+      }
+
       const ns={...p,pts:p.pts+pts,str:isOpt?p.str+1:0,bs:Math.max(p.bs,isOpt?p.str+1:p.bs),gp:p.gp+1,co:p.co+(isOpt?1:0),
         ps:updatedPs,
         cl:(()=>{let c=p.cl||[];if(isOpt&&sc.concept&&!c.includes(sc.concept))c=[...c,sc.concept];if(sitMode&&sc.id&&!c.includes(sc.id))c=[...c,sc.id];return c})(),
@@ -14893,7 +14922,7 @@ export default function App(){
         wrongCounts:wc,posGrad,posPlayed:posP,masteryData:updMastery,aiHistory:aiHist,scenarioCalibration:scenCal,
         qualitySignals:_qsResult.qualitySignals,aiMetrics:_srcResult.aiMetrics||p.aiMetrics,hcMetrics:_srcResult.hcMetrics||p.hcMetrics,explanationLog:_exResult.explanationLog,
         lastWrongConceptTag:_newLastWrong,gapDetectionCache:_newGapCache,
-        flaggedScenarios:p.flaggedScenarios||{}};
+        flaggedScenarios:p.flaggedScenarios||{},adaptiveDiff:_ad};
       ns.achs=checkAch(ns);
       const newLvl=getLvl(ns.pts);
       if(newLvl.n!==prevLvl.n){if(speedMode){pendingLvlUpRef.current=newLvl}else{setTimeout(()=>{setLvlUp(newLvl);snd.play('lvl')},600)}}
@@ -16225,6 +16254,7 @@ export default function App(){
                       <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:group.positions.length>=3?12:17,letterSpacing:1}}>{m.label.toUpperCase()}</div>
                       <div style={{fontSize:group.positions.length>=3?8:10,color:"rgba(255,255,255,.55)",marginTop:1}}>{m.desc}</div>
                       <div style={{fontSize:8,color:"rgba(255,255,255,.35)",marginTop:2}}>{SCENARIOS[p]?.length||0} challenges</div>
+                      {(stats.adaptiveDiff||{})[p]&&<div style={{fontSize:7,color:((stats.adaptiveDiff||{})[p]?.level||1)>=3?"#a855f7":((stats.adaptiveDiff||{})[p]?.level||1)>=2?"#3b82f6":"#6b7280",fontWeight:700,marginTop:1}}>{"⭐".repeat((stats.adaptiveDiff||{})[p]?.level||1)} {["Rookie","Varsity","All-Star"][((stats.adaptiveDiff||{})[p]?.level||1)-1]}</div>}
                       {ps&&ps.p>0&&<div style={{fontSize:8,color:"rgba(255,255,255,.6)",marginTop:1}}>{ps.p>=5?`${a}% · `:""}{ps.p} played</div>}
                       {/* Phase 4.2: Concept mastery bar per position */}
                       {ps&&ps.p>=3&&(()=>{const posScenarios=SCENARIOS[p]||[];const posConcepts=[...new Set(posScenarios.map(s=>s.conceptTag||findConceptTag(s.concept)).filter(Boolean))];const md=stats.masteryData?.concepts||{};const seenCount=posConcepts.filter(c=>md[c]).length;const masteredCount=posConcepts.filter(c=>md[c]?.state==="mastered").length;const total=posConcepts.length;if(total===0)return null;const pct=Math.max(Math.round((seenCount/total)*100),masteredCount>0?Math.round((masteredCount/total)*100):0);return <div style={{marginTop:3}}>
