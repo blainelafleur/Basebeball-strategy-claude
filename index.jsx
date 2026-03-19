@@ -15286,8 +15286,8 @@ export default function App(){
           <span style={{background:"#f59e0b15",border:"1px solid #f59e0b25",borderRadius:7,padding:"2px 7px",fontSize:10,fontWeight:700,color:"#f59e0b"}}>🏆{stats.pts}</span>
           {stats.ds>0&&(()=>{const fl=getFlame(stats.ds);return <span style={{background:`${fl.color}12`,border:`1px solid ${fl.color}22`,borderRadius:7,padding:"2px 7px",fontSize:10,fontWeight:700,color:fl.color,boxShadow:stats.ds>=7?`0 0 8px ${fl.glow}`:"none"}}>{fl.icon}{stats.ds}d</span>})()}
           {stats.str>0&&<span style={{background:"#f9731615",border:"1px solid #f9731625",borderRadius:7,padding:"2px 7px",fontSize:10,fontWeight:700,color:"#f97316"}}>🔥{stats.str}</span>}
-          {!stats.isPro&&<span style={{background:remaining<=0?"rgba(239,68,68,.1)":remaining<=3?"rgba(245,158,11,.1)":"rgba(255,255,255,.03)",border:`1px solid ${remaining<=0?"rgba(239,68,68,.2)":remaining<=3?"rgba(245,158,11,.2)":"rgba(255,255,255,.06)"}`,borderRadius:7,padding:"2px 7px",fontSize:10,fontWeight:600,color:remaining<=0?"#ef4444":remaining<=3?"#f59e0b":"#6b7280"}}>{remaining>0?`${remaining} left`:"Back tomorrow"}</span>}
-          {stats.isPro&&<span onClick={()=>setShowProBenefits(v=>!v)} style={{background:"linear-gradient(135deg,rgba(245,158,11,.15),rgba(234,179,8,.1))",border:"1px solid rgba(245,158,11,.3)",borderRadius:7,padding:"2px 7px",fontSize:10,fontWeight:800,color:"#f59e0b",cursor:"pointer"}}>PRO</span>}
+          {!stats.isPro&&<span style={{background:remaining<=0?"rgba(239,68,68,.12)":remaining<=3?"rgba(245,158,11,.12)":"rgba(255,255,255,.04)",border:`1px solid ${remaining<=0?"rgba(239,68,68,.25)":remaining<=3?"rgba(245,158,11,.25)":"rgba(255,255,255,.08)"}`,borderRadius:7,padding:"2px 8px",fontSize:10,fontWeight:700,color:remaining<=0?"#ef4444":remaining<=3?"#f59e0b":"#9ca3af"}}>{remaining>0?`⚾ ${remaining}/${DAILY_FREE}`:"✨ Tomorrow"}</span>}
+          {stats.isPro&&<span onClick={()=>setShowProBenefits(v=>!v)} style={{background:"linear-gradient(135deg,rgba(245,158,11,.15),rgba(234,179,8,.1))",border:"1px solid rgba(245,158,11,.3)",borderRadius:7,padding:"2px 7px",fontSize:10,fontWeight:800,color:"#f59e0b",cursor:"pointer"}}>⭐ ALL-STAR</span>}
           {authUser&&<span onClick={()=>syncStatus==='error'?syncToServer(stats):null} style={{background:"rgba(59,130,246,.08)",border:"1px solid rgba(59,130,246,.15)",borderRadius:7,padding:"2px 7px",fontSize:10,fontWeight:600,color:syncStatus==='synced'?"#22c55e":syncStatus==='syncing'?"#3b82f6":syncStatus==='error'?"#ef4444":"#6b7280",cursor:syncStatus==='error'?"pointer":"default"}} title={syncStatus==='synced'?"Progress saved":syncStatus==='syncing'?"Syncing...":syncStatus==='error'?"Sync failed — tap to retry":"Signed in"}>{syncStatus==='syncing'?"↻":syncStatus==='synced'?"☁✓":syncStatus==='error'?"☁!":"☁"}</span>}
           <span onClick={()=>setShowProgression(v=>!v)} style={{background:`${lvl.c}12`,border:`1px solid ${lvl.c}25`,borderRadius:7,padding:"2px 7px",fontSize:10,fontWeight:700,color:lvl.c,cursor:"pointer"}}>{lvl.e}{lvl.n}</span>
         </div>
@@ -15462,6 +15462,23 @@ export default function App(){
             <h1 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:32,letterSpacing:2,color:"#f59e0b",lineHeight:1,marginBottom:4}}>STRATEGY MASTER</h1>
             <p style={{color:"#9ca3af",fontSize:12,maxWidth:340,margin:"0 auto"}}>{totalSc} challenges · {Object.keys(SCENARIOS).length} positions · Real baseball strategy</p>
           </div>
+
+          {/* Phase 3.1: PLAY NEXT hero button — single clear primary action */}
+          {stats.gp>0&&!atLimit&&(()=>{
+            const recs=getPracticeRecommendations(stats);
+            const rec=recs[0];
+            const nextPos=rec?.position||stats.favoritePosition||"batter";
+            const nextMeta=POS_META[nextPos]||POS_META.batter;
+            const nextLabel=rec?.reason||"Keep playing!";
+            return <button onClick={()=>startGame(nextPos)} style={{width:"100%",background:"linear-gradient(135deg,#1e40af,#3b82f6)",border:"2px solid rgba(59,130,246,.4)",borderRadius:16,padding:"16px 20px",cursor:"pointer",marginBottom:12,display:"flex",alignItems:"center",gap:14,textAlign:"left",boxShadow:"0 4px 20px rgba(59,130,246,.25)",transition:"transform .15s",minHeight:56}}>
+              <div style={{fontSize:28,flexShrink:0}}>{nextMeta.emoji}</div>
+              <div style={{flex:1}}>
+                <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:18,color:"white",letterSpacing:1}}>NEXT CHALLENGE</div>
+                <div style={{fontSize:11,color:"rgba(255,255,255,.7)",marginTop:1}}>{nextMeta.label} · {nextLabel}</div>
+              </div>
+              <div style={{fontSize:20,color:"rgba(255,255,255,.6)",flexShrink:0}}>▶</div>
+            </button>;
+          })()}
 
           {/* Stats card */}
           {stats.gp>0&&<div style={{...card,marginBottom:12}}>
@@ -16173,7 +16190,7 @@ export default function App(){
                       <div style={{fontSize:group.positions.length>=3?8:10,color:"rgba(255,255,255,.55)",marginTop:1}}>{m.desc}</div>
                       <div style={{fontSize:8,color:"rgba(255,255,255,.35)",marginTop:2}}>{SCENARIOS[p]?.length||0} challenges</div>
                       {ps&&ps.p>0&&<div style={{fontSize:8,color:"rgba(255,255,255,.6)",marginTop:1}}>{ps.p>=5?`${a}% · `:""}{ps.p} played</div>}
-                      {(()=>{const seen=(hist[p]||[]);const total=(SCENARIOS[p]||[]).length;if(seen.length>=total&&total>0)return<div style={{fontSize:7,color:"#22c55e",fontWeight:700,marginTop:1}}>All {total} mastered{!stats.isPro?" · Go Pro for AI":""}</div>;return null})()}
+                      {(()=>{const seen=(hist[p]||[]);const total=(SCENARIOS[p]||[]).length;if(seen.length>=total&&total>0)return<div style={{fontSize:7,color:"#22c55e",fontWeight:700,marginTop:1}}>All {total} mastered{!stats.isPro?" · Get All-Star for AI":""}</div>;return null})()}
                     </div>
                   </div>
                 )})}
@@ -16199,7 +16216,8 @@ export default function App(){
           {/* Daily remaining */}
           {!stats.isPro&&<div style={{textAlign:"center",marginTop:10}}>
             <div style={{fontSize:10,color:remaining<=0?"#ef4444":remaining<=3?"#f59e0b":"#6b7280"}}>{remaining>0?`${remaining} free play${remaining!==1?"s":""} remaining today`:"\u2728 Come back tomorrow for your Daily Diamond!"}</div>
-            {remaining<=3&&<button onClick={()=>{setPanel('limit');trackFunnel('limit_hit',setStats)}} style={{...ghost,color:"#f59e0b",fontSize:11,fontWeight:600,marginTop:2}}>Want unlimited play?</button>}
+            {remaining<=3&&remaining>0&&<button onClick={()=>{setPanel('upgrade');trackFunnel('limit_hit',setStats)}} style={{...ghost,color:"#f59e0b",fontSize:11,fontWeight:600,marginTop:2}}>Want unlimited play?</button>}
+            {remaining<=0&&panel!=='limit'&&<button onClick={()=>{setPanel('limit');trackFunnel('limit_hit',setStats)}} style={{...btn("linear-gradient(135deg,#d97706,#f59e0b)"),...{maxWidth:260,margin:"8px auto 0",fontSize:12,padding:"10px 16px"}}}>See Your Session Stats</button>}
           </div>}
 
           <div style={{textAlign:"center",color:"#374151",fontSize:9,marginTop:16,display:"flex",justifyContent:"center",gap:10,flexWrap:"wrap"}}>
@@ -16603,17 +16621,18 @@ export default function App(){
               {od.isOpt?"PERFECT STRATEGY!":od.cat==="warning"?"NOT BAD!":"LEARNING MOMENT"}
             </h2>
             <div style={{display:"flex",justifyContent:"center",gap:5,flexWrap:"wrap"}}>
-              {od.pts>0&&<span style={{background:"rgba(34,197,94,.08)",color:"#22c55e",padding:"2px 10px",borderRadius:14,fontSize:11,fontWeight:800,border:"1px solid rgba(34,197,94,.15)"}}>+{od.pts} pts{stats.isPro?" (2x Pro)":""}{dailyMode?" (2x Daily)":""}{od.speedBonus>0?` (+${od.speedBonus} speed)`:""}</span>}
+              {od.pts>0&&<span style={{background:"rgba(34,197,94,.08)",color:"#22c55e",padding:"2px 10px",borderRadius:14,fontSize:11,fontWeight:800,border:"1px solid rgba(34,197,94,.15)"}}>+{od.pts} pts{stats.isPro?" (2x All-Star)":""}{dailyMode?" (2x Daily)":""}{od.speedBonus>0?` (+${od.speedBonus} speed)`:""}</span>}
               {dailyMode&&<span style={{background:"rgba(245,158,11,.08)",color:"#f59e0b",padding:"2px 10px",borderRadius:14,fontSize:11,fontWeight:800,border:"1px solid rgba(245,158,11,.15)"}}>💎 Daily Done!</span>}
               {stats.str>1&&od.isOpt&&<span style={{background:"rgba(249,115,22,.08)",color:"#f97316",padding:"2px 10px",borderRadius:14,fontSize:11,fontWeight:800,border:"1px solid rgba(249,115,22,.15)"}}>🔥 {stats.str}</span>}
             </div>
           </div>
 
-          <Coach mood={od.cat} msg={coachMsg}/>
+          {/* Phase 3.5: Coach line shown inline, not separate box for young players */}
+          {(stats.ageGroup!=="6-8"&&stats.ageGroup!=="9-10")&&<Coach mood={od.cat} msg={coachMsg}/>}
 
           <div style={{background:od.cat==="success"?"rgba(34,197,94,.03)":od.cat==="warning"?"rgba(245,158,11,.03)":"rgba(239,68,68,.03)",border:`1px solid ${od.cat==="success"?"rgba(34,197,94,.12)":od.cat==="warning"?"rgba(245,158,11,.12)":"rgba(239,68,68,.12)"}`,borderRadius:12,padding:12,borderLeft:`3px solid ${od.cat==="success"?"#22c55e":od.cat==="warning"?"#f59e0b":"#ef4444"}`}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-              <div><div style={{fontSize:fs(9),color:"#9ca3af",textTransform:"uppercase",letterSpacing:1,fontWeight:700}}>{od.cat==="success"?"✓ ":od.cat==="warning"?"~ ":"✗ "}Your Choice{od.cat==="success"?" — Great Call!":od.cat==="warning"?" — Not Bad":""}</div><div style={{fontSize:fs(13),fontWeight:700,color:"white",marginTop:2}}>"{od.chosen}"</div></div>
+              <div><div style={{fontSize:fs(9),color:"#9ca3af",textTransform:"uppercase",letterSpacing:1,fontWeight:700}}>{od.cat==="success"?"✓ ":od.cat==="warning"?"~ ":"✗ "}Your Choice{od.cat==="success"?" — Great Call!":od.cat==="warning"?" — Not Bad":""}</div><div style={{fontSize:fs(13),fontWeight:700,color:"white",marginTop:2}}>"{od.chosen}"</div>{(stats.ageGroup==="6-8"||stats.ageGroup==="9-10")&&coachMsg&&<div style={{fontSize:fs(11),color:"#d1d5db",marginTop:4,fontStyle:"italic"}}>💬 {coachMsg}</div>}</div>
               <button onClick={()=>setShowExp(!showExp)} style={{background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.06)",borderRadius:6,padding:"4px 10px",fontSize:10,color:"#9ca3af",cursor:"pointer",minHeight:32}}>{showExp?"▼":"▶"}</button>
             </div>
             {showExp&&(()=>{const ed=od.explDepth?.[od.chosenIdx];return ed?<div style={{marginTop:6}}><p style={{fontSize:fs(14),lineHeight:fontScale>1?1.6:1.5,color:"#d1d5db"}}>{ed.simple}</p>{explDepthLayer>=1&&<p style={{fontSize:fs(13),lineHeight:fontScale>1?1.6:1.5,color:"#9ca3af",marginTop:4,paddingLeft:8,borderLeft:"2px solid rgba(255,255,255,.08)"}}>{ed.why}</p>}{explDepthLayer>=2&&ed.data&&ed.data!=="n/a"&&<p style={{fontSize:fs(12),lineHeight:1.4,color:"#60a5fa",marginTop:4,fontStyle:"italic"}}>{ed.data}</p>}<div style={{display:"flex",gap:6,marginTop:6}}>{explDepthLayer<1&&<button onClick={()=>setExplDepthLayer(1)} style={{background:"rgba(168,85,247,.06)",border:"1px solid rgba(168,85,247,.15)",borderRadius:6,padding:"3px 10px",fontSize:fs(10),color:"#a855f7",cursor:"pointer",fontWeight:600}}>Why?</button>}{explDepthLayer===1&&stats.ageGroup!=="6-8"&&stats.ageGroup!=="9-10"&&<button onClick={()=>setExplDepthLayer(2)} style={{background:"rgba(59,130,246,.06)",border:"1px solid rgba(59,130,246,.15)",borderRadius:6,padding:"3px 10px",fontSize:fs(10),color:"#60a5fa",cursor:"pointer",fontWeight:600}}>Show Data</button>}</div></div>:<p style={{fontSize:fs(14),lineHeight:fontScale>1?1.6:1.5,color:"#d1d5db",marginTop:6}}>{od.exp}</p>})()}
@@ -16649,11 +16668,26 @@ export default function App(){
             </button>
           </div>}
 
-          {showC&&<div style={{background:"linear-gradient(135deg,rgba(59,130,246,.04),rgba(168,85,247,.04))",border:"1px solid rgba(59,130,246,.12)",borderRadius:12,padding:12,marginTop:10,textAlign:"center"}}>
-            <div style={{fontSize:16,marginBottom:2}}>💡</div>
-            <div style={{fontSize:9,color:"#60a5fa",textTransform:"uppercase",letterSpacing:1,fontWeight:700,marginBottom:3}}>Key Concept</div>
-            <p style={{fontSize:14,fontWeight:600,color:"white",lineHeight:1.45}}>{od.concept}</p>
-          </div>}
+          {showC&&(()=>{
+            const cTag=sc?.conceptTag||findConceptTag(od?.concept);
+            const cState=cTag&&stats.masteryData?.concepts?.[cTag];
+            const mLabel=cState?.state==="mastered"?"Mastered":cState?.state==="learning"?"Learning":cState?.state==="introduced"?"Introduced":cState?.state==="degraded"?"Review":"New";
+            const mColor=cState?.state==="mastered"?"#22c55e":cState?.state==="learning"?"#3b82f6":cState?.state==="introduced"?"#f59e0b":cState?.state==="degraded"?"#ef4444":"#6b7280";
+            const correctCount=cState?.consecutiveCorrect||0;
+            const needed=3;
+            return <div style={{background:"linear-gradient(135deg,rgba(59,130,246,.04),rgba(168,85,247,.04))",border:"1px solid rgba(59,130,246,.12)",borderRadius:12,padding:12,marginTop:10,textAlign:"center"}}>
+              <div style={{fontSize:16,marginBottom:2}}>💡</div>
+              <div style={{fontSize:9,color:"#60a5fa",textTransform:"uppercase",letterSpacing:1,fontWeight:700,marginBottom:3}}>Key Concept</div>
+              <p style={{fontSize:14,fontWeight:600,color:"white",lineHeight:1.45}}>{od.concept}</p>
+              {cTag&&<div style={{marginTop:6,display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>
+                <span style={{fontSize:9,fontWeight:700,color:mColor,textTransform:"uppercase",letterSpacing:1}}>{mLabel}</span>
+                {cState?.state!=="mastered"&&<div style={{display:"flex",gap:2}}>
+                  {[...Array(needed)].map((_,i)=><div key={i} style={{width:12,height:4,borderRadius:2,background:i<correctCount?mColor:"rgba(255,255,255,.1)"}}/>)}
+                </div>}
+                {cState?.state==="mastered"&&<span style={{fontSize:10}}>✅</span>}
+              </div>}
+            </div>;
+          })()}
 
           {/* Famous Plays: What Really Happened epilogue */}
           {showC&&sc?.historicalNote&&<div style={{background:"linear-gradient(135deg,rgba(234,179,8,.04),rgba(202,138,4,.02))",border:"1px solid rgba(234,179,8,.12)",borderRadius:12,padding:12,marginTop:8}}>
