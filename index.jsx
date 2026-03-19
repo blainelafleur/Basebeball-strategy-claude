@@ -12606,21 +12606,21 @@ const Field=React.memo(function Field({runners=[],outcome=null,ak=0,anim=null,th
     // Pose-specific body rotation
     const pxf=p==='rs'?' rotate(12)':p==='cs'?' translate(0,6)':p==='pw'?' rotate(-6)':p==='bs'?' rotate(-5)':'';
 
-    // === LEG GEOMETRY per pose: [leftX, leftEndY, rightX, rightEndY] ===
-    // All legs start from hip (~y=4), these are the foot endpoints
+    // === LEG GEOMETRY per pose: [lFootX, lFootY, lKneeX, lKneeY, rFootX, rFootY, rKneeX, rKneeY] ===
+    // All legs start from hip (~y=4). Knee = Bezier Q control point for natural bend.
     const legs=(()=>{switch(p){
-      case 'pw': return[[-4,8,3,14]];    // left kicked up, right planted
-      case 'ps': return[[-4,13,4,13]];    // set position, balanced
-      case 'cs': return[[-7,8,7,8]];      // wide squat
-      case 'br': return[[-4,14,4,14]];    // balanced stance
-      case 'bs': return[[-5,13,4,12]];    // weight shifted forward
-      case 'ir': return[[-5,12,4,12]];    // athletic crouch
-      case 'it': return[[-6,13,3,12]];    // stepping to throw
-      case 'rs': return[[-6,10,6,10]];    // full stride
-      case 'oc': return[[-4,14,4,14]];    // balanced, looking up
-      default:   return[[-4,14,4,14]];    // standard standing
+      case 'pw': return[-4,8,-3,4, 3,14,2,8];     // left kicked up (knee high), right planted
+      case 'ps': return[-4,13,-3,7, 4,13,3,7];     // set position, both slightly bent
+      case 'cs': return[-7,8,-6,4, 7,8,6,4];       // wide squat, knees bowed out
+      case 'br': return[-4,14,-3,8, 4,14,3,8];     // balanced stance
+      case 'bs': return[-5,13,-4,7, 4,12,3,7];     // weight shifted forward
+      case 'ir': return[-5,12,-4,6, 4,12,3,6];     // athletic crouch, knees bent
+      case 'it': return[-6,13,-5,7, 3,12,2,6];     // stepping to throw
+      case 'rs': return[-6,10,-4,5, 6,10,4,5];     // full stride, knees forward
+      case 'oc': return[-4,14,-3,8, 4,14,3,8];     // balanced, looking up
+      default:   return[-4,14,-3,8, 4,14,3,8];     // standard standing
     }})();
-    const [lLx,lLy,lRx,lRy]=legs[0];
+    const [lLx,lLy,lLkx,lLky, lRx,lRy,lRkx,lRky]=legs;
 
     // === ARM GEOMETRY per pose: [leftArmPath, rightArmPath] as SVG path strings ===
     // Arms connect from shoulder (~y=-6) to hand positions
@@ -12637,10 +12637,12 @@ const Field=React.memo(function Field({runners=[],outcome=null,ak=0,anim=null,th
       default:   return["M-5,-6 Q-9,-2 -8,2","M5,-6 Q9,-2 8,2"];       // relaxed at sides
     }})();
 
-    // Torso dimensions
+    // Torso dimensions + Bezier path with shoulder/waist contour
     const torsoH=p==='cs'?10:14;
     const torsoY=p==='cs'?-4:-8;
     const torsoW=p==='cs'?12:10;
+    const tw=torsoW/2, ty=torsoY, th=torsoH;
+    const torsoD=`M${-tw+1},${ty+th} Q${-tw-1.5},${ty+th*0.45} ${-tw-0.5},${ty+1} L${tw+0.5},${ty+1} Q${tw+1.5},${ty+th*0.45} ${tw-1},${ty+th} Z`;
 
     // Show bat for batter poses
     const showBat=p==='br'||p==='bs';
@@ -12667,17 +12669,17 @@ const Field=React.memo(function Field({runners=[],outcome=null,ak=0,anim=null,th
         {/* Ground shadow */}
         <ellipse cy={p==='cs'?10:18} rx={p==='cs'?13:11} ry="3.5" fill="rgba(0,0,0,.25)"/>
 
-        {/* === LEGS (pants color, stroke-based for clean look) === */}
-        <line x1={0} y1={4} x2={lLx} y2={lLy} stroke={pants} strokeWidth="4.5" strokeLinecap="round"/>
-        <line x1={0} y1={4} x2={lRx} y2={lRy} stroke={pants} strokeWidth="4.5" strokeLinecap="round"/>
+        {/* === LEGS (Bezier paths with knee bend for natural silhouette) === */}
+        <path d={`M0,4 Q${lLkx},${lLky} ${lLx},${lLy}`} fill="none" stroke={pants} strokeWidth="4.5" strokeLinecap="round"/>
+        <path d={`M0,4 Q${lRkx},${lRky} ${lRx},${lRy}`} fill="none" stroke={pants} strokeWidth="4.5" strokeLinecap="round"/>
         {/* Shoes */}
         <circle cx={lLx} cy={lLy} r="2.2" fill="#333"/>
         <circle cx={lRx} cy={lRy} r="2.2" fill="#333"/>
 
-        {/* === TORSO (jersey color) === */}
-        <rect x={-torsoW/2} y={torsoY} width={torsoW} height={torsoH} rx="3" fill={jersey}/>
+        {/* === TORSO (Bezier path with shoulder/waist contour) === */}
+        <path d={torsoD} fill={jersey}/>
         {/* Jersey stripe detail */}
-        <line x1={-torsoW/2+1.5} y1={torsoY+3} x2={torsoW/2-1.5} y2={torsoY+3} stroke="rgba(255,255,255,.18)" strokeWidth=".8"/>
+        <path d={`M${-tw+2},${ty+3} L${tw-2},${ty+3}`} fill="none" stroke="rgba(255,255,255,.18)" strokeWidth=".8"/>
 
         {/* === ARMS (jersey color stroke with skin-colored hands) === */}
         <path d={arms[0]} fill="none" stroke={jersey} strokeWidth="3.5" strokeLinecap="round"/>
@@ -12924,14 +12926,81 @@ const Field=React.memo(function Field({runners=[],outcome=null,ak=0,anim=null,th
       {/* Easing: ball-launch 0.12,0.8,0.3,1 | throw 0.15,0.6,0.35,1 | runner 0.4,0,0.2,1 | ground 0.3,0,0.65,1 | fly 0.2,0.7,0.4,1 | gravity 0.6,0,0.8,0.2 | pulse 0.25,0.1,0.25,1 */}
       {outcome&&<circle key={ak} cx="200" cy="215" r="0" fill={outcome==="success"?"rgba(34,197,94,.18)":outcome==="warning"?"rgba(245,158,11,.12)":"rgba(239,68,68,.12)"}><animate attributeName="r" from="0" to="180" dur=".55s" fill="freeze" calcMode="spline" keyTimes="0;1" keySplines="0.25 0.1 0.25 1"/><animate attributeName="opacity" from=".5" to="0" dur=".55s" fill="freeze"/></circle>}
 
-      {anim==="steal"&&outcome==="success"&&<g key={`a${ak}`}><circle r="5" fill="#22c55e" filter="url(#gl)"><animateMotion dur=".6s" fill="freeze" path="M290,210 Q248,170 200,135" calcMode="spline" keyTimes="0;1" keySplines="0.4 0 0.2 1"/></circle><text x="248" y="158" textAnchor="middle" fontSize="12" fill="#22c55e" fontWeight="900" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0" dur="1.2s" fill="freeze"/>SAFE!</text></g>}
+      {anim==="steal"&&outcome==="success"&&<g key={`a${ak}`}>
+        {/* Dust burst at takeoff (1B) */}
+        <circle cx="290" cy="212" r="1" fill="#c4a882" opacity="0"><animate attributeName="r" from="1" to="6" dur=".3s" fill="freeze"/><animate attributeName="opacity" values="0;.5;0" dur=".35s" fill="freeze"/></circle>
+        <circle cx="293" cy="210" r="1" fill="#c4a882" opacity="0"><animate attributeName="r" from="1" to="4" dur=".25s" begin=".05s" fill="freeze"/><animate attributeName="opacity" values="0;.35;0" dur=".3s" begin=".05s" fill="freeze"/></circle>
+        <circle cx="287" cy="213" r="1" fill="#c4a882" opacity="0"><animate attributeName="r" from="1" to="5" dur=".28s" begin=".03s" fill="freeze"/><animate attributeName="opacity" values="0;.4;0" dur=".32s" begin=".03s" fill="freeze"/></circle>
+        {/* Runner sprinting 1B to 2B */}
+        <g opacity="0"><animate attributeName="opacity" values="0;1" dur=".05s" begin=".08s" fill="freeze"/><animateMotion dur=".55s" begin=".08s" fill="freeze" path="M290,210 Q248,170 200,135" calcMode="spline" keyTimes="0;1" keySplines="0.4 0 0.2 1"/><circle r="1.8" cy="-3.5" fill="#e8c4a0"/><rect x="-1.5" y="-2.5" width="3" height="4.5" rx="1" fill="#dc2626"/><path d="M0,2 L-2,5 M0,2 L2,5" fill="none" stroke="#ddd" strokeWidth="1.2" strokeLinecap="round"/></g>
+        {/* Catcher throw arrives late */}
+        <circle r="2" fill="white" opacity="0"><animate attributeName="opacity" values="0;.8;.8;0" dur=".6s" begin=".2s" fill="freeze"/><animateMotion dur=".4s" begin=".25s" fill="freeze" path="M200,288 Q210,210 200,138" calcMode="spline" keyTimes="0;1" keySplines="0.15 0.6 0.35 1"/></circle>
+        {/* Dust burst at slide (2B) */}
+        <circle cx="200" cy="137" r="1" fill="#c4a882" opacity="0"><animate attributeName="r" from="1" to="7" dur=".3s" begin=".55s" fill="freeze"/><animate attributeName="opacity" values="0;.5;0" dur=".35s" begin=".55s" fill="freeze"/></circle>
+        <circle cx="203" cy="135" r="1" fill="#c4a882" opacity="0"><animate attributeName="r" from="1" to="5" dur=".25s" begin=".58s" fill="freeze"/><animate attributeName="opacity" values="0;.4;0" dur=".3s" begin=".58s" fill="freeze"/></circle>
+        {/* SAFE! text */}
+        <text x="200" y="120" textAnchor="middle" fontSize="12" fill="#22c55e" fontWeight="900" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0" dur="1.3s" fill="freeze"/>SAFE!</text>
+      </g>}
       {anim==="score"&&outcome==="success"&&<g key={`s${ak}`}><circle r="5" fill="#22c55e" filter="url(#gl)"><animateMotion dur=".5s" fill="freeze" path="M110,210 Q160,252 200,290" calcMode="spline" keyTimes="0;1" keySplines="0.4 0 0.2 1"/></circle><text x="200" y="265" textAnchor="middle" fontSize="14" fill="#22c55e" fontWeight="900" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0" dur="1.3s" fill="freeze"/>SAFE!</text></g>}
-      {anim==="hit"&&outcome==="success"&&<g key={`h${ak}`}><circle r="3" fill="#f59e0b" filter="url(#gl)"><animateMotion dur=".45s" fill="freeze" path="M200,290 Q252,178 306,75" calcMode="spline" keyTimes="0;1" keySplines="0.12 0.8 0.3 1"/></circle><text x="265" y="112" textAnchor="middle" fontSize="10" fill="#f59e0b" fontWeight="800" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0" dur="1s" fill="freeze"/>BASE HIT</text></g>}
+      {anim==="hit"&&outcome==="success"&&<g key={`h${ak}`}>
+        {/* Contact flash at home plate */}
+        <circle cx="200" cy="288" r="0" fill="rgba(255,255,255,.9)"><animate attributeName="r" from="0" to="8" dur=".1s" fill="freeze"/><animate attributeName="opacity" from=".9" to="0" dur=".18s" fill="freeze"/></circle>
+        {/* Ball trail (ghost follows ball) */}
+        <circle r="2" fill="#f59e0b" opacity=".3"><animateMotion dur=".45s" begin=".04s" fill="freeze" path="M200,290 Q252,178 306,75" calcMode="spline" keyTimes="0;1" keySplines="0.12 0.8 0.3 1"/><animate attributeName="opacity" from=".3" to="0" dur=".3s" begin=".08s" fill="freeze"/></circle>
+        {/* Ball arcs to outfield */}
+        <circle r="3" fill="#f59e0b" filter="url(#gl)"><animateMotion dur=".45s" fill="freeze" path="M200,290 Q252,178 306,75" calcMode="spline" keyTimes="0;1" keySplines="0.12 0.8 0.3 1"/></circle>
+        {/* Dust at takeoff */}
+        <circle cx="202" cy="292" r="1" fill="#c4a882" opacity="0"><animate attributeName="r" from="1" to="5" dur=".3s" begin=".1s" fill="freeze"/><animate attributeName="opacity" values="0;.4;0" dur=".35s" begin=".1s" fill="freeze"/></circle>
+        <circle cx="198" cy="291" r="1" fill="#c4a882" opacity="0"><animate attributeName="r" from="1" to="3.5" dur=".25s" begin=".13s" fill="freeze"/><animate attributeName="opacity" values="0;.3;0" dur=".3s" begin=".13s" fill="freeze"/></circle>
+        {/* Runner sprints home to 1B */}
+        <g opacity="0"><animate attributeName="opacity" values="0;1" dur=".05s" begin=".12s" fill="freeze"/><animateMotion dur=".6s" begin=".15s" fill="freeze" path="M200,290 Q248,252 290,210" calcMode="spline" keyTimes="0;1" keySplines="0.4 0 0.2 1"/><circle r="1.8" cy="-3.5" fill="#e8c4a0"/><rect x="-1.5" y="-2.5" width="3" height="4.5" rx="1" fill="#dc2626"/><path d="M0,2 L-2,5 M0,2 L2,5" fill="none" stroke="#ddd" strokeWidth="1.2" strokeLinecap="round"/></g>
+        {/* BASE HIT text */}
+        <text x="265" y="112" textAnchor="middle" fontSize="10" fill="#f59e0b" fontWeight="800" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0" dur="1.3s" fill="freeze"/>BASE HIT</text>
+      </g>}
       {anim==="throwHome"&&<g key={`t${ak}`}><line x1="200" y1="135" x2="200" y2="290" stroke="#ef4444" strokeWidth="2" strokeDasharray="6,4" opacity="0"><animate attributeName="opacity" from=".65" to="0" dur=".9s" fill="freeze"/></line><circle r="2.5" fill="#ef4444"><animateMotion dur=".35s" fill="freeze" path="M200,135 L200,290" calcMode="spline" keyTimes="0;1" keySplines="0.15 0.6 0.35 1"/></circle></g>}
       {anim==="doubleplay"&&outcome==="success"&&<g key={`dp${ak}`}><circle r="3.5" fill="#22c55e" filter="url(#gl)"><animateMotion dur=".25s" fill="freeze" path="M290,210 Q248,170 200,135" calcMode="spline" keyTimes="0;1" keySplines="0.15 0.6 0.35 1"/></circle><circle r="3.5" fill="#22c55e" filter="url(#gl)"><animateMotion dur=".25s" begin=".28s" fill="freeze" path="M200,135 Q248,170 290,210" calcMode="spline" keyTimes="0;1" keySplines="0.15 0.6 0.35 1"/></circle><text x="200" y="175" textAnchor="middle" fontSize="10" fill="#22c55e" fontWeight="800" opacity="0"><animate attributeName="opacity" values="0;0;0;1;1;0" dur="1.1s" fill="freeze"/>DOUBLE PLAY!</text></g>}
-      {(anim==="strike"||anim==="strikeout")&&outcome==="success"&&<g key={`st${ak}`}><circle r="2.5" fill="white" opacity=".9"><animateMotion dur=".4s" fill="freeze" path="M200,218 L200,288" calcMode="spline" keyTimes="0;1" keySplines="0.15 0.6 0.35 1"/></circle><text x="200" y="263" textAnchor="middle" fontSize={anim==="strikeout"?13:10} fill={anim==="strikeout"?"#ef4444":"#f59e0b"} fontWeight="900" opacity="0"><animate attributeName="opacity" values="0;1;1;0" dur="1.6s" fill="freeze"/>{anim==="strikeout"?"STRUCK OUT!":"STRIKE!"}</text></g>}
-      {anim==="groundout"&&outcome==="success"&&<g key={`go${ak}`}><circle r="2.5" fill="white" filter="url(#gl)"><animateMotion dur=".5s" fill="freeze" path="M200,290 Q240,252 260,230" calcMode="spline" keyTimes="0;1" keySplines="0.3 0 0.65 1"/></circle><circle r="2.5" fill="#22c55e"><animateMotion dur=".35s" begin=".52s" fill="freeze" path="M260,230 L290,210" calcMode="spline" keyTimes="0;1" keySplines="0.15 0.6 0.35 1"/></circle><text x="276" y="198" textAnchor="middle" fontSize="10" fill="#22c55e" fontWeight="800" opacity="0"><animate attributeName="opacity" values="0;0;0;1;1;0" dur="1.4s" fill="freeze"/>OUT!</text></g>}
-      {anim==="flyout"&&outcome==="success"&&<g key={`fl${ak}`}><circle r="3" fill="white" filter="url(#gl)"><animateMotion dur=".55s" fill="freeze" path="M200,290 Q242,118 282,108" calcMode="spline" keyTimes="0;1" keySplines="0.2 0.7 0.4 1"/></circle><text x="282" y="95" textAnchor="middle" fontSize="10" fill="#22c55e" fontWeight="800" opacity="0"><animate attributeName="opacity" values="0;0;0;1;1;0" dur="1.2s" fill="freeze"/>CAUGHT!</text></g>}
+      {(anim==="strike"||anim==="strikeout")&&outcome==="success"&&<g key={`st${ak}`}>
+        {/* Pitcher release flash at mound */}
+        <circle cx="200" cy="216" r="0" fill="rgba(255,255,255,.5)"><animate attributeName="r" from="0" to="5" dur=".1s" fill="freeze"/><animate attributeName="opacity" from=".5" to="0" dur=".15s" fill="freeze"/></circle>
+        {/* Ball spin trail (ghost) */}
+        <circle r="1.5" fill="white" opacity=".3"><animateMotion dur=".4s" begin=".02s" fill="freeze" path="M200,218 L200,288" calcMode="spline" keyTimes="0;1" keySplines="0.15 0.6 0.35 1"/><animate attributeName="opacity" from=".3" to="0" dur=".25s" begin=".06s" fill="freeze"/></circle>
+        {/* Ball to catcher */}
+        <circle r="2.5" fill="white" opacity=".9"><animateMotion dur=".4s" fill="freeze" path="M200,218 L200,288" calcMode="spline" keyTimes="0;1" keySplines="0.15 0.6 0.35 1"/></circle>
+        {/* Glove pop flash at catcher */}
+        <circle cx="200" cy="290" r="0" fill="rgba(255,200,50,.7)"><animate attributeName="r" from="0" to="6" dur=".08s" begin=".38s" fill="freeze"/><animate attributeName="opacity" from=".7" to="0" dur=".15s" begin=".38s" fill="freeze"/></circle>
+        {/* POP! text */}
+        <text x="212" y="282" fontSize="7" fill="rgba(255,200,50,.8)" fontWeight="700" opacity="0"><animate attributeName="opacity" values="0;.8;0" dur=".4s" begin=".38s" fill="freeze"/>POP!</text>
+        {/* STRIKE! / STRUCK OUT! text */}
+        <text x="200" y="263" textAnchor="middle" fontSize={anim==="strikeout"?13:10} fill={anim==="strikeout"?"#ef4444":"#f59e0b"} fontWeight="900" opacity="0"><animate attributeName="opacity" values="0;1;1;0" dur="1.6s" fill="freeze"/>{anim==="strikeout"?"STRUCK OUT!":"STRIKE!"}</text>
+      </g>}
+      {anim==="groundout"&&outcome==="success"&&<g key={`go${ak}`}>
+        {/* Contact flash at home */}
+        <circle cx="200" cy="288" r="0" fill="rgba(255,255,255,.7)"><animate attributeName="r" from="0" to="6" dur=".1s" fill="freeze"/><animate attributeName="opacity" from=".7" to="0" dur=".15s" fill="freeze"/></circle>
+        {/* Ball rolls/bounces to fielder */}
+        <circle r="2.5" fill="white" filter="url(#gl)"><animateMotion dur=".45s" fill="freeze" path="M200,290 Q220,268 240,250 Q248,242 260,230" calcMode="spline" keyTimes="0;1" keySplines="0.3 0 0.65 1"/></circle>
+        {/* Dust at bounce point */}
+        <circle cx="235" cy="255" r="1" fill="#c4a882" opacity="0"><animate attributeName="r" from="1" to="4" dur=".2s" begin=".18s" fill="freeze"/><animate attributeName="opacity" values="0;.35;0" dur=".25s" begin=".18s" fill="freeze"/></circle>
+        {/* Fielder scoop flash */}
+        <circle cx="260" cy="230" r="0" fill="rgba(255,255,255,.5)"><animate attributeName="r" from="0" to="5" dur=".1s" begin=".44s" fill="freeze"/><animate attributeName="opacity" from=".5" to="0" dur=".15s" begin=".44s" fill="freeze"/></circle>
+        {/* Throw to 1B */}
+        <circle r="2.5" fill="#22c55e"><animateMotion dur=".3s" begin=".5s" fill="freeze" path="M260,230 L290,210" calcMode="spline" keyTimes="0;1" keySplines="0.15 0.6 0.35 1"/></circle>
+        {/* Catch flash at 1B */}
+        <circle cx="290" cy="210" r="0" fill="rgba(34,197,94,.4)"><animate attributeName="r" from="0" to="8" dur=".1s" begin=".79s" fill="freeze"/><animate attributeName="opacity" from=".4" to="0" dur=".15s" begin=".79s" fill="freeze"/></circle>
+        {/* OUT! text */}
+        <text x="276" y="198" textAnchor="middle" fontSize="10" fill="#22c55e" fontWeight="800" opacity="0"><animate attributeName="opacity" values="0;0;0;1;1;0" dur="1.4s" fill="freeze"/>OUT!</text>
+      </g>}
+      {anim==="flyout"&&outcome==="success"&&<g key={`fl${ak}`}>
+        {/* Contact flash at home */}
+        <circle cx="200" cy="288" r="0" fill="rgba(255,255,255,.7)"><animate attributeName="r" from="0" to="7" dur=".1s" fill="freeze"/><animate attributeName="opacity" from=".7" to="0" dur=".15s" fill="freeze"/></circle>
+        {/* Ball trail (ghost follows ball) */}
+        <circle r="2" fill="white" opacity=".25"><animateMotion dur=".55s" begin=".04s" fill="freeze" path="M200,290 Q242,118 282,108" calcMode="spline" keyTimes="0;1" keySplines="0.2 0.7 0.4 1"/><animate attributeName="opacity" from=".25" to="0" dur=".35s" begin=".1s" fill="freeze"/></circle>
+        {/* Ball arcs high to OF */}
+        <circle r="3" fill="white" filter="url(#gl)"><animateMotion dur=".55s" fill="freeze" path="M200,290 Q242,118 282,108" calcMode="spline" keyTimes="0;1" keySplines="0.2 0.7 0.4 1"/></circle>
+        {/* Catch flash at outfielder */}
+        <circle cx="282" cy="108" r="0" fill="rgba(34,197,94,.5)"><animate attributeName="r" from="0" to="10" dur=".12s" begin=".54s" fill="freeze"/><animate attributeName="opacity" from=".5" to="0" dur=".2s" begin=".54s" fill="freeze"/></circle>
+        {/* CAUGHT! text */}
+        <text x="282" y="95" textAnchor="middle" fontSize="10" fill="#22c55e" fontWeight="800" opacity="0"><animate attributeName="opacity" values="0;0;0;1;1;0" dur="1.2s" fill="freeze"/>CAUGHT!</text>
+      </g>}
       {anim==="catch"&&outcome==="success"&&<g key={`ca${ak}`}><circle r="2.5" fill="white"><animateMotion dur=".35s" fill="freeze" path="M238,92 Q216,140 192,172" calcMode="spline" keyTimes="0;1" keySplines="0.6 0 0.8 0.2"/></circle><circle cx="192" cy="172" r="0" fill="rgba(34,197,94,.25)"><animate attributeName="r" from="0" to="16" dur=".25s" begin=".35s" fill="freeze" calcMode="spline" keyTimes="0;1" keySplines="0.25 0.1 0.25 1"/><animate attributeName="opacity" from=".6" to="0" dur=".25s" begin=".35s" fill="freeze"/></circle><text x="192" y="162" textAnchor="middle" fontSize="10" fill="#22c55e" fontWeight="800" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0" dur="1s" fill="freeze"/>GOT IT!</text></g>}
       {anim==="advance"&&outcome==="success"&&<g key={`ad${ak}`}><circle r="4.5" fill="#3b82f6" filter="url(#gl)"><animateMotion dur=".5s" fill="freeze" path="M290,210 Q248,170 200,135" calcMode="spline" keyTimes="0;1" keySplines="0.4 0 0.2 1"/></circle><text x="248" y="163" textAnchor="middle" fontSize="9" fill="#3b82f6" fontWeight="800" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0" dur="1s" fill="freeze"/>ADVANCING!</text></g>}
       {anim==="walk"&&outcome==="success"&&<g key={`wk${ak}`}><circle r="4.5" fill="#3b82f6"><animateMotion dur=".7s" fill="freeze" path="M200,290 Q248,252 290,210" calcMode="spline" keyTimes="0;1" keySplines="0.4 0 0.2 1"/></circle><text x="200" y="263" textAnchor="middle" fontSize="11" fill="#3b82f6" fontWeight="800" opacity="0"><animate attributeName="opacity" values="0;1;1;0" dur="1.2s" fill="freeze"/>BALL FOUR</text></g>}
@@ -12943,7 +13012,7 @@ const Field=React.memo(function Field({runners=[],outcome=null,ak=0,anim=null,th
       {outcome&&outcome!=="success"&&anim==="steal"&&<text key={`wo${ak}`} x="248" y="165" textAnchor="middle" fontSize="11" fill="#ef4444" fontWeight="800" opacity="0"><animate attributeName="opacity" values="0;1;1;0" dur="1.2s" fill="freeze"/>OUT!</text>}
       {outcome&&outcome!=="success"&&(anim==="hit"||anim==="groundout"||anim==="flyout")&&<text key={`wh${ak}`} x="200" y="256" textAnchor="middle" fontSize="11" fill="#ef4444" fontWeight="800" opacity="0"><animate attributeName="opacity" values="0;1;1;0" dur="1.2s" fill="freeze"/>{anim==="flyout"?"FLY OUT":"OUT"}</text>}
       {/* Idle ball toss on mound when no outcome */}
-      {!outcome&&<circle r="2" fill="white" opacity=".7"><animateMotion dur="1.8s" repeatCount="indefinite" path="M200,214 Q200,204 200,208 Q200,212 200,214"/><animate attributeName="opacity" values=".7;.3;.7" dur="1.8s" repeatCount="indefinite"/></circle>}
+      {!outcome&&<circle r="2" fill="white" opacity=".7"><animateMotion dur="1.8s" repeatCount="indefinite" path="M200,214 Q200,204 200,208 Q200,212 200,214" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.4 0 0.6 1;0.4 0 0.6 1"/><animate attributeName="opacity" values=".7;.3;.7" dur="1.8s" repeatCount="indefinite"/></circle>}
     </svg>
   );
 });
