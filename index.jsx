@@ -13665,6 +13665,8 @@ export default function App(){
   const[timerActive,setTimerActive]=useState(false);
   const[timerGo,setTimerGo]=useState(false);
   const timerRef=useRef(null);
+  // BUG-08: Queue level-up during Speed Round
+  const pendingLvlUpRef=useRef(null);
   // Phase 2.2: Placement test state
   const[placementMode,setPlacementMode]=useState(false);
   const[placementData,setPlacementData]=useState(null); // {pos, scenarios:[], round:0, correct:0}
@@ -14894,7 +14896,7 @@ export default function App(){
         flaggedScenarios:p.flaggedScenarios||{}};
       ns.achs=checkAch(ns);
       const newLvl=getLvl(ns.pts);
-      if(newLvl.n!==prevLvl.n){setTimeout(()=>{setLvlUp(newLvl);snd.play('lvl')},600)}
+      if(newLvl.n!==prevLvl.n){if(speedMode){pendingLvlUpRef.current=newLvl}else{setTimeout(()=>{setLvlUp(newLvl);snd.play('lvl')},600)}}
       return ns;
     });
     if(dailyMode)setTimeout(()=>snd.play('daily'),400);
@@ -15466,6 +15468,15 @@ export default function App(){
             <p style={{color:"#9ca3af",fontSize:12,maxWidth:340,margin:"0 auto"}}>{totalSc} challenges · {Object.keys(SCENARIOS).length} positions · Real baseball strategy</p>
           </div>
 
+          {/* BUG-09: Session Stats button at top when at play limit */}
+          {stats.gp>0&&atLimit&&<button onClick={()=>setPanel('limit')} style={{width:"100%",background:"linear-gradient(135deg,rgba(34,197,94,.08),rgba(22,163,74,.04))",border:"2px solid rgba(34,197,94,.25)",borderRadius:16,padding:"16px 20px",cursor:"pointer",marginBottom:12,display:"flex",alignItems:"center",gap:14,textAlign:"left",minHeight:56}}>
+            <div style={{fontSize:28,flexShrink:0}}>📊</div>
+            <div style={{flex:1}}>
+              <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:18,color:"#22c55e",letterSpacing:1}}>GREAT SESSION!</div>
+              <div style={{fontSize:11,color:"rgba(255,255,255,.7)",marginTop:1}}>See your stats · Come back tomorrow for Daily Diamond</div>
+            </div>
+          </button>}
+
           {/* Phase 3.1: PLAY NEXT hero button — single clear primary action */}
           {stats.gp>0&&!atLimit&&(()=>{
             const recs=getPracticeRecommendations(stats);
@@ -15893,7 +15904,7 @@ export default function App(){
               </div>
               <button onClick={()=>startSpeedRound(null)} style={{width:"100%",background:"linear-gradient(135deg,#ef4444,#dc2626)",border:"none",borderRadius:10,padding:"10px 16px",color:"white",fontSize:13,fontWeight:800,cursor:"pointer",marginBottom:10,letterSpacing:.5}}>🎲 ALL POSITIONS (Random)</button>
               <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:6,marginBottom:10}}>
-                {ALL_POS.map(p=>{const m=POS_META[p];const sel=speedFilter.includes(p);return(
+                {(stats.ageGroup==="6-8"?ALL_POS.filter(p=>!["manager","famous","rules","counts"].includes(p)):stats.ageGroup==="9-10"?ALL_POS.filter(p=>!["manager","rules","counts"].includes(p)):ALL_POS).map(p=>{const m=POS_META[p];const sel=speedFilter.includes(p);return(
                   <div key={p} onClick={()=>setSpeedFilter(sf=>sel?sf.filter(x=>x!==p):[...sf,p])} style={{background:sel?`${m.color}15`:"rgba(255,255,255,.02)",border:`1px solid ${sel?m.color+"40":"rgba(255,255,255,.06)"}`,borderRadius:8,padding:"8px 4px",textAlign:"center",cursor:"pointer",transition:"all .15s"}}>
                     <div style={{fontSize:18}}>{m.emoji}</div>
                     <div style={{fontSize:8,fontWeight:700,color:sel?m.color:"#9ca3af",marginTop:2}}>{m.label}</div>
@@ -15997,7 +16008,7 @@ export default function App(){
 
           {/* Pro home indicator */}
           {stats.isPro&&<div style={{textAlign:"center",marginBottom:8,padding:"4px 0"}}>
-            <span style={{fontSize:10,color:"#f59e0b",fontWeight:600,letterSpacing:.5}}>{(stats.proPlan||"").startsWith("promo-")?"PROMO":"PRO"} · 2x XP · AI Ready · Unlimited Plays{stats.proPlan==="promo-30day"&&stats.proExpiry?` · ${Math.max(0,Math.ceil((stats.proExpiry-Date.now())/86400000))} days left`:""}</span>
+            <span style={{fontSize:10,color:"#f59e0b",fontWeight:600,letterSpacing:.5}}>{(stats.proPlan||"").startsWith("promo-")?"PROMO":"ALL-STAR"} · 2x XP · AI Ready · Unlimited Plays{stats.proPlan==="promo-30day"&&stats.proExpiry?` · ${Math.max(0,Math.ceil((stats.proExpiry-Date.now())/86400000))} days left`:""}</span>
           </div>}
 
           {/* Daily Diamond Play */}
@@ -16057,8 +16068,7 @@ export default function App(){
                 </div>
                 <div style={{flex:1}}>
                   <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:2}}>
-                    <span style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:14,letterSpacing:1,color:done?"#3b82f6":"#60a5fa"}}>SCENARIO OF THE WEEK</span>
-                    <span style={{background:"rgba(59,130,246,.15)",border:"1px solid rgba(59,130,246,.25)",borderRadius:6,padding:"1px 6px",fontSize:9,fontWeight:800,color:"#60a5fa"}}>PRO+</span>
+                    <span style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:14,letterSpacing:1,color:done?"#3b82f6":"#60a5fa"}}>CHALLENGE OF THE WEEK</span>
                   </div>
                   <div style={{fontSize:11,color:done?"#9ca3af":"#d1d5db",lineHeight:1.3}}>
                     {done?"Completed this week! New challenge next Monday."
@@ -16126,18 +16136,18 @@ export default function App(){
             <div onClick={()=>setSpeedFilter([])} style={{flex:"1 1 45%",background:"linear-gradient(135deg,rgba(239,68,68,.08),rgba(220,38,38,.04))",border:"1px solid rgba(239,68,68,.2)",borderRadius:14,padding:"16px 12px",textAlign:"center",cursor:"pointer",minHeight:48}}>
               <div style={{fontSize:22,marginBottom:3}}>⚡</div>
               <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:14,color:"#ef4444",letterSpacing:1}}>SPEED ROUND</div>
-              <div style={{fontSize:10,color:"#9ca3af",marginTop:3}}>5 scenarios · 15s timer</div>
+              <div style={{fontSize:10,color:"#9ca3af",marginTop:3}}>5 challenges · {speedTimerMax}s timer</div>
             </div>
             <div onClick={startSurvival} style={{flex:"1 1 45%",background:"linear-gradient(135deg,rgba(168,85,247,.08),rgba(124,58,237,.04))",border:"1px solid rgba(168,85,247,.2)",borderRadius:14,padding:"16px 12px",textAlign:"center",cursor:"pointer",minHeight:48}}>
               <div style={{fontSize:22,marginBottom:3}}>💀</div>
               <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:14,color:"#a855f7",letterSpacing:1}}>SURVIVAL</div>
               <div style={{fontSize:10,color:"#9ca3af",marginTop:3}}>Until you miss{stats.survivalBest>0?` · Best: ${stats.survivalBest}`:""}</div>
-              <div style={{fontSize:8,color:"#9ca3af",marginTop:2}}>1-3 Rookie · 4-6 Pro · 7+ All-Star</div>
+              <div style={{fontSize:8,color:"#9ca3af",marginTop:2}}>1-3 Rookie · 4-6 Varsity · 7+ All-Star</div>
             </div>
             <div onClick={startChallengePack} style={{flex:"1 1 100%",background:"linear-gradient(135deg,rgba(59,130,246,.08),rgba(37,99,235,.04))",border:"1px solid rgba(59,130,246,.2)",borderRadius:14,padding:"14px 12px",textAlign:"center",cursor:"pointer",minHeight:48}}>
               <div style={{fontSize:22,marginBottom:3}}>⚔️</div>
               <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:14,color:"#3b82f6",letterSpacing:1}}>CHALLENGE A FRIEND</div>
-              <div style={{fontSize:10,color:"#9ca3af",marginTop:3}}>Play 5 scenarios · Share link · Compare scores</div>
+              <div style={{fontSize:10,color:"#9ca3af",marginTop:3}}>Play 5 challenges · Share link · Compare scores</div>
             </div>
             {(()=>{const rank=getSitRank(stats.sitMastery);return(
             <div onClick={()=>{setScreen("sitPicker")}} style={{flex:"1 1 100%",background:"linear-gradient(135deg,rgba(16,185,129,.08),rgba(5,150,105,.04))",border:"1px solid rgba(16,185,129,.2)",borderRadius:14,padding:"14px 12px",textAlign:"center",cursor:"pointer",minHeight:48}}>
@@ -16149,7 +16159,7 @@ export default function App(){
               <div style={{fontSize:22,marginBottom:3}}>⚾</div>
               <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:14,color:stats.isPro?"#f59e0b":"#6b7280",letterSpacing:1}}>REAL GAME</div>
               <div style={{fontSize:10,color:"#9ca3af",marginTop:3}}>9 innings · Score tracking · AI-powered</div>
-              {!stats.isPro&&<div style={{position:"absolute",top:6,right:8,fontSize:8,background:"rgba(245,158,11,.15)",color:"#f59e0b",padding:"1px 6px",borderRadius:8,fontWeight:700}}>PRO</div>}
+              {!stats.isPro&&<div style={{position:"absolute",top:6,right:8,fontSize:8,background:"rgba(245,158,11,.15)",color:"#f59e0b",padding:"1px 6px",borderRadius:8,fontWeight:700}}>ALL-STAR</div>}
             </div>
           </div>}
 
@@ -16217,9 +16227,9 @@ export default function App(){
                       <div style={{fontSize:8,color:"rgba(255,255,255,.35)",marginTop:2}}>{SCENARIOS[p]?.length||0} challenges</div>
                       {ps&&ps.p>0&&<div style={{fontSize:8,color:"rgba(255,255,255,.6)",marginTop:1}}>{ps.p>=5?`${a}% · `:""}{ps.p} played</div>}
                       {/* Phase 4.2: Concept mastery bar per position */}
-                      {ps&&ps.p>=3&&(()=>{const posScenarios=SCENARIOS[p]||[];const posConcepts=[...new Set(posScenarios.map(s=>s.conceptTag||findConceptTag(s.concept)).filter(Boolean))];const masteredCount=posConcepts.filter(c=>stats.masteryData?.concepts?.[c]?.state==="mastered").length;const total=posConcepts.length;if(total===0)return null;const pct=Math.round((masteredCount/total)*100);return <div style={{marginTop:3}}>
-                        <div style={{height:3,background:"rgba(255,255,255,.06)",borderRadius:2,overflow:"hidden"}}><div style={{height:"100%",width:`${pct}%`,background:pct>=100?"#22c55e":pct>=50?"#3b82f6":"#f59e0b",borderRadius:2,transition:"width .3s"}}/></div>
-                        <div style={{fontSize:7,color:"rgba(255,255,255,.4)",marginTop:1}}>{masteredCount}/{total} concepts</div>
+                      {ps&&ps.p>=3&&(()=>{const posScenarios=SCENARIOS[p]||[];const posConcepts=[...new Set(posScenarios.map(s=>s.conceptTag||findConceptTag(s.concept)).filter(Boolean))];const md=stats.masteryData?.concepts||{};const seenCount=posConcepts.filter(c=>md[c]).length;const masteredCount=posConcepts.filter(c=>md[c]?.state==="mastered").length;const total=posConcepts.length;if(total===0)return null;const pct=Math.max(Math.round((seenCount/total)*100),masteredCount>0?Math.round((masteredCount/total)*100):0);return <div style={{marginTop:3}}>
+                        <div style={{height:3,background:"rgba(255,255,255,.06)",borderRadius:2,overflow:"hidden"}}><div style={{height:"100%",width:`${Math.max(pct,5)}%`,background:masteredCount>=total?"#22c55e":masteredCount>0?"#3b82f6":"#f59e0b",borderRadius:2,transition:"width .3s"}}/></div>
+                        <div style={{fontSize:7,color:"rgba(255,255,255,.4)",marginTop:1}}>{seenCount}/{total} concepts seen{masteredCount>0?` · ${masteredCount} mastered`:""}</div>
                       </div>})()}
                       {(()=>{const seen=(hist[p]||[]);const total=(SCENARIOS[p]||[]).length;if(seen.length>=total&&total>0)return<div style={{fontSize:7,color:"#22c55e",fontWeight:700,marginTop:1}}>All {total} mastered{!stats.isPro?" · Get All-Star for AI":""}</div>;return null})()}
                     </div>
@@ -17357,6 +17367,8 @@ export default function App(){
 
         {/* SPEED ROUND RESULTS */}
         {screen==="speedResults"&&speedRound&&(()=>{
+          // BUG-08: Show deferred level-up after Speed Round ends
+          if(pendingLvlUpRef.current){const pl=pendingLvlUpRef.current;pendingLvlUpRef.current=null;setTimeout(()=>{setLvlUp(pl);snd.play('lvl')},800)}
           const r=speedRound.results;
           const correct=r.filter(x=>x.isOpt).length;
           const totalPts=r.reduce((s,x)=>s+x.pts,0);
