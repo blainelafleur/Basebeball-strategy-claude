@@ -4976,6 +4976,21 @@ const FREE_JERSEYS = 2;
 const FREE_CAPS = 2;
 const FREE_BATS = 1;
 const POS_SUGGESTIONS = {pitcher:"catcher",catcher:"pitcher",firstBase:"secondBase",secondBase:"shortstop",shortstop:"secondBase",thirdBase:"firstBase",leftField:"centerField",centerField:"rightField",rightField:"leftField",batter:"baserunner",baserunner:"batter",manager:"pitcher"};
+// Curated placement scenarios — hand-picked for diagnostic quality, short reads, clear best answers, diverse concepts
+const PLACEMENT_POOL={
+  pitcher:{diff1:["p2","p13","p25","p65","p_ba1"],diff2:["p6","p40","p59","p64"],diff3:["p9","p21","p43","p56"]},
+  catcher:{diff1:["ct2","ct5","ct6","ct31"],diff2:["ct1","ct3","ct12","ct27"],diff3:["ct7","ct9","ct16","ct32"]},
+  firstBase:{diff1:["f5","1b1","1b3","1b17"],diff2:["1b2","1b_new1","1b13","1b_new3"],diff3:["f21","1b4","1b12","f32"]},
+  secondBase:{diff1:["f1","f14","2b3","f60"],diff2:["f12","2b5","2b10","2b_new1"],diff3:["f20","2b7","2b14","2b_new5"]},
+  shortstop:{diff1:["f13","ss2","ss4","f48"],diff2:["f16","ss1","ss3","ss_new1"],diff3:["f61","ss6","ss8","ss_new5"]},
+  thirdBase:{diff1:["3b1","3b5","3b7","3b_new6"],diff2:["3b2","3b11","3b14","3b_new4"],diff3:["3b6","3b8","3b13","3b_new3"]},
+  leftField:{diff1:["f9","lf3","lf10","lf23"],diff2:["lf2","lf9","lf18","lf14"],diff3:["lf5","lf8","lf13","lf17"]},
+  centerField:{diff1:["f3","cf9","cf17","cf4"],diff2:["cf5","cf14","f27","cf10"],diff3:["f10","cf13","cf6","cf7"]},
+  rightField:{diff1:["rf3","rf6","rf2","f55"],diff2:["f7","rf1","rf7","f26"],diff3:["rf8","rf14","rf16","f58"]},
+  batter:{diff1:["b1","b13","b25","b5"],diff2:["b4","b9","b2","b37","b_pr1"],diff3:["b12","b21","b32","b49"]},
+  baserunner:{diff1:["r1","r2","r12","r44","r11"],diff2:["r9","r16","r36","r48"],diff3:["r5","r20","r51","r22"]},
+  manager:{diff1:["m4","m13","m58","m12","m33"],diff2:["m1","m6","m37","m_wp1"],diff3:["m9","m21","m31","m38"]}
+};
 const STORAGE_KEY = "bsm_v5";
 // Phase 4.4: Kid-friendly concept display names for ages 6-10
 const CONCEPT_KIDS={"situational-hitting":"Smart Hitting","cutoff-roles":"Teamwork Throws","force-vs-tag":"Outs & Tags","fly-ball-priority":"Who Catches It","backup-duties":"Backing Up","rundown-mechanics":"Rundowns","tag-up":"Tag Up","first-pitch-strike":"First Pitch","wild-pitch-coverage":"Wild Pitch","steal-breakeven":"Smart Stealing","count-leverage":"Using the Count","bunt-re24":"Bunting","double-play-turn":"Double Plays","two-strike-approach":"Two Strikes","infield-fly":"Infield Fly","secondary-lead":"Base Leading","of-communication":"Outfield Calls","catcher-framing":"Framing","pickoff-mechanics":"Pickoffs","dropped-third-strike":"Dropped Third Strike","pitch-sequencing":"Pitch Calling","catcher-leadership":"Being a Leader","steal-window":"Steal Timing","bunt-defense":"Bunt Defense","hit-and-run":"Hit and Run","squeeze-play":"Squeeze Play","relay-double-cut":"Relay Throws","first-third":"First & Third","obstruction-interference":"Rules Knowledge","dp-positioning":"Fielding Position","pre-pitch-routine":"Getting Ready","team-communication":"Talking on Defense","pitch-count-mgmt":"Pitch Counts","ibb-strategy":"Intentional Walks","squeeze-recognition":"Reading the Squeeze","mound-composure":"Staying Calm","defensive-substitution":"Substitutions","of-wall-play":"Wall Play","line-guarding":"Guarding the Line","platoon-advantage":"Matchups","times-through-order":"Batting Order","win-probability":"Game Smarts","leverage-index":"Big Moments","pitch-type-value":"Pitch Types","eye-level-change":"Eye Level","pitch-clock-strategy":"Pitch Clock","balk-rule":"Balks"};
@@ -14279,10 +14294,17 @@ export default function App(){
     const hasPlayed=(stats.ps[p]?.p||0)>0;
     const hasPlacement=(stats.placementDiff||{})[p];
     if(isPlacementAge&&!hasPlayed&&!hasPlacement&&!forceAI&&!placementMode){
+      // Use curated PLACEMENT_POOL with randomization for diagnostic quality
       const raw=SCENARIOS[p]||[];
-      const d1=raw.filter(s=>s.diff===1).slice(0,2);
-      const d2=raw.filter(s=>s.diff===2).slice(0,2);
-      const d3=raw.filter(s=>s.diff===3).slice(0,1);
+      const pool=PLACEMENT_POOL[p];
+      const pickRandom=(ids,n)=>{
+        const available=ids.map(id=>raw.find(s=>s.id===id)).filter(Boolean);
+        const shuffled=[...available].sort(()=>Math.random()-0.5);
+        return shuffled.slice(0,n);
+      };
+      const d1=pool?pickRandom(pool.diff1,2):raw.filter(s=>s.diff===1).sort(()=>Math.random()-0.5).slice(0,2);
+      const d2=pool?pickRandom(pool.diff2,2):raw.filter(s=>s.diff===2).sort(()=>Math.random()-0.5).slice(0,2);
+      const d3=pool?pickRandom(pool.diff3,1):raw.filter(s=>s.diff===3).sort(()=>Math.random()-0.5).slice(0,1);
       const placementSc=[...d1,...d2,...d3].slice(0,5);
       if(placementSc.length>=3){
         snd.play('tap');setPos(p);setPlacementMode(true);
