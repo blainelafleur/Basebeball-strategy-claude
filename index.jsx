@@ -288,7 +288,7 @@ const SCENARIOS = {
     {id:"p45", conceptTag:"pickoff-mechanics",title:"Known Base Stealer — Adjust Timing",diff:1,cat:"baserunners",ageMin:6,ageMax:99,
       description:"Bot 5th, the fastest runner in the league is on 1st, 1 out. He steals 80% of the time. Your catcher has an average arm. Count is 1-0.",
       situation:{inning:"Bot 5",outs:1,count:"1-0",runners:[1],score:[3,2]},
-      options:["Throw over to first three times before pitching","Vary your timing — hold the ball different amounts","Quick-pitch every time","Ignore him — you can't stop speed"],
+      options:["Throw over to first three times before pitching","Vary your timing — hold the ball different amounts","Quick-pitch every time","Mix in quick-pitch deliveries to disrupt his timing"],
       best:1,explanations:["Three pickoff attempts in a row frustrates everyone and still doesn't solve the problem if he's fast enough.","Base stealers time your delivery. They count seconds: 'one-Mississippi, two-Mississippi, throw.' If you vary your hold time — sometimes 1 second, sometimes 3 seconds, sometimes 2.5 — they can't get a good jump because they can't predict when you'll pitch. This is the best weapon against speedsters.","Quick-pitching every time becomes predictable — the runner adjusts.","Giving up means he steals easily. You can disrupt his timing even if you can't stop him completely."],
       rates:[30,85,25,10],concept:"Against base stealers, vary your hold time — unpredictable timing ruins their jump",explSimple:["Not the best move. Three pickoff attempts in a row frustrates everyone and still doesn't solve the problem.","Great choice! base stealers time your delivery.","Not the best move. Quick-pitching every time becomes predictable — the runner adjusts.","Not the best move. Giving up means he steals easily."], anim:"strike"},
     {id:"p46", conceptTag:"pickoff-mechanics",title:"Runner on Second — Big Secondary Lead",diff:2,cat:"baserunners",ageMin:9,ageMax:99,
@@ -679,9 +679,9 @@ const SCENARIOS = {
     {id:"b24", conceptTag:"count-leverage",title:"The 3-0 Take",diff:1,cat:"counts",ageMin:6,ageMax:99,
       description:"Bot 3rd, nobody on, 1 out, score is 2-1. Count is 3-0. The pitcher has been wild — you haven't swung once this at-bat.",
       situation:{inning:"Bot 3",outs:1,count:"3-0",runners:[],score:[2,1]},
-      options:["Take the pitch — a walk is almost guaranteed","Swing if it's a fastball down the middle","Swing hard — he has to throw a strike","Bunt for a surprise hit"],
-      best:0,explanations:["At 3-0, the pitcher must throw a strike or walk you, since the best play for most hitters is to take the pitch. If it's a ball, you walk. If it's a strike, you're still ahead 3-1 — the best hitter's count in baseball.","Only elite hitters with the coach's green light should swing 3-0, because for most young players, taking is the smart play.","Swinging hard at 3-0 is selfish — you're one ball away from a free base. Don't bail the pitcher out.","Bunting on 3-0 when you're about to walk is the worst play in baseball, which means let the pitcher beat himself."],
-      rates:[85,45,20,5],concept:"At 3-0, take the pitch — a walk is almost certain and you're ahead no matter what",explSimple:["Great choice! at 3-0, the pitcher must throw a strike or walk you.","Not the best move. Only elite hitters with the coach's green light should swing 3-0.","Not the best move. Swinging hard at 3-0 is selfish.","Not the best move. Bunting on 3-0 when you're about to walk is the worst play in baseball."], anim:"walk"},
+      options:["Take the pitch — a walk is almost guaranteed","Swing if it's a fastball down the middle","Swing hard — he has to throw a strike","Foul one off to get your timing down"],
+      best:0,explanations:["At 3-0, the pitcher must throw a strike or walk you, since the best play for most hitters is to take the pitch. If it's a ball, you walk. If it's a strike, you're still ahead 3-1 — the best hitter's count in baseball.","Only elite hitters with the coach's green light should swing 3-0, because for most young players, taking is the smart play.","Swinging hard at 3-0 is selfish — you're one ball away from a free base. Don't bail the pitcher out.","Intentionally fouling a pitch on 3-0 wastes a free base opportunity — the walk is more valuable than getting comfortable."],
+      rates:[85,45,20,10],concept:"At 3-0, take the pitch — a walk is almost certain and you're ahead no matter what",explSimple:["Great choice! At 3-0, the pitcher must throw a strike or walk you.","Not the best move. Only elite hitters with the coach's green light should swing 3-0.","Not the best move. Swinging hard at 3-0 is selfish.","Not the best move. Fouling a pitch on 3-0 wastes a free base opportunity."], anim:"walk"},
     {id:"b25", conceptTag:"two-strike-approach",title:"Behind 0-2 — Survival Mode",diff:1,cat:"counts",ageMin:6,ageMax:99,
       description:"Top of the 4th, nobody on, 0 outs. The pitcher just threw two perfect strikes and you're behind 0-2. He's got a nasty slider.",
       situation:{inning:"Top 4",outs:0,count:"0-2",runners:[],score:[1,1]},
@@ -838,7 +838,7 @@ const SCENARIOS = {
     {id:"b50", conceptTag:"situational-hitting",title:"Winning Big — Still Compete",diff:1,cat:"approach",ageMin:6,ageMax:99,
       description:"Top of the 7th, your team is crushing it — up 10-2. You're at the plate with nobody on, 2 outs. Do you change your approach?",
       situation:{inning:"Top 7",outs:2,count:"0-0",runners:[],score:[2,10]},
-      options:["Swing normally — compete every at-bat","Swing for the fences — might as well go big","Take every pitch — end the game faster","Bunt for fun"],
+      options:["Swing normally — compete every at-bat","Swing for the fences — might as well go big","Take every pitch — end the game faster","Bunt for a hit — take advantage of relaxed fielders"],
       best:0,explanations:["Compete every at-bat the same way regardless of the score, because don't showboat (swinging for homers in a blowout is disrespectful), but don't stop trying either. Swing at good pitches, take bad ones. Play the game the right way.","Swinging for the fences in a blowout is considered showing up the other team — it's bad sportsmanship.","Deliberately making outs disrespects the game and your own teammates, which means always compete.","Bunting in a blowout to mess around is unsportsmanlike, because you think about what gives your team the best result here."],
       rates:[90,25,40,15],concept:"Compete the same way in every at-bat — don't showboat in a blowout or give up in a loss",explSimple:["Great choice! compete every at-bat the same way regardless of the score.","Not the best move. Swinging for the fences in a blowout is considered showing up the other team.","Not the best move. Deliberately making outs disrespects the game and your own teammates.","Not the best move. Bunting in a blowout to mess around is unsportsmanlike."], anim:"hit"},
     {id:"b51", conceptTag:"count-leverage",title:"First At-Bat — Gather Intel",diff:1,cat:"approach",ageMin:6,ageMax:99,
@@ -850,7 +850,7 @@ const SCENARIOS = {
     {id:"b52", conceptTag:"two-strike-approach",title:"In a Slump — What to Adjust",diff:2,cat:"adjustments",ageMin:9,ageMax:99,
       description:"Bot 6th, you're 0-for-your-last-12 over three games and your confidence is low. Runner on 1st, 1 out. The count runs to 1-2. You've been popping up and grounding out weakly all week. How do you adjust your approach with two strikes during this slump?",
       situation:{inning:"Bot 6",outs:1,count:"1-2",runners:[1],score:[2,2]},
-      options:["Swing harder to force your way out of the slump — rip the next pitch","Shorten up and look for one pitch in one zone — just put the ball in play","Change everything — new stance, new grip, choke up six inches","Expand your zone and swing at anything close since you're behind in the count"],
+      options:["Swing harder to force your way out of the slump — rip the next pitch","Shorten up and look for one pitch in one zone — just put the ball in play","Go back to basics — take a few pitches and reset your timing","Expand your zone and swing at anything close since you're behind in the count"],
       best:1,explanations:["Swinging harder with two strikes during a slump makes things worse, because you get tense, your swing gets longer, and you chase more pitches out of the zone. Since you're already struggling with weak contact, adding effort creates more pop-ups and strikeouts.","With two strikes during a slump, you shorten your swing and simplify your plan. Pick one zone — like middle-away — and just put the ball in play, because shorter swings make better contact and reduce strikeouts. Since your confidence is low, a line drive single rebuilds your feel at the plate, which is worth more than swinging for the fences.","Changing everything with two strikes creates confusion, because your muscle memory can't adjust mid-at-bat. Since your mechanics got you to this level, the fix is narrowing your focus — not rebuilding your entire swing with two strikes on you.","Expanding your zone with two strikes is a common mistake, because you swinging at bad pitches leads to even weaker contact. Since pitchers are trying to get you to chase with two strikes, having discipline to only swing at your pitch gives you a much better chance of making solid contact."],
       rates:[15,85,10,40],concept:"With two strikes during a slump, shorten up and simplify — pick one pitch in one zone and put the ball in play to rebuild confidence.",explSimple:["Swinging harder with two strikes during a slump makes things worse.","Shorten your swing and simplify — pick one zone and put the ball in play.","Changing everything with two strikes creates confusion.","Expanding your zone with two strikes means swinging at bad pitches."],anim:"hit"},
     {id:"b53", conceptTag:"situational-hitting",title:"Pitcher Hit Your Teammate — Stay Focused",diff:2,cat:"approach",ageMin:9,ageMax:99,
@@ -1168,7 +1168,7 @@ const SCENARIOS = {
     {id:"f13", conceptTag:"double-play-turn",title:"Ground Ball to Short — Runner on First",diff:1,cat:"infield",ageMin:6,ageMax:99,
       description:"Top of the 3rd, runner on 1st, nobody out. You're at shortstop. Ground ball hit right at you. The runner isn't very fast.",
       situation:{inning:"Top 3",outs:0,count:"0-0",runners:[1],score:[2,1]},
-      options:["Throw to second to start the double play","Throw to first for one out","Tag the runner yourself","Flip to the pitcher on the mound"],
+      options:["Throw to second to start the double play","Throw to first for one out","Tag the runner yourself","Throw to first for the sure out if the DP isn't there"],
       best:0,explanations:["With a runner on first and nobody out, the double play is the best outcome, since you flip to second base, the middle infielder turns it, and you get two outs on one play. That's how you get out of innings fast!","Throwing to first gets one out but advances the runner to second — now he's in scoring position, because the double play clears the bases.","Tagging the runner as a shortstop would require chasing him — throw to second for the force.","Flipping to the pitcher on the mound doesn't get an out — he's not standing on a base, which means throw to second base for the double play!"],
       explSimple:["Throw to second base to get the first out, and then your teammate throws to first for the second out. Two outs on one play!","Throwing to first gets one out, but the runner moves to second base where he can score more easily.","You can't chase the runner — just throw to second base for the easy force out.","Don't flip to the pitcher — he's not on a base! Throw to second to start the double play."],
       rates:[85,45,10,15],concept:"With a runner on first and nobody out, the double play is always the first thought",anim:"doubleplay"},
@@ -3434,7 +3434,7 @@ const SCENARIOS = {
     {id:"ct6", conceptTag:"fly-ball-priority",title:"Pop-Up Coverage",diff:1,cat:"defense",ageMin:6,ageMax:99,
       description:"High pop-up near home plate! It's drifting toward the 1st base dugout. Whose ball is it?",
       situation:{inning:"Bot 4",outs:1,count:"0-1",runners:[],score:[1,0]},
-      options:["It's the catcher's ball — rip off your mask and get under it","Let the first baseman take it — he has a better angle","Call for the pitcher to catch it","Wait and see who gets there first"],
+      options:["It's the catcher's ball — rip off your mask and get under it","Let the first baseman take it — he has a better angle","Let the third baseman take it — he's closer","Wait and see who gets there first"],
       best:0,explanations:["That's your ball! Toss your mask AWAY from the play, turn your back to the field, and track the spin, because you catchers own all pop-ups near home.","The first baseman would be running away from the ball — you're already facing the right direction.","Pitchers rarely catch pop-ups, which means this is the catcher's domain.","Waiting causes collisions and dropped balls, because someone has to take charge — and that's you."],
       rates:[85,35,15,20],concept:"Catchers own pop-ups near home — toss mask away, turn to the infield, and take charge",explSimple:["Great choice! that's your ball! Toss your mask AWAY from the play, turn your back to.","Not the best move. The first baseman would be running away from the ball.","Not the best move. Pitchers rarely catch pop-ups.","Not the best move. Waiting causes collisions and dropped balls."], anim:"catch"},
     {id:"ct7", conceptTag:"bunt-defense",title:"Squeeze Play Defense",diff:3,cat:"defense",ageMin:12,ageMax:99,
@@ -13662,7 +13662,9 @@ export default function App(){
   const[timerActive,setTimerActive]=useState(false);
   const[timerGo,setTimerGo]=useState(false);
   const timerRef=useRef(null);
-  // fielderTrack removed — positions are now split into 9 individual defensive positions
+  // Phase 2.2: Placement test state
+  const[placementMode,setPlacementMode]=useState(false);
+  const[placementData,setPlacementData]=useState(null); // {pos, scenarios:[], round:0, correct:0}
   // Survival Mode state
   const[survivalMode,setSurvivalMode]=useState(false);
   const[survivalRun,setSurvivalRun]=useState(null); // {count,pts,concepts[]}
@@ -14207,9 +14209,14 @@ export default function App(){
     let effMaxDiff=maxDiff;
     if(stats.ageGroup==="6-8"&&(stats.posGrad||{})[p])effMaxDiff=Math.max(effMaxDiff,2);
     const pool=raw.filter(s=>s.diff<=effMaxDiff);const fallback=raw;
+    // Phase 2.2: If placed, prefer scenarios at placed difficulty or higher
+    const placedDiff=(stats.placementDiff||{})[p];
+    const placedPool=placedDiff>1?pool.filter(s=>s.diff>=placedDiff):null;
     // Prerequisite filter: only show scenarios whose concepts the player is ready for
     const masteredTags=(stats.cl||[]).map(c=>findConceptTag(c)).filter(Boolean);
-    const ready=filterByReadiness(pool,masteredTags,stats.ageGroup);
+    // Phase 2.2: If placed at diff 2+, skip prerequisite filter (player proved their level)
+    const basePool=placedPool&&placedPool.length>3?placedPool:pool;
+    const ready=placedDiff>1?basePool:filterByReadiness(basePool,masteredTags,stats.ageGroup);
     const src=ready.length>0?ready:pool.length>0?pool:fallback;const seen=hist[p]||[];
     const unseen=src.filter(s=>!seen.includes(s.id));
     const eligible=src.filter(s=>s.id!==lastScId);
@@ -14263,6 +14270,25 @@ export default function App(){
   const startGame=useCallback(async(p,forceAI=false)=>{
     if(aiLoading)return;
     if(atLimit){setPanel('limit');return;}
+    // Phase 2.2: Placement test for 11+ on first play of a position
+    const isPlacementAge=!["6-8","9-10"].includes(stats.ageGroup);
+    const hasPlayed=(stats.ps[p]?.p||0)>0;
+    const hasPlacement=(stats.placementDiff||{})[p];
+    if(isPlacementAge&&!hasPlayed&&!hasPlacement&&!forceAI&&!placementMode){
+      const raw=SCENARIOS[p]||[];
+      const d1=raw.filter(s=>s.diff===1).slice(0,2);
+      const d2=raw.filter(s=>s.diff===2).slice(0,2);
+      const d3=raw.filter(s=>s.diff===3).slice(0,1);
+      const placementSc=[...d1,...d2,...d3].slice(0,5);
+      if(placementSc.length>=3){
+        snd.play('tap');setPos(p);setPlacementMode(true);
+        setPlacementData({pos:p,scenarios:placementSc,round:0,correct:0});
+        setChoice(null);setOd(null);setRi(-1);setFo(null);setShowC(false);
+        setSc(placementSc[0]);setScreen("play");
+        placementSc[0].options.forEach((_,i)=>{setTimeout(()=>setRi(i),120+i*80);});
+        return;
+      }
+    }
     cancelPrefetchExcept(p, aiCacheRef) // Cancel stale prefetches for other positions
     snd.play('tap');setPos(p);setChoice(null);setOd(null);setRi(-1);setFo(null);setShowC(false);setLvlUp(null);setShowExp(true);setDailyMode(false);setAiFallback(false);setAiFallbackBanner(false);setWrongStreak(0);
 
@@ -14667,7 +14693,36 @@ export default function App(){
   },[snd]);
 
   const handleChoice=useCallback((idx)=>{
-    if(choice!==null||!sc)return;setChoice(idx);
+    if(choice!==null||!sc)return;
+    // Phase 2.2: Placement test — quick answer, no explanation, auto-advance
+    if(placementMode&&placementData){
+      setChoice(idx);
+      const isOpt=idx===sc.best;
+      const newCorrect=placementData.correct+(isOpt?1:0);
+      const nextRound=placementData.round+1;
+      snd.play(isOpt?'correct':'wrong');
+      setAk(k=>k+1);setFo(isOpt?"success":"danger");
+      if(nextRound>=placementData.scenarios.length){
+        // Placement complete — assign difficulty
+        const placedDiff=newCorrect<=1?1:newCorrect<=3?2:3;
+        setStats(p=>({...p,placementDiff:{...(p.placementDiff||{}),[placementData.pos]:placedDiff}}));
+        setPlacementMode(false);setPlacementData(null);
+        const label=placedDiff===1?"Rookie":placedDiff===2?"Pro":"All-Star";
+        setTimeout(()=>{setToast({e:"📊",n:"Placement: "+label+"!",d:newCorrect+"/"+placementData.scenarios.length+" correct — starting at "+label+" difficulty"});setTimeout(()=>setToast(null),4000)},400);
+        // Start real game at placed difficulty
+        setTimeout(()=>{startGame(placementData.pos)},800);
+      }else{
+        // Next placement question — brief flash then advance
+        setTimeout(()=>{
+          const nextSc=placementData.scenarios[nextRound];
+          setPlacementData(d=>({...d,round:nextRound,correct:newCorrect}));
+          setSc(nextSc);setChoice(null);setOd(null);setRi(-1);setFo(null);
+          nextSc.options.forEach((_,i)=>{setTimeout(()=>setRi(i),80+i*60);});
+        },600);
+      }
+      return;
+    }
+    setChoice(idx);
     const conceptTagForEffectiveness = sc.conceptTag || findConceptTag(sc.concept);
     const isOpt=idx===sc.best;const rate=sc.rates[idx];const cat=isOpt?"success":rate>=55?"warning":"danger";
     // Report pool scenario feedback
@@ -15378,7 +15433,6 @@ export default function App(){
               <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:22,color:"#f59e0b",letterSpacing:1,marginBottom:8}}>Welcome!</div>
               <p style={{fontSize:13,color:"#d1d5db",lineHeight:1.6,marginBottom:16}}>Green = great play, Yellow = okay, Red = needs work. Every answer teaches you real baseball strategy!</p>
               <button onClick={()=>setStats(p=>({...p,tutorialDone:true}))} style={{...btn("linear-gradient(135deg,#d97706,#f59e0b)"),...{fontSize:13,padding:"10px 28px"}}}>Got it!</button>
-            </div>
             </div>
           </div>}
           {masteryPos&&<div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,.85)",zIndex:9998,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
@@ -16451,6 +16505,7 @@ export default function App(){
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
             <button onClick={goHome} style={{background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.06)",borderRadius:8,padding:"6px 12px",fontSize:11,color:"#9ca3af",cursor:"pointer",minHeight:32}}>← Back</button>
             <div style={{display:"flex",gap:4,alignItems:"center"}}>
+              {placementMode&&placementData&&<span style={{background:"rgba(34,197,94,.15)",border:"1px solid rgba(34,197,94,.25)",borderRadius:7,padding:"2px 7px",fontSize:9,fontWeight:700,color:"#22c55e"}}>📊 Placement {placementData.round+1}/{placementData.scenarios.length}</span>}
               {survivalMode&&<span style={{background:"rgba(168,85,247,.15)",border:"1px solid rgba(168,85,247,.25)",borderRadius:7,padding:"2px 7px",fontSize:9,fontWeight:700,color:"#a855f7"}}>💀 #{survivalRun?survivalRun.count+1:1}</span>}
 
               {speedMode&&<span style={{background:"rgba(239,68,68,.15)",border:"1px solid rgba(239,68,68,.25)",borderRadius:7,padding:"2px 7px",fontSize:9,fontWeight:700,color:"#ef4444"}}>⚡ {speedRound?speedRound.round+1:1}/5</span>}
