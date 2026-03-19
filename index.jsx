@@ -13682,6 +13682,9 @@ export default function App(){
   const timerRef=useRef(null);
   // BUG-08: Queue level-up during Speed Round
   const pendingLvlUpRef=useRef(null);
+  // Game Film Mode: replay animation on outcome screen
+  const[showReplay,setShowReplay]=useState(false);
+  const[replayKey,setReplayKey]=useState(0);
   // Phase 2.2: Placement test state
   const[placementMode,setPlacementMode]=useState(false);
   const[placementData,setPlacementData]=useState(null); // {pos, scenarios:[], round:0, correct:0}
@@ -14316,7 +14319,7 @@ export default function App(){
       }
     }
     cancelPrefetchExcept(p, aiCacheRef) // Cancel stale prefetches for other positions
-    snd.play('tap');setPos(p);setChoice(null);setOd(null);setRi(-1);setFo(null);setShowC(false);setLvlUp(null);setShowExp(true);setDailyMode(false);setAiFallback(false);setAiFallbackBanner(false);setWrongStreak(0);
+    snd.play('tap');setPos(p);setChoice(null);setOd(null);setRi(-1);setFo(null);setShowC(false);setLvlUp(null);setShowExp(true);setDailyMode(false);setAiFallback(false);setAiFallbackBanner(false);setWrongStreak(0);setShowReplay(false);
 
     const raw=SCENARIOS[p]||[];const pool=raw.filter(s=>s.diff<=maxDiff);const seen=hist[p]||[];
     const src=pool.length>0?pool:raw;
@@ -16720,6 +16723,29 @@ export default function App(){
               {stats.str>1&&od.isOpt&&<span style={{background:"rgba(249,115,22,.08)",color:"#f97316",padding:"2px 10px",borderRadius:14,fontSize:11,fontWeight:800,border:"1px solid rgba(249,115,22,.15)"}}>🔥 {stats.str}</span>}
             </div>
           </div>
+
+          {/* === GAME FILM MODE: Replay the correct play on the SVG field === */}
+          {sc&&sc.anim&&<div style={{marginBottom:10}}>
+            {!showReplay?<button onClick={()=>{setShowReplay(true);setReplayKey(k=>k+1);snd.play('tap')}} style={{width:"100%",background:"linear-gradient(135deg,rgba(59,130,246,.06),rgba(168,85,247,.06))",border:"1.5px solid rgba(59,130,246,.2)",borderRadius:12,padding:"12px 16px",cursor:"pointer",display:"flex",alignItems:"center",gap:10,transition:"all .2s"}}>
+              <div style={{width:36,height:36,borderRadius:10,background:"linear-gradient(135deg,#2563eb,#7c3aed)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0}}>▶</div>
+              <div style={{textAlign:"left"}}>
+                <div style={{fontSize:12,fontWeight:700,color:"#93c5fd"}}>Watch the Play</div>
+                <div style={{fontSize:10,color:"#9ca3af"}}>See the {od.isOpt?"play you called":"correct play"} animated on the field</div>
+              </div>
+            </button>
+            :<div style={{background:"rgba(0,0,0,.3)",border:"1.5px solid rgba(59,130,246,.2)",borderRadius:14,padding:"10px 8px 6px",overflow:"hidden"}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4,padding:"0 4px"}}>
+                <span style={{fontSize:10,fontWeight:700,color:"#93c5fd",textTransform:"uppercase",letterSpacing:1}}>Game Film</span>
+                <div style={{display:"flex",gap:6}}>
+                  <button onClick={()=>{setReplayKey(k=>k+1)}} style={{background:"rgba(59,130,246,.1)",border:"1px solid rgba(59,130,246,.2)",borderRadius:6,padding:"2px 8px",fontSize:9,color:"#60a5fa",cursor:"pointer",fontWeight:700}}>↻ Replay</button>
+                  <button onClick={()=>setShowReplay(false)} style={{background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.06)",borderRadius:6,padding:"2px 8px",fontSize:9,color:"#9ca3af",cursor:"pointer"}}>✕</button>
+                </div>
+              </div>
+              <Field key={`replay-${replayKey}`} runners={sc.situation?.runners||[]} outcome="success" ak={replayKey} anim={sc.anim} theme={FIELD_THEMES.find(th=>th.id===stats.fieldTheme)||FIELD_THEMES[0]} avatar={{j:stats.avatarJersey||0,c:stats.avatarCap||0,b:stats.avatarBat||0}} pos={pos}/>
+              <div style={{marginTop:2}}><Board sit={sc.situation}/></div>
+              <div style={{textAlign:"center",fontSize:9,color:"#6b7280",marginTop:4}}>{od.isOpt?"The play you called — executed perfectly":"The correct play — this is what should happen"}</div>
+            </div>}
+          </div>}
 
           {/* Phase 3.5: Coach line shown inline, not separate box for young players */}
           {(stats.ageGroup!=="6-8"&&stats.ageGroup!=="9-10")&&<Coach mood={od.cat} msg={coachMsg}/>}

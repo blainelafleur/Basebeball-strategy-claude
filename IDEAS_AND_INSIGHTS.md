@@ -78,7 +78,7 @@ Some kids respond to encouragement ("Great job!"), others to analysis ("The data
 
 This is A/B testing at the individual level.
 
-### 8. Game Film Mode
+### 8. Game Film Mode [SHIPPED 2026-03-19]
 **Discovered while:** Thinking about the field visualization being underutilized.
 
 After answering, ANIMATE the correct play on the SVG field in slow motion. Show the runner moving, the ball being thrown, the fielder shifting position. The player sees what the RIGHT answer looks like in motion. This bridges the gap between "knowing the answer" and "seeing the play."
