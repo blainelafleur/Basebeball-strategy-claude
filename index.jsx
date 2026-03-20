@@ -4975,6 +4975,60 @@ const FREE_THEMES = ["default","sunny","retro"];
 const FREE_JERSEYS = 2;
 const FREE_CAPS = 2;
 const FREE_BATS = 1;
+// === SITUATIONAL PATTERN DETECTION (powered by enrichFeedback stored data) ===
+// Analyzes playContextHistory to detect performance patterns by game situation
+function detectSituationalPatterns(history){
+  if(!history||history.length<10)return[];
+  const patterns=[];
+  // Pressure performance: accuracy at high vs low pressure
+  const highP=history.filter(h=>h.pressure>=65);
+  const lowP=history.filter(h=>h.pressure<35);
+  if(highP.length>=5&&lowP.length>=5){
+    const highAcc=highP.filter(h=>h.isOpt).length/highP.length;
+    const lowAcc=lowP.filter(h=>h.isOpt).length/lowP.length;
+    if(lowAcc-highAcc>.25)patterns.push({id:"pressure_choke",label:"Struggles under pressure",detail:`${Math.round(lowAcc*100)}% at low pressure vs ${Math.round(highAcc*100)}% at high pressure`,severity:"high"});
+    if(highAcc>lowAcc+.1&&highAcc>.75)patterns.push({id:"clutch_player",label:"Clutch performer",detail:`${Math.round(highAcc*100)}% accuracy in high-pressure situations`,severity:"positive"});
+  }
+  // Count awareness: hitter's count vs pitcher's count
+  const hitterCount=history.filter(h=>h.countEdge==="hitter");
+  const pitcherCount=history.filter(h=>h.countEdge==="pitcher");
+  if(hitterCount.length>=3&&pitcherCount.length>=3){
+    const hAcc=hitterCount.filter(h=>h.isOpt).length/hitterCount.length;
+    const pAcc=pitcherCount.filter(h=>h.isOpt).length/pitcherCount.length;
+    if(hAcc-pAcc>.3)patterns.push({id:"count_savvy",label:"Count-savvy player",detail:`Better decisions in hitter's counts`,severity:"positive"});
+    if(pAcc-hAcc>.25)patterns.push({id:"count_blind",label:"Count-blind on hitter's counts",detail:`Misses opportunities in favorable counts`,severity:"medium"});
+  }
+  // Late-game performance
+  const late=history.filter(h=>h.inning>=7);
+  const early=history.filter(h=>h.inning<=3);
+  if(late.length>=5&&early.length>=5){
+    const lateAcc=late.filter(h=>h.isOpt).length/late.length;
+    const earlyAcc=early.filter(h=>h.isOpt).length/early.length;
+    if(earlyAcc-lateAcc>.25)patterns.push({id:"late_game_fade",label:"Late-game decision fade",detail:`${Math.round(earlyAcc*100)}% early vs ${Math.round(lateAcc*100)}% in 7th+`,severity:"medium"});
+  }
+  // Runners-on performance (RISP situations)
+  const risp=history.filter(h=>h.runners>=2);
+  const empty=history.filter(h=>h.runners===0);
+  if(risp.length>=5&&empty.length>=5){
+    const rispAcc=risp.filter(h=>h.isOpt).length/risp.length;
+    const emptyAcc=empty.filter(h=>h.isOpt).length/empty.length;
+    if(emptyAcc-rispAcc>.25)patterns.push({id:"risp_panic",label:"Overthinks with runners on",detail:`${Math.round(emptyAcc*100)}% bases empty vs ${Math.round(rispAcc*100)}% with RISP`,severity:"medium"});
+  }
+  return patterns;
+}
+
+// === EASING PRESETS — Named curves for animation clarity ===
+const EASE={
+  runner:"0.4 0 0.2 1",       // Athletic push-off, explosive acceleration
+  throw:"0.15 0.6 0.35 1",    // Smooth delivery arc, fielder-to-base
+  launch:"0.12 0.8 0.3 1",    // Bat contact, fast start with gentle arc
+  gravity:"0.6 0 0.8 0.2",    // Falling/dropping (curveball, fly ball descent)
+  ground:"0.3 0 0.65 1",      // Ground ball roll, decelerating bounce
+  float:"0.4 0 0.6 1",        // Gentle ease, changeup or slow trot
+  flyArc:"0.2 0.7 0.4 1",     // Fly ball parabolic arc, high to outfield
+  pulse:"0.25 0.1 0.25 1",    // UI pulse, outcome ring expansion
+};
+
 // === AF1: ANIMATION-AS-DATA — Structured animation definitions ===
 // Each animation is an array of phases. A generic renderer converts these to SVG+SMIL.
 // Phase types: dust, ball, trail, runner, flash, text, line
@@ -4984,122 +5038,122 @@ const ANIM_DATA={
     {type:"dust",cx:290,cy:212,r:6,dur:.3,begin:0,color:"#c4a882"},
     {type:"dust",cx:293,cy:210,r:4,dur:.25,begin:.05,color:"#c4a882"},
     {type:"dust",cx:287,cy:213,r:5,dur:.28,begin:.03,color:"#c4a882"},
-    {type:"runner",path:"M290,210 Q248,170 200,135",dur:.55,begin:.08,easing:"0.4 0 0.2 1"},
-    {type:"ball",path:"M200,288 Q210,210 200,138",dur:.4,begin:.25,color:"white",r:2,easing:"0.15 0.6 0.35 1",opacity:.8},
+    {type:"runner",path:"M290,210 Q248,170 200,135",dur:.55,begin:.08,easing:EASE.runner},
+    {type:"ball",path:"M200,288 Q210,210 200,138",dur:.4,begin:.25,color:"white",r:2,easing:EASE.throw,opacity:.8},
     {type:"dust",cx:200,cy:137,r:7,dur:.3,begin:.55,color:"#c4a882"},
     {type:"dust",cx:203,cy:135,r:5,dur:.25,begin:.58,color:"#c4a882"},
     {type:"text",x:200,y:120,text:"SAFE!",size:12,color:"#22c55e",dur:1.3,begin:0},
   ],
   score_success:[
     {type:"dust",cx:112,cy:212,r:5,dur:.3,begin:0,color:"#c4a882"},
-    {type:"runner",path:"M110,210 Q160,252 200,290",dur:.5,begin:.05,easing:"0.4 0 0.2 1"},
+    {type:"runner",path:"M110,210 Q160,252 200,290",dur:.5,begin:.05,easing:EASE.runner},
     {type:"dust",cx:200,cy:292,r:7,dur:.3,begin:.5,color:"#c4a882"},
     {type:"text",x:200,y:265,text:"SAFE!",size:14,color:"#22c55e",dur:1.3,begin:0},
   ],
   hit_success:[
     {type:"flash",cx:200,cy:288,r:8,dur:.1,begin:0,color:"rgba(255,255,255,.9)"},
-    {type:"trail",path:"M200,290 Q252,178 306,75",dur:.45,begin:.04,color:"#f59e0b",r:2,easing:"0.12 0.8 0.3 1"},
-    {type:"ball",path:"M200,290 Q252,178 306,75",dur:.45,begin:0,color:"#f59e0b",r:3,easing:"0.12 0.8 0.3 1",glow:true},
+    {type:"trail",path:"M200,290 Q252,178 306,75",dur:.45,begin:.04,color:"#f59e0b",r:2,easing:EASE.launch},
+    {type:"ball",path:"M200,290 Q252,178 306,75",dur:.45,begin:0,color:"#f59e0b",r:3,easing:EASE.launch,glow:true},
     {type:"dust",cx:202,cy:292,r:5,dur:.3,begin:.1,color:"#c4a882"},
     {type:"dust",cx:198,cy:291,r:3.5,dur:.25,begin:.13,color:"#c4a882"},
-    {type:"runner",path:"M200,290 Q248,252 290,210",dur:.6,begin:.15,easing:"0.4 0 0.2 1"},
+    {type:"runner",path:"M200,290 Q248,252 290,210",dur:.6,begin:.15,easing:EASE.runner},
     {type:"text",x:265,y:112,text:"BASE HIT",size:10,color:"#f59e0b",dur:1.3,begin:0},
   ],
   doubleplay_success:[
     {type:"flash",cx:200,cy:288,r:5,dur:.08,begin:0,color:"rgba(255,255,255,.6)"},
-    {type:"ball",path:"M240,258 Q240,200 200,135",dur:.25,begin:0,color:"#22c55e",r:3,easing:"0.15 0.6 0.35 1",glow:true},
+    {type:"ball",path:"M240,258 Q240,200 200,135",dur:.25,begin:0,color:"#22c55e",r:3,easing:EASE.throw,glow:true},
     {type:"flash",cx:200,cy:135,r:8,dur:.1,begin:.24,color:"rgba(34,197,94,.4)"},
-    {type:"ball",path:"M200,135 Q248,170 290,210",dur:.25,begin:.28,color:"#22c55e",r:3,easing:"0.15 0.6 0.35 1",glow:true},
+    {type:"ball",path:"M200,135 Q248,170 290,210",dur:.25,begin:.28,color:"#22c55e",r:3,easing:EASE.throw,glow:true},
     {type:"flash",cx:290,cy:210,r:8,dur:.1,begin:.52,color:"rgba(34,197,94,.4)"},
     {type:"text",x:200,y:175,text:"DOUBLE PLAY!",size:10,color:"#22c55e",dur:1.1,begin:0},
   ],
   strike_success:[
     {type:"flash",cx:200,cy:216,r:5,dur:.1,begin:0,color:"rgba(255,255,255,.5)"},
-    {type:"trail",path:"M200,218 L200,288",dur:.4,begin:.02,color:"white",r:1.5,easing:"0.15 0.6 0.35 1"},
-    {type:"ball",path:"M200,218 L200,288",dur:.4,begin:0,color:"white",r:2.5,easing:"0.15 0.6 0.35 1"},
+    {type:"trail",path:"M200,218 L200,288",dur:.4,begin:.02,color:"white",r:1.5,easing:EASE.throw},
+    {type:"ball",path:"M200,218 L200,288",dur:.4,begin:0,color:"white",r:2.5,easing:EASE.throw},
     {type:"flash",cx:200,cy:290,r:6,dur:.08,begin:.38,color:"rgba(255,200,50,.7)"},
     {type:"text",x:212,y:282,text:"POP!",size:7,color:"rgba(255,200,50,.8)",dur:.4,begin:.38},
     {type:"text",x:200,y:263,text:"STRIKE!",size:10,color:"#f59e0b",dur:1.6,begin:0},
   ],
   // AF2: Ghost failure animations — transparent overlay showing what goes wrong
   steal_fail:[
-    {type:"runner",path:"M290,210 Q265,190 248,178",dur:.4,begin:.08,easing:"0.4 0 0.2 1",o:0.3},
-    {type:"ball",path:"M200,288 Q210,200 200,140",dur:.3,begin:.1,color:"#ef4444",r:2.5,easing:"0.15 0.6 0.35 1"},
+    {type:"runner",path:"M290,210 Q265,190 248,178",dur:.4,begin:.08,easing:EASE.runner,o:0.3},
+    {type:"ball",path:"M200,288 Q210,200 200,140",dur:.3,begin:.1,color:"#ef4444",r:2.5,easing:EASE.throw},
     {type:"flash",cx:230,cy:175,r:10,dur:.12,begin:.4,color:"rgba(239,68,68,.4)"},
     {type:"text",x:230,y:165,text:"OUT!",size:11,color:"#ef4444",dur:1.2,begin:0},
   ],
   hit_fail:[
     {type:"flash",cx:200,cy:288,r:5,dur:.08,begin:0,color:"rgba(255,255,255,.5)"},
-    {type:"ball",path:"M200,290 Q230,240 248,195",dur:.4,begin:0,color:"white",r:2.5,easing:"0.12 0.8 0.3 1"},
+    {type:"ball",path:"M200,290 Q230,240 248,195",dur:.4,begin:0,color:"white",r:2.5,easing:EASE.launch},
     {type:"flash",cx:248,cy:195,r:6,dur:.1,begin:.39,color:"rgba(239,68,68,.3)"},
-    {type:"ball",path:"M248,195 L290,210",dur:.25,begin:.45,color:"#ef4444",r:2,easing:"0.15 0.6 0.35 1"},
+    {type:"ball",path:"M248,195 L290,210",dur:.25,begin:.45,color:"#ef4444",r:2,easing:EASE.throw},
     {type:"text",x:200,y:256,text:"OUT",size:11,color:"#ef4444",dur:1.2,begin:0},
   ],
   score_fail:[
-    {type:"ball",path:"M200,135 L200,290",dur:.3,begin:0,color:"#ef4444",r:2.5,easing:"0.15 0.6 0.35 1"},
+    {type:"ball",path:"M200,135 L200,290",dur:.3,begin:0,color:"#ef4444",r:2.5,easing:EASE.throw},
     {type:"flash",cx:200,cy:290,r:8,dur:.1,begin:.29,color:"rgba(239,68,68,.4)"},
     {type:"text",x:200,y:265,text:"OUT AT HOME!",size:11,color:"#ef4444",dur:1.2,begin:0},
   ],
   // AF3: Pitch movement variants — curveball drops, slider breaks, changeup floats
   strike_curveball:[
     {type:"flash",cx:200,cy:216,r:5,dur:.1,begin:0,color:"rgba(255,255,255,.5)"},
-    {type:"trail",path:"M200,218 Q200,250 202,292",dur:.5,begin:.02,color:"white",r:1.5,easing:"0.6 0 0.8 0.2"},
-    {type:"ball",path:"M200,218 Q200,250 202,292",dur:.5,begin:0,color:"white",r:2.5,easing:"0.6 0 0.8 0.2"},
+    {type:"trail",path:"M200,218 Q200,250 202,292",dur:.5,begin:.02,color:"white",r:1.5,easing:EASE.gravity},
+    {type:"ball",path:"M200,218 Q200,250 202,292",dur:.5,begin:0,color:"white",r:2.5,easing:EASE.gravity},
     {type:"flash",cx:202,cy:292,r:6,dur:.08,begin:.48,color:"rgba(255,200,50,.7)"},
     {type:"text",x:212,y:282,text:"POP!",size:7,color:"rgba(255,200,50,.8)",dur:.4,begin:.48},
     {type:"text",x:200,y:263,text:"STRIKE!",size:10,color:"#f59e0b",dur:1.6,begin:0},
   ],
   strike_slider:[
     {type:"flash",cx:200,cy:216,r:5,dur:.1,begin:0,color:"rgba(255,255,255,.5)"},
-    {type:"trail",path:"M200,218 Q200,254 210,288",dur:.42,begin:.02,color:"white",r:1.5,easing:"0.15 0.6 0.35 1"},
-    {type:"ball",path:"M200,218 Q200,254 212,288",dur:.42,begin:0,color:"white",r:2.5,easing:"0.15 0.6 0.35 1"},
+    {type:"trail",path:"M200,218 Q200,254 210,288",dur:.42,begin:.02,color:"white",r:1.5,easing:EASE.throw},
+    {type:"ball",path:"M200,218 Q200,254 212,288",dur:.42,begin:0,color:"white",r:2.5,easing:EASE.throw},
     {type:"flash",cx:212,cy:290,r:6,dur:.08,begin:.40,color:"rgba(255,200,50,.7)"},
     {type:"text",x:220,y:282,text:"POP!",size:7,color:"rgba(255,200,50,.8)",dur:.4,begin:.40},
     {type:"text",x:200,y:263,text:"STRIKE!",size:10,color:"#f59e0b",dur:1.6,begin:0},
   ],
   strike_changeup:[
     {type:"flash",cx:200,cy:216,r:5,dur:.1,begin:0,color:"rgba(255,255,255,.5)"},
-    {type:"trail",path:"M200,218 Q200,256 200,290",dur:.55,begin:.02,color:"white",r:1.5,easing:"0.4 0 0.6 1"},
-    {type:"ball",path:"M200,218 Q200,256 200,290",dur:.55,begin:0,color:"white",r:2.5,easing:"0.4 0 0.6 1"},
+    {type:"trail",path:"M200,218 Q200,256 200,290",dur:.55,begin:.02,color:"white",r:1.5,easing:EASE.float},
+    {type:"ball",path:"M200,218 Q200,256 200,290",dur:.55,begin:0,color:"white",r:2.5,easing:EASE.float},
     {type:"flash",cx:200,cy:290,r:6,dur:.08,begin:.53,color:"rgba(255,200,50,.7)"},
     {type:"text",x:212,y:282,text:"POP!",size:7,color:"rgba(255,200,50,.8)",dur:.4,begin:.53},
     {type:"text",x:200,y:263,text:"STRIKE!",size:10,color:"#f59e0b",dur:1.6,begin:0},
   ],
   groundout_success:[
     {type:"flash",cx:200,cy:288,r:6,dur:.1,begin:0,color:"rgba(255,255,255,.7)"},
-    {type:"ball",path:"M200,290 Q220,268 240,250 Q248,242 260,230",dur:.45,begin:0,color:"white",r:2.5,easing:"0.3 0 0.65 1",glow:true},
+    {type:"ball",path:"M200,290 Q220,268 240,250 Q248,242 260,230",dur:.45,begin:0,color:"white",r:2.5,easing:EASE.ground,glow:true},
     {type:"dust",cx:235,cy:255,r:4,dur:.2,begin:.18,color:"#c4a882"},
     {type:"flash",cx:260,cy:230,r:5,dur:.1,begin:.44,color:"rgba(255,255,255,.5)"},
-    {type:"ball",path:"M260,230 L290,210",dur:.3,begin:.5,color:"#22c55e",r:2.5,easing:"0.15 0.6 0.35 1"},
+    {type:"ball",path:"M260,230 L290,210",dur:.3,begin:.5,color:"#22c55e",r:2.5,easing:EASE.throw},
     {type:"flash",cx:290,cy:210,r:8,dur:.1,begin:.79,color:"rgba(34,197,94,.4)"},
     {type:"text",x:276,y:198,text:"OUT!",size:10,color:"#22c55e",dur:1.4,begin:0},
   ],
   flyout_success:[
     {type:"flash",cx:200,cy:288,r:7,dur:.1,begin:0,color:"rgba(255,255,255,.7)"},
-    {type:"trail",path:"M200,290 Q242,118 282,108",dur:.55,begin:.04,color:"white",r:2,easing:"0.2 0.7 0.4 1"},
-    {type:"ball",path:"M200,290 Q242,118 282,108",dur:.55,begin:0,color:"white",r:3,easing:"0.2 0.7 0.4 1",glow:true},
+    {type:"trail",path:"M200,290 Q242,118 282,108",dur:.55,begin:.04,color:"white",r:2,easing:EASE.flyArc},
+    {type:"ball",path:"M200,290 Q242,118 282,108",dur:.55,begin:0,color:"white",r:3,easing:EASE.flyArc,glow:true},
     {type:"flash",cx:282,cy:108,r:10,dur:.12,begin:.54,color:"rgba(34,197,94,.5)"},
     {type:"text",x:282,y:95,text:"CAUGHT!",size:10,color:"#22c55e",dur:1.2,begin:0},
   ],
   bunt_success:[
     {type:"flash",cx:200,cy:288,r:4,dur:.08,begin:0,color:"rgba(255,255,255,.5)"},
-    {type:"ball",path:"M200,290 Q198,272 192,258",dur:.5,begin:0,color:"white",r:2,easing:"0.3 0 0.65 1"},
-    {type:"runner",path:"M200,290 Q248,252 290,210",dur:.6,begin:.12,easing:"0.4 0 0.2 1"},
+    {type:"ball",path:"M200,290 Q198,272 192,258",dur:.5,begin:0,color:"white",r:2,easing:EASE.ground},
+    {type:"runner",path:"M200,290 Q248,252 290,210",dur:.6,begin:.12,easing:EASE.runner},
     {type:"text",x:180,y:250,text:"BUNT!",size:9,color:"#22c55e",dur:1,begin:0},
   ],
   walk_success:[
-    {type:"runner",path:"M200,290 Q248,252 290,210",dur:.7,begin:.1,easing:"0.4 0 0.2 1"},
+    {type:"runner",path:"M200,290 Q248,252 290,210",dur:.7,begin:.1,easing:EASE.runner},
     {type:"text",x:200,y:263,text:"BALL FOUR",size:11,color:"#3b82f6",dur:1.2,begin:0},
   ],
   advance_success:[
     {type:"dust",cx:290,cy:212,r:5,dur:.3,begin:0,color:"#c4a882"},
-    {type:"runner",path:"M290,210 Q248,170 200,135",dur:.5,begin:.05,easing:"0.4 0 0.2 1"},
+    {type:"runner",path:"M290,210 Q248,170 200,135",dur:.5,begin:.05,easing:EASE.runner},
     {type:"text",x:248,y:163,text:"ADVANCING!",size:9,color:"#3b82f6",dur:1,begin:0},
   ],
   relay_success:[
-    {type:"ball",path:"M300,80 Q265,155 248,185",dur:.3,begin:0,color:"white",r:2.5,easing:"0.15 0.6 0.35 1",glow:true},
+    {type:"ball",path:"M300,80 Q265,155 248,185",dur:.3,begin:0,color:"white",r:2.5,easing:EASE.throw,glow:true},
     {type:"flash",cx:248,cy:185,r:5,dur:.08,begin:.29,color:"rgba(255,255,255,.4)"},
-    {type:"ball",path:"M248,185 L200,290",dur:.3,begin:.35,color:"#ef4444",r:2.5,easing:"0.15 0.6 0.35 1"},
+    {type:"ball",path:"M248,185 L200,290",dur:.3,begin:.35,color:"#ef4444",r:2.5,easing:EASE.throw},
     {type:"flash",cx:200,cy:290,r:8,dur:.1,begin:.64,color:"rgba(239,68,68,.4)"},
     {type:"text",x:224,y:240,text:"GOT HIM!",size:9,color:"#22c55e",dur:1.2,begin:0},
   ],
@@ -5111,9 +5165,9 @@ function AnimPhases({phases,ak}){
   return <g key={`ap${ak}`}>{phases.map((p,i)=>{
     const k=`${ak}-${i}`;
     if(p.type==="dust")return <circle key={k} cx={p.cx} cy={p.cy} r="1" fill={p.color||"#c4a882"} opacity="0"><animate attributeName="r" from="1" to={p.r||5} dur={p.dur+"s"} begin={(p.begin||0)+"s"} fill="freeze"/><animate attributeName="opacity" values="0;.45;0" dur={(p.dur+.05)+"s"} begin={(p.begin||0)+"s"} fill="freeze"/></circle>;
-    if(p.type==="ball")return <circle key={k} r={p.r||2.5} fill={p.color||"white"} opacity={p.opacity||1} filter={p.glow?"url(#gl)":undefined}><animateMotion dur={p.dur+"s"} begin={(p.begin||0)+"s"} fill="freeze" path={p.path} calcMode="spline" keyTimes="0;1" keySplines={p.easing||"0.25 0.1 0.25 1"}/></circle>;
-    if(p.type==="trail")return <circle key={k} r={p.r||2} fill={p.color||"white"} opacity=".3"><animateMotion dur={p.dur+"s"} begin={(p.begin+.03||.03)+"s"} fill="freeze" path={p.path} calcMode="spline" keyTimes="0;1" keySplines={p.easing||"0.25 0.1 0.25 1"}/><animate attributeName="opacity" from=".3" to="0" dur={(p.dur*.7)+"s"} begin={(p.begin+.06||.06)+"s"} fill="freeze"/></circle>;
-    if(p.type==="runner")return <g key={k} opacity="0"><animate attributeName="opacity" values="0;1" dur=".05s" begin={(p.begin||0)+"s"} fill="freeze"/><animateMotion dur={p.dur+"s"} begin={(p.begin||0)+"s"} fill="freeze" path={p.path} calcMode="spline" keyTimes="0;1" keySplines={p.easing||"0.4 0 0.2 1"}/><Guy x={0} y={0} jersey={p.jersey||"#dc2626"} cap={p.cap||"#b91c1c"} pants={p.pants||"#d1d5db"} pose="runner" o={p.o||1}/></g>;
+    if(p.type==="ball")return <circle key={k} r={p.r||2.5} fill={p.color||"white"} opacity={p.opacity||1} filter={p.glow?"url(#gl)":undefined}><animateMotion dur={p.dur+"s"} begin={(p.begin||0)+"s"} fill="freeze" path={p.path} calcMode="spline" keyTimes="0;1" keySplines={p.easing||EASE.pulse}/></circle>;
+    if(p.type==="trail")return <circle key={k} r={p.r||2} fill={p.color||"white"} opacity=".3"><animateMotion dur={p.dur+"s"} begin={(p.begin+.03||.03)+"s"} fill="freeze" path={p.path} calcMode="spline" keyTimes="0;1" keySplines={p.easing||EASE.pulse}/><animate attributeName="opacity" from=".3" to="0" dur={(p.dur*.7)+"s"} begin={(p.begin+.06||.06)+"s"} fill="freeze"/></circle>;
+    if(p.type==="runner")return <g key={k} opacity="0"><animate attributeName="opacity" values="0;1" dur=".05s" begin={(p.begin||0)+"s"} fill="freeze"/><animateMotion dur={p.dur+"s"} begin={(p.begin||0)+"s"} fill="freeze" path={p.path} calcMode="spline" keyTimes="0;1" keySplines={p.easing||EASE.runner}/><Guy x={0} y={0} jersey={p.jersey||"#dc2626"} cap={p.cap||"#b91c1c"} pants={p.pants||"#d1d5db"} pose="runner" o={p.o||1}/></g>;
     if(p.type==="flash")return <circle key={k} cx={p.cx} cy={p.cy} r="0" fill={p.color||"rgba(255,255,255,.5)"}><animate attributeName="r" from="0" to={p.r||8} dur={p.dur+"s"} begin={(p.begin||0)+"s"} fill="freeze"/><animate attributeName="opacity" from={p.opacity||".5"} to="0" dur={(p.dur+.05)+"s"} begin={(p.begin||0)+"s"} fill="freeze"/></circle>;
     if(p.type==="text")return <text key={k} x={p.x} y={p.y} textAnchor="middle" fontSize={p.size||10} fill={p.color||"#22c55e"} fontWeight="800" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0" dur={p.dur+"s"} fill="freeze"/>{p.text}</text>;
     if(p.type==="line")return <line key={k} x1={p.x1} y1={p.y1} x2={p.x2} y2={p.y2} stroke={p.color||"#ef4444"} strokeWidth={p.width||2} strokeDasharray={p.dash||"6,4"} opacity="0"><animate attributeName="opacity" from=".65" to="0" dur={p.dur+"s"} fill="freeze"/></line>;
@@ -15181,6 +15235,17 @@ export default function App(){
         const prev=scenCal[sc.id]||{attempts:0,correct:0}
         scenCal[sc.id]={attempts:prev.attempts+1,correct:prev.correct+(isOpt?1:0)}
       }
+      // === ENRICHFEEDBACK DATA STORAGE ===
+      // Compute and store situational context for adaptive pattern detection
+      const _sit=sc.situation||{};
+      const _pressure=getPressure(_sit);
+      const _re24=getRunExpectancy(_sit.runners||[],_sit.outs||0);
+      const _countIntel=getCountIntel(_sit.count);
+      const _innNum=parseInt((_sit.inning||'').replace(/\D/g,''))||1;
+      const _scoreDiff=(_sit.score?.[0]||0)-(_sit.score?.[1]||0);
+      const _wpCtx=getWinContext(_sit.inning,_scoreDiff,_sit.runners||[],_sit.outs||0);
+      const _playContext={pressure:_pressure,re24:_re24,countEdge:_countIntel?.edge||null,li:_wpCtx?.li||1,isLateClose:!!_wpCtx?.isLateClose,inning:_innNum,outs:_sit.outs||0,runners:(_sit.runners||[]).length,isOpt,pos,concept:scTag||null,diff:sc.diff||1,ts:Date.now()};
+
       // === ADAPTIVE DIFFICULTY ENGINE ===
       // Track per-position rolling accuracy and adjust difficulty dynamically
       const _ad={...(p.adaptiveDiff||{})};
@@ -15223,7 +15288,9 @@ export default function App(){
         lastWrongConceptTag:_newLastWrong,gapDetectionCache:_newGapCache,
         flaggedScenarios:p.flaggedScenarios||{},adaptiveDiff:_ad,
         // AF8: Save correct plays to highlight reel (last 10)
-        highlights:isOpt&&sc.anim?[...(p.highlights||[]),{anim:sc.anim,title:sc.title,pos,runners:sc.situation?.runners||[],situation:sc.situation,ts:Date.now(),variant:sc.animVariant||sc.pitchType||null}].slice(-10):(p.highlights||[])};
+        highlights:isOpt&&sc.anim?[...(p.highlights||[]),{anim:sc.anim,title:sc.title,pos,runners:sc.situation?.runners||[],situation:sc.situation,ts:Date.now(),variant:sc.animVariant||sc.pitchType||null}].slice(-10):(p.highlights||[]),
+        // enrichFeedback data: store situational context for adaptive pattern detection (last 50)
+        playContextHistory:[...(p.playContextHistory||[]),_playContext].slice(-50)};
       ns.achs=checkAch(ns);
       const newLvl=getLvl(ns.pts);
       if(newLvl.n!==prevLvl.n){if(speedMode){pendingLvlUpRef.current=newLvl}else{setTimeout(()=>{setLvlUp(newLvl);snd.play('lvl')},600)}}
