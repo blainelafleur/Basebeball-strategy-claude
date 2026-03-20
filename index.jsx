@@ -13114,7 +13114,7 @@ const Field=React.memo(function Field({runners=[],outcome=null,ak=0,anim=null,th
         <circle cx="293" cy="210" r="1" fill="#c4a882" opacity="0"><animate attributeName="r" from="1" to="4" dur=".25s" begin=".05s" fill="freeze"/><animate attributeName="opacity" values="0;.35;0" dur=".3s" begin=".05s" fill="freeze"/></circle>
         <circle cx="287" cy="213" r="1" fill="#c4a882" opacity="0"><animate attributeName="r" from="1" to="5" dur=".28s" begin=".03s" fill="freeze"/><animate attributeName="opacity" values="0;.4;0" dur=".32s" begin=".03s" fill="freeze"/></circle>
         {/* Runner sprinting 1B to 2B */}
-        <g opacity="0"><animate attributeName="opacity" values="0;1" dur=".05s" begin=".08s" fill="freeze"/><animateMotion dur=".55s" begin=".08s" fill="freeze" path="M290,210 Q248,170 200,135" calcMode="spline" keyTimes="0;1" keySplines="0.4 0 0.2 1"/><circle r="3.5" cy="-7" fill="#e8c4a0"/><rect x="-3" y="-5" width="6" height="9" rx="2" fill="#dc2626"/><path d="M0,4 L-3.5,10 M0,4 L3.5,10" fill="none" stroke="#ddd" strokeWidth="2" strokeLinecap="round"/></g>
+        <g opacity="0"><animate attributeName="opacity" values="0;1" dur=".05s" begin=".08s" fill="freeze"/><animateMotion dur=".55s" begin=".08s" fill="freeze" path="M290,210 Q248,170 200,135" calcMode="spline" keyTimes="0;1" keySplines="0.4 0 0.2 1"/><Guy x={0} y={0} jersey="#dc2626" cap="#b91c1c" pants="#d1d5db" pose="runner" o={1}/></g>
         {/* Catcher throw arrives late */}
         <circle r="2" fill="white" opacity="0"><animate attributeName="opacity" values="0;.8;.8;0" dur=".6s" begin=".2s" fill="freeze"/><animateMotion dur=".4s" begin=".25s" fill="freeze" path="M200,288 Q210,210 200,138" calcMode="spline" keyTimes="0;1" keySplines="0.15 0.6 0.35 1"/></circle>
         {/* Dust burst at slide (2B) */}
@@ -13127,7 +13127,7 @@ const Field=React.memo(function Field({runners=[],outcome=null,ak=0,anim=null,th
         {/* Dust at takeoff from 3B */}
         <circle cx="112" cy="212" r="1" fill="#c4a882" opacity="0"><animate attributeName="r" from="1" to="5" dur=".3s" fill="freeze"/><animate attributeName="opacity" values="0;.45;0" dur=".35s" fill="freeze"/></circle>
         {/* Runner sprints 3B to home */}
-        <g opacity="0"><animate attributeName="opacity" values="0;1" dur=".05s" begin=".05s" fill="freeze"/><animateMotion dur=".5s" begin=".05s" fill="freeze" path="M110,210 Q160,252 200,290" calcMode="spline" keyTimes="0;1" keySplines="0.4 0 0.2 1"/><circle r="3.5" cy="-7" fill="#e8c4a0"/><rect x="-3" y="-5" width="6" height="9" rx="2" fill="#dc2626"/><path d="M0,4 L-3.5,10 M0,4 L3.5,10" fill="none" stroke="#ddd" strokeWidth="2" strokeLinecap="round"/></g>
+        <g opacity="0"><animate attributeName="opacity" values="0;1" dur=".05s" begin=".05s" fill="freeze"/><animateMotion dur=".5s" begin=".05s" fill="freeze" path="M110,210 Q160,252 200,290" calcMode="spline" keyTimes="0;1" keySplines="0.4 0 0.2 1"/><Guy x={0} y={0} jersey="#dc2626" cap="#b91c1c" pants="#d1d5db" pose="runner" o={1}/></g>
         {/* Dust at slide into home */}
         <circle cx="200" cy="292" r="1" fill="#c4a882" opacity="0"><animate attributeName="r" from="1" to="7" dur=".3s" begin=".5s" fill="freeze"/><animate attributeName="opacity" values="0;.5;0" dur=".35s" begin=".5s" fill="freeze"/></circle>
         {/* SAFE! text */}
@@ -13144,7 +13144,7 @@ const Field=React.memo(function Field({runners=[],outcome=null,ak=0,anim=null,th
         <circle cx="202" cy="292" r="1" fill="#c4a882" opacity="0"><animate attributeName="r" from="1" to="5" dur=".3s" begin=".1s" fill="freeze"/><animate attributeName="opacity" values="0;.4;0" dur=".35s" begin=".1s" fill="freeze"/></circle>
         <circle cx="198" cy="291" r="1" fill="#c4a882" opacity="0"><animate attributeName="r" from="1" to="3.5" dur=".25s" begin=".13s" fill="freeze"/><animate attributeName="opacity" values="0;.3;0" dur=".3s" begin=".13s" fill="freeze"/></circle>
         {/* Runner sprints home to 1B */}
-        <g opacity="0"><animate attributeName="opacity" values="0;1" dur=".05s" begin=".12s" fill="freeze"/><animateMotion dur=".6s" begin=".15s" fill="freeze" path="M200,290 Q248,252 290,210" calcMode="spline" keyTimes="0;1" keySplines="0.4 0 0.2 1"/><circle r="3.5" cy="-7" fill="#e8c4a0"/><rect x="-3" y="-5" width="6" height="9" rx="2" fill="#dc2626"/><path d="M0,4 L-3.5,10 M0,4 L3.5,10" fill="none" stroke="#ddd" strokeWidth="2" strokeLinecap="round"/></g>
+        <g opacity="0"><animate attributeName="opacity" values="0;1" dur=".05s" begin=".12s" fill="freeze"/><animateMotion dur=".6s" begin=".15s" fill="freeze" path="M200,290 Q248,252 290,210" calcMode="spline" keyTimes="0;1" keySplines="0.4 0 0.2 1"/><Guy x={0} y={0} jersey="#dc2626" cap="#b91c1c" pants="#d1d5db" pose="runner" o={1}/></g>
         {/* BASE HIT text */}
         <text x="265" y="112" textAnchor="middle" fontSize="10" fill="#f59e0b" fontWeight="800" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0" dur="1.3s" fill="freeze"/>BASE HIT</text>
       </g>}
@@ -13226,13 +13226,13 @@ const Field=React.memo(function Field({runners=[],outcome=null,ak=0,anim=null,th
         {/* Dust at takeoff */}
         <circle cx="290" cy="212" r="1" fill="#c4a882" opacity="0"><animate attributeName="r" from="1" to="5" dur=".3s" fill="freeze"/><animate attributeName="opacity" values="0;.4;0" dur=".35s" fill="freeze"/></circle>
         {/* Runner sprints 1B to 2B */}
-        <g opacity="0"><animate attributeName="opacity" values="0;1" dur=".05s" begin=".05s" fill="freeze"/><animateMotion dur=".5s" begin=".05s" fill="freeze" path="M290,210 Q248,170 200,135" calcMode="spline" keyTimes="0;1" keySplines="0.4 0 0.2 1"/><circle r="3.5" cy="-7" fill="#e8c4a0"/><rect x="-3" y="-5" width="6" height="9" rx="2" fill="#dc2626"/><path d="M0,4 L-3.5,10 M0,4 L3.5,10" fill="none" stroke="#ddd" strokeWidth="2" strokeLinecap="round"/></g>
+        <g opacity="0"><animate attributeName="opacity" values="0;1" dur=".05s" begin=".05s" fill="freeze"/><animateMotion dur=".5s" begin=".05s" fill="freeze" path="M290,210 Q248,170 200,135" calcMode="spline" keyTimes="0;1" keySplines="0.4 0 0.2 1"/><Guy x={0} y={0} jersey="#dc2626" cap="#b91c1c" pants="#d1d5db" pose="runner" o={1}/></g>
         {/* ADVANCING! text */}
         <text x="248" y="163" textAnchor="middle" fontSize="9" fill="#3b82f6" fontWeight="800" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0" dur="1s" fill="freeze"/>ADVANCING!</text>
       </g>}
       {anim==="walk"&&outcome==="success"&&<g key={`wk${ak}`}>
         {/* Runner trots to 1B */}
-        <g opacity="0"><animate attributeName="opacity" values="0;1" dur=".1s" begin=".1s" fill="freeze"/><animateMotion dur=".7s" begin=".1s" fill="freeze" path="M200,290 Q248,252 290,210" calcMode="spline" keyTimes="0;1" keySplines="0.4 0 0.2 1"/><circle r="3.5" cy="-7" fill="#e8c4a0"/><rect x="-3" y="-5" width="6" height="9" rx="2" fill="#dc2626"/><path d="M0,4 L-3.5,10 M0,4 L3.5,10" fill="none" stroke="#ddd" strokeWidth="2" strokeLinecap="round"/></g>
+        <g opacity="0"><animate attributeName="opacity" values="0;1" dur=".1s" begin=".1s" fill="freeze"/><animateMotion dur=".7s" begin=".1s" fill="freeze" path="M200,290 Q248,252 290,210" calcMode="spline" keyTimes="0;1" keySplines="0.4 0 0.2 1"/><Guy x={0} y={0} jersey="#dc2626" cap="#b91c1c" pants="#d1d5db" pose="runner" o={1}/></g>
         {/* BALL FOUR text */}
         <text x="200" y="263" textAnchor="middle" fontSize="11" fill="#3b82f6" fontWeight="800" opacity="0"><animate attributeName="opacity" values="0;1;1;0" dur="1.2s" fill="freeze"/>BALL FOUR</text>
       </g>}
@@ -13242,7 +13242,7 @@ const Field=React.memo(function Field({runners=[],outcome=null,ak=0,anim=null,th
         {/* Ball dribbles forward */}
         <circle r="2" fill="white"><animateMotion dur=".5s" fill="freeze" path="M200,290 Q198,272 192,258" calcMode="spline" keyTimes="0;1" keySplines="0.3 0 0.65 1"/></circle>
         {/* Runner breaks for 1B */}
-        <g opacity="0"><animate attributeName="opacity" values="0;1" dur=".05s" begin=".1s" fill="freeze"/><animateMotion dur=".6s" begin=".12s" fill="freeze" path="M200,290 Q248,252 290,210" calcMode="spline" keyTimes="0;1" keySplines="0.4 0 0.2 1"/><circle r="3.5" cy="-7" fill="#e8c4a0"/><rect x="-3" y="-5" width="6" height="9" rx="2" fill="#dc2626"/><path d="M0,4 L-3.5,10 M0,4 L3.5,10" fill="none" stroke="#ddd" strokeWidth="2" strokeLinecap="round"/></g>
+        <g opacity="0"><animate attributeName="opacity" values="0;1" dur=".05s" begin=".1s" fill="freeze"/><animateMotion dur=".6s" begin=".12s" fill="freeze" path="M200,290 Q248,252 290,210" calcMode="spline" keyTimes="0;1" keySplines="0.4 0 0.2 1"/><Guy x={0} y={0} jersey="#dc2626" cap="#b91c1c" pants="#d1d5db" pose="runner" o={1}/></g>
         {/* BUNT! text */}
         <text x="180" y="250" textAnchor="middle" fontSize="9" fill="#22c55e" fontWeight="800" opacity="0"><animate attributeName="opacity" values="0;0;0;1;1;0" dur="1s" fill="freeze"/>BUNT!</text>
       </g>}
@@ -13273,7 +13273,7 @@ const Field=React.memo(function Field({runners=[],outcome=null,ak=0,anim=null,th
       </g>}
       {outcome&&outcome!=="success"&&anim==="steal"&&<g key={`wo${ak}`}>
         {/* Runner sprints but ball arrives first — tag OUT */}
-        <g opacity="0"><animate attributeName="opacity" values="0;1;1;0" dur=".7s" fill="freeze"/><animateMotion dur=".5s" fill="freeze" path="M290,210 Q260,185 238,165" calcMode="spline" keyTimes="0;1" keySplines="0.4 0 0.2 1"/><circle r="3.5" cy="-7" fill="#e8c4a0"/><rect x="-3" y="-5" width="6" height="9" rx="2" fill="#dc2626"/><path d="M0,4 L-3.5,10 M0,4 L3.5,10" fill="none" stroke="#ddd" strokeWidth="2" strokeLinecap="round"/></g>
+        <g opacity="0"><animate attributeName="opacity" values="0;1;1;0" dur=".7s" fill="freeze"/><animateMotion dur=".5s" fill="freeze" path="M290,210 Q260,185 238,165" calcMode="spline" keyTimes="0;1" keySplines="0.4 0 0.2 1"/><Guy x={0} y={0} jersey="#dc2626" cap="#b91c1c" pants="#d1d5db" pose="runner" o={1}/></g>
         {/* Ball beats runner */}
         <circle r="2.5" fill="#ef4444"><animateMotion dur=".3s" begin=".1s" fill="freeze" path="M200,288 Q215,200 200,138" calcMode="spline" keyTimes="0;1" keySplines="0.15 0.6 0.35 1"/></circle>
         <circle cx="200" cy="138" r="0" fill="rgba(239,68,68,.4)"><animate attributeName="r" from="0" to="8" dur=".1s" begin=".39s" fill="freeze"/><animate attributeName="opacity" from=".4" to="0" dur=".15s" begin=".39s" fill="freeze"/></circle>
@@ -13345,12 +13345,12 @@ const Field=React.memo(function Field({runners=[],outcome=null,ak=0,anim=null,th
         {/* Ball past catcher, runner advances */}
         <circle r="2.5" fill="white"><animateMotion dur=".35s" fill="freeze" path="M200,218 Q200,280 200,305" calcMode="spline" keyTimes="0;1" keySplines="0.15 0.6 0.35 1"/></circle>
         {/* Runner takes off */}
-        <g opacity="0"><animate attributeName="opacity" values="0;1" dur=".05s" begin=".3s" fill="freeze"/><animateMotion dur=".5s" begin=".3s" fill="freeze" path="M290,210 Q248,170 200,135" calcMode="spline" keyTimes="0;1" keySplines="0.4 0 0.2 1"/><circle r="3.5" cy="-7" fill="#e8c4a0"/><rect x="-3" y="-5" width="6" height="9" rx="2" fill="#dc2626"/><path d="M0,4 L-3.5,10 M0,4 L3.5,10" fill="none" stroke="#ddd" strokeWidth="2" strokeLinecap="round"/></g>
+        <g opacity="0"><animate attributeName="opacity" values="0;1" dur=".05s" begin=".3s" fill="freeze"/><animateMotion dur=".5s" begin=".3s" fill="freeze" path="M290,210 Q248,170 200,135" calcMode="spline" keyTimes="0;1" keySplines="0.4 0 0.2 1"/><Guy x={0} y={0} jersey="#dc2626" cap="#b91c1c" pants="#d1d5db" pose="runner" o={1}/></g>
         <text x="200" y="265" textAnchor="middle" fontSize="10" fill="#f59e0b" fontWeight="800" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0" dur="1.1s" fill="freeze"/>WILD PITCH!</text>
       </g>}
       {anim==="squeeze"&&<g key={`sq${ak}`}>
         {/* Runner from 3rd on bunt attempt */}
-        <g opacity="0"><animate attributeName="opacity" values="0;1" dur=".05s" begin=".05s" fill="freeze"/><animateMotion dur=".5s" begin=".05s" fill="freeze" path="M110,210 Q160,252 200,290" calcMode="spline" keyTimes="0;1" keySplines="0.4 0 0.2 1"/><circle r="3.5" cy="-7" fill="#e8c4a0"/><rect x="-3" y="-5" width="6" height="9" rx="2" fill="#dc2626"/><path d="M0,4 L-3.5,10 M0,4 L3.5,10" fill="none" stroke="#ddd" strokeWidth="2" strokeLinecap="round"/></g>
+        <g opacity="0"><animate attributeName="opacity" values="0;1" dur=".05s" begin=".05s" fill="freeze"/><animateMotion dur=".5s" begin=".05s" fill="freeze" path="M110,210 Q160,252 200,290" calcMode="spline" keyTimes="0;1" keySplines="0.4 0 0.2 1"/><Guy x={0} y={0} jersey="#dc2626" cap="#b91c1c" pants="#d1d5db" pose="runner" o={1}/></g>
         {/* Bunt dribble */}
         <circle r="2" fill="white"><animateMotion dur=".4s" fill="freeze" path="M200,290 Q198,275 195,264" calcMode="spline" keyTimes="0;1" keySplines="0.3 0 0.65 1"/></circle>
         <text x="200" y="255" textAnchor="middle" fontSize="10" fill={outcome==="success"?"#22c55e":"#ef4444"} fontWeight="800" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0" dur="1.1s" fill="freeze"/>{outcome==="success"?"SQUEEZE!":"OUT!"}</text>
@@ -13361,7 +13361,7 @@ const Field=React.memo(function Field({runners=[],outcome=null,ak=0,anim=null,th
         {/* Impact flash on batter */}
         <circle cx="212" cy="284" r="0" fill="rgba(239,68,68,.5)"><animate attributeName="r" from="0" to="8" dur=".1s" begin=".29s" fill="freeze"/><animate attributeName="opacity" from=".5" to="0" dur=".2s" begin=".29s" fill="freeze"/></circle>
         {/* Runner walks to 1B */}
-        <g opacity="0"><animate attributeName="opacity" values="0;1" dur=".1s" begin=".5s" fill="freeze"/><animateMotion dur=".7s" begin=".5s" fill="freeze" path="M215,285 Q250,255 290,210" calcMode="spline" keyTimes="0;1" keySplines="0.4 0 0.2 1"/><circle r="3.5" cy="-7" fill="#e8c4a0"/><rect x="-3" y="-5" width="6" height="9" rx="2" fill="#dc2626"/><path d="M0,4 L-3.5,10 M0,4 L3.5,10" fill="none" stroke="#ddd" strokeWidth="2" strokeLinecap="round"/></g>
+        <g opacity="0"><animate attributeName="opacity" values="0;1" dur=".1s" begin=".5s" fill="freeze"/><animateMotion dur=".7s" begin=".5s" fill="freeze" path="M215,285 Q250,255 290,210" calcMode="spline" keyTimes="0;1" keySplines="0.4 0 0.2 1"/><Guy x={0} y={0} jersey="#dc2626" cap="#b91c1c" pants="#d1d5db" pose="runner" o={1}/></g>
         <text x="200" y="265" textAnchor="middle" fontSize="10" fill="#f59e0b" fontWeight="800" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0" dur="1.1s" fill="freeze"/>HIT BY PITCH!</text>
       </g>}
       {/* Idle ball toss on mound when no outcome */}
