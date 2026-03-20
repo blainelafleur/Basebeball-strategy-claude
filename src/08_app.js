@@ -5226,7 +5226,6 @@ export default function App(){
             <button onClick={goHome} style={{...btn("rgba(255,255,255,.06)"),...{fontSize:12}}}>← Back to Home</button>
           </div>);
         })()}
-      </div>
 
       <style>{`
         @keyframes sd{from{transform:translate(-50%,-20px);opacity:0}to{transform:translate(-50%,0);opacity:1}}
