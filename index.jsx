@@ -12644,6 +12644,7 @@ const Field=React.memo(function Field({runners=[],outcome=null,ak=0,anim=null,th
     if(!slow||!svgRef.current)return;
     const preDelay=1.0;
     svgRef.current.querySelectorAll('animate,animateMotion,animateTransform').forEach(el=>{
+      if(el.getAttribute('data-spotlight'))return; // Don't slow the highlight ring
       const rawBegin=parseFloat(el.getAttribute('begin'))||0;
       const rawDur=parseFloat(el.getAttribute('dur'));
       if(isNaN(rawDur))return;
@@ -13088,7 +13089,7 @@ const Field=React.memo(function Field({runners=[],outcome=null,ak=0,anim=null,th
         const p=paths[anim];
         if(!p)return null;
         return <path d={p} fill="none" stroke="rgba(255,255,255,.12)" strokeWidth="1.5" strokeDasharray="4,4" opacity="0">
-          <animate attributeName="opacity" values="0;.25;.25;0" dur="2s" fill="freeze"/>
+          <animate data-spotlight="true" attributeName="opacity" values="0;.25;.25;0" dur="2s" fill="freeze"/>
         </path>;
       })()}
 
@@ -13101,13 +13102,13 @@ const Field=React.memo(function Field({runners=[],outcome=null,ak=0,anim=null,th
           wildPitch:[200,300],popup:[200,300],walk:[215,285],hitByPitch:[215,285],tag:[248,185]};
         const hl=hlMap[anim];
         if(!hl)return null;
-        return <g>
+        return <g data-spotlight="true">
           <circle cx={hl[0]} cy={hl[1]} r="20" fill="none" stroke="#f59e0b" strokeWidth="2.5" opacity="0">
-            <animate attributeName="opacity" values="0;.8;.8;0" dur="1.5s" fill="freeze"/>
-            <animate attributeName="r" values="16;22;16;22;16" dur="1.5s" fill="freeze"/>
+            <animate data-spotlight="true" attributeName="opacity" values="0;.8;.8;0" dur="1.5s" fill="freeze"/>
+            <animate data-spotlight="true" attributeName="r" values="16;22;16;22;16" dur="1.5s" fill="freeze"/>
           </circle>
           <circle cx={hl[0]} cy={hl[1]} r="14" fill="rgba(245,158,11,.08)" opacity="0">
-            <animate attributeName="opacity" values="0;.4;.4;0" dur="1.5s" fill="freeze"/>
+            <animate data-spotlight="true" attributeName="opacity" values="0;.4;.4;0" dur="1.5s" fill="freeze"/>
           </circle>
         </g>;
       })()}
@@ -13762,7 +13763,7 @@ export default function App(){
   const[comparisonPhase,setComparisonPhase]=useState(0); // 0=failure, 1=transition, 2=success
   // QW2: Auto-expand replay for wrong answers on outcome screen
   React.useEffect(()=>{
-    if(screen==="outcome"&&od&&!od.isOpt&&sc?.anim&&!speedMode&&!survivalMode){
+    if(screen==="outcome"&&od&&!od.isOpt&&od.cat==="danger"&&sc?.anim&&!speedMode&&!survivalMode){
       setShowReplay(true);setReplayAutoExpanded(true);
     }else if(screen!=="outcome"){
       setReplayAutoExpanded(false);
