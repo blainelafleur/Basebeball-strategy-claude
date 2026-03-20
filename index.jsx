@@ -13103,7 +13103,7 @@ const Field=React.memo(function Field({runners=[],outcome=null,ak=0,anim=null,an
       <rect width="400" height="310" fill="url(#depthGrad)" clipPath="url(#fc)"/>
 
       {/* === CROWD (colored dots — sway normally, cheer on success, still on failure) === */}
-      <g opacity=".75">
+      <g opacity={outcome==="success"?".85":outcome?".5":".75"}>
         {crowdDots.map((d,i)=>(
           <circle key={`cr${i}`} cx={d.x} cy={d.y} r={d.r} fill={d.c} opacity={outcome&&outcome!=="success"?".4":".7"}
             style={{animation:outcome==="success"?`crowdCheer ${0.8+d.delay*.2}s ease-in-out ${d.delay*.3}s infinite alternate`:outcome?`none`:`crowdSway ${2.5+d.delay*.5}s ease-in-out ${d.delay}s infinite alternate`}}/>
@@ -14006,11 +14006,14 @@ export default function App(){
   const[showHighlights,setShowHighlights]=useState(false);
   const[highlightIdx,setHighlightIdx]=useState(0);
   // QW2: Auto-expand replay for wrong answers on outcome screen
+  // Skip for brand new players (gp<3) and speed/survival modes
   React.useEffect(()=>{
-    if(screen==="outcome"&&od&&!od.isOpt&&od.cat==="danger"&&sc?.anim&&!speedMode&&!survivalMode){
+    if(screen==="outcome"&&od&&!od.isOpt&&od.cat==="danger"&&sc?.anim&&!speedMode&&!survivalMode&&stats.gp>=3){
       setShowReplay(true);setReplayAutoExpanded(true);
+      // Scroll replay into view on mobile after brief delay
+      setTimeout(()=>{const el=document.querySelector('[data-replay-field]');if(el)el.scrollIntoView({behavior:'smooth',block:'nearest'})},400);
     }else if(screen!=="outcome"){
-      setReplayAutoExpanded(false);
+      setReplayAutoExpanded(false);setShowFailComparison(false);
     }
   },[screen,od]);
   // Phase 2.2: Placement test state
