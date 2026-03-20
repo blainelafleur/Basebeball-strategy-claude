@@ -5021,6 +5021,25 @@ const ANIM_DATA={
     {type:"text",x:212,y:282,text:"POP!",size:7,color:"rgba(255,200,50,.8)",dur:.4,begin:.38},
     {type:"text",x:200,y:263,text:"STRIKE!",size:10,color:"#f59e0b",dur:1.6,begin:0},
   ],
+  // AF2: Ghost failure animations — transparent overlay showing what goes wrong
+  steal_fail:[
+    {type:"runner",path:"M290,210 Q265,190 248,178",dur:.4,begin:.08,easing:"0.4 0 0.2 1",o:0.3},
+    {type:"ball",path:"M200,288 Q210,200 200,140",dur:.3,begin:.1,color:"#ef4444",r:2.5,easing:"0.15 0.6 0.35 1"},
+    {type:"flash",cx:230,cy:175,r:10,dur:.12,begin:.4,color:"rgba(239,68,68,.4)"},
+    {type:"text",x:230,y:165,text:"OUT!",size:11,color:"#ef4444",dur:1.2,begin:0},
+  ],
+  hit_fail:[
+    {type:"flash",cx:200,cy:288,r:5,dur:.08,begin:0,color:"rgba(255,255,255,.5)"},
+    {type:"ball",path:"M200,290 Q230,240 248,195",dur:.4,begin:0,color:"white",r:2.5,easing:"0.12 0.8 0.3 1"},
+    {type:"flash",cx:248,cy:195,r:6,dur:.1,begin:.39,color:"rgba(239,68,68,.3)"},
+    {type:"ball",path:"M248,195 L290,210",dur:.25,begin:.45,color:"#ef4444",r:2,easing:"0.15 0.6 0.35 1"},
+    {type:"text",x:200,y:256,text:"OUT",size:11,color:"#ef4444",dur:1.2,begin:0},
+  ],
+  score_fail:[
+    {type:"ball",path:"M200,135 L200,290",dur:.3,begin:0,color:"#ef4444",r:2.5,easing:"0.15 0.6 0.35 1"},
+    {type:"flash",cx:200,cy:290,r:8,dur:.1,begin:.29,color:"rgba(239,68,68,.4)"},
+    {type:"text",x:200,y:265,text:"OUT AT HOME!",size:11,color:"#ef4444",dur:1.2,begin:0},
+  ],
   // AF3: Pitch movement variants — curveball drops, slider breaks, changeup floats
   strike_curveball:[
     {type:"flash",cx:200,cy:216,r:5,dur:.1,begin:0,color:"rgba(255,255,255,.5)"},
@@ -5100,6 +5119,19 @@ function AnimPhases({phases,ak}){
     if(p.type==="line")return <line key={k} x1={p.x1} y1={p.y1} x2={p.x2} y2={p.y2} stroke={p.color||"#ef4444"} strokeWidth={p.width||2} strokeDasharray={p.dash||"6,4"} opacity="0"><animate attributeName="opacity" from=".65" to="0" dur={p.dur+"s"} fill="freeze"/></line>;
     return null;
   })}</g>;
+}
+
+// AF2: Ghost runner — render animation phases as transparent overlay showing wrong outcome
+function GhostPhases({phases,ak}){
+  if(!phases||!phases.length)return null;
+  // Render same phases but with reduced opacity and red tint
+  const ghosted=phases.map(p=>({...p,
+    opacity:p.type==="text"?0:0.25,
+    color:p.type==="runner"?undefined:p.type==="text"?undefined:
+      p.color?.startsWith("rgba")?p.color.replace(/[\d.]+\)$/,".15)"):
+      p.type==="dust"?"rgba(239,68,68,.15)":p.color,
+  }));
+  return <g style={{opacity:.35}}><AnimPhases phases={ghosted} ak={ak+500}/></g>;
 }
 
 const POS_SUGGESTIONS = {pitcher:"catcher",catcher:"pitcher",firstBase:"secondBase",secondBase:"shortstop",shortstop:"secondBase",thirdBase:"firstBase",leftField:"centerField",centerField:"rightField",rightField:"leftField",batter:"baserunner",baserunner:"batter",manager:"pitcher"};
@@ -16987,7 +17019,7 @@ export default function App(){
                 <div style={{fontSize:10,color:"#9ca3af"}}>See the {od.isOpt?"play you called":"correct play"} animated on the field</div>
               </div>
             </button>
-            :<div data-replay-field="true" style={{background:"rgba(0,0,0,.3)",border:"1.5px solid rgba(59,130,246,.2)",borderRadius:14,padding:"10px 8px 6px",overflow:"hidden"}}>
+            :<div data-replay-field="true" style={{background:"rgba(0,0,0,.3)",border:"1.5px solid rgba(59,130,246,.2)",borderRadius:14,padding:"10px 8px 6px",overflow:"hidden",position:"relative"}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4,padding:"0 4px"}}>
                 <span style={{fontSize:10,fontWeight:700,color:"#93c5fd",textTransform:"uppercase",letterSpacing:1}}>Game Film</span>
                 <div style={{display:"flex",gap:6}}>
@@ -17013,25 +17045,24 @@ export default function App(){
               </div>
               <Field key={`replay-${replayKey}`} runners={(()=>{const r=sc.situation?.runners||[];const moveFrom={steal:1,score:3,advance:1,wildPitch:1,squeeze:3};const rm=moveFrom[sc.anim];return rm?r.filter(b=>b!==rm):r})()} outcome="success" ak={replayKey} anim={sc.anim} animVariant={sc.animVariant||sc.pitchType||null} theme={FIELD_THEMES.find(th=>th.id===stats.fieldTheme)||FIELD_THEMES[0]} avatar={{j:stats.avatarJersey||0,c:stats.avatarCap||0,b:stats.avatarBat||0}} pos={pos} slow={true}/>
               <div style={{marginTop:2}}><Board sit={sc.situation}/></div>
+              {/* AF2: Ghost overlay renders on top of replay field when comparison active */}
+              {showFailComparison&&ANIM_DATA[sc.anim+"_fail"]&&<svg viewBox="0 0 400 310" style={{position:"absolute",top:0,left:0,width:"100%",height:"100%",pointerEvents:"none"}}>
+                <GhostPhases phases={ANIM_DATA[sc.anim+"_fail"]} ak={replayKey}/>
+              </svg>}
               <div style={{textAlign:"center",fontSize:9,color:"#6b7280",marginTop:4}}>{od.isOpt?"The play you called — executed perfectly":replayAutoExpanded?"Watch how the correct play works — tap ▶ to see it in action":"The correct play — this is what should happen"}</div>
-              {/* CI2: Failure-then-success comparison toggle */}
-              {!od.isOpt&&sc.anim&&!showFailComparison&&<div style={{textAlign:"center",marginTop:6}}>
-                <button onClick={()=>{setShowFailComparison(true);setComparisonPhase(0);snd.play('tap');
-                  // Phase 0: failure plays for 4s, then transition to success
-                  setTimeout(()=>setComparisonPhase(1),4000);
-                  setTimeout(()=>{setComparisonPhase(2);setReplayKey(k=>k+1)},5500);
-                }} style={{background:"rgba(239,68,68,.06)",border:"1px solid rgba(239,68,68,.15)",borderRadius:8,padding:"5px 14px",fontSize:10,color:"#ef4444",cursor:"pointer",fontWeight:600}}>
-                  See What Went Wrong →
-                </button>
-              </div>}
-              {showFailComparison&&<div style={{textAlign:"center",marginTop:6}}>
-                <div style={{fontSize:10,fontWeight:700,color:comparisonPhase===0?"#ef4444":comparisonPhase===1?"#f59e0b":"#22c55e",marginBottom:4,transition:"color .5s"}}>
-                  {comparisonPhase===0?"What happens with the wrong choice...":comparisonPhase===1?"Now watch the correct play...":"The right decision"}
-                </div>
-                {comparisonPhase===0&&<div style={{borderRadius:10,overflow:"hidden",border:"1px solid rgba(239,68,68,.2)"}}>
-                  <Field runners={sc.situation?.runners||[]} outcome="danger" ak={ak+100} anim={sc.anim} theme={FIELD_THEMES.find(th=>th.id===stats.fieldTheme)||FIELD_THEMES[0]} avatar={{j:stats.avatarJersey||0,c:stats.avatarCap||0,b:stats.avatarBat||0}} pos={pos} slow={true}/>
-                </div>}
-              </div>}
+              {/* AF2+CI2: Ghost comparison — show wrong play as transparent overlay */}
+              {!od.isOpt&&sc.anim&&(()=>{
+                const failKey=sc.anim+"_fail";
+                const ghostPhases=ANIM_DATA[failKey];
+                if(!ghostPhases)return null;
+                return <div style={{textAlign:"center",marginTop:6}}>
+                  {!showFailComparison?<button onClick={()=>{setShowFailComparison(true);snd.play('tap');setReplayKey(k=>k+1)}} style={{background:"rgba(239,68,68,.06)",border:"1px solid rgba(239,68,68,.15)",borderRadius:8,padding:"5px 14px",fontSize:10,color:"#ef4444",cursor:"pointer",fontWeight:600}}>
+                    👻 Compare: See What Goes Wrong
+                  </button>:<div style={{fontSize:9,color:"#9ca3af",marginTop:2}}>
+                    <span style={{color:"#22c55e"}}>●</span> Correct play (solid) vs <span style={{color:"#ef4444"}}>●</span> Wrong outcome (ghost)
+                  </div>}
+                </div>;
+              })()}
             </div>}
           </div>}
 
