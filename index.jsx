@@ -13949,6 +13949,8 @@ export default function App(){
   const[showFailComparison,setShowFailComparison]=useState(false);
   const[comparisonPhase,setComparisonPhase]=useState(0); // 0=failure, 1=transition, 2=success
   const[replayPaused,setReplayPaused]=useState(false);
+  const[showHighlights,setShowHighlights]=useState(false);
+  const[highlightIdx,setHighlightIdx]=useState(0);
   // QW2: Auto-expand replay for wrong answers on outcome screen
   React.useEffect(()=>{
     if(screen==="outcome"&&od&&!od.isOpt&&od.cat==="danger"&&sc?.anim&&!speedMode&&!survivalMode){
@@ -15219,7 +15221,9 @@ export default function App(){
         wrongCounts:wc,posGrad,posPlayed:posP,masteryData:updMastery,aiHistory:aiHist,scenarioCalibration:scenCal,
         qualitySignals:_qsResult.qualitySignals,aiMetrics:_srcResult.aiMetrics||p.aiMetrics,hcMetrics:_srcResult.hcMetrics||p.hcMetrics,explanationLog:_exResult.explanationLog,
         lastWrongConceptTag:_newLastWrong,gapDetectionCache:_newGapCache,
-        flaggedScenarios:p.flaggedScenarios||{},adaptiveDiff:_ad};
+        flaggedScenarios:p.flaggedScenarios||{},adaptiveDiff:_ad,
+        // AF8: Save correct plays to highlight reel (last 10)
+        highlights:isOpt&&sc.anim?[...(p.highlights||[]),{anim:sc.anim,title:sc.title,pos,runners:sc.situation?.runners||[],situation:sc.situation,ts:Date.now(),variant:sc.animVariant||sc.pitchType||null}].slice(-10):(p.highlights||[])};
       ns.achs=checkAch(ns);
       const newLvl=getLvl(ns.pts);
       if(newLvl.n!==prevLvl.n){if(speedMode){pendingLvlUpRef.current=newLvl}else{setTimeout(()=>{setLvlUp(newLvl);snd.play('lvl')},600)}}
@@ -15878,6 +15882,7 @@ export default function App(){
             )})()}
             <div style={{display:"flex",gap:6,marginTop:10,flexWrap:"wrap"}}>
               <button onClick={()=>setPanel(panel==='ach'?null:'ach')} style={{flex:"1 1 22%",background:"rgba(245,158,11,.05)",border:"1px solid rgba(245,158,11,.12)",borderRadius:10,padding:"8px 4px",color:"#f59e0b",fontSize:10,fontWeight:600,cursor:"pointer",minHeight:38}}>🏅 {(stats.achs||[]).length}/{ACHS.length}</button>
+              {(stats.highlights||[]).length>0&&<button onClick={()=>setShowHighlights(v=>!v)} style={{flex:"1 1 22%",background:"rgba(59,130,246,.05)",border:"1px solid rgba(59,130,246,.12)",borderRadius:10,padding:"8px 4px",color:"#60a5fa",fontSize:10,fontWeight:600,cursor:"pointer",minHeight:38}}>🎬 {(stats.highlights||[]).length} Highlights</button>}
               <button onClick={()=>setPanel(panel==='concepts'?null:'concepts')} style={{flex:"1 1 22%",background:"rgba(59,130,246,.05)",border:"1px solid rgba(59,130,246,.12)",borderRadius:10,padding:"8px 4px",color:"#3b82f6",fontSize:10,fontWeight:600,cursor:"pointer",minHeight:38}}>🧠 {(stats.cl?.length||0)}</button>
               <button onClick={()=>setPanel(panel==='stats'?null:'stats')} style={{flex:"1 1 22%",background:"rgba(34,197,94,.05)",border:"1px solid rgba(34,197,94,.12)",borderRadius:10,padding:"8px 4px",color:"#22c55e",fontSize:10,fontWeight:600,cursor:"pointer",minHeight:38}}>📊 Stats</button>
               <button onClick={()=>setPanel(panel==='progress'?null:'progress')} style={{flex:"1 1 22%",background:"rgba(168,85,247,.05)",border:"1px solid rgba(168,85,247,.12)",borderRadius:10,padding:"8px 4px",color:"#a855f7",fontSize:10,fontWeight:600,cursor:"pointer",minHeight:38}}>📈 Map</button>
@@ -15888,6 +15893,28 @@ export default function App(){
           </div>}
 
           {/* Expandable panels */}
+          {/* AF8: Highlight Reel — replay saved correct plays */}
+          {showHighlights&&(stats.highlights||[]).length>0&&(()=>{
+            const hl=stats.highlights||[];
+            const h=hl[highlightIdx%hl.length];
+            const m=POS_META[h.pos]||POS_META.batter;
+            return <div style={{...card,marginBottom:12,textAlign:"center"}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+                <span style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:14,color:"#60a5fa",letterSpacing:1}}>MY HIGHLIGHTS</span>
+                <button onClick={()=>setShowHighlights(false)} style={{background:"none",border:"none",color:"#9ca3af",cursor:"pointer",fontSize:14}}>✕</button>
+              </div>
+              <div style={{fontSize:11,color:"#d1d5db",fontWeight:700,marginBottom:4}}>{m.emoji} {h.title||"Great Play"}</div>
+              <div style={{borderRadius:10,overflow:"hidden",border:"1px solid rgba(59,130,246,.15)"}}>
+                <Field key={`hl-${highlightIdx}`} runners={h.runners||[]} outcome="success" ak={highlightIdx} anim={h.anim} animVariant={h.variant} theme={FIELD_THEMES.find(th=>th.id===stats.fieldTheme)||FIELD_THEMES[0]} avatar={{j:stats.avatarJersey||0,c:stats.avatarCap||0,b:stats.avatarBat||0}} pos={h.pos} slow={true}/>
+              </div>
+              <div style={{display:"flex",justifyContent:"center",gap:8,marginTop:6}}>
+                <button onClick={()=>setHighlightIdx(i=>(i-1+hl.length)%hl.length)} style={{background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.06)",borderRadius:6,padding:"4px 12px",fontSize:10,color:"#9ca3af",cursor:"pointer"}}>← Prev</button>
+                <span style={{fontSize:10,color:"#6b7280",padding:"4px 0"}}>{(highlightIdx%hl.length)+1} / {hl.length}</span>
+                <button onClick={()=>setHighlightIdx(i=>(i+1)%hl.length)} style={{background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.06)",borderRadius:6,padding:"4px 12px",fontSize:10,color:"#9ca3af",cursor:"pointer"}}>Next →</button>
+              </div>
+            </div>;
+          })()}
+
           {panel==='ach'&&<div style={{...card,marginBottom:12}}>
             <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:14,color:"#f59e0b",letterSpacing:1,marginBottom:6}}>ACHIEVEMENTS</div>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:5}}>
@@ -17045,6 +17072,22 @@ export default function App(){
               </div>
               <Field key={`replay-${replayKey}`} runners={(()=>{const r=sc.situation?.runners||[];const moveFrom={steal:1,score:3,advance:1,wildPitch:1,squeeze:3};const rm=moveFrom[sc.anim];return rm?r.filter(b=>b!==rm):r})()} outcome="success" ak={replayKey} anim={sc.anim} animVariant={sc.animVariant||sc.pitchType||null} theme={FIELD_THEMES.find(th=>th.id===stats.fieldTheme)||FIELD_THEMES[0]} avatar={{j:stats.avatarJersey||0,c:stats.avatarCap||0,b:stats.avatarBat||0}} pos={pos} slow={true}/>
               <div style={{marginTop:2}}><Board sit={sc.situation}/></div>
+              {/* AF7: Decision tree overlay — show outcome arrows after replay */}
+              {showReplay&&sc.anim&&!replayPaused&&(()=>{
+                const trees={steal:{from:[290,210],paths:[{to:[200,135],label:"SAFE",color:"#22c55e"},{to:[248,178],label:"OUT",color:"#ef4444"}]},
+                  hit:{from:[200,290],paths:[{to:[306,75],label:"BASE HIT",color:"#22c55e"},{to:[248,195],label:"FIELDED",color:"#ef4444"}]},
+                  groundout:{from:[200,290],paths:[{to:[290,210],label:"OUT AT 1B",color:"#22c55e"},{to:[200,135],label:"RUNNER SAFE",color:"#f59e0b"}]},
+                  score:{from:[110,210],paths:[{to:[200,290],label:"SCORES!",color:"#22c55e"},{to:[155,250],label:"HELD AT 3B",color:"#f59e0b"}]}};
+                const tree=trees[sc.anim];
+                if(!tree)return null;
+                return <svg viewBox="0 0 400 310" style={{position:"absolute",top:0,left:0,width:"100%",height:"100%",pointerEvents:"none"}}>
+                  {tree.paths.map((p,i)=><g key={i} opacity="0"><animate attributeName="opacity" values="0;0;0;0;.6" dur="5s" fill="freeze"/>
+                    <line x1={tree.from[0]} y1={tree.from[1]} x2={p.to[0]} y2={p.to[1]} stroke={p.color} strokeWidth="1.5" strokeDasharray="3,3"/>
+                    <circle cx={p.to[0]} cy={p.to[1]} r="14" fill={`${p.color}15`} stroke={p.color} strokeWidth="1"/>
+                    <text x={p.to[0]} y={p.to[1]+3} textAnchor="middle" fontSize="5" fill={p.color} fontWeight="800">{p.label}</text>
+                  </g>)}
+                </svg>;
+              })()}
               {/* AF2: Ghost overlay renders on top of replay field when comparison active */}
               {showFailComparison&&ANIM_DATA[sc.anim+"_fail"]&&<svg viewBox="0 0 400 310" style={{position:"absolute",top:0,left:0,width:"100%",height:"100%",pointerEvents:"none"}}>
                 <GhostPhases phases={ANIM_DATA[sc.anim+"_fail"]} ak={replayKey}/>
