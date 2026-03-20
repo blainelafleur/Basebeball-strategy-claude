@@ -1047,9 +1047,11 @@ function evaluateDefensiveAlignment(situation, proposedAlignment) {
   }
   return {justified,cost,explanation};
 }
-function enrichFeedback(scenario, choiceIdx, situation, playerAge, masteryData) {
+function enrichFeedback(scenario, choiceIdx, situation, playerAge, masteryData, brainExplored) {
   if (!situation) return [];
   const insights = [];
+  // E10: Brain exploration personalization
+  const hasBrainExp=(tab)=>brainExplored&&brainExplored[tab]&&(brainExplored[tab].interactions||0)>=3;
   // Error taxonomy — first insight on wrong answers
   if (typeof choiceIdx !== 'undefined' && choiceIdx !== scenario.best) {
     const ef = classifyAndFeedback(scenario, choiceIdx, playerAge || 14, masteryData || {concepts:{}});
@@ -1058,7 +1060,7 @@ function enrichFeedback(scenario, choiceIdx, situation, playerAge, masteryData) 
   const {runners=[], outs=0, count, score=[0,0]} = situation;
   const re24 = getRunExpectancy(runners, outs);
   if (re24 > 0.5 && runners.length > 0)
-    insights.push({icon:"📊", text:`With ${runners.length === 3 ? "bases loaded" : runners.length === 2 ? "2 runners on" : "a runner on"}, your team expects ${re24.toFixed(2)} runs from here.`, deepLink:{tab:"re24",state:{runners,outs}}});
+    insights.push({icon:"📊", text:`${hasBrainExp("re24")?"Remember your RE24 Explorer experiments — ":""}With ${runners.length === 3 ? "bases loaded" : runners.length === 2 ? "2 runners on" : "a runner on"}, your team expects ${re24.toFixed(2)} runs from here.`, deepLink:{tab:"re24",state:{runners,outs}}});
   const ci = getCountIntel(count);
   if (ci)
     insights.push({icon:"🔢", text:`At ${count} (${ci.label}), hitters bat .${Math.round(ci.ba*1000)}.`, deepLink:{tab:"counts",state:{count}}});
@@ -1073,7 +1075,7 @@ function enrichFeedback(scenario, choiceIdx, situation, playerAge, masteryData) 
   // Steal insight if concept mentions steal
   if (scenario?.concept && /steal/i.test(scenario.concept)) {
     const steal = evaluateSteal(outs, 0.72);
-    insights.push({icon:"🏃", text:`Need ${steal.breakeven}% success rate to break even on a steal here.`, deepLink:{tab:"steal"}});
+    insights.push({icon:"🏃", text:`${hasBrainExp("steal")?"Like you saw in the Steal Calculator — ":""}Need ${steal.breakeven}% success rate to break even on a steal here.`, deepLink:{tab:"steal"}});
   }
   // Scoring probability by base/out
   if (runners.length > 0 && outs !== undefined) {
@@ -1145,7 +1147,7 @@ function enrichFeedback(scenario, choiceIdx, situation, playerAge, masteryData) 
   // Platoon matchup insight for batting/pitching scenarios with handedness
   if (scenario?.concept && /platoon|matchup|hand|left|right|switch/i.test(scenario.concept)) {
     const mm = BRAIN.stats.matchupMatrix.platoon;
-    insights.push({icon:"📊", text:`Opposite-hand batters hit ${mm.edge} BA points higher than same-hand (.${Math.round(mm.oppositeHand.ba*1000)} vs .${Math.round(mm.sameHand.ba*1000)}). Switch hitters (.${Math.round(mm.switchHitter.ba*1000)}) split the difference.`, deepLink:{tab:"matchup"}});
+    insights.push({icon:"📊", text:`Opposite-hand batters hit ${mm.edge} BA points higher than same-hand (.${Math.round(mm.oppositeHand.ba*1000)} vs .${Math.round(mm.sameHand.ba*1000)}). Switch hitters (.${Math.round(mm.switchHitter.ba*1000)}) split the difference.`, deepLink:{tab:"matchup",minAge:11}});
   }
   // Infield-in tradeoff insight
   if (scenario?.concept && /infield.*in/i.test(scenario.concept)) {

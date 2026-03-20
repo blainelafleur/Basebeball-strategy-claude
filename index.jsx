@@ -7765,9 +7765,11 @@ function evaluateDefensiveAlignment(situation, proposedAlignment) {
   }
   return {justified,cost,explanation};
 }
-function enrichFeedback(scenario, choiceIdx, situation, playerAge, masteryData) {
+function enrichFeedback(scenario, choiceIdx, situation, playerAge, masteryData, brainExplored) {
   if (!situation) return [];
   const insights = [];
+  // E10: Brain exploration personalization
+  const hasBrainExp=(tab)=>brainExplored&&brainExplored[tab]&&(brainExplored[tab].interactions||0)>=3;
   // Error taxonomy — first insight on wrong answers
   if (typeof choiceIdx !== 'undefined' && choiceIdx !== scenario.best) {
     const ef = classifyAndFeedback(scenario, choiceIdx, playerAge || 14, masteryData || {concepts:{}});
@@ -7776,7 +7778,7 @@ function enrichFeedback(scenario, choiceIdx, situation, playerAge, masteryData) 
   const {runners=[], outs=0, count, score=[0,0]} = situation;
   const re24 = getRunExpectancy(runners, outs);
   if (re24 > 0.5 && runners.length > 0)
-    insights.push({icon:"📊", text:`With ${runners.length === 3 ? "bases loaded" : runners.length === 2 ? "2 runners on" : "a runner on"}, your team expects ${re24.toFixed(2)} runs from here.`, deepLink:{tab:"re24",state:{runners,outs}}});
+    insights.push({icon:"📊", text:`${hasBrainExp("re24")?"Remember your RE24 Explorer experiments — ":""}With ${runners.length === 3 ? "bases loaded" : runners.length === 2 ? "2 runners on" : "a runner on"}, your team expects ${re24.toFixed(2)} runs from here.`, deepLink:{tab:"re24",state:{runners,outs}}});
   const ci = getCountIntel(count);
   if (ci)
     insights.push({icon:"🔢", text:`At ${count} (${ci.label}), hitters bat .${Math.round(ci.ba*1000)}.`, deepLink:{tab:"counts",state:{count}}});
@@ -7791,7 +7793,7 @@ function enrichFeedback(scenario, choiceIdx, situation, playerAge, masteryData) 
   // Steal insight if concept mentions steal
   if (scenario?.concept && /steal/i.test(scenario.concept)) {
     const steal = evaluateSteal(outs, 0.72);
-    insights.push({icon:"🏃", text:`Need ${steal.breakeven}% success rate to break even on a steal here.`, deepLink:{tab:"steal"}});
+    insights.push({icon:"🏃", text:`${hasBrainExp("steal")?"Like you saw in the Steal Calculator — ":""}Need ${steal.breakeven}% success rate to break even on a steal here.`, deepLink:{tab:"steal"}});
   }
   // Scoring probability by base/out
   if (runners.length > 0 && outs !== undefined) {
@@ -7863,7 +7865,7 @@ function enrichFeedback(scenario, choiceIdx, situation, playerAge, masteryData) 
   // Platoon matchup insight for batting/pitching scenarios with handedness
   if (scenario?.concept && /platoon|matchup|hand|left|right|switch/i.test(scenario.concept)) {
     const mm = BRAIN.stats.matchupMatrix.platoon;
-    insights.push({icon:"📊", text:`Opposite-hand batters hit ${mm.edge} BA points higher than same-hand (.${Math.round(mm.oppositeHand.ba*1000)} vs .${Math.round(mm.sameHand.ba*1000)}). Switch hitters (.${Math.round(mm.switchHitter.ba*1000)}) split the difference.`, deepLink:{tab:"matchup"}});
+    insights.push({icon:"📊", text:`Opposite-hand batters hit ${mm.edge} BA points higher than same-hand (.${Math.round(mm.oppositeHand.ba*1000)} vs .${Math.round(mm.sameHand.ba*1000)}). Switch hitters (.${Math.round(mm.switchHitter.ba*1000)}) split the difference.`, deepLink:{tab:"matchup",minAge:11}});
   }
   // Infield-in tradeoff insight
   if (scenario?.concept && /infield.*in/i.test(scenario.concept)) {
@@ -14122,6 +14124,13 @@ export default function App(){
   const[defRunners,setDefRunners]=useState([3]);
   const[selMoment,setSelMoment]=useState(null);
   const[momentChoice,setMomentChoice]=useState(null);
+  // Sprint E states
+  const[inningMode,setInningMode]=useState(false); // Build Your Inning sandbox
+  const[inningRuns,setInningRuns]=useState(0);
+  const[inningActions,setInningActions]=useState([]);
+  const[stealRacing,setStealRacing]=useState(false); // animated race in progress
+  const[pitchThrow,setPitchThrow]=useState(null); // pitch trajectory animation: pitch key or null
+  const brainVisitTimer=useRef(null); // IQ debounce — 2s dwell time
 
   const[sessionRecap,setSessionRecap]=useState(null); // {plays,correct,concepts:[],newConcepts:[],improvement:bool}
   const sessionRef=useRef({plays:0,correct:0,concepts:[],newConcepts:[]});
@@ -17067,16 +17076,21 @@ export default function App(){
 
         {/* BASEBALL BRAIN */}
         {screen==="brain"&&(()=>{
-          // A2: Fixed BrainIQ calculation — increment by tabs visited
+          // A2+E11: BrainIQ with 2-second dwell debounce
           const trackBrainVisit=(tab)=>{
-            setStats(p=>{
-              const be={...(p.brainExplored||{})};
-              if(!be[tab])be[tab]={visited:true,visitCount:0,interactions:0};
-              be[tab].visitCount=(be[tab].visitCount||0)+1;
-              const tabsVisited=Object.values(be).filter(v=>v.visited).length;
-              const newIQ=Math.min(200, tabsVisited*5 + Object.values(be).reduce((s,v)=>s+Math.min(10,(v.interactions||0)),0));
-              return{...p,brainExplored:be,brainIQ:Math.max(p.brainIQ||0,newIQ)};
-            });
+            if(brainVisitTimer.current)clearTimeout(brainVisitTimer.current);
+            brainVisitTimer.current=setTimeout(()=>{
+              setStats(p=>{
+                const be={...(p.brainExplored||{})};
+                if(!be[tab])be[tab]={visited:true,visitCount:0,interactions:0,challengeDone:false};
+                be[tab].visitCount=(be[tab].visitCount||0)+1;
+                const tabsVisited=Object.values(be).filter(v=>v&&v.visited).length;
+                const interactionPts=Object.values(be).reduce((s,v)=>s+Math.min(10,(v?.interactions||0)),0);
+                const challengePts=Object.values(be).filter(v=>v?.challengeDone).length*15;
+                const newIQ=Math.min(200, tabsVisited*5 + interactionPts + challengePts);
+                return{...p,brainExplored:be,brainIQ:Math.max(p.brainIQ||0,newIQ)};
+              });
+            },2000); // E11: 2-second dwell before counting visit
           };
           const trackInteraction=(tab)=>{
             setStats(p=>{
@@ -17170,7 +17184,13 @@ export default function App(){
               const rKey=r=>reRunners.includes(r)?reRunners.filter(x=>x!==r):[...reRunners,r];
               const reState=runners=>{const k=(runners.includes(1)?"1":"-")+(runners.includes(2)?"2":"-")+(runners.includes(3)?"3":"-");return k==="---"?"---":k;};
               const re24=BRAIN.stats.RE24[reState(reRunners)]?.[reOuts]||0;
-              const doAction=(name,newRunners,newOuts,delta,msg)=>{snd.play('tap');trackInteraction("re24");setRePrevRE(re24);setReRunners(newRunners);setReOuts(Math.min(newOuts,2));setReLastAction({name,delta,msg});if(newOuts>=3){setTimeout(()=>{setReRunners([]);setReOuts(0);setReLastAction({name:"Inning Over",delta:-re24,msg:"3 outs! The inning is over."});},1500);}};
+              const doAction=(name,newRunners,newOuts,delta,msg,runsScored=0)=>{snd.play('tap');trackInteraction("re24");setRePrevRE(re24);setReRunners(newRunners);setReOuts(Math.min(newOuts,2));setReLastAction({name,delta,msg});
+                if(inningMode){setInningRuns(r=>r+runsScored);setInningActions(a=>[...a,name]);}
+                if(newOuts>=3){setTimeout(()=>{
+                  if(inningMode){const finalRuns=inningRuns+runsScored;setReLastAction({name:"Inning Over!",delta:0,msg:`${isYoung?`You scored ${finalRuns} run${finalRuns!==1?"s":""}!`:`Inning complete: ${finalRuns} runs scored. MLB average: ~0.5 per half-inning.`} ${finalRuns>=3?"Amazing inning!":finalRuns>=1?"Nice work!":"Tough inning."}`});setReRunners([]);setReOuts(0);}
+                  else{setReRunners([]);setReOuts(0);setReLastAction({name:"Inning Over",delta:-re24,msg:"3 outs! The inning is over."});}
+                },1500);}
+              };
               const canBunt=reRunners.some(r=>r<=2)&&reOuts<2;
               const canSteal=reRunners.some(r=>r<=2);
               const canSacFly=reRunners.includes(3)&&reOuts<2;
@@ -17207,6 +17227,16 @@ export default function App(){
                   <span style={{fontSize:10,color:"#9ca3af",alignSelf:"center"}}>Outs:</span>
                   {[0,1,2].map(o=><button key={o} onClick={()=>{setRePrevRE(re24);setReOuts(o);setReLastAction(null);}} style={{width:28,height:28,borderRadius:"50%",background:reOuts>=o+1?"rgba(239,68,68,.3)":"rgba(255,255,255,.04)",border:`1.5px solid ${reOuts>=o+1?"#ef4444":"rgba(255,255,255,.12)"}`,color:reOuts>=o+1?"#fca5a5":"#6b7280",fontSize:12,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>{o<reOuts?"●":"○"}</button>)}
                 </div>
+                {/* E1: Build Your Inning toggle */}
+                <div style={{display:"flex",justifyContent:"center",gap:6,marginBottom:8}}>
+                  <button onClick={()=>{if(!inningMode){setInningMode(true);setInningRuns(0);setInningActions([]);setReRunners([]);setReOuts(0);setReLastAction(null);}else{setInningMode(false);}}} style={{background:inningMode?"rgba(34,197,94,.15)":"rgba(255,255,255,.03)",border:`1px solid ${inningMode?"rgba(34,197,94,.3)":"rgba(255,255,255,.08)"}`,borderRadius:8,padding:"6px 14px",fontSize:10,fontWeight:600,color:inningMode?"#22c55e":"#9ca3af",cursor:"pointer",minHeight:32}}>{inningMode?"End Inning":"Play an Inning"}</button>
+                </div>
+                {/* E1: Inning tracker */}
+                {inningMode&&<div style={{textAlign:"center",marginBottom:8,padding:"6px 12px",background:"rgba(34,197,94,.06)",borderRadius:10,border:"1px solid rgba(34,197,94,.1)"}}>
+                  <div style={{fontSize:10,color:"#86efac",fontWeight:700}}>BUILDING YOUR INNING</div>
+                  <div style={{fontSize:20,fontWeight:900,color:"#22c55e"}}>{isYoung?`${inningRuns} run${inningRuns!==1?"s":""}`:inningRuns.toFixed(0)+" runs scored"}</div>
+                  <div style={{fontSize:9,color:"#9ca3af"}}>{reOuts} out{reOuts!==1?"s":""} · {inningActions.length} plays · Avg inning: ~0.5 runs</div>
+                </div>}
                 {/* RE24 display */}
                 <div style={{textAlign:"center",marginBottom:12}}>
                   <div style={{fontSize:10,color:"#9ca3af",textTransform:"uppercase",letterSpacing:1,marginBottom:2}}>{isYoung?"Chance to Score":"Expected Runs"}</div>
@@ -17235,11 +17265,11 @@ export default function App(){
                       if(nr.includes(1)){nr=nr.map(x=>x===1?2:x);}
                       nr.push(1);nr=[...new Set(nr)];
                       const newRE=BRAIN.stats.RE24[reState(nr)]?.[reOuts]||0;
-                      doAction("Single",nr,reOuts,newRE-re24+scored,scored?`Runner scored! +${scored} run${scored>1?"s":""}`:isYoung?"Base hit! Runners advance!":"Runners advance on the single.");
+                      doAction("Single",nr,reOuts,newRE-re24+scored,scored?`Runner scored! +${scored} run${scored>1?"s":""}`:isYoung?"Base hit! Runners advance!":"Runners advance on the single.",scored);
                     }},
                     {label:"Walk",show:true,fn:()=>{
                       let nr=[...reRunners];
-                      if(nr.includes(1)&&nr.includes(2)&&nr.includes(3)){const newRE=BRAIN.stats.RE24["123"]?.[reOuts]||0;doAction("Walk",nr,reOuts,newRE-re24+1,"Bases loaded walk! Run scores!");}
+                      if(nr.includes(1)&&nr.includes(2)&&nr.includes(3)){const newRE=BRAIN.stats.RE24["123"]?.[reOuts]||0;doAction("Walk",nr,reOuts,newRE-re24+1,"Bases loaded walk! Run scores!",1);}
                       else{if(nr.includes(2)&&nr.includes(1)){nr=nr.map(x=>x===2?3:x);}if(nr.includes(1)){nr=nr.map(x=>x===1?2:x);}nr.push(1);nr=[...new Set(nr)];const newRE=BRAIN.stats.RE24[reState(nr)]?.[reOuts]||0;doAction("Walk",nr,reOuts,newRE-re24,isYoung?"Free base!":"Walk advances forced runners.");}
                     }},
                     {label:isYoung?"Strikeout":"K",show:true,fn:()=>{
@@ -17263,7 +17293,7 @@ export default function App(){
                     {label:"Sac Fly",show:canSacFly,fn:()=>{
                       let nr=reRunners.filter(r=>r!==3);const no=reOuts+1;
                       const newRE=no>=3?0:(BRAIN.stats.RE24[reState(nr)]?.[no]||0);
-                      doAction("Sac Fly",nr,no,newRE-re24+1,isYoung?"Fly ball! Runner tags up and scores!":"Sacrifice fly: runner scores from 3rd, out recorded.");
+                      doAction("Sac Fly",nr,no,newRE-re24+1,isYoung?"Fly ball! Runner tags up and scores!":"Sacrifice fly: runner scores from 3rd, out recorded.",1);
                     }},
                     {label:"Double Play",show:canDP,fn:()=>{
                       let nr=reRunners.filter(r=>r!==1);const no=reOuts+2;
@@ -17277,7 +17307,7 @@ export default function App(){
                       if(nr.includes(1)){const adv=Math.random()<0.52;if(adv){scored++;nr=nr.filter(x=>x!==1);}else{nr=nr.map(x=>x===1?3:x);}}
                       nr.push(2);nr=[...new Set(nr)];
                       const newRE=BRAIN.stats.RE24[reState(nr)]?.[reOuts]||0;
-                      doAction("Double",nr,reOuts,newRE-re24+scored,scored?`Double! ${scored} run${scored>1?"s":""} scored!`:isYoung?"Big hit to the gap!":"Double clears the bases — runner to 2nd.");
+                      doAction("Double",nr,reOuts,newRE-re24+scored,scored?`Double! ${scored} run${scored>1?"s":""} scored!`:isYoung?"Big hit to the gap!":"Double clears the bases — runner to 2nd.",scored);
                     }},
                   ].filter(a=>a.show).map(a=><button key={a.label} onClick={a.fn} style={{background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.08)",borderRadius:8,padding:"8px 14px",fontSize:10,fontWeight:600,color:"#d1d5db",cursor:"pointer",transition:"all .15s",minHeight:36}}>{a.label}</button>)}
                 </div>
@@ -17449,6 +17479,34 @@ export default function App(){
                   <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:16,color:"#ef4444",letterSpacing:1}}>PITCH LAB</div>
                   {vocabTier>=3&&<button onClick={()=>{setSeqMode(!seqMode);setSeqPitches([]);}} style={{background:seqMode?"rgba(239,68,68,.15)":"rgba(255,255,255,.03)",border:`1px solid ${seqMode?"rgba(239,68,68,.3)":"rgba(255,255,255,.08)"}`,borderRadius:8,padding:"4px 10px",fontSize:9,fontWeight:600,color:seqMode?"#ef4444":"#9ca3af",cursor:"pointer"}}>{seqMode?"Exit Sequencing":"Build a Sequence"}</button>}
                 </div>
+                {/* E3: Pitch trajectory visualization */}
+                {selPitch&&!seqMode&&(()=>{
+                  const paths={
+                    fourSeam:"M20,55 C80,53 180,50 280,48",sinker:"M20,50 C80,50 180,54 280,62",
+                    cutter:"M20,52 C80,51 200,50 280,46",changeup:"M20,52 C80,51 160,51 240,58 280,68",
+                    slider:"M20,52 C80,51 160,48 240,55 280,62",curveball:"M20,40 C60,42 140,50 220,65 280,80",
+                    sweeper:"M20,52 C80,50 160,48 230,42 280,35",splitter:"M20,52 C80,51 180,52 250,62 280,75"
+                  };
+                  const p=paths[selPitch]||paths.fourSeam;
+                  const isAnimating=pitchThrow===selPitch;
+                  return <div style={{marginBottom:12,background:"rgba(0,0,0,.3)",borderRadius:10,padding:"8px",border:"1px solid rgba(239,68,68,.1)"}}>
+                    <svg viewBox="0 0 300 90" width="100%" height="80" style={{display:"block"}}>
+                      <rect x="15" y="25" width="6" height="50" rx="2" fill="rgba(239,68,68,.2)"/>
+                      <text x="18" y="20" fill="rgba(255,255,255,.3)" fontSize="7" textAnchor="middle">P</text>
+                      <rect x="275" y="40" width="12" height="25" rx="1" fill="rgba(255,255,255,.15)"/>
+                      <text x="281" y="38" fill="rgba(255,255,255,.3)" fontSize="7" textAnchor="middle">Plate</text>
+                      <path d={p} fill="none" stroke="rgba(255,255,255,.1)" strokeWidth="1" strokeDasharray="3,3"/>
+                      {isAnimating&&<circle r="4" fill="#ef4444">
+                        <animateMotion dur="1.2s" fill="freeze" path={p}/>
+                        <animate attributeName="opacity" values="1;1;0" dur="1.2s" fill="freeze"/>
+                      </circle>}
+                    </svg>
+                    <div style={{display:"flex",justifyContent:"center",gap:6}}>
+                      <button onClick={()=>{setPitchThrow(null);setTimeout(()=>setPitchThrow(selPitch),50);snd.play('tap');}} style={{background:"rgba(239,68,68,.1)",border:"1px solid rgba(239,68,68,.2)",borderRadius:6,padding:"4px 12px",fontSize:9,fontWeight:600,color:"#fca5a5",cursor:"pointer",minHeight:28}}>Throw!</button>
+                      <div style={{fontSize:8,color:"#9ca3af",alignSelf:"center"}}>{types[selPitch]?.name} · {types[selPitch]?.velo} mph</div>
+                    </div>
+                  </div>;
+                })()}
                 {/* Sequencing mode */}
                 {seqMode&&<div style={{marginBottom:12}}>
                   <div style={{fontSize:10,color:"#d1d5db",marginBottom:6}}>Tap pitches to build a {vocabTier>=4?5:3}-pitch sequence:</div>
@@ -17583,21 +17641,25 @@ export default function App(){
                 <Slider label={isYoung?"How fast does the pitcher throw home?":"Pitcher Delivery Time"} value={deliveryTime} onChange={setDeliveryTime} min={1.15} max={1.60} step={0.05} labels={["Quick (1.20s)","Average (1.35s)","Slow (1.55s)"]}/>
                 <Slider label={isYoung?"How fast can the catcher throw?":"Catcher Pop Time"} value={popTime2} onChange={setPopTime2} min={1.80} max={2.20} step={0.05} labels={["Elite (1.85s)","Average (2.00s)","Slow (2.15s)"]}/>
                 <Slider label={isYoung?"How fast is the runner?":"Runner Speed to 2B"} value={runnerTime} onChange={setRunnerTime} min={3.20} max={3.85} step={0.05} labels={["Elite (3.30s)","Average (3.55s)","Slow (3.80s)"]}/>
-                {/* Race visualization */}
+                {/* E4: Animated Race visualization */}
                 <div style={{background:"rgba(255,255,255,.02)",borderRadius:12,padding:"10px",border:"1px solid rgba(255,255,255,.06)",marginBottom:10}}>
-                  <div style={{fontSize:10,color:"#9ca3af",textTransform:"uppercase",letterSpacing:1,marginBottom:6,fontWeight:700}}>The Race</div>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+                    <div style={{fontSize:10,color:"#9ca3af",textTransform:"uppercase",letterSpacing:1,fontWeight:700}}>The Race</div>
+                    <button onClick={()=>{setStealRacing(false);setTimeout(()=>setStealRacing(true),50);snd.play('tap');navigator.vibrate?.(10);}} style={{background:"rgba(247,150,22,.1)",border:"1px solid rgba(247,150,22,.2)",borderRadius:6,padding:"3px 10px",fontSize:9,fontWeight:600,color:"#f97316",cursor:"pointer",minHeight:26}}>Race!</button>
+                  </div>
                   <svg viewBox="0 0 300 60" width="100%" height="60">
-                    {/* Ball track */}
                     <text x="2" y="12" fill="#9ca3af" fontSize="7">Ball</text>
                     <rect x="30" y="6" width="260" height="12" rx="3" fill="rgba(255,255,255,.04)"/>
-                    <rect x="30" y="6" width={Math.min(260,260*(throwTime/4.0))} height="12" rx="3" fill="rgba(239,68,68,.3)"/>
+                    <rect x="30" y="6" height="12" rx="3" fill="rgba(239,68,68,.3)">
+                      {stealRacing?<animate attributeName="width" from="0" to={Math.min(260,260*(throwTime/4.0))} dur="2s" fill="freeze"/>:<set attributeName="width" to={Math.min(260,260*(throwTime/4.0))}/>}
+                    </rect>
                     <text x={Math.min(285,30+260*(throwTime/4.0))} y="15" fill="#fca5a5" fontSize="7" textAnchor="end">{throwTime.toFixed(2)}s</text>
-                    {/* Runner track */}
                     <text x="2" y="42" fill="#9ca3af" fontSize="7">Runner</text>
                     <rect x="30" y="36" width="260" height="12" rx="3" fill="rgba(255,255,255,.04)"/>
-                    <rect x="30" y="36" width={Math.min(260,260*(runnerTime/4.0))} height="12" rx="3" fill={`${verdictColor}50`}/>
+                    <rect x="30" y="36" height="12" rx="3" fill={`${verdictColor}50`}>
+                      {stealRacing?<animate attributeName="width" from="0" to={Math.min(260,260*(runnerTime/4.0))} dur="2s" fill="freeze"/>:<set attributeName="width" to={Math.min(260,260*(runnerTime/4.0))}/>}
+                    </rect>
                     <text x={Math.min(285,30+260*(runnerTime/4.0))} y="45" fill={verdictColor} fontSize="7" textAnchor="end">{runnerTime.toFixed(2)}s</text>
-                    {/* Finish line */}
                     <line x1="290" y1="2" x2="290" y2="52" stroke="rgba(255,255,255,.15)" strokeWidth="1" strokeDasharray="2,2"/>
                   </svg>
                   <div style={{textAlign:"center",marginTop:4}}>
@@ -17715,7 +17777,7 @@ export default function App(){
                         </div>}
                         <div style={{display:"flex",gap:4,marginTop:4}}>
                           <div style={{fontSize:9,background:`${mc}15`,borderRadius:4,padding:"2px 6px",color:mc,fontWeight:600}}>{st}</div>
-                          {st!=="mastered"&&prereqsMet&&<button onClick={()=>{const scens=Object.values(SCENARIOS).flat().filter(s=>s.conceptTag===tag||s.concept?.toLowerCase().includes(tag.replace(/-/g," ")));if(scens.length>0){const s=scens[Math.floor(Math.random()*scens.length)];setPos(s._pos||Object.entries(SCENARIOS).find(([,arr])=>arr.includes(s))?.[0]||"batter");setSc(s);setChoice(null);setOd(null);setRi(-1);setFo(null);setShowC(false);setShowExp(true);setScreen("play");}}} style={{fontSize:9,background:"rgba(168,85,247,.15)",border:"1px solid rgba(168,85,247,.3)",borderRadius:4,padding:"2px 8px",color:"#a855f7",fontWeight:600,cursor:"pointer"}}>Practice This →</button>}
+                          {prereqsMet&&(()=>{const scens=Object.values(SCENARIOS).flat().filter(s=>s.conceptTag===tag||s.concept?.toLowerCase().includes(tag.replace(/-/g," ")));return scens.length>0?<button onClick={()=>{const s=scens[Math.floor(Math.random()*scens.length)];setPos(s._pos||Object.entries(SCENARIOS).find(([,arr])=>arr.includes(s))?.[0]||"batter");setSc(s);setChoice(null);setOd(null);setRi(-1);setFo(null);setShowC(false);setShowExp(true);setScreen("play");}} style={{fontSize:9,background:"rgba(168,85,247,.15)",border:"1px solid rgba(168,85,247,.3)",borderRadius:4,padding:"2px 8px",color:"#a855f7",fontWeight:600,cursor:"pointer"}}>{st==="mastered"?"Review This →":"Practice This →"}</button>:<span style={{fontSize:8,color:"#6b7280"}}>No challenges available yet</span>;})()}
                         </div>
                       </div>}
                     </div>;
@@ -17739,11 +17801,25 @@ export default function App(){
               const restDays=pcCount<=25?0:pcCount<=50?1:pcCount<=65?2:pcCount<=85?3:4;
               return <div>
                 <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:16,color:"#eab308",letterSpacing:1,marginBottom:10}}>PITCH COUNT TRACKER</div>
-                {/* Gauge */}
+                {/* E5: Speedometer gauge */}
                 <div style={{textAlign:"center",marginBottom:12}}>
-                  <div style={{fontSize:42,fontWeight:900,color:zoneColor}}>{pcCount}</div>
-                  <div style={{fontSize:12,fontWeight:700,color:zoneColor}}>{zoneLabel}</div>
-                  <input type="range" min={0} max={120} value={pcCount} onChange={e=>setPcCount(parseInt(e.target.value))} style={{width:"80%",accentColor:zoneColor,marginTop:6}}/>
+                  <svg viewBox="0 0 200 120" width="200" height="120" style={{display:"block",margin:"0 auto"}}>
+                    {/* 5 arc segments: green, yellow-green, yellow, orange, red */}
+                    {[{start:180,end:216,color:"#22c55e"},{start:216,end:252,color:"#86efac"},{start:252,end:288,color:"#f59e0b"},{start:288,end:324,color:"#f97316"},{start:324,end:360,color:"#ef4444"}].map((seg,i)=>{
+                      const r=80;const cx=100;const cy=100;
+                      const x1=cx+r*Math.cos(seg.start*Math.PI/180);const y1=cy+r*Math.sin(seg.start*Math.PI/180);
+                      const x2=cx+r*Math.cos(seg.end*Math.PI/180);const y2=cy+r*Math.sin(seg.end*Math.PI/180);
+                      return <path key={i} d={`M${x1},${y1} A${r},${r} 0 0,1 ${x2},${y2}`} fill="none" stroke={seg.color} strokeWidth="12" strokeLinecap="round" opacity={0.3}/>;
+                    })}
+                    {/* Needle */}
+                    {(()=>{const angle=180+(pcCount/120)*180;const r=65;const nx=100+r*Math.cos(angle*Math.PI/180);const ny=100+r*Math.sin(angle*Math.PI/180);
+                      return <line x1="100" y1="100" x2={nx} y2={ny} stroke={zoneColor} strokeWidth="3" strokeLinecap="round"/>;
+                    })()}
+                    <circle cx="100" cy="100" r="6" fill={zoneColor}/>
+                    <text x="100" y="88" textAnchor="middle" fill={zoneColor} fontSize="28" fontWeight="900">{pcCount}</text>
+                    <text x="100" y="115" textAnchor="middle" fill={zoneColor} fontSize="10" fontWeight="700">{isYoung?(pcCount<=50?"Fresh!":pcCount<=75?"Getting tired":pcCount<=90?"Very tired":"Stop!"):zoneLabel}</text>
+                  </svg>
+                  <input type="range" min={0} max={120} value={pcCount} onChange={e=>{setPcCount(parseInt(e.target.value));trackInteraction("pitchcount");}} style={{width:"80%",accentColor:zoneColor,marginTop:4}}/>
                   <div style={{display:"flex",justifyContent:"space-between",fontSize:7,color:"#6b7280",width:"80%",margin:"0 auto"}}>
                     <span>0</span><span>50</span><span>75</span><span>90</span><span>100</span><span>120</span>
                   </div>
@@ -17816,16 +17892,31 @@ export default function App(){
                     {[-3,-2,-1,0,1,2,3].map(d=><button key={d} onClick={()=>setWpDiff(d)} style={{flex:1,padding:"4px 0",borderRadius:6,fontSize:9,fontWeight:wpDiff===d?700:400,background:wpDiff===d?(d>0?"rgba(34,197,94,.15)":d<0?"rgba(239,68,68,.15)":"rgba(245,158,11,.15)"):"rgba(255,255,255,.02)",border:`1px solid ${wpDiff===d?(d>0?"rgba(34,197,94,.3)":d<0?"rgba(239,68,68,.3)":"rgba(245,158,11,.3)"):"rgba(255,255,255,.06)"}`,color:wpDiff===d?(d>0?"#22c55e":d<0?"#ef4444":"#f59e0b"):"#6b7280",cursor:"pointer"}}>{d>0?"+"+d:d}</button>)}
                   </div>
                 </div>
-                {/* WP across innings for selected diff */}
+                {/* E7: WP line graph across innings */}
                 {vocabTier>=3&&<div style={{marginBottom:12}}>
-                  <div style={{fontSize:10,color:"#9ca3af",textTransform:"uppercase",letterSpacing:1,marginBottom:4,fontWeight:700}}>WP Across Innings ({wpDiff>=0?"+":""}{wpDiff} runs)</div>
-                  <div style={{display:"flex",alignItems:"flex-end",gap:4,height:100}}>
-                    {innings.map(inn=>{const v=getWP(inn,wpDiff);return <div key={inn} style={{flex:1,textAlign:"center"}}>
-                      <div style={{fontSize:8,color:v>0.5?"#22c55e":"#ef4444",fontWeight:600,marginBottom:2}}>{Math.round(v*100)}%</div>
-                      <div style={{height:`${v*80}px`,background:`linear-gradient(to top,${v>0.5?"rgba(34,197,94,.3)":"rgba(239,68,68,.3)"},${v>0.5?"rgba(34,197,94,.6)":"rgba(239,68,68,.6)"})`,borderRadius:"4px 4px 0 0",transition:"height .3s"}}/>
-                      <div style={{fontSize:7,color:inn===wpInning?"#06b6d4":"#6b7280",fontWeight:inn===wpInning?700:400,marginTop:2}}>Inn {inn}</div>
-                    </div>;})}
-                  </div>
+                  <div style={{fontSize:10,color:"#9ca3af",textTransform:"uppercase",letterSpacing:1,marginBottom:4,fontWeight:700}}>WP Across Innings</div>
+                  <svg viewBox="0 0 300 120" width="100%" height="120" style={{display:"block"}}>
+                    {/* Grid lines */}
+                    <line x1="30" y1="10" x2="30" y2="110" stroke="rgba(255,255,255,.06)" strokeWidth="0.5"/>
+                    <line x1="30" y1="60" x2="290" y2="60" stroke="rgba(255,255,255,.1)" strokeWidth="0.5" strokeDasharray="3,3"/>
+                    <text x="15" y="63" fill="rgba(255,255,255,.3)" fontSize="7" textAnchor="middle">50%</text>
+                    <text x="15" y="14" fill="rgba(255,255,255,.2)" fontSize="6" textAnchor="middle">100</text>
+                    <text x="15" y="113" fill="rgba(255,255,255,.2)" fontSize="6" textAnchor="middle">0</text>
+                    {/* Multi-line: show selected diff + tied for comparison */}
+                    {[{diff:wpDiff,color:"#06b6d4",width:2.5},{diff:0,color:"rgba(245,158,11,.4)",width:1}].map(({diff:d,color:c,width:w},li)=>{
+                      const pts=innings.map((inn,i)=>{const v=getWP(inn,d);const x=30+i*(260/(innings.length-1));const y=110-v*100;return `${x},${y}`;}).join(" ");
+                      return <g key={li}>
+                        <polyline points={pts} fill="none" stroke={c} strokeWidth={w} strokeLinejoin="round"/>
+                        {li===0&&innings.map((inn,i)=>{const v=getWP(inn,d);const x=30+i*(260/(innings.length-1));const y=110-v*100;return <g key={inn}>
+                          <circle cx={x} cy={y} r={inn===wpInning?5:3} fill={inn===wpInning?c:"rgba(255,255,255,.1)"} stroke={c} strokeWidth={1}/>
+                          <text x={x} y={y-8} fill={c} fontSize="7" textAnchor="middle" fontWeight="600">{Math.round(v*100)}%</text>
+                          <text x={x} y="118" fill={inn===wpInning?c:"rgba(255,255,255,.3)"} fontSize="6" textAnchor="middle">{inn}</text>
+                        </g>;})}
+                      </g>;
+                    })}
+                    {wpDiff!==0&&<text x="280" y="55" fill="rgba(245,158,11,.5)" fontSize="6">tied</text>}
+                  </svg>
+                  <div style={{textAlign:"center",fontSize:8,color:"#6b7280"}}>{wpDiff!==0?`Cyan = ${wpDiff>=0?"+":""}${wpDiff} runs · Gold = tied game`:`Win probability when tied`}</div>
                 </div>}
                 {/* LI by inning */}
                 {vocabTier>=3&&<div style={{marginBottom:10}}>
@@ -18492,7 +18583,7 @@ export default function App(){
 
           {/* Brain Insights — statistical context for ages 11+ */}
           {showC&&stats.ageGroup!=="6-8"&&stats.ageGroup!=="9-10"&&(()=>{
-            const insights=enrichFeedback(sc,choice,sc.situation);
+            const insights=enrichFeedback(sc,choice,sc.situation,parseInt((stats.ageGroup||"13").split("-")[0])||13,stats.masteryData,stats.brainExplored);
             if(insights.length===0)return null;
             return(<div style={{background:"linear-gradient(135deg,rgba(168,85,247,.04),rgba(59,130,246,.04))",border:"1px solid rgba(168,85,247,.12)",borderRadius:12,padding:12,marginTop:8}}>
               <div style={{fontSize:9,color:"#a855f7",textTransform:"uppercase",letterSpacing:1,fontWeight:700,marginBottom:6,textAlign:"center"}}>Brain Insights</div>
@@ -18502,7 +18593,7 @@ export default function App(){
                     <span style={{fontSize:13,flexShrink:0}}>{ins.icon}</span>
                     <div style={{flex:1}}>
                       <span style={{fontSize:12,color:"#d1d5db",lineHeight:1.4}}>{ins.text}</span>
-                      {ins.deepLink&&<button onClick={()=>{setBrainTab(ins.deepLink.tab);if(ins.deepLink.state){const s=ins.deepLink.state;if(s.runners!==undefined){setReRunners(s.runners);setReOuts(s.outs||0);}if(s.count)setSelCount(s.count);if(s.inning!==undefined){setWpInning(s.inning);setWpDiff(s.diff||0);}}setScreen("brain");}} style={{display:"inline-block",marginLeft:4,background:"none",border:"none",color:"#a855f7",fontSize:10,fontWeight:600,cursor:"pointer",padding:0,textDecoration:"underline"}}>Explore →</button>}
+                      {ins.deepLink&&(!ins.deepLink.minAge||parseInt((stats.ageGroup||"13").split("-")[0])>=ins.deepLink.minAge)&&<button onClick={()=>{setBrainTab(ins.deepLink.tab);if(ins.deepLink.state){const s=ins.deepLink.state;if(s.runners!==undefined){setReRunners(s.runners);setReOuts(s.outs||0);}if(s.count)setSelCount(s.count);if(s.inning!==undefined){setWpInning(s.inning);setWpDiff(s.diff||0);}}setScreen("brain");}} style={{display:"inline-block",marginLeft:4,background:"none",border:"none",color:"#a855f7",fontSize:10,fontWeight:600,cursor:"pointer",padding:0,textDecoration:"underline"}}>Explore →</button>}
                     </div>
                   </div>
                 ))}
