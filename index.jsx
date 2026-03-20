@@ -5021,6 +5021,31 @@ const ANIM_DATA={
     {type:"text",x:212,y:282,text:"POP!",size:7,color:"rgba(255,200,50,.8)",dur:.4,begin:.38},
     {type:"text",x:200,y:263,text:"STRIKE!",size:10,color:"#f59e0b",dur:1.6,begin:0},
   ],
+  // AF3: Pitch movement variants — curveball drops, slider breaks, changeup floats
+  strike_curveball:[
+    {type:"flash",cx:200,cy:216,r:5,dur:.1,begin:0,color:"rgba(255,255,255,.5)"},
+    {type:"trail",path:"M200,218 Q200,250 202,292",dur:.5,begin:.02,color:"white",r:1.5,easing:"0.6 0 0.8 0.2"},
+    {type:"ball",path:"M200,218 Q200,250 202,292",dur:.5,begin:0,color:"white",r:2.5,easing:"0.6 0 0.8 0.2"},
+    {type:"flash",cx:202,cy:292,r:6,dur:.08,begin:.48,color:"rgba(255,200,50,.7)"},
+    {type:"text",x:212,y:282,text:"POP!",size:7,color:"rgba(255,200,50,.8)",dur:.4,begin:.48},
+    {type:"text",x:200,y:263,text:"STRIKE!",size:10,color:"#f59e0b",dur:1.6,begin:0},
+  ],
+  strike_slider:[
+    {type:"flash",cx:200,cy:216,r:5,dur:.1,begin:0,color:"rgba(255,255,255,.5)"},
+    {type:"trail",path:"M200,218 Q200,254 210,288",dur:.42,begin:.02,color:"white",r:1.5,easing:"0.15 0.6 0.35 1"},
+    {type:"ball",path:"M200,218 Q200,254 212,288",dur:.42,begin:0,color:"white",r:2.5,easing:"0.15 0.6 0.35 1"},
+    {type:"flash",cx:212,cy:290,r:6,dur:.08,begin:.40,color:"rgba(255,200,50,.7)"},
+    {type:"text",x:220,y:282,text:"POP!",size:7,color:"rgba(255,200,50,.8)",dur:.4,begin:.40},
+    {type:"text",x:200,y:263,text:"STRIKE!",size:10,color:"#f59e0b",dur:1.6,begin:0},
+  ],
+  strike_changeup:[
+    {type:"flash",cx:200,cy:216,r:5,dur:.1,begin:0,color:"rgba(255,255,255,.5)"},
+    {type:"trail",path:"M200,218 Q200,256 200,290",dur:.55,begin:.02,color:"white",r:1.5,easing:"0.4 0 0.6 1"},
+    {type:"ball",path:"M200,218 Q200,256 200,290",dur:.55,begin:0,color:"white",r:2.5,easing:"0.4 0 0.6 1"},
+    {type:"flash",cx:200,cy:290,r:6,dur:.08,begin:.53,color:"rgba(255,200,50,.7)"},
+    {type:"text",x:212,y:282,text:"POP!",size:7,color:"rgba(255,200,50,.8)",dur:.4,begin:.53},
+    {type:"text",x:200,y:263,text:"STRIKE!",size:10,color:"#f59e0b",dur:1.6,begin:0},
+  ],
   groundout_success:[
     {type:"flash",cx:200,cy:288,r:6,dur:.1,begin:0,color:"rgba(255,255,255,.7)"},
     {type:"ball",path:"M200,290 Q220,268 240,250 Q248,242 260,230",dur:.45,begin:0,color:"white",r:2.5,easing:"0.3 0 0.65 1",glow:true},
@@ -12736,10 +12761,26 @@ function ParticleFX({active,type="confetti"}){
 }
 
 // === FIELD SVG — Full graphics overhaul ===
-const Field=React.memo(function Field({runners=[],outcome=null,ak=0,anim=null,theme=null,avatar=null,pos=null,slow=false}){
+const Field=React.memo(function Field({runners=[],outcome=null,ak=0,anim=null,animVariant=null,theme=null,avatar=null,pos=null,slow=false}){
   const t=theme||FIELD_THEMES[0];
   const on=n=>runners.includes(n);
   const svgRef=React.useRef(null);
+  // AF4: Contextual camera zoom — zoom viewBox to action area in slow/replay mode
+  React.useLayoutEffect(()=>{
+    if(!slow||!svgRef.current||!anim)return;
+    const zoomMap={steal:"140 100 160 160",score:"60 150 200 170",hit:"100 50 250 260",
+      doubleplay:"130 100 200 200",groundout:"150 170 180 140",flyout:"100 50 250 200",
+      relay:"100 50 250 250",pickoff:"160 150 120 120",bunt:"140 200 150 120"};
+    const target=zoomMap[anim];
+    if(!target)return;
+    const svg=svgRef.current;
+    svg.setAttribute('viewBox',target);
+    // Animate back to full view after 2s
+    setTimeout(()=>{svg.style.transition='all 1.5s ease-in-out';svg.setAttribute('viewBox','0 0 400 310');
+      setTimeout(()=>{svg.style.transition=''},1600);
+    },2500);
+  },[slow,anim,ak]);
+
   // Game Film slow mode: per-phase pacing (fast-slow-fast) + 1s pre-delay
   // Setup phases (begin<0.15s) = 2x, key moments (0.15-0.5s) = 3.5x, resolution (>0.5s) = 2.5x
   React.useLayoutEffect(()=>{
@@ -13219,9 +13260,11 @@ const Field=React.memo(function Field({runners=[],outcome=null,ak=0,anim=null,th
       {/* AF1: Check ANIM_DATA first. If found, use AnimPhases renderer. Otherwise fall through to inline SMIL. */}
       {(()=>{
         if(!anim||!outcome)return null;
+        // AF3+AF5: Check for animation variant (pitch type, position-specific path)
+        const pitchVariant=animVariant?anim.replace("out","")+"_"+animVariant:null;
         const dataKey=anim+"_"+outcome;
         const altKey=anim+"_success"; // strikeout uses strike data
-        const phases=ANIM_DATA[dataKey]||ANIM_DATA[altKey];
+        const phases=ANIM_DATA[pitchVariant]||ANIM_DATA[dataKey]||ANIM_DATA[altKey];
         if(phases)return <AnimPhases phases={phases} ak={ak}/>;
         return null; // Fall through to inline SMIL below
       })()}
@@ -13873,6 +13916,7 @@ export default function App(){
   const[replayAutoExpanded,setReplayAutoExpanded]=useState(false);
   const[showFailComparison,setShowFailComparison]=useState(false);
   const[comparisonPhase,setComparisonPhase]=useState(0); // 0=failure, 1=transition, 2=success
+  const[replayPaused,setReplayPaused]=useState(false);
   // QW2: Auto-expand replay for wrong answers on outcome screen
   React.useEffect(()=>{
     if(screen==="outcome"&&od&&!od.isOpt&&od.cat==="danger"&&sc?.anim&&!speedMode&&!survivalMode){
@@ -16943,11 +16987,13 @@ export default function App(){
                 <div style={{fontSize:10,color:"#9ca3af"}}>See the {od.isOpt?"play you called":"correct play"} animated on the field</div>
               </div>
             </button>
-            :<div style={{background:"rgba(0,0,0,.3)",border:"1.5px solid rgba(59,130,246,.2)",borderRadius:14,padding:"10px 8px 6px",overflow:"hidden"}}>
+            :<div data-replay-field="true" style={{background:"rgba(0,0,0,.3)",border:"1.5px solid rgba(59,130,246,.2)",borderRadius:14,padding:"10px 8px 6px",overflow:"hidden"}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4,padding:"0 4px"}}>
                 <span style={{fontSize:10,fontWeight:700,color:"#93c5fd",textTransform:"uppercase",letterSpacing:1}}>Game Film</span>
                 <div style={{display:"flex",gap:6}}>
-                  <button onClick={()=>{setReplayKey(k=>k+1);snd.play('tap');
+                  <button onClick={()=>{
+                    if(replayPaused){setReplayPaused(false);return}
+                    setReplayKey(k=>k+1);setReplayPaused(false);snd.play('tap');
                     const a=sc.anim;if(a){
                       if(a==='hit'||a==='groundout'||a==='flyout'||a==='bunt'||a==='doubleplay')setTimeout(()=>snd.play('batCrack'),1200);
                       if(a==='steal'||a==='score')setTimeout(()=>snd.play('whoosh'),1500);
@@ -16955,10 +17001,17 @@ export default function App(){
                       if(a==='steal'||a==='score'||a==='hit')setTimeout(()=>snd.play('cheer'),4800);
                     }
                   }} style={{background:"rgba(59,130,246,.1)",border:"1px solid rgba(59,130,246,.2)",borderRadius:6,padding:"2px 8px",fontSize:9,color:"#60a5fa",cursor:"pointer",fontWeight:700}}>↻ Replay</button>
+                  <button onClick={()=>{
+                    setReplayPaused(p=>{
+                      const svg=document.querySelector('[data-replay-field] svg');
+                      if(svg){if(!p)svg.pauseAnimations();else svg.unpauseAnimations()}
+                      return !p;
+                    });
+                  }} style={{background:replayPaused?"rgba(245,158,11,.1)":"rgba(255,255,255,.04)",border:`1px solid ${replayPaused?"rgba(245,158,11,.2)":"rgba(255,255,255,.06)"}`,borderRadius:6,padding:"2px 8px",fontSize:9,color:replayPaused?"#f59e0b":"#9ca3af",cursor:"pointer",fontWeight:700}}>{replayPaused?"▶ Play":"⏸ Pause"}</button>
                   <button onClick={()=>setShowReplay(false)} style={{background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.06)",borderRadius:6,padding:"2px 8px",fontSize:9,color:"#9ca3af",cursor:"pointer"}}>✕</button>
                 </div>
               </div>
-              <Field key={`replay-${replayKey}`} runners={(()=>{const r=sc.situation?.runners||[];const moveFrom={steal:1,score:3,advance:1,wildPitch:1,squeeze:3};const rm=moveFrom[sc.anim];return rm?r.filter(b=>b!==rm):r})()} outcome="success" ak={replayKey} anim={sc.anim} theme={FIELD_THEMES.find(th=>th.id===stats.fieldTheme)||FIELD_THEMES[0]} avatar={{j:stats.avatarJersey||0,c:stats.avatarCap||0,b:stats.avatarBat||0}} pos={pos} slow={true}/>
+              <Field key={`replay-${replayKey}`} runners={(()=>{const r=sc.situation?.runners||[];const moveFrom={steal:1,score:3,advance:1,wildPitch:1,squeeze:3};const rm=moveFrom[sc.anim];return rm?r.filter(b=>b!==rm):r})()} outcome="success" ak={replayKey} anim={sc.anim} animVariant={sc.animVariant||sc.pitchType||null} theme={FIELD_THEMES.find(th=>th.id===stats.fieldTheme)||FIELD_THEMES[0]} avatar={{j:stats.avatarJersey||0,c:stats.avatarCap||0,b:stats.avatarBat||0}} pos={pos} slow={true}/>
               <div style={{marginTop:2}}><Board sit={sc.situation}/></div>
               <div style={{textAlign:"center",fontSize:9,color:"#6b7280",marginTop:4}}>{od.isOpt?"The play you called — executed perfectly":replayAutoExpanded?"Watch how the correct play works — tap ▶ to see it in action":"The correct play — this is what should happen"}</div>
               {/* CI2: Failure-then-success comparison toggle */}
