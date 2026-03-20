@@ -12597,6 +12597,7 @@ function useSound() {
       else if(t==='glovePop'){const buf=c.createBuffer(1,c.sampleRate*.06,c.sampleRate),d=buf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.exp(-i/(c.sampleRate*.01));const s=c.createBufferSource(),g=c.createGain(),f=c.createBiquadFilter();s.buffer=buf;s.connect(f);f.connect(g);g.connect(c.destination);f.type='bandpass';f.frequency.setValueAtTime(500,n);f.Q.setValueAtTime(2,n);g.gain.setValueAtTime(.12,n);g.gain.exponentialRampToValueAtTime(.001,n+.08);s.start(n);s.stop(n+.08)}
       else if(t==='umpSafe'){[400,500].forEach((f,i)=>{const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.type='sine';o.frequency.setValueAtTime(f,n+i*.12);g.gain.setValueAtTime(.08,n+i*.12);g.gain.exponentialRampToValueAtTime(.001,n+i*.12+.2);o.start(n+i*.12);o.stop(n+i*.12+.2)})}
       else if(t==='umpOut'){[600,400].forEach((f,i)=>{const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.type='sine';o.frequency.setValueAtTime(f,n+i*.12);g.gain.setValueAtTime(.08,n+i*.12);g.gain.exponentialRampToValueAtTime(.001,n+i*.12+.2);o.start(n+i*.12);o.stop(n+i*.12+.2)})}
+      else if(t==='slideDust'){const buf=c.createBuffer(1,c.sampleRate*.1,c.sampleRate),d=buf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.exp(-i/(c.sampleRate*.03));const s=c.createBufferSource(),g=c.createGain(),f=c.createBiquadFilter();s.buffer=buf;s.connect(f);f.connect(g);g.connect(c.destination);f.type='lowpass';f.frequency.setValueAtTime(2000,n);f.frequency.exponentialRampToValueAtTime(500,n+.08);g.gain.setValueAtTime(.05,n);g.gain.exponentialRampToValueAtTime(.001,n+.1);s.start(n);s.stop(n+.1)}
     }catch{}
   },[getCtx]);
   return{play,setEnabled:(v)=>{enabled.current=v}};
@@ -12637,21 +12638,28 @@ const Field=React.memo(function Field({runners=[],outcome=null,ak=0,anim=null,th
   const t=theme||FIELD_THEMES[0];
   const on=n=>runners.includes(n);
   const svgRef=React.useRef(null);
-  // Game Film slow mode: multiply all SMIL timing by 2.5x + add 1s pre-delay
+  // Game Film slow mode: per-phase pacing (fast-slow-fast) + 1s pre-delay
+  // Setup phases (begin<0.15s) = 2x, key moments (0.15-0.5s) = 3.5x, resolution (>0.5s) = 2.5x
   React.useLayoutEffect(()=>{
     if(!slow||!svgRef.current)return;
-    const factor=2.5,preDelay=1.0;
+    const preDelay=1.0;
     svgRef.current.querySelectorAll('animate,animateMotion,animateTransform').forEach(el=>{
-      ['dur','begin'].forEach(attr=>{
-        const val=el.getAttribute(attr);
-        if(val&&!val.includes('indefinite')){
-          const num=parseFloat(val);
-          if(!isNaN(num)){
-            const scaled=attr==='begin'?(num*factor+preDelay):(num*factor);
-            el.setAttribute(attr,scaled.toFixed(2)+'s');
-          }
-        }
-      });
+      const rawBegin=parseFloat(el.getAttribute('begin'))||0;
+      const rawDur=parseFloat(el.getAttribute('dur'));
+      if(isNaN(rawDur))return;
+      // Phase-aware speed: setup=fast, key moment=slow, resolution=medium
+      const phaseFactor=rawBegin<0.15?2.0:rawBegin<0.5?3.5:2.5;
+      const durFactor=rawDur<0.15?1.8:rawDur<0.4?3.0:2.5; // short pulses stay snappy
+      const begin=el.getAttribute('begin');
+      const dur=el.getAttribute('dur');
+      if(begin&&!begin.includes('indefinite')){
+        const num=parseFloat(begin);
+        if(!isNaN(num))el.setAttribute('begin',(num*phaseFactor+preDelay).toFixed(2)+'s');
+      }
+      if(dur&&!dur.includes('indefinite')){
+        const num=parseFloat(dur);
+        if(!isNaN(num))el.setAttribute('dur',(num*durFactor).toFixed(2)+'s');
+      }
     });
   },[slow,ak]);
 
@@ -13258,12 +13266,20 @@ const Field=React.memo(function Field({runners=[],outcome=null,ak=0,anim=null,th
         <text x="200" y="196" textAnchor="middle" fontSize="13" fill="#22c55e" fontWeight="900" opacity="0"><animate attributeName="opacity" values="0;1;1;0" dur="1.2s" fill="freeze"/>SAFE!</text>
       </g>}
       {anim==="freeze"&&outcome==="success"&&<g key={`fr${ak}`}>
-        {/* Warning pulse ring */}
-        <circle cx="200" cy="180" r="0" fill="none" stroke="#f59e0b" strokeWidth="2" opacity="0"><animate attributeName="r" from="0" to="25" dur=".4s" fill="freeze"/><animate attributeName="opacity" values="0;.5;0" dur=".5s" fill="freeze"/></circle>
-        {/* Warning emoji rises */}
-        <text x="200" y="174" textAnchor="middle" fontSize="20" opacity="0"><animate attributeName="opacity" values="0;1;1;0" dur="1.5s" fill="freeze"/><animate attributeName="y" from="180" to="168" dur=".35s" fill="freeze" calcMode="spline" keyTimes="0;1" keySplines="0.25 0.1 0.25 1"/>⚠️</text>
-        {/* FREEZE! text */}
-        <text x="200" y="192" textAnchor="middle" fontSize="10" fill="#f59e0b" fontWeight="800" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0" dur="1.3s" fill="freeze"/>FREEZE!</text>
+        {/* CI4: Freeze redesign — show what would happen if the runner went */}
+        {/* Phase 1: Runner starts to go (ghost, transparent) */}
+        <g opacity="0"><animate attributeName="opacity" values="0;.3;.3;.15;0" dur="1.2s" begin=".1s" fill="freeze"/>
+          <animateMotion dur=".8s" begin=".15s" fill="freeze" path="M290,210 Q265,190 248,178" calcMode="spline" keyTimes="0;1" keySplines="0.4 0 0.2 1"/>
+          <Guy x={0} y={0} jersey="#dc2626" cap="#b91c1c" pants="#d1d5db" pose="runner" o={0.4}/>
+        </g>
+        {/* Phase 2: Throw arrives FIRST — ball beats the ghost runner */}
+        <circle r="2.5" fill="#ef4444"><animateMotion dur=".3s" begin=".2s" fill="freeze" path="M200,218 Q220,190 200,140" calcMode="spline" keyTimes="0;1" keySplines="0.15 0.6 0.35 1"/></circle>
+        {/* Phase 3: Tag flash where runner would be */}
+        <circle cx="248" cy="178" r="0" fill="rgba(239,68,68,.5)" opacity="0"><animate attributeName="r" from="0" to="12" dur=".15s" begin=".48s" fill="freeze"/><animate attributeName="opacity" values="0;.6;0" dur=".3s" begin=".48s" fill="freeze"/></circle>
+        {/* Phase 4: X mark — tagged out */}
+        <text x="248" y="168" textAnchor="middle" fontSize="14" fill="#ef4444" fontWeight="900" opacity="0"><animate attributeName="opacity" values="0;0;0;1;.6;0" dur="1.5s" fill="freeze"/>✗ OUT</text>
+        {/* Phase 5: Correct decision text */}
+        <text x="200" y="195" textAnchor="middle" fontSize="10" fill="#f59e0b" fontWeight="800" opacity="0"><animate attributeName="opacity" values="0;0;0;0;1;1;0" dur="2s" fill="freeze"/>SMART — DON'T RUN INTO AN OUT!</text>
       </g>}
 
       {/* ============ FAILURE ANIMATIONS (show what went wrong) ============ */}
@@ -13742,6 +13758,8 @@ export default function App(){
   const[showReplay,setShowReplay]=useState(false);
   const[replayKey,setReplayKey]=useState(0);
   const[replayAutoExpanded,setReplayAutoExpanded]=useState(false);
+  const[showFailComparison,setShowFailComparison]=useState(false);
+  const[comparisonPhase,setComparisonPhase]=useState(0); // 0=failure, 1=transition, 2=success
   // QW2: Auto-expand replay for wrong answers on outcome screen
   React.useEffect(()=>{
     if(screen==="outcome"&&od&&!od.isOpt&&sc?.anim&&!speedMode&&!survivalMode){
@@ -16800,6 +16818,7 @@ export default function App(){
                 if(a==='strike'||a==='strikeout')setTimeout(()=>snd.play('glovePop'),2200); // catcher receives
                 if(a==='doubleplay'||a==='groundout'||a==='relay')setTimeout(()=>snd.play('glovePop'),3500); // fielder catch
                 if(a==='flyout')setTimeout(()=>snd.play('glovePop'),3200); // OF catch
+                if(a==='steal'||a==='score')setTimeout(()=>snd.play('slideDust'),3800); // slide into base
                 if(a==='steal'||a==='score'||a==='hit'||a==='advance')setTimeout(()=>snd.play('umpSafe'),4500); // safe call
                 if(a==='strike'||a==='strikeout'||a==='flyout'||a==='groundout'||a==='doubleplay')setTimeout(()=>snd.play('umpOut'),4000); // out call
                 if(a==='steal'||a==='score'||a==='hit')setTimeout(()=>snd.play('cheer'),4800); // crowd
@@ -16829,6 +16848,24 @@ export default function App(){
               <Field key={`replay-${replayKey}`} runners={(()=>{const r=sc.situation?.runners||[];const moveFrom={steal:1,score:3,advance:1,wildPitch:1,squeeze:3};const rm=moveFrom[sc.anim];return rm?r.filter(b=>b!==rm):r})()} outcome="success" ak={replayKey} anim={sc.anim} theme={FIELD_THEMES.find(th=>th.id===stats.fieldTheme)||FIELD_THEMES[0]} avatar={{j:stats.avatarJersey||0,c:stats.avatarCap||0,b:stats.avatarBat||0}} pos={pos} slow={true}/>
               <div style={{marginTop:2}}><Board sit={sc.situation}/></div>
               <div style={{textAlign:"center",fontSize:9,color:"#6b7280",marginTop:4}}>{od.isOpt?"The play you called — executed perfectly":replayAutoExpanded?"Watch how the correct play works — tap ▶ to see it in action":"The correct play — this is what should happen"}</div>
+              {/* CI2: Failure-then-success comparison toggle */}
+              {!od.isOpt&&sc.anim&&!showFailComparison&&<div style={{textAlign:"center",marginTop:6}}>
+                <button onClick={()=>{setShowFailComparison(true);setComparisonPhase(0);snd.play('tap');
+                  // Phase 0: failure plays for 4s, then transition to success
+                  setTimeout(()=>setComparisonPhase(1),4000);
+                  setTimeout(()=>{setComparisonPhase(2);setReplayKey(k=>k+1)},5500);
+                }} style={{background:"rgba(239,68,68,.06)",border:"1px solid rgba(239,68,68,.15)",borderRadius:8,padding:"5px 14px",fontSize:10,color:"#ef4444",cursor:"pointer",fontWeight:600}}>
+                  See What Went Wrong →
+                </button>
+              </div>}
+              {showFailComparison&&<div style={{textAlign:"center",marginTop:6}}>
+                <div style={{fontSize:10,fontWeight:700,color:comparisonPhase===0?"#ef4444":comparisonPhase===1?"#f59e0b":"#22c55e",marginBottom:4,transition:"color .5s"}}>
+                  {comparisonPhase===0?"What happens with the wrong choice...":comparisonPhase===1?"Now watch the correct play...":"The right decision"}
+                </div>
+                {comparisonPhase===0&&<div style={{borderRadius:10,overflow:"hidden",border:"1px solid rgba(239,68,68,.2)"}}>
+                  <Field runners={sc.situation?.runners||[]} outcome="danger" ak={ak+100} anim={sc.anim} theme={FIELD_THEMES.find(th=>th.id===stats.fieldTheme)||FIELD_THEMES[0]} avatar={{j:stats.avatarJersey||0,c:stats.avatarCap||0,b:stats.avatarBat||0}} pos={pos} slow={true}/>
+                </div>}
+              </div>}
             </div>}
           </div>}
 
