@@ -19221,24 +19221,25 @@ export default function App(){
             <button onClick={goHome} style={{...btn("rgba(255,255,255,.06)"),...{fontSize:12}}}>← Back to Home</button>
           </div>);
         })()}
-        <style>{`
-          @keyframes sd{from{transform:translate(-50%,-20px);opacity:0}to{transform:translate(-50%,0);opacity:1}}
-          @keyframes fi{from{opacity:0}to{opacity:1}}
-          @keyframes su{from{opacity:0;transform:scale(.8)translateY(20px)}to{opacity:1;transform:scale(1)translateY(0)}}
-          @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
-          @keyframes pulse{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1.2)}}
-          @keyframes sitPulse{0%,100%{box-shadow:0 0 0 0 rgba(59,130,246,.4)}50%{box-shadow:0 0 0 6px rgba(59,130,246,0)}}
-          @keyframes sitSlide{from{width:0}to{width:100%}}
-          @keyframes filmBar{from{width:0}to{width:100%}}
-          @keyframes crowdSway{0%{transform:translateY(0)}100%{transform:translateY(1.5px)}}
-          @keyframes crowdCheer{0%{transform:translateY(0) scale(1)}50%{transform:translateY(-3px) scale(1.15)}100%{transform:translateY(0) scale(1)}}
-          @keyframes bannerWave{0%{transform:rotate(0deg)}100%{transform:rotate(3deg)}}
-          *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-          button:hover{filter:brightness(1.05)}
-          button:active{transform:scale(.98)}
-          ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(255,255,255,.06);border-radius:2px}
-        `}</style>
       </div>
+
+      <style>{`
+        @keyframes sd{from{transform:translate(-50%,-20px);opacity:0}to{transform:translate(-50%,0);opacity:1}}
+        @keyframes fi{from{opacity:0}to{opacity:1}}
+        @keyframes su{from{opacity:0;transform:scale(.8)translateY(20px)}to{opacity:1;transform:scale(1)translateY(0)}}
+        @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+        @keyframes pulse{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1.2)}}
+        @keyframes sitPulse{0%,100%{box-shadow:0 0 0 0 rgba(59,130,246,.4)}50%{box-shadow:0 0 0 6px rgba(59,130,246,0)}}
+        @keyframes sitSlide{from{width:0}to{width:100%}}
+        @keyframes filmBar{from{width:0}to{width:100%}}
+        @keyframes crowdSway{0%{transform:translateY(0)}100%{transform:translateY(1.5px)}}
+        @keyframes crowdCheer{0%{transform:translateY(0) scale(1)}50%{transform:translateY(-3px) scale(1.15)}100%{transform:translateY(0) scale(1)}}
+        @keyframes bannerWave{0%{transform:rotate(0deg)}100%{transform:rotate(3deg)}}
+        *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+        button:hover{filter:brightness(1.05)}
+        button:active{transform:scale(.98)}
+        ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(255,255,255,.06);border-radius:2px}
+      `}</style>
     </div>
   );
 }
