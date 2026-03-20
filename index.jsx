@@ -12592,6 +12592,11 @@ function useSound() {
       else if(t==='whoosh'){const o=c.createOscillator(),g=c.createGain(),f2=c.createBiquadFilter();o.connect(f2);f2.connect(g);g.connect(c.destination);o.type='sawtooth';f2.type='bandpass';f2.frequency.setValueAtTime(800,n);f2.frequency.exponentialRampToValueAtTime(2400,n+.15);f2.Q.setValueAtTime(2,n);o.frequency.setValueAtTime(200,n);o.frequency.exponentialRampToValueAtTime(600,n+.12);g.gain.setValueAtTime(.06,n);g.gain.exponentialRampToValueAtTime(.001,n+.2);o.start(n);o.stop(n+.2)}
       else if(t==='cheer'){[523,659,784,1047,784,1047,1319,1047].forEach((f,i)=>{const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.type='triangle';o.frequency.setValueAtTime(f,n+i*.06);g.gain.setValueAtTime(.06,n+i*.06);g.gain.exponentialRampToValueAtTime(.001,n+i*.06+.12);o.start(n+i*.06);o.stop(n+i*.06+.12)})}
       else if(t==='jackpot'){[784,988,1175,1319,1175,1319,1568,1319,1568].forEach((f,i)=>{const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.type='sine';o.frequency.setValueAtTime(f,n+i*.07);g.gain.setValueAtTime(.1,n+i*.07);g.gain.exponentialRampToValueAtTime(.001,n+i*.07+.15);o.start(n+i*.07);o.stop(n+i*.07+.15)})}
+      // QW5: Baseball-specific replay sounds
+      else if(t==='batCrack'){const buf=c.createBuffer(1,c.sampleRate*.08,c.sampleRate),d=buf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.exp(-i/(c.sampleRate*.015));const s=c.createBufferSource(),g=c.createGain(),f=c.createBiquadFilter();s.buffer=buf;s.connect(f);f.connect(g);g.connect(c.destination);f.type='bandpass';f.frequency.setValueAtTime(1000,n);f.Q.setValueAtTime(1.5,n);g.gain.setValueAtTime(.15,n);g.gain.exponentialRampToValueAtTime(.001,n+.1);s.start(n);s.stop(n+.1)}
+      else if(t==='glovePop'){const buf=c.createBuffer(1,c.sampleRate*.06,c.sampleRate),d=buf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.exp(-i/(c.sampleRate*.01));const s=c.createBufferSource(),g=c.createGain(),f=c.createBiquadFilter();s.buffer=buf;s.connect(f);f.connect(g);g.connect(c.destination);f.type='bandpass';f.frequency.setValueAtTime(500,n);f.Q.setValueAtTime(2,n);g.gain.setValueAtTime(.12,n);g.gain.exponentialRampToValueAtTime(.001,n+.08);s.start(n);s.stop(n+.08)}
+      else if(t==='umpSafe'){[400,500].forEach((f,i)=>{const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.type='sine';o.frequency.setValueAtTime(f,n+i*.12);g.gain.setValueAtTime(.08,n+i*.12);g.gain.exponentialRampToValueAtTime(.001,n+i*.12+.2);o.start(n+i*.12);o.stop(n+i*.12+.2)})}
+      else if(t==='umpOut'){[600,400].forEach((f,i)=>{const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.type='sine';o.frequency.setValueAtTime(f,n+i*.12);g.gain.setValueAtTime(.08,n+i*.12);g.gain.exponentialRampToValueAtTime(.001,n+i*.12+.2);o.start(n+i*.12);o.stop(n+i*.12+.2)})}
     }catch{}
   },[getCtx]);
   return{play,setEnabled:(v)=>{enabled.current=v}};
@@ -12859,11 +12864,11 @@ const Field=React.memo(function Field({runners=[],outcome=null,ak=0,anim=null,th
       {/* === DEPTH DARKENING (outfield fades darker) === */}
       <rect width="400" height="310" fill="url(#depthGrad)" clipPath="url(#fc)"/>
 
-      {/* === CROWD (colored dots above wall with gentle sway) === */}
+      {/* === CROWD (colored dots — sway normally, cheer on success, still on failure) === */}
       <g opacity=".75">
         {crowdDots.map((d,i)=>(
-          <circle key={`cr${i}`} cx={d.x} cy={d.y} r={d.r} fill={d.c} opacity=".7"
-            style={{animation:`crowdSway ${2.5+d.delay*.5}s ease-in-out ${d.delay}s infinite alternate`}}/>
+          <circle key={`cr${i}`} cx={d.x} cy={d.y} r={d.r} fill={d.c} opacity={outcome&&outcome!=="success"?".4":".7"}
+            style={{animation:outcome==="success"?`crowdCheer ${0.8+d.delay*.2}s ease-in-out ${d.delay*.3}s infinite alternate`:outcome?`none`:`crowdSway ${2.5+d.delay*.5}s ease-in-out ${d.delay}s infinite alternate`}}/>
         ))}
       </g>
 
@@ -13066,6 +13071,38 @@ const Field=React.memo(function Field({runners=[],outcome=null,ak=0,anim=null,th
       {on(1)&&<Guy x={298} y={200} jersey="#dc2626" cap="#b91c1c" pants="#d1d5db" ring={true} pose="runner"/>}
       {on(2)&&<Guy x={200} y={125} jersey="#dc2626" cap="#b91c1c" pants="#d1d5db" ring={true} pose="runner"/>}
       {on(3)&&<Guy x={102} y={200} jersey="#dc2626" cap="#b91c1c" pants="#d1d5db" ring={true} pose="runner"/>}
+
+      {/* === QW4: Trajectory dashed lines for ball flight (replay mode) === */}
+      {slow&&anim&&(()=>{
+        const paths={hit:"M200,290 Q252,178 306,75",flyout:"M200,290 Q242,118 282,108",
+          groundout:"M200,290 Q220,268 240,250 Q248,242 260,230",relay:"M300,80 Q265,155 248,185",
+          doubleplay:"M240,258 Q240,200 200,135",bunt:"M200,290 Q198,272 192,258"};
+        const p=paths[anim];
+        if(!p)return null;
+        return <path d={p} fill="none" stroke="rgba(255,255,255,.12)" strokeWidth="1.5" strokeDasharray="4,4" opacity="0">
+          <animate attributeName="opacity" values="0;.25;.25;0" dur="2s" fill="freeze"/>
+        </path>;
+      })()}
+
+      {/* === QW3: Pre-animation highlight ring on decision-maker (replay mode) === */}
+      {slow&&anim&&(()=>{
+        // Map animation type → key player coordinates to highlight
+        const hlMap={steal:[298,200],score:[102,200],advance:[298,200],hit:[215,285],bunt:[215,285],
+          groundout:[248,185],flyout:[200,58],doubleplay:[152,185],strike:[200,212],strikeout:[200,212],
+          throwHome:[200,135],catch:[200,58],relay:[300,80],pickoff:[200,212],squeeze:[102,200],
+          wildPitch:[200,300],popup:[200,300],walk:[215,285],hitByPitch:[215,285],tag:[248,185]};
+        const hl=hlMap[anim];
+        if(!hl)return null;
+        return <g>
+          <circle cx={hl[0]} cy={hl[1]} r="20" fill="none" stroke="#f59e0b" strokeWidth="2.5" opacity="0">
+            <animate attributeName="opacity" values="0;.8;.8;0" dur="1.5s" fill="freeze"/>
+            <animate attributeName="r" values="16;22;16;22;16" dur="1.5s" fill="freeze"/>
+          </circle>
+          <circle cx={hl[0]} cy={hl[1]} r="14" fill="rgba(245,158,11,.08)" opacity="0">
+            <animate attributeName="opacity" values="0;.4;.4;0" dur="1.5s" fill="freeze"/>
+          </circle>
+        </g>;
+      })()}
 
       {/* ============ ANIMATIONS — spline easing for natural motion ============ */}
       {/* Easing: ball-launch 0.12,0.8,0.3,1 | throw 0.15,0.6,0.35,1 | runner 0.4,0,0.2,1 | ground 0.3,0,0.65,1 | fly 0.2,0.7,0.4,1 | gravity 0.6,0,0.8,0.2 | pulse 0.25,0.1,0.25,1 */}
@@ -13701,8 +13738,18 @@ export default function App(){
   // BUG-08: Queue level-up during Speed Round
   const pendingLvlUpRef=useRef(null);
   // Game Film Mode: replay animation on outcome screen
+  // Auto-expand for wrong answers so player sees the correct play
   const[showReplay,setShowReplay]=useState(false);
   const[replayKey,setReplayKey]=useState(0);
+  const[replayAutoExpanded,setReplayAutoExpanded]=useState(false);
+  // QW2: Auto-expand replay for wrong answers on outcome screen
+  React.useEffect(()=>{
+    if(screen==="outcome"&&od&&!od.isOpt&&sc?.anim&&!speedMode&&!survivalMode){
+      setShowReplay(true);setReplayAutoExpanded(true);
+    }else if(screen!=="outcome"){
+      setReplayAutoExpanded(false);
+    }
+  },[screen,od]);
   // Phase 2.2: Placement test state
   const[placementMode,setPlacementMode]=useState(false);
   const[placementData,setPlacementData]=useState(null); // {pos, scenarios:[], round:0, correct:0}
@@ -16747,13 +16794,15 @@ export default function App(){
             {!showReplay?<button onClick={()=>{setShowReplay(true);setReplayKey(k=>k+1);snd.play('tap');
               // Replay sound effects timed to slow-mode animation phases (2.5x + 1s pre-delay)
               const a=sc.anim;if(a){
-                setTimeout(()=>snd.play('tap'),1000); // pre-delay orienting beat
-                if(a==='hit'||a==='groundout'||a==='flyout'||a==='bunt'||a==='squeeze')setTimeout(()=>snd.play('tap'),1200); // contact
+                if(a==='hit'||a==='groundout'||a==='flyout'||a==='bunt'||a==='squeeze'||a==='doubleplay')setTimeout(()=>snd.play('batCrack'),1200); // bat contact
                 if(a==='steal'||a==='advance'||a==='score'||a==='wildPitch')setTimeout(()=>snd.play('whoosh'),1500); // runner takes off
                 if(a==='strike'||a==='strikeout')setTimeout(()=>snd.play('whoosh'),1300); // pitch delivery
-                if(a==='doubleplay'||a==='groundout'||a==='relay')setTimeout(()=>snd.play('correct'),3500); // catch/throw
-                if(a==='steal'||a==='score'||a==='hit')setTimeout(()=>snd.play('cheer'),4500); // crowd reaction
-                if(a==='strike'||a==='strikeout'||a==='flyout'||a==='groundout')setTimeout(()=>snd.play('correct'),3800); // out call
+                if(a==='strike'||a==='strikeout')setTimeout(()=>snd.play('glovePop'),2200); // catcher receives
+                if(a==='doubleplay'||a==='groundout'||a==='relay')setTimeout(()=>snd.play('glovePop'),3500); // fielder catch
+                if(a==='flyout')setTimeout(()=>snd.play('glovePop'),3200); // OF catch
+                if(a==='steal'||a==='score'||a==='hit'||a==='advance')setTimeout(()=>snd.play('umpSafe'),4500); // safe call
+                if(a==='strike'||a==='strikeout'||a==='flyout'||a==='groundout'||a==='doubleplay')setTimeout(()=>snd.play('umpOut'),4000); // out call
+                if(a==='steal'||a==='score'||a==='hit')setTimeout(()=>snd.play('cheer'),4800); // crowd
               }
             }} style={{width:"100%",background:"linear-gradient(135deg,rgba(59,130,246,.06),rgba(168,85,247,.06))",border:"1.5px solid rgba(59,130,246,.2)",borderRadius:12,padding:"12px 16px",cursor:"pointer",display:"flex",alignItems:"center",gap:10,transition:"all .2s"}}>
               <div style={{width:36,height:36,borderRadius:10,background:"linear-gradient(135deg,#2563eb,#7c3aed)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0}}>▶</div>
@@ -16768,10 +16817,10 @@ export default function App(){
                 <div style={{display:"flex",gap:6}}>
                   <button onClick={()=>{setReplayKey(k=>k+1);snd.play('tap');
                     const a=sc.anim;if(a){
-                      setTimeout(()=>snd.play('tap'),1000);
-                      if(a==='hit'||a==='groundout'||a==='flyout'||a==='bunt')setTimeout(()=>snd.play('tap'),1200);
+                      if(a==='hit'||a==='groundout'||a==='flyout'||a==='bunt'||a==='doubleplay')setTimeout(()=>snd.play('batCrack'),1200);
                       if(a==='steal'||a==='score')setTimeout(()=>snd.play('whoosh'),1500);
-                      if(a==='steal'||a==='score'||a==='hit')setTimeout(()=>snd.play('cheer'),4500);
+                      if(a==='strike'||a==='strikeout')setTimeout(()=>snd.play('glovePop'),2200);
+                      if(a==='steal'||a==='score'||a==='hit')setTimeout(()=>snd.play('cheer'),4800);
                     }
                   }} style={{background:"rgba(59,130,246,.1)",border:"1px solid rgba(59,130,246,.2)",borderRadius:6,padding:"2px 8px",fontSize:9,color:"#60a5fa",cursor:"pointer",fontWeight:700}}>↻ Replay</button>
                   <button onClick={()=>setShowReplay(false)} style={{background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.06)",borderRadius:6,padding:"2px 8px",fontSize:9,color:"#9ca3af",cursor:"pointer"}}>✕</button>
@@ -16779,7 +16828,7 @@ export default function App(){
               </div>
               <Field key={`replay-${replayKey}`} runners={(()=>{const r=sc.situation?.runners||[];const moveFrom={steal:1,score:3,advance:1,wildPitch:1,squeeze:3};const rm=moveFrom[sc.anim];return rm?r.filter(b=>b!==rm):r})()} outcome="success" ak={replayKey} anim={sc.anim} theme={FIELD_THEMES.find(th=>th.id===stats.fieldTheme)||FIELD_THEMES[0]} avatar={{j:stats.avatarJersey||0,c:stats.avatarCap||0,b:stats.avatarBat||0}} pos={pos} slow={true}/>
               <div style={{marginTop:2}}><Board sit={sc.situation}/></div>
-              <div style={{textAlign:"center",fontSize:9,color:"#6b7280",marginTop:4}}>{od.isOpt?"The play you called — executed perfectly":"The correct play — this is what should happen"}</div>
+              <div style={{textAlign:"center",fontSize:9,color:"#6b7280",marginTop:4}}>{od.isOpt?"The play you called — executed perfectly":replayAutoExpanded?"Watch how the correct play works — tap ▶ to see it in action":"The correct play — this is what should happen"}</div>
             </div>}
           </div>}
 
@@ -17528,6 +17577,7 @@ export default function App(){
         @keyframes sitSlide{from{width:0}to{width:100%}}
         @keyframes filmBar{from{width:0}to{width:100%}}
         @keyframes crowdSway{0%{transform:translateY(0)}100%{transform:translateY(1.5px)}}
+        @keyframes crowdCheer{0%{transform:translateY(0) scale(1)}50%{transform:translateY(-3px) scale(1.15)}100%{transform:translateY(0) scale(1)}}
         @keyframes bannerWave{0%{transform:rotate(0deg)}100%{transform:rotate(3deg)}}
         *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
         button:hover{filter:brightness(1.05)}
