@@ -12628,9 +12628,27 @@ function ParticleFX({active,type="confetti"}){
 }
 
 // === FIELD SVG — Full graphics overhaul ===
-const Field=React.memo(function Field({runners=[],outcome=null,ak=0,anim=null,theme=null,avatar=null,pos=null}){
+const Field=React.memo(function Field({runners=[],outcome=null,ak=0,anim=null,theme=null,avatar=null,pos=null,slow=false}){
   const t=theme||FIELD_THEMES[0];
   const on=n=>runners.includes(n);
+  const svgRef=React.useRef(null);
+  // Game Film slow mode: multiply all SMIL timing by 2.5x + add 1s pre-delay
+  React.useLayoutEffect(()=>{
+    if(!slow||!svgRef.current)return;
+    const factor=2.5,preDelay=1.0;
+    svgRef.current.querySelectorAll('animate,animateMotion,animateTransform').forEach(el=>{
+      ['dur','begin'].forEach(attr=>{
+        const val=el.getAttribute(attr);
+        if(val&&!val.includes('indefinite')){
+          const num=parseFloat(val);
+          if(!isNaN(num)){
+            const scaled=attr==='begin'?(num*factor+preDelay):(num*factor);
+            el.setAttribute(attr,scaled.toFixed(2)+'s');
+          }
+        }
+      });
+    });
+  },[slow,ak]);
 
   // Coords: Home(200,290) 1B(290,210) 2B(200,135) 3B(110,210) Mound(200,218)
 
@@ -12790,7 +12808,7 @@ const Field=React.memo(function Field({runners=[],outcome=null,ak=0,anim=null,th
   },[t.id,t.banner]);
 
   return(
-    <svg viewBox="0 0 400 310" style={{width:"100%",maxWidth:420,display:"block",margin:"0 auto"}}>
+    <svg ref={svgRef} viewBox="0 0 400 310" style={{width:"100%",maxWidth:420,display:"block",margin:"0 auto"}}>
       <defs>
         <linearGradient id="drt" x1=".2" y1="0" x2=".8" y2="1">
           <stop offset="0%" stopColor={t.dirt[0]}/>
@@ -16726,7 +16744,18 @@ export default function App(){
 
           {/* === GAME FILM MODE: Replay the correct play on the SVG field === */}
           {sc&&sc.anim&&<div style={{marginBottom:10}}>
-            {!showReplay?<button onClick={()=>{setShowReplay(true);setReplayKey(k=>k+1);snd.play('tap')}} style={{width:"100%",background:"linear-gradient(135deg,rgba(59,130,246,.06),rgba(168,85,247,.06))",border:"1.5px solid rgba(59,130,246,.2)",borderRadius:12,padding:"12px 16px",cursor:"pointer",display:"flex",alignItems:"center",gap:10,transition:"all .2s"}}>
+            {!showReplay?<button onClick={()=>{setShowReplay(true);setReplayKey(k=>k+1);snd.play('tap');
+              // Replay sound effects timed to slow-mode animation phases (2.5x + 1s pre-delay)
+              const a=sc.anim;if(a){
+                setTimeout(()=>snd.play('tap'),1000); // pre-delay orienting beat
+                if(a==='hit'||a==='groundout'||a==='flyout'||a==='bunt'||a==='squeeze')setTimeout(()=>snd.play('tap'),1200); // contact
+                if(a==='steal'||a==='advance'||a==='score'||a==='wildPitch')setTimeout(()=>snd.play('whoosh'),1500); // runner takes off
+                if(a==='strike'||a==='strikeout')setTimeout(()=>snd.play('whoosh'),1300); // pitch delivery
+                if(a==='doubleplay'||a==='groundout'||a==='relay')setTimeout(()=>snd.play('correct'),3500); // catch/throw
+                if(a==='steal'||a==='score'||a==='hit')setTimeout(()=>snd.play('cheer'),4500); // crowd reaction
+                if(a==='strike'||a==='strikeout'||a==='flyout'||a==='groundout')setTimeout(()=>snd.play('correct'),3800); // out call
+              }
+            }} style={{width:"100%",background:"linear-gradient(135deg,rgba(59,130,246,.06),rgba(168,85,247,.06))",border:"1.5px solid rgba(59,130,246,.2)",borderRadius:12,padding:"12px 16px",cursor:"pointer",display:"flex",alignItems:"center",gap:10,transition:"all .2s"}}>
               <div style={{width:36,height:36,borderRadius:10,background:"linear-gradient(135deg,#2563eb,#7c3aed)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0}}>▶</div>
               <div style={{textAlign:"left"}}>
                 <div style={{fontSize:12,fontWeight:700,color:"#93c5fd"}}>Watch the Play</div>
@@ -16737,11 +16766,18 @@ export default function App(){
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4,padding:"0 4px"}}>
                 <span style={{fontSize:10,fontWeight:700,color:"#93c5fd",textTransform:"uppercase",letterSpacing:1}}>Game Film</span>
                 <div style={{display:"flex",gap:6}}>
-                  <button onClick={()=>{setReplayKey(k=>k+1)}} style={{background:"rgba(59,130,246,.1)",border:"1px solid rgba(59,130,246,.2)",borderRadius:6,padding:"2px 8px",fontSize:9,color:"#60a5fa",cursor:"pointer",fontWeight:700}}>↻ Replay</button>
+                  <button onClick={()=>{setReplayKey(k=>k+1);snd.play('tap');
+                    const a=sc.anim;if(a){
+                      setTimeout(()=>snd.play('tap'),1000);
+                      if(a==='hit'||a==='groundout'||a==='flyout'||a==='bunt')setTimeout(()=>snd.play('tap'),1200);
+                      if(a==='steal'||a==='score')setTimeout(()=>snd.play('whoosh'),1500);
+                      if(a==='steal'||a==='score'||a==='hit')setTimeout(()=>snd.play('cheer'),4500);
+                    }
+                  }} style={{background:"rgba(59,130,246,.1)",border:"1px solid rgba(59,130,246,.2)",borderRadius:6,padding:"2px 8px",fontSize:9,color:"#60a5fa",cursor:"pointer",fontWeight:700}}>↻ Replay</button>
                   <button onClick={()=>setShowReplay(false)} style={{background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.06)",borderRadius:6,padding:"2px 8px",fontSize:9,color:"#9ca3af",cursor:"pointer"}}>✕</button>
                 </div>
               </div>
-              <Field key={`replay-${replayKey}`} runners={[]} outcome="success" ak={replayKey} anim={sc.anim} theme={FIELD_THEMES.find(th=>th.id===stats.fieldTheme)||FIELD_THEMES[0]} avatar={{j:stats.avatarJersey||0,c:stats.avatarCap||0,b:stats.avatarBat||0}} pos={pos}/>
+              <Field key={`replay-${replayKey}`} runners={(()=>{const r=sc.situation?.runners||[];const moveFrom={steal:1,score:3,advance:1,wildPitch:1,squeeze:3};const rm=moveFrom[sc.anim];return rm?r.filter(b=>b!==rm):r})()} outcome="success" ak={replayKey} anim={sc.anim} theme={FIELD_THEMES.find(th=>th.id===stats.fieldTheme)||FIELD_THEMES[0]} avatar={{j:stats.avatarJersey||0,c:stats.avatarCap||0,b:stats.avatarBat||0}} pos={pos} slow={true}/>
               <div style={{marginTop:2}}><Board sit={sc.situation}/></div>
               <div style={{textAlign:"center",fontSize:9,color:"#6b7280",marginTop:4}}>{od.isOpt?"The play you called — executed perfectly":"The correct play — this is what should happen"}</div>
             </div>}
