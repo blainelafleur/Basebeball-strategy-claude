@@ -4975,6 +4975,108 @@ const FREE_THEMES = ["default","sunny","retro"];
 const FREE_JERSEYS = 2;
 const FREE_CAPS = 2;
 const FREE_BATS = 1;
+// === AF1: ANIMATION-AS-DATA — Structured animation definitions ===
+// Each animation is an array of phases. A generic renderer converts these to SVG+SMIL.
+// Phase types: dust, ball, trail, runner, flash, text, line
+// This enables: ghost runners (AF2), pitch curves (AF3), scenario-specific paths (AF5), speed control (AF6)
+const ANIM_DATA={
+  steal_success:[
+    {type:"dust",cx:290,cy:212,r:6,dur:.3,begin:0,color:"#c4a882"},
+    {type:"dust",cx:293,cy:210,r:4,dur:.25,begin:.05,color:"#c4a882"},
+    {type:"dust",cx:287,cy:213,r:5,dur:.28,begin:.03,color:"#c4a882"},
+    {type:"runner",path:"M290,210 Q248,170 200,135",dur:.55,begin:.08,easing:"0.4 0 0.2 1"},
+    {type:"ball",path:"M200,288 Q210,210 200,138",dur:.4,begin:.25,color:"white",r:2,easing:"0.15 0.6 0.35 1",opacity:.8},
+    {type:"dust",cx:200,cy:137,r:7,dur:.3,begin:.55,color:"#c4a882"},
+    {type:"dust",cx:203,cy:135,r:5,dur:.25,begin:.58,color:"#c4a882"},
+    {type:"text",x:200,y:120,text:"SAFE!",size:12,color:"#22c55e",dur:1.3,begin:0},
+  ],
+  score_success:[
+    {type:"dust",cx:112,cy:212,r:5,dur:.3,begin:0,color:"#c4a882"},
+    {type:"runner",path:"M110,210 Q160,252 200,290",dur:.5,begin:.05,easing:"0.4 0 0.2 1"},
+    {type:"dust",cx:200,cy:292,r:7,dur:.3,begin:.5,color:"#c4a882"},
+    {type:"text",x:200,y:265,text:"SAFE!",size:14,color:"#22c55e",dur:1.3,begin:0},
+  ],
+  hit_success:[
+    {type:"flash",cx:200,cy:288,r:8,dur:.1,begin:0,color:"rgba(255,255,255,.9)"},
+    {type:"trail",path:"M200,290 Q252,178 306,75",dur:.45,begin:.04,color:"#f59e0b",r:2,easing:"0.12 0.8 0.3 1"},
+    {type:"ball",path:"M200,290 Q252,178 306,75",dur:.45,begin:0,color:"#f59e0b",r:3,easing:"0.12 0.8 0.3 1",glow:true},
+    {type:"dust",cx:202,cy:292,r:5,dur:.3,begin:.1,color:"#c4a882"},
+    {type:"dust",cx:198,cy:291,r:3.5,dur:.25,begin:.13,color:"#c4a882"},
+    {type:"runner",path:"M200,290 Q248,252 290,210",dur:.6,begin:.15,easing:"0.4 0 0.2 1"},
+    {type:"text",x:265,y:112,text:"BASE HIT",size:10,color:"#f59e0b",dur:1.3,begin:0},
+  ],
+  doubleplay_success:[
+    {type:"flash",cx:200,cy:288,r:5,dur:.08,begin:0,color:"rgba(255,255,255,.6)"},
+    {type:"ball",path:"M240,258 Q240,200 200,135",dur:.25,begin:0,color:"#22c55e",r:3,easing:"0.15 0.6 0.35 1",glow:true},
+    {type:"flash",cx:200,cy:135,r:8,dur:.1,begin:.24,color:"rgba(34,197,94,.4)"},
+    {type:"ball",path:"M200,135 Q248,170 290,210",dur:.25,begin:.28,color:"#22c55e",r:3,easing:"0.15 0.6 0.35 1",glow:true},
+    {type:"flash",cx:290,cy:210,r:8,dur:.1,begin:.52,color:"rgba(34,197,94,.4)"},
+    {type:"text",x:200,y:175,text:"DOUBLE PLAY!",size:10,color:"#22c55e",dur:1.1,begin:0},
+  ],
+  strike_success:[
+    {type:"flash",cx:200,cy:216,r:5,dur:.1,begin:0,color:"rgba(255,255,255,.5)"},
+    {type:"trail",path:"M200,218 L200,288",dur:.4,begin:.02,color:"white",r:1.5,easing:"0.15 0.6 0.35 1"},
+    {type:"ball",path:"M200,218 L200,288",dur:.4,begin:0,color:"white",r:2.5,easing:"0.15 0.6 0.35 1"},
+    {type:"flash",cx:200,cy:290,r:6,dur:.08,begin:.38,color:"rgba(255,200,50,.7)"},
+    {type:"text",x:212,y:282,text:"POP!",size:7,color:"rgba(255,200,50,.8)",dur:.4,begin:.38},
+    {type:"text",x:200,y:263,text:"STRIKE!",size:10,color:"#f59e0b",dur:1.6,begin:0},
+  ],
+  groundout_success:[
+    {type:"flash",cx:200,cy:288,r:6,dur:.1,begin:0,color:"rgba(255,255,255,.7)"},
+    {type:"ball",path:"M200,290 Q220,268 240,250 Q248,242 260,230",dur:.45,begin:0,color:"white",r:2.5,easing:"0.3 0 0.65 1",glow:true},
+    {type:"dust",cx:235,cy:255,r:4,dur:.2,begin:.18,color:"#c4a882"},
+    {type:"flash",cx:260,cy:230,r:5,dur:.1,begin:.44,color:"rgba(255,255,255,.5)"},
+    {type:"ball",path:"M260,230 L290,210",dur:.3,begin:.5,color:"#22c55e",r:2.5,easing:"0.15 0.6 0.35 1"},
+    {type:"flash",cx:290,cy:210,r:8,dur:.1,begin:.79,color:"rgba(34,197,94,.4)"},
+    {type:"text",x:276,y:198,text:"OUT!",size:10,color:"#22c55e",dur:1.4,begin:0},
+  ],
+  flyout_success:[
+    {type:"flash",cx:200,cy:288,r:7,dur:.1,begin:0,color:"rgba(255,255,255,.7)"},
+    {type:"trail",path:"M200,290 Q242,118 282,108",dur:.55,begin:.04,color:"white",r:2,easing:"0.2 0.7 0.4 1"},
+    {type:"ball",path:"M200,290 Q242,118 282,108",dur:.55,begin:0,color:"white",r:3,easing:"0.2 0.7 0.4 1",glow:true},
+    {type:"flash",cx:282,cy:108,r:10,dur:.12,begin:.54,color:"rgba(34,197,94,.5)"},
+    {type:"text",x:282,y:95,text:"CAUGHT!",size:10,color:"#22c55e",dur:1.2,begin:0},
+  ],
+  bunt_success:[
+    {type:"flash",cx:200,cy:288,r:4,dur:.08,begin:0,color:"rgba(255,255,255,.5)"},
+    {type:"ball",path:"M200,290 Q198,272 192,258",dur:.5,begin:0,color:"white",r:2,easing:"0.3 0 0.65 1"},
+    {type:"runner",path:"M200,290 Q248,252 290,210",dur:.6,begin:.12,easing:"0.4 0 0.2 1"},
+    {type:"text",x:180,y:250,text:"BUNT!",size:9,color:"#22c55e",dur:1,begin:0},
+  ],
+  walk_success:[
+    {type:"runner",path:"M200,290 Q248,252 290,210",dur:.7,begin:.1,easing:"0.4 0 0.2 1"},
+    {type:"text",x:200,y:263,text:"BALL FOUR",size:11,color:"#3b82f6",dur:1.2,begin:0},
+  ],
+  advance_success:[
+    {type:"dust",cx:290,cy:212,r:5,dur:.3,begin:0,color:"#c4a882"},
+    {type:"runner",path:"M290,210 Q248,170 200,135",dur:.5,begin:.05,easing:"0.4 0 0.2 1"},
+    {type:"text",x:248,y:163,text:"ADVANCING!",size:9,color:"#3b82f6",dur:1,begin:0},
+  ],
+  relay_success:[
+    {type:"ball",path:"M300,80 Q265,155 248,185",dur:.3,begin:0,color:"white",r:2.5,easing:"0.15 0.6 0.35 1",glow:true},
+    {type:"flash",cx:248,cy:185,r:5,dur:.08,begin:.29,color:"rgba(255,255,255,.4)"},
+    {type:"ball",path:"M248,185 L200,290",dur:.3,begin:.35,color:"#ef4444",r:2.5,easing:"0.15 0.6 0.35 1"},
+    {type:"flash",cx:200,cy:290,r:8,dur:.1,begin:.64,color:"rgba(239,68,68,.4)"},
+    {type:"text",x:224,y:240,text:"GOT HIM!",size:9,color:"#22c55e",dur:1.2,begin:0},
+  ],
+};
+
+// AF1: Generic Animation Renderer — converts ANIM_DATA phases to SVG+SMIL
+function AnimPhases({phases,ak}){
+  if(!phases||!phases.length)return null;
+  return <g key={`ap${ak}`}>{phases.map((p,i)=>{
+    const k=`${ak}-${i}`;
+    if(p.type==="dust")return <circle key={k} cx={p.cx} cy={p.cy} r="1" fill={p.color||"#c4a882"} opacity="0"><animate attributeName="r" from="1" to={p.r||5} dur={p.dur+"s"} begin={(p.begin||0)+"s"} fill="freeze"/><animate attributeName="opacity" values="0;.45;0" dur={(p.dur+.05)+"s"} begin={(p.begin||0)+"s"} fill="freeze"/></circle>;
+    if(p.type==="ball")return <circle key={k} r={p.r||2.5} fill={p.color||"white"} opacity={p.opacity||1} filter={p.glow?"url(#gl)":undefined}><animateMotion dur={p.dur+"s"} begin={(p.begin||0)+"s"} fill="freeze" path={p.path} calcMode="spline" keyTimes="0;1" keySplines={p.easing||"0.25 0.1 0.25 1"}/></circle>;
+    if(p.type==="trail")return <circle key={k} r={p.r||2} fill={p.color||"white"} opacity=".3"><animateMotion dur={p.dur+"s"} begin={(p.begin+.03||.03)+"s"} fill="freeze" path={p.path} calcMode="spline" keyTimes="0;1" keySplines={p.easing||"0.25 0.1 0.25 1"}/><animate attributeName="opacity" from=".3" to="0" dur={(p.dur*.7)+"s"} begin={(p.begin+.06||.06)+"s"} fill="freeze"/></circle>;
+    if(p.type==="runner")return <g key={k} opacity="0"><animate attributeName="opacity" values="0;1" dur=".05s" begin={(p.begin||0)+"s"} fill="freeze"/><animateMotion dur={p.dur+"s"} begin={(p.begin||0)+"s"} fill="freeze" path={p.path} calcMode="spline" keyTimes="0;1" keySplines={p.easing||"0.4 0 0.2 1"}/><Guy x={0} y={0} jersey={p.jersey||"#dc2626"} cap={p.cap||"#b91c1c"} pants={p.pants||"#d1d5db"} pose="runner" o={p.o||1}/></g>;
+    if(p.type==="flash")return <circle key={k} cx={p.cx} cy={p.cy} r="0" fill={p.color||"rgba(255,255,255,.5)"}><animate attributeName="r" from="0" to={p.r||8} dur={p.dur+"s"} begin={(p.begin||0)+"s"} fill="freeze"/><animate attributeName="opacity" from={p.opacity||".5"} to="0" dur={(p.dur+.05)+"s"} begin={(p.begin||0)+"s"} fill="freeze"/></circle>;
+    if(p.type==="text")return <text key={k} x={p.x} y={p.y} textAnchor="middle" fontSize={p.size||10} fill={p.color||"#22c55e"} fontWeight="800" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0" dur={p.dur+"s"} fill="freeze"/>{p.text}</text>;
+    if(p.type==="line")return <line key={k} x1={p.x1} y1={p.y1} x2={p.x2} y2={p.y2} stroke={p.color||"#ef4444"} strokeWidth={p.width||2} strokeDasharray={p.dash||"6,4"} opacity="0"><animate attributeName="opacity" from=".65" to="0" dur={p.dur+"s"} fill="freeze"/></line>;
+    return null;
+  })}</g>;
+}
+
 const POS_SUGGESTIONS = {pitcher:"catcher",catcher:"pitcher",firstBase:"secondBase",secondBase:"shortstop",shortstop:"secondBase",thirdBase:"firstBase",leftField:"centerField",centerField:"rightField",rightField:"leftField",batter:"baserunner",baserunner:"batter",manager:"pitcher"};
 // Curated placement scenarios — hand-picked for diagnostic quality, short reads, clear best answers, diverse concepts
 const PLACEMENT_POOL={
@@ -13113,11 +13215,21 @@ const Field=React.memo(function Field({runners=[],outcome=null,ak=0,anim=null,th
         </g>;
       })()}
 
-      {/* ============ ANIMATIONS — spline easing for natural motion ============ */}
+      {/* ============ ANIMATIONS — data-driven (AF1) with inline SMIL fallback ============ */}
+      {/* AF1: Check ANIM_DATA first. If found, use AnimPhases renderer. Otherwise fall through to inline SMIL. */}
+      {(()=>{
+        if(!anim||!outcome)return null;
+        const dataKey=anim+"_"+outcome;
+        const altKey=anim+"_success"; // strikeout uses strike data
+        const phases=ANIM_DATA[dataKey]||ANIM_DATA[altKey];
+        if(phases)return <AnimPhases phases={phases} ak={ak}/>;
+        return null; // Fall through to inline SMIL below
+      })()}
+
       {/* Easing: ball-launch 0.12,0.8,0.3,1 | throw 0.15,0.6,0.35,1 | runner 0.4,0,0.2,1 | ground 0.3,0,0.65,1 | fly 0.2,0.7,0.4,1 | gravity 0.6,0,0.8,0.2 | pulse 0.25,0.1,0.25,1 */}
       {outcome&&<circle key={ak} cx="200" cy="215" r="0" fill={outcome==="success"?"rgba(34,197,94,.18)":outcome==="warning"?"rgba(245,158,11,.12)":"rgba(239,68,68,.12)"}><animate attributeName="r" from="0" to="180" dur=".55s" fill="freeze" calcMode="spline" keyTimes="0;1" keySplines="0.25 0.1 0.25 1"/><animate attributeName="opacity" from=".5" to="0" dur=".55s" fill="freeze"/></circle>}
 
-      {anim==="steal"&&outcome==="success"&&<g key={`a${ak}`}>
+      {anim==="steal"&&outcome==="success"&&!ANIM_DATA["steal_success"]&&<g key={`a${ak}`}>
         {/* Dust burst at takeoff (1B) */}
         <circle cx="290" cy="212" r="1" fill="#c4a882" opacity="0"><animate attributeName="r" from="1" to="6" dur=".3s" fill="freeze"/><animate attributeName="opacity" values="0;.5;0" dur=".35s" fill="freeze"/></circle>
         <circle cx="293" cy="210" r="1" fill="#c4a882" opacity="0"><animate attributeName="r" from="1" to="4" dur=".25s" begin=".05s" fill="freeze"/><animate attributeName="opacity" values="0;.35;0" dur=".3s" begin=".05s" fill="freeze"/></circle>
@@ -13132,7 +13244,7 @@ const Field=React.memo(function Field({runners=[],outcome=null,ak=0,anim=null,th
         {/* SAFE! text */}
         <text x="200" y="120" textAnchor="middle" fontSize="12" fill="#22c55e" fontWeight="900" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0" dur="1.3s" fill="freeze"/>SAFE!</text>
       </g>}
-      {anim==="score"&&outcome==="success"&&<g key={`s${ak}`}>
+      {anim==="score"&&outcome==="success"&&!ANIM_DATA["score_success"]&&<g key={`s${ak}`}>
         {/* Dust at takeoff from 3B */}
         <circle cx="112" cy="212" r="1" fill="#c4a882" opacity="0"><animate attributeName="r" from="1" to="5" dur=".3s" fill="freeze"/><animate attributeName="opacity" values="0;.45;0" dur=".35s" fill="freeze"/></circle>
         {/* Runner sprints 3B to home */}
@@ -13142,7 +13254,7 @@ const Field=React.memo(function Field({runners=[],outcome=null,ak=0,anim=null,th
         {/* SAFE! text */}
         <text x="200" y="265" textAnchor="middle" fontSize="14" fill="#22c55e" fontWeight="900" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0" dur="1.3s" fill="freeze"/>SAFE!</text>
       </g>}
-      {anim==="hit"&&outcome==="success"&&<g key={`h${ak}`}>
+      {anim==="hit"&&outcome==="success"&&!ANIM_DATA["hit_success"]&&<g key={`h${ak}`}>
         {/* Contact flash at home plate */}
         <circle cx="200" cy="288" r="0" fill="rgba(255,255,255,.9)"><animate attributeName="r" from="0" to="8" dur=".1s" fill="freeze"/><animate attributeName="opacity" from=".9" to="0" dur=".18s" fill="freeze"/></circle>
         {/* Ball trail (ghost follows ball) */}
@@ -13165,7 +13277,7 @@ const Field=React.memo(function Field({runners=[],outcome=null,ak=0,anim=null,th
         {/* Catch flash at home */}
         <circle cx="200" cy="290" r="0" fill="rgba(239,68,68,.4)"><animate attributeName="r" from="0" to="8" dur=".1s" begin=".34s" fill="freeze"/><animate attributeName="opacity" from=".4" to="0" dur=".15s" begin=".34s" fill="freeze"/></circle>
       </g>}
-      {anim==="doubleplay"&&outcome==="success"&&<g key={`dp${ak}`}>
+      {anim==="doubleplay"&&outcome==="success"&&!ANIM_DATA["doubleplay_success"]&&<g key={`dp${ak}`}>
         {/* Contact flash at batter */}
         <circle cx="200" cy="288" r="0" fill="rgba(255,255,255,.6)"><animate attributeName="r" from="0" to="5" dur=".08s" fill="freeze"/><animate attributeName="opacity" from=".6" to="0" dur=".12s" fill="freeze"/></circle>
         {/* Ball to 2B (first out) */}
@@ -13179,7 +13291,7 @@ const Field=React.memo(function Field({runners=[],outcome=null,ak=0,anim=null,th
         {/* DOUBLE PLAY! text */}
         <text x="200" y="175" textAnchor="middle" fontSize="10" fill="#22c55e" fontWeight="800" opacity="0"><animate attributeName="opacity" values="0;0;0;1;1;0" dur="1.1s" fill="freeze"/>DOUBLE PLAY!</text>
       </g>}
-      {(anim==="strike"||anim==="strikeout")&&outcome==="success"&&<g key={`st${ak}`}>
+      {(anim==="strike"||anim==="strikeout")&&outcome==="success"&&!ANIM_DATA["strike_success"]&&<g key={`st${ak}`}>
         {/* Pitcher release flash at mound */}
         <circle cx="200" cy="216" r="0" fill="rgba(255,255,255,.5)"><animate attributeName="r" from="0" to="5" dur=".1s" fill="freeze"/><animate attributeName="opacity" from=".5" to="0" dur=".15s" fill="freeze"/></circle>
         {/* Ball spin trail (ghost) */}
@@ -13193,7 +13305,7 @@ const Field=React.memo(function Field({runners=[],outcome=null,ak=0,anim=null,th
         {/* STRIKE! / STRUCK OUT! text */}
         <text x="200" y="263" textAnchor="middle" fontSize={anim==="strikeout"?13:10} fill={anim==="strikeout"?"#ef4444":"#f59e0b"} fontWeight="900" opacity="0"><animate attributeName="opacity" values="0;1;1;0" dur="1.6s" fill="freeze"/>{anim==="strikeout"?"STRUCK OUT!":"STRIKE!"}</text>
       </g>}
-      {anim==="groundout"&&outcome==="success"&&<g key={`go${ak}`}>
+      {anim==="groundout"&&outcome==="success"&&!ANIM_DATA["groundout_success"]&&<g key={`go${ak}`}>
         {/* Contact flash at home */}
         <circle cx="200" cy="288" r="0" fill="rgba(255,255,255,.7)"><animate attributeName="r" from="0" to="6" dur=".1s" fill="freeze"/><animate attributeName="opacity" from=".7" to="0" dur=".15s" fill="freeze"/></circle>
         {/* Ball rolls/bounces to fielder */}
@@ -13209,7 +13321,7 @@ const Field=React.memo(function Field({runners=[],outcome=null,ak=0,anim=null,th
         {/* OUT! text */}
         <text x="276" y="198" textAnchor="middle" fontSize="10" fill="#22c55e" fontWeight="800" opacity="0"><animate attributeName="opacity" values="0;0;0;1;1;0" dur="1.4s" fill="freeze"/>OUT!</text>
       </g>}
-      {anim==="flyout"&&outcome==="success"&&<g key={`fl${ak}`}>
+      {anim==="flyout"&&outcome==="success"&&!ANIM_DATA["flyout_success"]&&<g key={`fl${ak}`}>
         {/* Contact flash at home */}
         <circle cx="200" cy="288" r="0" fill="rgba(255,255,255,.7)"><animate attributeName="r" from="0" to="7" dur=".1s" fill="freeze"/><animate attributeName="opacity" from=".7" to="0" dur=".15s" fill="freeze"/></circle>
         {/* Ball trail (ghost follows ball) */}
@@ -13231,7 +13343,7 @@ const Field=React.memo(function Field({runners=[],outcome=null,ak=0,anim=null,th
         {/* GOT IT! text */}
         <text x="192" y="162" textAnchor="middle" fontSize="10" fill="#22c55e" fontWeight="800" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0" dur="1s" fill="freeze"/>GOT IT!</text>
       </g>}
-      {anim==="advance"&&outcome==="success"&&<g key={`ad${ak}`}>
+      {anim==="advance"&&outcome==="success"&&!ANIM_DATA["advance_success"]&&<g key={`ad${ak}`}>
         {/* Dust at takeoff */}
         <circle cx="290" cy="212" r="1" fill="#c4a882" opacity="0"><animate attributeName="r" from="1" to="5" dur=".3s" fill="freeze"/><animate attributeName="opacity" values="0;.4;0" dur=".35s" fill="freeze"/></circle>
         {/* Runner sprints 1B to 2B */}
@@ -13239,13 +13351,13 @@ const Field=React.memo(function Field({runners=[],outcome=null,ak=0,anim=null,th
         {/* ADVANCING! text */}
         <text x="248" y="163" textAnchor="middle" fontSize="9" fill="#3b82f6" fontWeight="800" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0" dur="1s" fill="freeze"/>ADVANCING!</text>
       </g>}
-      {anim==="walk"&&outcome==="success"&&<g key={`wk${ak}`}>
+      {anim==="walk"&&outcome==="success"&&!ANIM_DATA["walk_success"]&&<g key={`wk${ak}`}>
         {/* Runner trots to 1B */}
         <g opacity="0"><animate attributeName="opacity" values="0;1" dur=".1s" begin=".1s" fill="freeze"/><animateMotion dur=".7s" begin=".1s" fill="freeze" path="M200,290 Q248,252 290,210" calcMode="spline" keyTimes="0;1" keySplines="0.4 0 0.2 1"/><Guy x={0} y={0} jersey="#dc2626" cap="#b91c1c" pants="#d1d5db" pose="runner" o={1}/></g>
         {/* BALL FOUR text */}
         <text x="200" y="263" textAnchor="middle" fontSize="11" fill="#3b82f6" fontWeight="800" opacity="0"><animate attributeName="opacity" values="0;1;1;0" dur="1.2s" fill="freeze"/>BALL FOUR</text>
       </g>}
-      {anim==="bunt"&&outcome==="success"&&<g key={`bn${ak}`}>
+      {anim==="bunt"&&outcome==="success"&&!ANIM_DATA["bunt_success"]&&<g key={`bn${ak}`}>
         {/* Soft contact flash */}
         <circle cx="200" cy="288" r="0" fill="rgba(255,255,255,.5)"><animate attributeName="r" from="0" to="4" dur=".08s" fill="freeze"/><animate attributeName="opacity" from=".5" to="0" dur=".12s" fill="freeze"/></circle>
         {/* Ball dribbles forward */}
