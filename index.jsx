@@ -7831,7 +7831,7 @@ function enrichFeedback(scenario, choiceIdx, situation, playerAge, masteryData) 
     insights.push({icon:"🧤", text:dpEval.explanation});
   }
   // Catcher framing insight for catcher scenarios
-  if (scenario?.cat === 'catcher' || /fram/i.test(scenario?.concept||'')) {
+  if (/^c\d/i.test(scenario?.id||'') || /fram/i.test(scenario?.concept||'')) {
     const fv = BRAIN.stats.catcherFramingValue;
     const isHighValue = count && fv.highValueCounts.includes(count);
     if (isHighValue) insights.push({icon:"🧤", text:`${count} is a high-value framing count — each pitch framed here is worth ${fv.perPitchValue} runs. ${fv.positionNote}`, deepLink:{tab:"pitchlab"}});
