@@ -15985,7 +15985,7 @@ export default function App(){
               {text:"In the 9th inning, decisions matter 1.7x more than in the 1st (leverage).",tab:"winprob"},
               {text:"Turf makes grounders 17.5% faster — infielders play 1.5 feet deeper.",tab:"park"},
             ];
-            const factIdx=(stats.brainFactIdx||0)%BRAIN_FACTS.length;
+            const factIdx=Math.floor(Date.now()/86400000)%BRAIN_FACTS.length;
             const fact=BRAIN_FACTS[factIdx];
             return <button onClick={()=>{setBrainTab(fact.tab);if(fact.state){if(fact.state.count)setSelCount(fact.state.count);if(fact.state.runners){setReRunners(fact.state.runners);setReOuts(fact.state.outs||0);}}setScreen("brain");}} style={{width:"100%",background:"linear-gradient(135deg,rgba(168,85,247,.06),rgba(59,130,246,.06))",border:"1px solid rgba(168,85,247,.12)",borderRadius:12,padding:"8px 14px",cursor:"pointer",textAlign:"left",marginBottom:8,display:"flex",alignItems:"center",gap:8}}>
               <span style={{fontSize:16,flexShrink:0}}>🧠</span>
@@ -17067,49 +17067,102 @@ export default function App(){
 
         {/* BASEBALL BRAIN */}
         {screen==="brain"&&(()=>{
-          // Track Brain visit for IQ scoring
+          // A2: Fixed BrainIQ calculation — increment by tabs visited
           const trackBrainVisit=(tab)=>{
             setStats(p=>{
               const be={...(p.brainExplored||{})};
-              if(!be[tab])be[tab]={visited:true,visitCount:0};
+              if(!be[tab])be[tab]={visited:true,visitCount:0,interactions:0};
               be[tab].visitCount=(be[tab].visitCount||0)+1;
-              const newIQ=Math.min(200,Object.values(be).filter(v=>v.visited).length*5+(p.brainIQ||0)>=(Object.values(be).filter(v=>v.visited).length*5)?p.brainIQ||0:Object.values(be).filter(v=>v.visited).length*5);
+              const tabsVisited=Object.values(be).filter(v=>v.visited).length;
+              const newIQ=Math.min(200, tabsVisited*5 + Object.values(be).reduce((s,v)=>s+Math.min(10,(v.interactions||0)),0));
               return{...p,brainExplored:be,brainIQ:Math.max(p.brainIQ||0,newIQ)};
             });
+          };
+          const trackInteraction=(tab)=>{
+            setStats(p=>{
+              const be={...(p.brainExplored||{})};
+              if(be[tab])be[tab].interactions=(be[tab].interactions||0)+1;
+              const tabsVisited=Object.values(be).filter(v=>v.visited).length;
+              const newIQ=Math.min(200, tabsVisited*5 + Object.values(be).reduce((s,v)=>s+Math.min(10,(v.interactions||0)),0));
+              return{...p,brainExplored:be,brainIQ:Math.max(p.brainIQ||0,newIQ)};
+            });
+          };
+          // B3: Cross-tab navigation helper
+          const navigateBrain=(tab,state)=>{
+            setBrainTab(tab);trackBrainVisit(tab);
+            if(state){
+              if(state.runners!==undefined){setReRunners(state.runners);setReOuts(state.outs||0);}
+              if(state.count)setSelCount(state.count);
+              if(state.inning!==undefined){setWpInning(state.inning);setWpDiff(state.diff||0);}
+              if(state.pitcher)setMPitcher(state.pitcher);
+              if(state.batter)setMBatter(state.batter);
+              if(state.parkIdx!==undefined)setParkType(state.parkIdx);
+              if(state.preset)setDefPreset(state.preset);
+            }
+          };
+          // B4: Find scenario for "Test Yourself" buttons
+          const findScenarioForConcept=(conceptTag)=>{
+            const allScens=Object.entries(SCENARIOS).flatMap(([pos,arr])=>arr.map(s=>({...s,_pos:pos})));
+            const matches=allScens.filter(s=>s.conceptTag===conceptTag||s.concept?.toLowerCase().includes((conceptTag||"").replace(/-/g," ")));
+            return matches.length>0?matches[Math.floor(Math.random()*matches.length)]:null;
+          };
+          const launchQuizFromBrain=(conceptTag)=>{
+            const s=findScenarioForConcept(conceptTag);
+            if(s){setPos(s._pos);setSc(s);setChoice(null);setOd(null);setRi(-1);setFo(null);setShowC(false);setShowExp(true);setScreen("play");}
           };
           const ageNum=parseInt((stats.ageGroup||"13-15").split("-")[0])||13;
           const vocabTier=ageNum<=8?1:ageNum<=10?2:ageNum<=12?3:ageNum<=15?4:5;
           const isYoung=vocabTier<=2;
+          const brainIQ=stats.brainIQ||0;
+          const iqTitle=brainIQ>=150?"Baseball Genius":brainIQ>=120?"Sabermetrics Expert":brainIQ>=90?"Analytics All-Star":brainIQ>=60?"Front Office Prospect":brainIQ>=30?"Dugout Analyst":"Rookie Scout";
+          const iqColor=brainIQ>=120?"#22c55e":brainIQ>=60?"#3b82f6":brainIQ>=30?"#f59e0b":"#9ca3af";
           const BRAIN_TABS=[
-            {id:"re24",label:"Run Expectancy",icon:"📊",color:"#22c55e",short:"RE24"},
-            {id:"counts",label:"Count Dashboard",icon:"🔢",color:"#3b82f6",short:"Counts"},
-            {id:"pitchlab",label:"Pitch Lab",icon:"⚾",color:"#ef4444",short:"Pitches"},
+            {id:"re24",label:"Run Expectancy",icon:"📊",color:"#22c55e",short:"RE24",concept:"scoring-probability"},
+            {id:"counts",label:"Count Dashboard",icon:"🔢",color:"#3b82f6",short:"Counts",concept:"count-leverage"},
+            {id:"pitchlab",label:"Pitch Lab",icon:"⚾",color:"#ef4444",short:"Pitches",concept:"pitch-sequencing"},
             {id:"concepts",label:"Concept Map",icon:"🗺️",color:"#a855f7",short:"Map"},
-            {id:"steal",label:"Steal Calculator",icon:"🏃",color:"#f97316",short:"Steal"},
-            {id:"pitchcount",label:"Pitch Count",icon:"💪",color:"#eab308",short:"Fatigue"},
-            {id:"winprob",label:"Win Probability",icon:"📈",color:"#06b6d4",short:"Win%"},
-            {id:"matchup",label:"Matchup Analyzer",icon:"⚔️",color:"#ec4899",short:"Matchup",minAge:11},
+            {id:"steal",label:"Steal Calculator",icon:"🏃",color:"#f97316",short:"Steal",concept:"steal-breakeven"},
+            {id:"pitchcount",label:"Pitch Count",icon:"💪",color:"#eab308",short:"Fatigue",concept:"pitch-count-mgmt"},
+            {id:"winprob",label:"Win Probability",icon:"📈",color:"#06b6d4",short:"Win%",concept:"win-probability"},
+            {id:"matchup",label:"Matchup Analyzer",icon:"⚔️",color:"#ec4899",short:"Matchup",minAge:11,concept:"platoon-advantage"},
             {id:"park",label:"Park Factors",icon:"🏟️",color:"#84cc16",short:"Parks"},
-            {id:"defense",label:"Defensive Sandbox",icon:"🧤",color:"#f59e0b",short:"Defense",minAge:9},
+            {id:"defense",label:"Defensive Sandbox",icon:"🧤",color:"#f59e0b",short:"Defense",minAge:9,concept:"dp-positioning"},
             {id:"history",label:"Famous Moments",icon:"🏆",color:"#8b5cf6",short:"History"},
           ];
           const visibleTabs=BRAIN_TABS.filter(t=>!t.minAge||ageNum>=t.minAge);
           const activeTab=visibleTabs.find(t=>t.id===brainTab)||visibleTabs[0];
+          const isFirstVisit=!stats.brainExplored?._onboarded;
           return <div>
-            {/* Header */}
+            {/* A1: First-visit onboarding overlay */}
+            {isFirstVisit&&<div style={{background:"linear-gradient(135deg,rgba(168,85,247,.12),rgba(59,130,246,.08))",border:"1.5px solid rgba(168,85,247,.25)",borderRadius:14,padding:"14px 16px",marginBottom:12,textAlign:"center"}}>
+              <div style={{fontSize:13,fontWeight:700,color:"#a855f7",marginBottom:4}}>Welcome to Baseball Brain!</div>
+              <div style={{fontSize:11,color:"#d1d5db",lineHeight:1.5,marginBottom:8}}>Tap a base to add a runner, then use the buttons to see how the numbers change. Each tab explores a different part of baseball strategy.</div>
+              <button onClick={()=>setStats(p=>({...p,brainExplored:{...(p.brainExplored||{}),_onboarded:true}}))} style={{background:"rgba(168,85,247,.15)",border:"1px solid rgba(168,85,247,.3)",borderRadius:8,padding:"6px 16px",fontSize:11,fontWeight:600,color:"#a855f7",cursor:"pointer"}}>Got it!</button>
+            </div>}
+            {/* Header with A2: IQ display */}
             <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:12}}>
-              <button onClick={()=>setScreen("home")} style={{background:"none",border:"none",color:"#9ca3af",cursor:"pointer",fontSize:18,padding:4}}>←</button>
+              <button onClick={()=>setScreen("home")} style={{background:"none",border:"none",color:"#9ca3af",cursor:"pointer",fontSize:18,padding:8,minWidth:36,minHeight:36}}>←</button>
               <div style={{flex:1}}>
                 <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:20,color:"#a855f7",letterSpacing:1.5}}>BASEBALL BRAIN</div>
                 <div style={{fontSize:10,color:"#9ca3af"}}>Explore the hidden math of baseball</div>
               </div>
+              <div style={{textAlign:"center",flexShrink:0}}>
+                <div style={{fontSize:18,fontWeight:900,color:iqColor}}>{brainIQ}</div>
+                <div style={{fontSize:7,color:iqColor,fontWeight:600}}>{iqTitle}</div>
+              </div>
             </div>
-            {/* Tab strip */}
-            <div style={{display:"flex",gap:4,overflowX:"auto",paddingBottom:8,marginBottom:12,WebkitOverflowScrolling:"touch"}}>
-              {visibleTabs.map(t=><button key={t.id} onClick={()=>{setBrainTab(t.id);trackBrainVisit(t.id);}} style={{flexShrink:0,background:brainTab===t.id?`${t.color}20`:"rgba(255,255,255,.02)",border:`1.5px solid ${brainTab===t.id?`${t.color}40`:"rgba(255,255,255,.06)"}`,borderRadius:10,padding:"6px 10px",cursor:"pointer",display:"flex",alignItems:"center",gap:4,transition:"all .2s"}}>
-                <span style={{fontSize:14}}>{t.icon}</span>
-                <span style={{fontSize:10,fontWeight:600,color:brainTab===t.id?t.color:"#9ca3af",whiteSpace:"nowrap"}}>{t.short}</span>
-              </button>)}
+            {/* Tab strip with A4: scroll indicator fade + larger touch targets */}
+            <div style={{position:"relative",marginBottom:12}}>
+              <div style={{display:"flex",gap:4,overflowX:"auto",paddingBottom:8,WebkitOverflowScrolling:"touch",maskImage:"linear-gradient(to right,black 85%,transparent 100%)",WebkitMaskImage:"linear-gradient(to right,black 85%,transparent 100%)"}}>
+                {visibleTabs.map(t=>{
+                  const explored=stats.brainExplored?.[t.id];
+                  const ring=explored?Math.min(100,Math.round(((explored.visitCount||0)*10+(explored.interactions||0)*5)/100*100)):0;
+                  return <button key={t.id} onClick={()=>{setBrainTab(t.id);trackBrainVisit(t.id);}} style={{flexShrink:0,background:brainTab===t.id?`${t.color}20`:"rgba(255,255,255,.02)",border:`1.5px solid ${brainTab===t.id?`${t.color}40`:"rgba(255,255,255,.06)"}`,borderRadius:10,padding:"8px 12px",cursor:"pointer",display:"flex",alignItems:"center",gap:5,transition:"all .2s",minHeight:40,position:"relative"}}>
+                    <span style={{fontSize:15}}>{t.icon}</span>
+                    <span style={{fontSize:10,fontWeight:600,color:brainTab===t.id?t.color:"#9ca3af",whiteSpace:"nowrap"}}>{t.short}</span>
+                    {ring>0&&<div style={{position:"absolute",top:-2,right:-2,width:8,height:8,borderRadius:"50%",background:ring>=80?t.color:"rgba(255,255,255,.3)",border:`1px solid ${t.color}40`}}/>}
+                  </button>;
+                })}
             </div>
 
             {/* RE24 EXPLORER TAB */}
@@ -17117,28 +17170,34 @@ export default function App(){
               const rKey=r=>reRunners.includes(r)?reRunners.filter(x=>x!==r):[...reRunners,r];
               const reState=runners=>{const k=(runners.includes(1)?"1":"-")+(runners.includes(2)?"2":"-")+(runners.includes(3)?"3":"-");return k==="---"?"---":k;};
               const re24=BRAIN.stats.RE24[reState(reRunners)]?.[reOuts]||0;
-              const doAction=(name,newRunners,newOuts,delta,msg)=>{setRePrevRE(re24);setReRunners(newRunners);setReOuts(Math.min(newOuts,2));setReLastAction({name,delta,msg});if(newOuts>=3){setTimeout(()=>{setReRunners([]);setReOuts(0);setReLastAction({name:"Inning Over",delta:-re24,msg:"3 outs! The inning is over."});},1500);}};
+              const doAction=(name,newRunners,newOuts,delta,msg)=>{snd.play('tap');trackInteraction("re24");setRePrevRE(re24);setReRunners(newRunners);setReOuts(Math.min(newOuts,2));setReLastAction({name,delta,msg});if(newOuts>=3){setTimeout(()=>{setReRunners([]);setReOuts(0);setReLastAction({name:"Inning Over",delta:-re24,msg:"3 outs! The inning is over."});},1500);}};
               const canBunt=reRunners.some(r=>r<=2)&&reOuts<2;
               const canSteal=reRunners.some(r=>r<=2);
               const canSacFly=reRunners.includes(3)&&reOuts<2;
               const canDP=reRunners.includes(1)&&reOuts<2;
               return <div>
                 <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:16,color:"#22c55e",letterSpacing:1,marginBottom:8}}>{isYoung?"CHANCE TO SCORE":"RUN EXPECTANCY EXPLORER"}</div>
-                {/* Mini diamond */}
-                <div style={{position:"relative",width:180,height:140,margin:"0 auto 12px"}}>
-                  <svg viewBox="0 0 180 140" width="180" height="140">
-                    <polygon points="90,10 170,70 90,130 10,70" fill="none" stroke="rgba(255,255,255,.15)" strokeWidth="1.5"/>
-                    <line x1="90" y1="10" x2="90" y2="130" stroke="rgba(255,255,255,.05)" strokeWidth="0.5"/>
-                    <line x1="10" y1="70" x2="170" y2="70" stroke="rgba(255,255,255,.05)" strokeWidth="0.5"/>
+                {/* A8: Empty-state prompt */}
+                {reRunners.length===0&&!reLastAction&&<div style={{textAlign:"center",fontSize:11,color:"#86efac",marginBottom:8,padding:"6px 12px",background:"rgba(34,197,94,.06)",borderRadius:8,border:"1px solid rgba(34,197,94,.1)"}}>
+                  {isYoung?"Tap a base to put a runner on!":"Tap the bases below to place runners, then use the buttons to see how run expectancy changes."}
+                </div>}
+                {/* A3: Enlarged diamond with bigger tap targets */}
+                <div style={{position:"relative",width:220,height:170,margin:"0 auto 12px"}}>
+                  <svg viewBox="0 0 220 170" width="220" height="170">
+                    <polygon points="110,12 206,85 110,158 14,85" fill="none" stroke="rgba(255,255,255,.15)" strokeWidth="1.5"/>
+                    <line x1="110" y1="12" x2="110" y2="158" stroke="rgba(255,255,255,.05)" strokeWidth="0.5"/>
+                    <line x1="14" y1="85" x2="206" y2="85" stroke="rgba(255,255,255,.05)" strokeWidth="0.5"/>
                     {/* Home plate */}
-                    <polygon points="90,126 85,130 90,134 95,130" fill="rgba(255,255,255,.4)"/>
-                    {/* Bases — tap to toggle runners */}
-                    {[{b:1,x:166,y:68,lx:172,ly:56},{b:2,x:86,y:8,lx:90,ly:-2},{b:3,x:6,y:68,lx:-4,ly:56}].map(({b,x,y,lx,ly})=>{
+                    <polygon points="110,153 105,158 110,163 115,158" fill="rgba(255,255,255,.4)"/>
+                    {/* Bases — A3: enlarged tap targets with invisible hit areas */}
+                    {[{b:1,x:200,y:79,lx:212,ly:70},{b:2,x:104,y:6,lx:110,ly:-4},{b:3,x:8,y:79,lx:-4,ly:70}].map(({b,x,y,lx,ly})=>{
                       const on=reRunners.includes(b);
-                      return <g key={b} onClick={()=>setReRunners(rKey(b))} style={{cursor:"pointer"}}>
-                        <rect x={x} y={y} width={12} height={12} rx={1} transform={`rotate(45 ${x+6} ${y+6})`} fill={on?"#22c55e":"rgba(255,255,255,.12)"} stroke={on?"#22c55e":"rgba(255,255,255,.25)"} strokeWidth={1.5}/>
-                        {on&&<circle cx={x+6} cy={y-2} r={5} fill="#22c55e" stroke="#15803d" strokeWidth={1}/>}
-                        <text x={lx} y={ly} fill="rgba(255,255,255,.4)" fontSize="8" textAnchor="middle">{b===1?"1B":b===2?"2B":"3B"}</text>
+                      return <g key={b} onClick={()=>{snd.play('tap');setReRunners(rKey(b));trackInteraction("re24");}} style={{cursor:"pointer"}}>
+                        {/* Invisible larger hit area for mobile */}
+                        <rect x={x-10} y={y-10} width={36} height={36} fill="transparent"/>
+                        <rect x={x} y={y} width={16} height={16} rx={2} transform={`rotate(45 ${x+8} ${y+8})`} fill={on?"#22c55e":"rgba(255,255,255,.12)"} stroke={on?"#22c55e":"rgba(255,255,255,.25)"} strokeWidth={1.5}/>
+                        {on&&<circle cx={x+8} cy={y-3} r={6} fill="#22c55e" stroke="#15803d" strokeWidth={1}/>}
+                        <text x={lx} y={ly} fill="rgba(255,255,255,.5)" fontSize="9" fontWeight="600" textAnchor="middle">{b===1?"1B":b===2?"2B":"3B"}</text>
                       </g>;
                     })}
                   </svg>
@@ -17193,7 +17252,7 @@ export default function App(){
                       nr=[...new Set(nr)];const no=reOuts+1;
                       const newRE=no>=3?0:(BRAIN.stats.RE24[reState(nr)]?.[no]||0);
                       const delta=newRE-re24;
-                      doAction("Bunt",nr,no,delta,`${isYoung?"Bunt moves the runner but costs an out.":"Sacrifice bunt: runner advances, out recorded."} ${vocabTier>=3?`RE24 change: ${delta>=0?"+":""}${delta.toFixed(2)}`:""}`);
+                      doAction("Bunt",nr,no,delta,`${isYoung?"Bunt moves the runner but costs an out.":"Sacrifice bunt: runner advances, out recorded."} ${vocabTier>=3?`RE24 change: ${delta>=0?"+":""}${delta.toFixed(2)}.`:""}${vocabTier<=3?" Note: at youth levels, bunting works better than these MLB numbers suggest because fielders make more errors.":""}`);
                     }},
                     {label:"Steal",show:canSteal,fn:()=>{
                       const be=BRAIN.stats.stealBreakEven[reOuts]||0.72;
@@ -17211,11 +17270,28 @@ export default function App(){
                       const newRE=no>=3?0:(BRAIN.stats.RE24[reState(nr)]?.[Math.min(no,2)]||0);
                       doAction("Double Play",nr,no,newRE-re24,isYoung?"Two outs at once! That hurts!":"Ground into double play — devastating for run expectancy.");
                     }},
-                  ].filter(a=>a.show).map(a=><button key={a.label} onClick={a.fn} style={{background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.08)",borderRadius:8,padding:"6px 12px",fontSize:10,fontWeight:600,color:"#d1d5db",cursor:"pointer",transition:"all .15s"}}>{a.label}</button>)}
+                    {label:isYoung?"Big Hit!":"Double",show:true,fn:()=>{
+                      let nr=[...reRunners],scored=0;
+                      if(nr.includes(3)){scored++;nr=nr.filter(x=>x!==3);}
+                      if(nr.includes(2)){scored++;nr=nr.filter(x=>x!==2);}
+                      if(nr.includes(1)){const adv=Math.random()<0.52;if(adv){scored++;nr=nr.filter(x=>x!==1);}else{nr=nr.map(x=>x===1?3:x);}}
+                      nr.push(2);nr=[...new Set(nr)];
+                      const newRE=BRAIN.stats.RE24[reState(nr)]?.[reOuts]||0;
+                      doAction("Double",nr,reOuts,newRE-re24+scored,scored?`Double! ${scored} run${scored>1?"s":""} scored!`:isYoung?"Big hit to the gap!":"Double clears the bases — runner to 2nd.");
+                    }},
+                  ].filter(a=>a.show).map(a=><button key={a.label} onClick={a.fn} style={{background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.08)",borderRadius:8,padding:"8px 14px",fontSize:10,fontWeight:600,color:"#d1d5db",cursor:"pointer",transition:"all .15s",minHeight:36}}>{a.label}</button>)}
                 </div>
+                {/* B3: Cross-tab links after actions */}
+                {reLastAction&&reLastAction.name.includes("Steal")&&<div style={{textAlign:"center",marginBottom:4}}>
+                  <button onClick={()=>navigateBrain("steal",{outs:reOuts})} style={{background:"none",border:"none",color:"#f97316",fontSize:9,cursor:"pointer",textDecoration:"underline"}}>See the steal math in Steal Calculator →</button>
+                </div>}
+                {reLastAction&&reLastAction.name==="Bunt"&&<div style={{textAlign:"center",marginBottom:4}}>
+                  <button onClick={()=>navigateBrain("counts")} style={{background:"none",border:"none",color:"#3b82f6",fontSize:9,cursor:"pointer",textDecoration:"underline"}}>Which counts favor bunting? →</button>
+                </div>}
                 {/* Reset */}
-                <div style={{textAlign:"center"}}>
-                  <button onClick={()=>{setReRunners([]);setReOuts(0);setReLastAction(null);setRePrevRE(null);}} style={{background:"none",border:"1px solid rgba(255,255,255,.08)",borderRadius:6,padding:"4px 14px",fontSize:9,color:"#9ca3af",cursor:"pointer"}}>Reset Diamond</button>
+                <div style={{textAlign:"center",display:"flex",justifyContent:"center",gap:8}}>
+                  <button onClick={()=>{setReRunners([]);setReOuts(0);setReLastAction(null);setRePrevRE(null);}} style={{background:"none",border:"1px solid rgba(255,255,255,.08)",borderRadius:6,padding:"5px 14px",fontSize:9,color:"#9ca3af",cursor:"pointer",minHeight:32}}>Reset Diamond</button>
+                  {activeTab.concept&&<button onClick={()=>launchQuizFromBrain(activeTab.concept)} style={{background:"rgba(34,197,94,.08)",border:"1px solid rgba(34,197,94,.15)",borderRadius:6,padding:"5px 14px",fontSize:9,color:"#22c55e",fontWeight:600,cursor:"pointer",minHeight:32}}>Test Yourself →</button>}
                 </div>
                 {/* Full matrix for advanced players */}
                 {vocabTier>=4&&<div style={{marginTop:16}}>
@@ -17232,7 +17308,7 @@ export default function App(){
                         const label=k==="---"?"Empty":k.replace(/(.)/g,(m,c,i)=>c!=="-"?["","1st","2nd","3rd"][parseInt(c)]+(i<4?"+":""):"").replace(/\+$/,"");
                         return <tr key={k} style={{borderTop:"1px solid rgba(255,255,255,.04)"}}>
                           <td style={{padding:"3px 4px",color:"#d1d5db",fontWeight:600}}>{label}</td>
-                          {v.map((val,i)=><td key={i} style={{padding:"3px 4px",textAlign:"center",color:val>1.5?"#22c55e":val>0.5?"#f59e0b":"#ef4444",fontWeight:600}}>{val.toFixed(2)}</td>)}
+                          {v.map((val,i)=><td key={i} style={{padding:"3px 4px",textAlign:"center",color:val>1.5?"#22c55e":val>0.5?"#f59e0b":"#ef4444",fontWeight:600,background:`rgba(${val>1.2?"34,197,94":val>0.5?"245,158,11":"239,68,68"},${Math.min(0.2,val/12).toFixed(2)})`}}>{val.toFixed(2)}</td>)}
                         </tr>;
                       })}</tbody>
                     </table>
@@ -17395,7 +17471,7 @@ export default function App(){
                 <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginBottom:12}}>
                   {visiblePitches.map(([k,p])=>{
                     const sel=selPitch===k;
-                    return <button key={k} onClick={()=>{if(seqMode&&seqPitches.length<(vocabTier>=4?5:3)){setSeqPitches([...seqPitches,k]);}else{setSelPitch(sel?null:k);}}} style={{background:sel?"rgba(239,68,68,.08)":"rgba(255,255,255,.02)",border:`1.5px solid ${sel?"rgba(239,68,68,.3)":"rgba(255,255,255,.06)"}`,borderRadius:10,padding:"8px",cursor:"pointer",textAlign:"left",transition:"all .2s"}}>
+                    return <button key={k} onClick={(e)=>{e.stopPropagation();snd.play('tap');if(seqMode&&seqPitches.length<(vocabTier>=4?5:3)){setSeqPitches([...seqPitches,k]);trackInteraction("pitchlab");}else{setSelPitch(sel?null:k);trackInteraction("pitchlab");}}} style={{background:seqMode?"rgba(239,68,68,.04)":sel?"rgba(239,68,68,.08)":"rgba(255,255,255,.02)",border:`1.5px solid ${sel?"rgba(239,68,68,.3)":seqMode?"rgba(239,68,68,.15)":"rgba(255,255,255,.06)"}`,borderRadius:10,padding:"10px",cursor:"pointer",textAlign:"left",transition:"all .2s",minHeight:44}}>
                       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:2}}>
                         <div style={{fontSize:10,fontWeight:700,color:"#d1d5db"}}>{isYoung?p.name.split("/")[0].split("(")[0].trim():p.name.split("/")[0].trim()}</div>
                         <div style={{fontSize:9,fontWeight:700,color:"#f59e0b"}}>{Math.round(p.velo)} mph</div>
@@ -17464,6 +17540,14 @@ export default function App(){
                     </div>
                     <div style={{fontSize:9,fontWeight:700,color:rvColor(p.rv100),width:30,textAlign:"right"}}>{p.rv100>0?"+":""}{p.rv100}</div>
                   </div>)}
+                </div>}
+                {/* A8: Empty-state prompt + B4: Test Yourself + B3: Cross-links */}
+                {!selPitch&&!seqMode&&<div style={{textAlign:"center",padding:"8px 12px",background:"rgba(239,68,68,.04)",borderRadius:10,border:"1px solid rgba(239,68,68,.08)",marginTop:8}}>
+                  <div style={{fontSize:10,color:"#fca5a5"}}>{isYoung?"Tap a pitch to learn about it!":"Tap a pitch card for details, or try the sequencing builder to call your own game."}</div>
+                </div>}
+                {vocabTier>=3&&<div style={{display:"flex",justifyContent:"center",gap:8,marginTop:8}}>
+                  <button onClick={()=>navigateBrain("counts")} style={{background:"none",border:"none",color:"#3b82f6",fontSize:9,cursor:"pointer",textDecoration:"underline"}}>What pitch on each count? →</button>
+                  {activeTab.concept&&<button onClick={()=>launchQuizFromBrain(activeTab.concept)} style={{background:"rgba(34,197,94,.08)",border:"1px solid rgba(34,197,94,.15)",borderRadius:6,padding:"5px 12px",fontSize:9,color:"#22c55e",fontWeight:600,cursor:"pointer"}}>Test Yourself →</button>}
                 </div>}
               </div>;
             })()}
@@ -17539,6 +17623,7 @@ export default function App(){
                     {label:"MLB Average",d:sw.deliveryTime.average,p:sw.popTime.average,r:sw.runnerTime.average},
                     {label:"Easy Steal",d:sw.deliveryTime.slow,p:sw.popTime.slow,r:sw.runnerTime.elite},
                     {label:"No Chance",d:sw.deliveryTime.quick,p:sw.popTime.elite,r:sw.runnerTime.slow},
+                    {label:"Youth League",d:1.50,p:2.10,r:3.65},
                   ].map(pr=><button key={pr.label} onClick={()=>{setDeliveryTime(pr.d);setPopTime2(pr.p);setRunnerTime(pr.r);}} style={{background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.08)",borderRadius:6,padding:"3px 8px",fontSize:8,color:"#9ca3af",cursor:"pointer"}}>{pr.label}</button>)}
                 </div>
                 {/* Pickoff risk panel */}
@@ -17550,6 +17635,11 @@ export default function App(){
                     <span style={{color:"#9ca3af"}}>Daylight: <strong style={{color:"#22c55e"}}>{Math.round(pk.daylightPlay*100)}%</strong></span>
                   </div>
                   {vocabTier>=3&&<div style={{fontSize:8,color:"#9ca3af",marginTop:3}}>Post-pitch-clock: only 2 free pickoff attempts per at-bat. 3rd attempt that fails = BALK. Violation rate dropped from {(pcv.pitcherRate*100).toFixed(1)}% (2023) to {(pcv.pitcherRate2024*100).toFixed(1)}% (2024).</div>}
+                </div>
+                {/* B3+B4: Cross-links + Test Yourself */}
+                <div style={{display:"flex",justifyContent:"center",gap:8,marginTop:8}}>
+                  <button onClick={()=>navigateBrain("re24",{runners:[1],outs:0})} style={{background:"none",border:"none",color:"#22c55e",fontSize:9,cursor:"pointer",textDecoration:"underline"}}>See RE24 break-even math →</button>
+                  {activeTab.concept&&<button onClick={()=>launchQuizFromBrain(activeTab.concept)} style={{background:"rgba(34,197,94,.08)",border:"1px solid rgba(34,197,94,.15)",borderRadius:6,padding:"5px 12px",fontSize:9,color:"#22c55e",fontWeight:600,cursor:"pointer"}}>Test Yourself →</button>}
                 </div>
               </div>;
             })()}
@@ -17598,7 +17688,7 @@ export default function App(){
                   {domains.map(d=><button key={d} onClick={()=>setDomainFilter(domainFilter===d?null:d)} style={{flexShrink:0,padding:"3px 8px",borderRadius:6,fontSize:9,fontWeight:600,background:domainFilter===d?`${domainColors[d]||"#6b7280"}15`:"rgba(255,255,255,.02)",border:`1px solid ${domainFilter===d?`${domainColors[d]||"#6b7280"}30`:"rgba(255,255,255,.06)"}`,color:domainFilter===d?domainColors[d]||"#6b7280":"#6b7280",cursor:"pointer",textTransform:"capitalize"}}>{d}</button>)}
                 </div>
                 {/* Concept list */}
-                <div style={{display:"flex",flexDirection:"column",gap:3,maxHeight:400,overflowY:"auto"}}>
+                <div style={{display:"flex",flexDirection:"column",gap:3}}>
                   {ageFiltered.map(([tag,c])=>{
                     const st=getMastery(tag);const mc=masteryColor[st];const mi=masteryIcon[st];
                     const sel=selConcept===tag;
@@ -17689,6 +17779,7 @@ export default function App(){
                     </div>)}
                   </div>}
                 </div>
+                {activeTab.concept&&<div style={{textAlign:"center",marginTop:8}}><button onClick={()=>launchQuizFromBrain(activeTab.concept)} style={{background:"rgba(34,197,94,.08)",border:"1px solid rgba(34,197,94,.15)",borderRadius:6,padding:"5px 12px",fontSize:9,color:"#22c55e",fontWeight:600,cursor:"pointer"}}>Test Yourself →</button></div>}
               </div>;
             })()}
 
@@ -17762,6 +17853,7 @@ export default function App(){
                   <div style={{fontSize:9,color:"#d1d5db",lineHeight:1.5}}>{wp.clutch.explanation}</div>
                   <div style={{fontSize:8,color:"#c4b5fd",marginTop:3,fontStyle:"italic"}}>{wp.clutch.teachingPoint}</div>
                 </div>}
+                {activeTab.concept&&<div style={{textAlign:"center",marginTop:8}}><button onClick={()=>launchQuizFromBrain(activeTab.concept)} style={{background:"rgba(34,197,94,.08)",border:"1px solid rgba(34,197,94,.15)",borderRadius:6,padding:"5px 12px",fontSize:9,color:"#22c55e",fontWeight:600,cursor:"pointer"}}>Test Yourself →</button></div>}
               </div>;
             })()}
 
@@ -17785,7 +17877,7 @@ export default function App(){
                 </div>
                 {vocabTier>=3&&<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:12}}>
                   <div>
-                    <div style={{fontSize:9,color:"#9ca3af",marginBottom:3}}>Times Through Order</div>
+                    <div style={{fontSize:9,color:"#9ca3af",marginBottom:3}}>Times Through Order <span style={{fontSize:7,color:"#6b7280"}}>(how many times this batter faced this pitcher)</span></div>
                     <div style={{display:"flex",gap:3}}>{[1,2,3].map(t=><button key={t} onClick={()=>setMTTO(t)} style={{flex:1,padding:"4px",borderRadius:6,fontSize:10,fontWeight:600,background:mTTO===t?"rgba(236,72,153,.15)":"rgba(255,255,255,.03)",border:`1px solid ${mTTO===t?"rgba(236,72,153,.3)":"rgba(255,255,255,.06)"}`,color:mTTO===t?"#ec4899":"#6b7280",cursor:"pointer"}}>{t}{t===1?"st":t===2?"nd":"rd"}</button>)}</div>
                   </div>
                   <div>
@@ -17839,15 +17931,17 @@ export default function App(){
                 {name:"Oracle Park",factor:96,type:"pitchers",city:"San Francisco"},
                 {name:"Tropicana Field",factor:97,type:"pitchers",city:"Tampa Bay"},
               ];
-              const selPark=parks.find(p=>parkType==="hitters"?p.type==="hitters":parkType==="pitchers"?p.type==="pitchers":p.type==="neutral")||parks[4];
+              // A6: Select individual parks, not by type
+              const selParkIdx=typeof parkType==="number"?parkType:4;
+              const selPark=parks[selParkIdx]||parks[4];
               const adj=selPark.type==="hitters"?pf.hitterspark:selPark.type==="pitchers"?pf.pitcherspark:null;
               return <div>
                 <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:16,color:"#84cc16",letterSpacing:1,marginBottom:10}}>PARK FACTOR EXPLORER</div>
-                {/* Park cards */}
+                {/* Park cards — A6: individual park selection */}
                 <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:4,marginBottom:12}}>
-                  {parks.map(p=><button key={p.name} onClick={()=>setParkType(p.type)} style={{background:parkType===p.type?`${p.type==="hitters"?"rgba(239,68,68,.1)":p.type==="pitchers"?"rgba(59,130,246,.1)":"rgba(245,158,11,.1)"}`:"rgba(255,255,255,.02)",border:`1px solid ${parkType===p.type?"rgba(255,255,255,.15)":"rgba(255,255,255,.04)"}`,borderRadius:8,padding:"6px 3px",cursor:"pointer",textAlign:"center"}}>
+                  {parks.map((p,idx)=><button key={p.name} onClick={()=>{setParkType(idx);snd.play('tap');trackInteraction("park");}} style={{background:selParkIdx===idx?`${p.type==="hitters"?"rgba(239,68,68,.15)":p.type==="pitchers"?"rgba(59,130,246,.15)":"rgba(245,158,11,.15)"}`:"rgba(255,255,255,.02)",border:`1.5px solid ${selParkIdx===idx?"rgba(255,255,255,.2)":"rgba(255,255,255,.04)"}`,borderRadius:8,padding:"6px 3px",cursor:"pointer",textAlign:"center",minHeight:44}}>
                     <div style={{fontSize:16,fontWeight:900,color:p.type==="hitters"?"#ef4444":p.type==="pitchers"?"#3b82f6":"#f59e0b"}}>{p.factor}</div>
-                    <div style={{fontSize:7,color:"#9ca3af",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name.split(" ")[0]}</div>
+                    <div style={{fontSize:7,color:"#9ca3af",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}</div>
                   </button>)}
                 </div>
                 {/* Selected park info */}
@@ -17987,13 +18081,17 @@ export default function App(){
                 {id:"bonds_ibb",title:"Bonds IBB With Bases Loaded",year:1998,game:"Diamondbacks vs Giants",setup:"Bottom 9th, 2 outs, bases loaded. Barry Bonds at the plate. D-backs leading 8-6.",data:"RE24 with bases loaded, 2 outs: 0.77. Walking in a run makes it 8-7. But Bonds hit .370 that year with 73 HR.",options:["Pitch to Bonds — don't put the tying run on base","Intentional walk — take your chances with the next batter","Pitch around Bonds — nothing in the zone"],correct:0,result:"Buck Showalter intentionally walked Bonds, loading the bases and forcing in a run (8-7). The next batter, Brent Mayne, struck out. Arizona won.",analysis:"The IBB actually worked! RE24 says walking in a run is almost never correct (bases loaded RE24 = 2.29). But Bonds was so dangerous that the expected damage from pitching to him exceeded the cost of one free run."},
                 {id:"chapman",title:"Chapman's Fatigue — 2016 WS Game 7",year:2016,game:"World Series Game 7",setup:"8th inning, Cubs leading 6-3. Manager Maddon brings in closer Aroldis Chapman — who threw 42 pitches the night before in Game 6.",data:"Chapman's avg fastball: 101 mph. After 20+ pitches: drops to 97 mph. Fatigue ERA increase at 90+ pitches across 2 days: +2.1.",options:["Use Chapman for 1 inning max — he's fatigued","Ride Chapman as long as possible — it's Game 7","Save Chapman for the 9th only"],correct:0,result:"Maddon left Chapman in for 2.2 innings (29 pitches). Chapman blew the save — Rajai Davis hit a game-tying HR in the 8th on a 97-mph fastball (Chapman's typical was 101). Cubs won after a rain delay in extras.",analysis:"Chapman's velocity dropped 4 mph due to fatigue. The pitch count data predicted this: after 90+ pitches across 2 days, velocity drops ~3 mph and ERA rises +2.1. Maddon over-used his closer."},
                 {id:"bunt_shift",title:"Bunting Against the Shift",year:2023,game:"Modern Era",setup:"Pre-2023: extreme shift with 3 infielders on the right side. Pull-heavy LHH at the plate with nobody on.",data:"Shift BA penalty: ~.010-.015 BA for pull hitters. Bunt BA against shift: .600+ (wide open 3B side). Shift was banned in 2023.",options:["Swing away — don't change your approach for the shift","Bunt toward the empty 3B side for a free single","Hit opposite field to beat the shift"],correct:1,result:"Smart hitters like Joey Gallo and Anthony Rizzo started bunting for hits against the shift, hitting .600+ on bunt attempts. This partly led to MLB banning the shift in 2023.",analysis:"The math was overwhelming: bunting against an extreme shift turned a .230 BA hitter into a .600 BA batter on that specific play. The shift only works if hitters refuse to adjust."},
+                {id:"buckner",title:"Buckner's Error — Ball Through the Legs",year:1986,game:"World Series Game 6",setup:"Bottom 10th, 2 outs, tie game. Mets' Mookie Wilson hits a slow grounder to 1B Bill Buckner. Red Sox are one out from winning the World Series.",data:"WP before the grounder: ~97% for Red Sox. Buckner was playing with bad ankles. Manager McNamara had been subbing Dave Stapleton for defense late in games all season — but not tonight.",options:["Keep Buckner in — he's your veteran, trust him","Sub in Stapleton for defense like you've done all season","It doesn't matter — routine play either way"],correct:1,result:"Buckner let the ball roll through his legs. The Mets scored the winning run. Boston lost Game 7 and the Series. It became the most infamous error in baseball history.",analysis:"The defensive substitution was routine — McNamara had made it in 8 of 9 postseason games. Skipping it in the biggest moment was a process failure, not a talent failure. Buckner's ankles limited his range. The data supported the sub."},
+                {id:"gibson",title:"Kirk Gibson's Walk-Off HR",year:1988,game:"World Series Game 1",setup:"Bottom 9th, 2 outs, runner on 2nd, Dodgers trailing A's 4-3. Kirk Gibson can barely walk — two injured knees. He pinch-hits against the best closer in baseball, Dennis Eckersley.",data:"Gibson's BA this postseason: .154. He could barely run. Eckersley had 45 saves and a 2.35 ERA. WP for A's: ~87%. Gibson fouled off several pitches on one good leg.",options:["Don't use Gibson — he's too injured to be effective","Send Gibson up — the moment is bigger than the injury","Walk Gibson intentionally and face the next batter"],correct:1,result:"On a 3-2 count, Gibson launched a backdoor slider into the right field bleachers. He limped around the bases pumping his fist — one of the most iconic moments in sports history. Dodgers won Game 1 and the Series in 5.",analysis:"By the numbers, Gibson was a terrible choice (.154 BA, couldn't run). But Eckersley threw a mistake pitch on 3-2 — a backdoor slider that stayed over the plate. Sometimes the unmeasurable (adrenaline, moment, will) overrides the data. This is why WP is a probability, not a certainty."},
+                {id:"jeter_flip",title:"Jeter's Flip Play",year:2001,game:"ALDS Game 3",setup:"Bottom 7th, A's trailing 1-0. Jeremy Giambi singles, runner rounds 3rd heading home. Right fielder Spencer overthrows both cutoff men — the ball is rolling toward the 1st base line, nowhere near home plate.",data:"Standard cutoff relay from RF to home requires 2 throws. Spencer's overthrew both cutoff men. The ball was 20+ feet from the plate with a runner sprinting home. Expected run: 100%.",options:["Nothing can be done — the throw missed both cutoff men","Someone needs to back up the play at the plate","The runner scores easily — no defensive play possible"],correct:1,result:"Derek Jeter, playing shortstop, sprinted across the entire diamond from his position and caught the errant throw on the first base line. He shoveled a backhanded flip to catcher Jorge Posada, who tagged Giambi at the plate. Out. Yankees won 1-0 and eventually the series.",analysis:"The Jeter Flip is the ultimate backup play. Jeter had no business being near first base — that's a first baseman's backup zone. But he read the overthrow and sprinted 90+ feet to create a relay point that shouldn't have existed. This is BACKUP_MAP in action: the best defenders are always moving to where the ball MIGHT go."},
+                {id:"bumgarner",title:"Bumgarner's Iron Man Performance",year:2014,game:"World Series Game 7",setup:"Bottom 5th, Giants leading 3-2. Madison Bumgarner enters in relief on 2 days rest after throwing a complete game shutout in Game 5 (117 pitches). He'd also pitched 7 shutout innings in Game 1.",data:"Bumgarner's pitch count across the Series: 117 (CG Game 5) + 109 (7 IP Game 1) = 226 pitches in 10 days. Velocity typically drops 3+ mph on short rest. Standard rest between starts: 4-5 days.",options:["Don't use Bumgarner — he's on 2 days rest after 117 pitches","Use Bumgarner for 1-2 innings max as a bridge","Ride Bumgarner as long as he's effective"],correct:2,result:"Bumgarner threw 5 shutout innings of relief in Game 7, finishing the game. He allowed no runs on 2 hits. His velocity barely dropped. Giants won the World Series. It may be the greatest pitching performance in postseason history.",analysis:"Every pitch count model said this was dangerous. But Bumgarner's mechanics were elite, his adrenaline was superhuman, and the alternative (the Giants' bullpen) was unreliable. Manager Bochy trusted his ace over the data — and it worked. This is the tension between pitch-count science and playoff reality."},
               ];
               const sel=selMoment!==null?moments.find(m=>m.id===selMoment):null;
               return <div>
                 <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:16,color:"#8b5cf6",letterSpacing:1,marginBottom:10}}>FAMOUS MOMENTS</div>
                 {/* League trends ticker */}
                 <div style={{background:"rgba(139,92,246,.04)",border:"1px solid rgba(139,92,246,.1)",borderRadius:8,padding:"6px 10px",marginBottom:10,fontSize:9,color:"#c4b5fd"}}>
-                  {lt.strikeoutRate.trend.split(".")[0]+"."}
+                  {lt.strikeoutRate.trend.length>120?lt.strikeoutRate.trend.slice(0,120)+"...":lt.strikeoutRate.trend}
                 </div>
                 {/* Moment cards */}
                 {!sel&&<div style={{display:"flex",flexDirection:"column",gap:6}}>
