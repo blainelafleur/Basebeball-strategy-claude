@@ -3182,6 +3182,7 @@ export default function App(){
                     {ring>0&&<div style={{position:"absolute",top:-2,right:-2,width:8,height:8,borderRadius:"50%",background:ring>=80?t.color:"rgba(255,255,255,.3)",border:`1px solid ${t.color}40`}}/>}
                   </button>;
                 })}
+              </div>
             </div>
 
             {/* RE24 EXPLORER TAB */}
