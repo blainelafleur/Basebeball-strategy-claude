@@ -3193,7 +3193,13 @@ export default function App(){
               const doAction=(name,newRunners,newOuts,delta,msg,runsScored=0)=>{snd.play('tap');trackInteraction("re24");setRePrevRE(re24);setReRunners(newRunners);setReOuts(Math.min(newOuts,2));setReLastAction({name,delta,msg});
                 if(inningMode){setInningRuns(r=>r+runsScored);setInningActions(a=>[...a,name]);}
                 if(newOuts>=3){setTimeout(()=>{
-                  if(inningMode){const finalRuns=inningRuns+runsScored;setReLastAction({name:"Inning Over!",delta:0,msg:`${isYoung?`You scored ${finalRuns} run${finalRuns!==1?"s":""}!`:`Inning complete: ${finalRuns} runs scored. MLB average: ~0.5 per half-inning.`} ${finalRuns>=3?"Amazing inning!":finalRuns>=1?"Nice work!":"Tough inning."}`});setReRunners([]);setReOuts(0);}
+                  if(inningMode){const finalRuns=inningRuns+runsScored;
+                    // E8: RE24 challenge — score 3+ runs in an inning
+                    if(finalRuns>=3&&!stats.brainExplored?.re24?.challengeDone){
+                      setStats(p=>{const be={...(p.brainExplored||{})};if(be.re24)be.re24.challengeDone=true;const challengePts=Object.values(be).filter(v=>v?.challengeDone).length*15;const tabsVisited=Object.values(be).filter(v=>v?.visited).length;const newIQ=Math.min(200,tabsVisited*5+Object.values(be).reduce((s,v)=>s+Math.min(10,(v?.interactions||0)),0)+challengePts);return{...p,brainExplored:be,brainIQ:Math.max(p.brainIQ||0,newIQ)};});
+                      snd.play('lvl');
+                    }
+                    setReLastAction({name:"Inning Over!",delta:0,msg:`${isYoung?`You scored ${finalRuns} run${finalRuns!==1?"s":""}!`:`Inning complete: ${finalRuns} runs scored. MLB average: ~0.5 per half-inning.`} ${finalRuns>=3?(stats.brainExplored?.re24?.challengeDone?"Amazing inning!":"Challenge Complete: Run Scorer! +15 IQ"):finalRuns>=1?"Nice work!":"Tough inning."}`});setReRunners([]);setReOuts(0);}
                   else{setReRunners([]);setReOuts(0);setReLastAction({name:"Inning Over",delta:-re24,msg:"3 outs! The inning is over."});}
                 },1500);}
               };
@@ -3246,7 +3252,7 @@ export default function App(){
                 {/* RE24 display */}
                 <div style={{textAlign:"center",marginBottom:12}}>
                   <div style={{fontSize:10,color:"#9ca3af",textTransform:"uppercase",letterSpacing:1,marginBottom:2}}>{isYoung?"Chance to Score":"Expected Runs"}</div>
-                  <div style={{fontSize:36,fontWeight:900,color:re24>1.5?"#22c55e":re24>0.5?"#f59e0b":"#ef4444",transition:"color .3s"}}>{isYoung?("⭐".repeat(Math.max(1,Math.round(re24/0.5)))):re24.toFixed(2)}</div>
+                  <div style={{fontSize:36,fontWeight:900,color:re24>1.5?"#22c55e":re24>0.5?"#f59e0b":"#ef4444",transition:"color .3s"}}>{isYoung?("⭐".repeat(Math.max(1,Math.round(re24/0.5)))):<NumberAnim value={re24} decimals={2}/>}</div>
                   {reLastAction&&<div style={{display:"inline-flex",alignItems:"center",gap:4,background:reLastAction.delta>=0?"rgba(34,197,94,.1)":"rgba(239,68,68,.1)",border:`1px solid ${reLastAction.delta>=0?"rgba(34,197,94,.2)":"rgba(239,68,68,.2)"}`,borderRadius:8,padding:"3px 10px",marginTop:4}}>
                     <span style={{fontSize:11,fontWeight:700,color:reLastAction.delta>=0?"#22c55e":"#ef4444"}}>{reLastAction.delta>=0?"+":""}{reLastAction.delta.toFixed(2)}</span>
                     <span style={{fontSize:10,color:"#9ca3af"}}>{reLastAction.name}</span>
@@ -3520,8 +3526,14 @@ export default function App(){
                     {seqPitches.map((p,i)=><div key={i} style={{background:"rgba(239,68,68,.1)",border:"1px solid rgba(239,68,68,.2)",borderRadius:6,padding:"3px 8px",fontSize:10,color:"#fca5a5"}}>{i+1}. {types[p]?.name?.split(" ")[0]||p}</div>)}
                     {seqPitches.length===0&&<div style={{fontSize:10,color:"#6b7280",fontStyle:"italic"}}>Tap a pitch below to start...</div>}
                   </div>
-                  {seqPitches.length>=(vocabTier>=4?5:3)&&(()=>{const sc=scoreSeq(seqPitches);return <div style={{background:"rgba(239,68,68,.06)",border:"1px solid rgba(239,68,68,.12)",borderRadius:10,padding:"8px 10px",marginBottom:6}}>
-                    <div style={{fontSize:12,fontWeight:800,color:sc.total>=10?"#22c55e":sc.total>=5?"#f59e0b":"#ef4444"}}>Score: {sc.total} points</div>
+                  {seqPitches.length>=(vocabTier>=4?5:3)&&(()=>{const sc=scoreSeq(seqPitches);
+                    // E8: Pitch Lab challenge — score 12+ points
+                    if(sc.total>=12&&!stats.brainExplored?.pitchlab?.challengeDone){
+                      setStats(p=>{const be={...(p.brainExplored||{})};if(be.pitchlab)be.pitchlab.challengeDone=true;const challengePts=Object.values(be).filter(v=>v?.challengeDone).length*15;const tabsVisited=Object.values(be).filter(v=>v?.visited).length;const newIQ=Math.min(200,tabsVisited*5+Object.values(be).reduce((s,v)=>s+Math.min(10,(v?.interactions||0)),0)+challengePts);return{...p,brainExplored:be,brainIQ:Math.max(p.brainIQ||0,newIQ)};});
+                      snd.play('lvl');
+                    }
+                    return <div style={{background:"rgba(239,68,68,.06)",border:"1px solid rgba(239,68,68,.12)",borderRadius:10,padding:"8px 10px",marginBottom:6}}>
+                    <div style={{fontSize:12,fontWeight:800,color:sc.total>=12?"#22c55e":sc.total>=5?"#f59e0b":"#ef4444"}}>Score: {sc.total} points{sc.total>=12&&!stats.brainExplored?.pitchlab?.challengeDone?" — Challenge Complete: Pitch Master! +15 IQ":""}</div>
                     {sc.details.map((d,i)=><div key={i} style={{fontSize:9,color:"#9ca3af"}}>{d.pitch}: {d.why||"neutral"} ({d.pts>=0?"+":""}{d.pts})</div>)}
                     <button onClick={()=>setSeqPitches([])} style={{marginTop:6,background:"none",border:"1px solid rgba(255,255,255,.08)",borderRadius:6,padding:"3px 10px",fontSize:9,color:"#9ca3af",cursor:"pointer"}}>Try Again</button>
                   </div>;})()}
@@ -3651,7 +3663,13 @@ export default function App(){
                 <div style={{background:"rgba(255,255,255,.02)",borderRadius:12,padding:"10px",border:"1px solid rgba(255,255,255,.06)",marginBottom:10}}>
                   <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
                     <div style={{fontSize:10,color:"#9ca3af",textTransform:"uppercase",letterSpacing:1,fontWeight:700}}>The Race</div>
-                    <button onClick={()=>{setStealRacing(false);setTimeout(()=>setStealRacing(true),50);snd.play('tap');navigator.vibrate?.(10);}} style={{background:"rgba(247,150,22,.1)",border:"1px solid rgba(247,150,22,.2)",borderRadius:6,padding:"3px 10px",fontSize:9,fontWeight:600,color:"#f97316",cursor:"pointer",minHeight:26}}>Race!</button>
+                    <button onClick={()=>{setStealRacing(false);setTimeout(()=>setStealRacing(true),50);snd.play('tap');navigator.vibrate?.(10);
+                      // E8: Steal challenge — detect bang-bang play (margin within 0.05s)
+                      if(Math.abs(margin)<=0.05&&!stats.brainExplored?.steal?.challengeDone){
+                        setStats(p=>{const be={...(p.brainExplored||{})};if(be.steal)be.steal.challengeDone=true;const challengePts=Object.values(be).filter(v=>v?.challengeDone).length*15;const tabsVisited=Object.values(be).filter(v=>v?.visited).length;const newIQ=Math.min(200,tabsVisited*5+Object.values(be).reduce((s,v)=>s+Math.min(10,(v?.interactions||0)),0)+challengePts);return{...p,brainExplored:be,brainIQ:Math.max(p.brainIQ||0,newIQ)};});
+                        setTimeout(()=>snd.play('lvl'),500);
+                      }
+                    }} style={{background:"rgba(247,150,22,.1)",border:"1px solid rgba(247,150,22,.2)",borderRadius:6,padding:"3px 10px",fontSize:9,fontWeight:600,color:"#f97316",cursor:"pointer",minHeight:26}}>Race!</button>
                   </div>
                   <svg viewBox="0 0 300 60" width="100%" height="60">
                     <text x="2" y="12" fill="#9ca3af" fontSize="7">Ball</text>
@@ -3670,7 +3688,9 @@ export default function App(){
                   </svg>
                   <div style={{textAlign:"center",marginTop:4}}>
                     <div style={{fontSize:18,fontWeight:900,color:verdictColor}}>{isYoung?(margin>0.15?"SAFE!":"OUT!"):verdict}</div>
-                    {!isYoung&&<div style={{fontSize:10,color:"#9ca3af"}}>Margin: {margin>=0?"+":""}{margin.toFixed(2)}s · Estimated success: ~{estSuccess}%</div>}
+                    {!isYoung&&<div style={{fontSize:10,color:"#9ca3af"}}>Margin: {margin>=0?"+":""}{margin.toFixed(2)}s · Estimated success: ~{estSuccess}%
+                      {Math.abs(margin)<=0.05&&<span style={{color:"#f97316",fontWeight:700}}> BANG-BANG PLAY!</span>}
+                    </div>}
                   </div>
                 </div>
                 {/* Outs selector for break-even */}
@@ -3755,6 +3775,49 @@ export default function App(){
                   <button onClick={()=>setDomainFilter(null)} style={{flexShrink:0,padding:"3px 8px",borderRadius:6,fontSize:9,fontWeight:600,background:!domainFilter?"rgba(168,85,247,.15)":"rgba(255,255,255,.02)",border:`1px solid ${!domainFilter?"rgba(168,85,247,.3)":"rgba(255,255,255,.06)"}`,color:!domainFilter?"#a855f7":"#6b7280",cursor:"pointer"}}>All</button>
                   {domains.map(d=><button key={d} onClick={()=>setDomainFilter(domainFilter===d?null:d)} style={{flexShrink:0,padding:"3px 8px",borderRadius:6,fontSize:9,fontWeight:600,background:domainFilter===d?`${domainColors[d]||"#6b7280"}15`:"rgba(255,255,255,.02)",border:`1px solid ${domainFilter===d?`${domainColors[d]||"#6b7280"}30`:"rgba(255,255,255,.06)"}`,color:domainFilter===d?domainColors[d]||"#6b7280":"#6b7280",cursor:"pointer",textTransform:"capitalize"}}>{d}</button>)}
                 </div>
+                {/* E6: Domain tree visualization when a domain is selected */}
+                {domainFilter&&!isYoung&&(()=>{
+                  const domainConcepts=ageFiltered.filter(([,c])=>c.domain===domainFilter);
+                  if(domainConcepts.length<2)return null;
+                  // Sort by depth (concepts with no prereqs first, then by prereq chain)
+                  const getDepth=(tag,visited=new Set())=>{const c=concepts[tag];if(!c||!c.prereqs||c.prereqs.length===0||visited.has(tag))return 0;visited.add(tag);return 1+Math.max(...c.prereqs.map(p=>getDepth(p,visited)));};
+                  const sorted=[...domainConcepts].sort((a,b)=>getDepth(a[0])-getDepth(b[0]));
+                  const maxDepth=Math.max(...sorted.map(([t])=>getDepth(t)));
+                  const nodeW=120,nodeH=32,gapX=20,gapY=40;
+                  const depthGroups={};sorted.forEach(([tag])=>{const d=getDepth(tag);if(!depthGroups[d])depthGroups[d]=[];depthGroups[d].push(tag);});
+                  const nodePos={};
+                  Object.entries(depthGroups).forEach(([depth,tags])=>{
+                    const d=parseInt(depth);const cols=tags.length;const totalW=cols*nodeW+(cols-1)*gapX;const startX=(Math.max(totalW,300)-totalW)/2;
+                    tags.forEach((tag,i)=>{nodePos[tag]={x:startX+i*(nodeW+gapX)+nodeW/2,y:d*(nodeH+gapY)+20};});
+                  });
+                  const svgW=Math.max(300,...Object.values(nodePos).map(p=>p.x+nodeW/2+10));
+                  const svgH=(maxDepth+1)*(nodeH+gapY)+20;
+                  const dc=domainColors[domainFilter]||"#6b7280";
+                  return <div style={{marginBottom:10,overflowX:"auto"}}>
+                    <svg viewBox={`0 0 ${svgW} ${svgH}`} width="100%" height={Math.min(svgH,250)} style={{display:"block"}}>
+                      {/* Prerequisite lines */}
+                      {sorted.map(([tag,c])=>{
+                        if(!c.prereqs)return null;
+                        const to=nodePos[tag];if(!to)return null;
+                        return c.prereqs.filter(p=>nodePos[p]).map(p=>{
+                          const from=nodePos[p];
+                          const prereqMastered=getMastery(p)==="mastered";
+                          return <line key={`${p}-${tag}`} x1={from.x} y1={from.y+nodeH/2} x2={to.x} y2={to.y-nodeH/2} stroke={prereqMastered?`${dc}60`:"rgba(255,255,255,.1)"} strokeWidth={prereqMastered?2:1} strokeDasharray={prereqMastered?"":"4,3"}/>;
+                        });
+                      })}
+                      {/* Concept nodes */}
+                      {sorted.map(([tag,c])=>{
+                        const pos=nodePos[tag];if(!pos)return null;
+                        const st=getMastery(tag);const mc=masteryColor[st];
+                        return <g key={tag} onClick={()=>setSelConcept(selConcept===tag?null:tag)} style={{cursor:"pointer"}}>
+                          <rect x={pos.x-nodeW/2} y={pos.y-nodeH/2} width={nodeW} height={nodeH} rx={8} fill={`${mc}15`} stroke={mc} strokeWidth={st==="mastered"?2:1}/>
+                          <text x={pos.x} y={pos.y-2} textAnchor="middle" fill={mc} fontSize="8" fontWeight="600">{(isYoung?CONCEPT_KIDS?.[tag]:null)||c.name.substring(0,18)}</text>
+                          <text x={pos.x} y={pos.y+9} textAnchor="middle" fill="rgba(255,255,255,.4)" fontSize="6">{masteryIcon[st]} {st}</text>
+                        </g>;
+                      })}
+                    </svg>
+                  </div>;
+                })()}
                 {/* Concept list */}
                 <div style={{display:"flex",flexDirection:"column",gap:3}}>
                   {ageFiltered.map(([tag,c])=>{
@@ -3881,7 +3944,7 @@ export default function App(){
                 {/* WP display */}
                 <div style={{textAlign:"center",marginBottom:12}}>
                   <div style={{fontSize:10,color:"#9ca3af",marginBottom:2}}>{isYoung?"How likely is your team to win?":"Win Probability"}</div>
-                  <div style={{fontSize:48,fontWeight:900,color:curWP>0.6?"#22c55e":curWP>0.4?"#f59e0b":"#ef4444"}}>{isYoung?(curWP>0.6?"😊":curWP>0.4?"😐":"😰"):Math.round(curWP*100)+"%"}</div>
+                  <div style={{fontSize:48,fontWeight:900,color:curWP>0.6?"#22c55e":curWP>0.4?"#f59e0b":"#ef4444"}}>{isYoung?(curWP>0.6?"😊":curWP>0.4?"😐":"😰"):<NumberAnim value={Math.round(curWP*100)} decimals={0} suffix="%"/>}</div>
                   {!isYoung&&<div style={{fontSize:10,color:"#9ca3af"}}>Leverage Index: {li.toFixed(1)}x — {li>=1.5?"Every decision matters "+li.toFixed(1)+"x more!":li>=1.0?"Normal pressure":"Low-impact situation"}</div>}
                 </div>
                 {/* Inning selector */}
@@ -3985,7 +4048,7 @@ export default function App(){
                 {/* Matchup card */}
                 <div style={{background:`${dangerColor}08`,border:`1.5px solid ${dangerColor}25`,borderRadius:14,padding:"14px",marginBottom:12,textAlign:"center"}}>
                   <div style={{fontSize:10,color:"#9ca3af",marginBottom:2}}>Projected Batting Average</div>
-                  <div style={{fontSize:40,fontWeight:900,color:dangerColor}}>.{Math.round(md.adjustedBA*1000)}</div>
+                  <div style={{fontSize:40,fontWeight:900,color:dangerColor}}>.<NumberAnim value={Math.round(md.adjustedBA*1000)} decimals={0}/></div>
                   <div style={{fontSize:11,fontWeight:600,color:dangerColor,marginBottom:6}}>{md.platoonEdge}</div>
                   <div style={{fontSize:10,color:"#d1d5db",lineHeight:1.5}}>{md.recommendation}</div>
                 </div>

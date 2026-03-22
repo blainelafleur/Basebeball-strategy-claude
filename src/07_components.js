@@ -1,3 +1,26 @@
+// E2: Animated number component — smoothly counts between values
+function NumberAnim({value,decimals=2,duration=400,style={},prefix="",suffix=""}){
+  const ref=useRef(null);
+  const prevVal=useRef(value);
+  const animRef=useRef(null);
+  useEffect(()=>{
+    const from=prevVal.current;const to=value;prevVal.current=value;
+    if(from===to||!ref.current)return;
+    const start=performance.now();
+    const animate=(now)=>{
+      const t=Math.min(1,(now-start)/duration);
+      const eased=1-Math.pow(1-t,3); // ease-out cubic
+      const cur=from+(to-from)*eased;
+      if(ref.current)ref.current.textContent=prefix+(typeof decimals==='number'?cur.toFixed(decimals):Math.round(cur))+suffix;
+      if(t<1)animRef.current=requestAnimationFrame(animate);
+    };
+    if(animRef.current)cancelAnimationFrame(animRef.current);
+    animRef.current=requestAnimationFrame(animate);
+    return()=>{if(animRef.current)cancelAnimationFrame(animRef.current);};
+  },[value,decimals,duration,prefix,suffix]);
+  return React.createElement("span",{ref,style},prefix+(typeof decimals==='number'?value.toFixed(decimals):Math.round(value))+suffix);
+}
+
 // Sound
 function useSound() {
   const ctx = useRef(null);
