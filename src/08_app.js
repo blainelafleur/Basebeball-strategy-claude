@@ -3528,12 +3528,13 @@ export default function App(){
                   </div>
                   {seqPitches.length>=(vocabTier>=4?5:3)&&(()=>{const sc=scoreSeq(seqPitches);
                     // E8: Pitch Lab challenge — score 12+ points
-                    if(sc.total>=12&&!stats.brainExplored?.pitchlab?.challengeDone){
+                    const challengeThreshold=vocabTier>=4?12:8;
+                    if(sc.total>=challengeThreshold&&!stats.brainExplored?.pitchlab?.challengeDone){
                       setStats(p=>{const be={...(p.brainExplored||{})};if(be.pitchlab)be.pitchlab.challengeDone=true;const challengePts=Object.values(be).filter(v=>v?.challengeDone).length*15;const tabsVisited=Object.values(be).filter(v=>v?.visited).length;const newIQ=Math.min(200,tabsVisited*5+Object.values(be).reduce((s,v)=>s+Math.min(10,(v?.interactions||0)),0)+challengePts);return{...p,brainExplored:be,brainIQ:Math.max(p.brainIQ||0,newIQ)};});
                       snd.play('lvl');
                     }
                     return <div style={{background:"rgba(239,68,68,.06)",border:"1px solid rgba(239,68,68,.12)",borderRadius:10,padding:"8px 10px",marginBottom:6}}>
-                    <div style={{fontSize:12,fontWeight:800,color:sc.total>=12?"#22c55e":sc.total>=5?"#f59e0b":"#ef4444"}}>Score: {sc.total} points{sc.total>=12&&!stats.brainExplored?.pitchlab?.challengeDone?" — Challenge Complete: Pitch Master! +15 IQ":""}</div>
+                    <div style={{fontSize:12,fontWeight:800,color:sc.total>=challengeThreshold?"#22c55e":sc.total>=5?"#f59e0b":"#ef4444"}}>Score: {sc.total} points{sc.total>=challengeThreshold&&!stats.brainExplored?.pitchlab?.challengeDone?` — Challenge Complete: Pitch Master! +15 IQ`:""}</div>
                     {sc.details.map((d,i)=><div key={i} style={{fontSize:9,color:"#9ca3af"}}>{d.pitch}: {d.why||"neutral"} ({d.pts>=0?"+":""}{d.pts})</div>)}
                     <button onClick={()=>setSeqPitches([])} style={{marginTop:6,background:"none",border:"1px solid rgba(255,255,255,.08)",borderRadius:6,padding:"3px 10px",fontSize:9,color:"#9ca3af",cursor:"pointer"}}>Try Again</button>
                   </div>;})()}
