@@ -17186,6 +17186,8 @@ export default function App(){
               if(state.preset)setDefPreset(state.preset);
             }
           };
+          // Cross-tab link component
+          const CrossLink=({text,tab,state,color="#f97316"})=><button onClick={()=>navigateBrain(tab,state)} style={{background:"none",border:"none",color,fontSize:9,cursor:"pointer",textDecoration:"underline",padding:"2px 0"}}>{text} →</button>;
           // B4: Find scenario for "Test Yourself" buttons
           const findScenarioForConcept=(conceptTag)=>{
             const allScens=Object.entries(SCENARIOS).flatMap(([pos,arr])=>arr.map(s=>({...s,_pos:pos})));
@@ -17526,6 +17528,10 @@ export default function App(){
                 {/* Quick teach */}
                 {!selCount&&<div style={{textAlign:"center",padding:"8px 12px",background:"rgba(59,130,246,.04)",borderRadius:10,border:"1px solid rgba(59,130,246,.08)"}}>
                   <div style={{fontSize:10,color:"#93c5fd"}}>{isYoung?"Tap a count to see who has the advantage!":"Tap any count to see detailed stats, progression arrows, and strategic advice."}</div>
+                </div>}
+                {selCount&&<div style={{display:"flex",gap:6,justifyContent:"center",marginTop:8,flexWrap:"wrap"}}>
+                  <CrossLink text="What pitch works here?" tab="pitchlab" color="#8b5cf6"/>
+                  {['0-2','1-2'].includes(selCount)&&<CrossLink text="See putaway pitches" tab="pitchlab" color="#ec4899"/>}
                 </div>}
               </div>;
             })()}
@@ -17999,7 +18005,11 @@ export default function App(){
                     </div>)}
                   </div>}
                 </div>
-                {activeTab.concept&&<div style={{textAlign:"center",marginTop:8}}><button onClick={()=>launchQuizFromBrain(activeTab.concept)} style={{background:"rgba(34,197,94,.08)",border:"1px solid rgba(34,197,94,.15)",borderRadius:6,padding:"5px 12px",fontSize:9,color:"#22c55e",fontWeight:600,cursor:"pointer"}}>Test Yourself →</button></div>}
+                <div style={{display:"flex",justifyContent:"center",gap:8,marginTop:8,flexWrap:"wrap"}}>
+                  <CrossLink text="How fatigue changes matchups" tab="matchup" color="#ec4899"/>
+                  <CrossLink text="When to pull the pitcher" tab="winprob" color="#6366f1"/>
+                  {activeTab.concept&&<button onClick={()=>launchQuizFromBrain(activeTab.concept)} style={{background:"rgba(34,197,94,.08)",border:"1px solid rgba(34,197,94,.15)",borderRadius:6,padding:"5px 12px",fontSize:9,color:"#22c55e",fontWeight:600,cursor:"pointer"}}>Test Yourself →</button>}
+                </div>
               </div>;
             })()}
 
@@ -18088,7 +18098,11 @@ export default function App(){
                   <div style={{fontSize:9,color:"#d1d5db",lineHeight:1.5}}>{wp.clutch.explanation}</div>
                   <div style={{fontSize:8,color:"#c4b5fd",marginTop:3,fontStyle:"italic"}}>{wp.clutch.teachingPoint}</div>
                 </div>}
-                {activeTab.concept&&<div style={{textAlign:"center",marginTop:8}}><button onClick={()=>launchQuizFromBrain(activeTab.concept)} style={{background:"rgba(34,197,94,.08)",border:"1px solid rgba(34,197,94,.15)",borderRadius:6,padding:"5px 12px",fontSize:9,color:"#22c55e",fontWeight:600,cursor:"pointer"}}>Test Yourself →</button></div>}
+                <div style={{display:"flex",justifyContent:"center",gap:8,marginTop:8,flexWrap:"wrap"}}>
+                  <CrossLink text="See the RE24 behind this" tab="re24" color="#22c55e"/>
+                  <CrossLink text="Defensive positioning" tab="defense" color="#f59e0b"/>
+                  {activeTab.concept&&<button onClick={()=>launchQuizFromBrain(activeTab.concept)} style={{background:"rgba(34,197,94,.08)",border:"1px solid rgba(34,197,94,.15)",borderRadius:6,padding:"5px 12px",fontSize:9,color:"#22c55e",fontWeight:600,cursor:"pointer"}}>Test Yourself →</button>}
+                </div>
               </div>;
             })()}
 
@@ -18149,6 +18163,10 @@ export default function App(){
                   <div style={{fontSize:9,color:"#ec4899",fontWeight:700}}>Switch Hitter Advantage</div>
                   <div style={{fontSize:9,color:"#d1d5db",marginTop:2}}>Switch hitters always bat opposite-hand, neutralizing the platoon advantage. BA: .{Math.round(mm.platoon.switchHitter.ba*1000)} regardless of pitcher hand.</div>
                 </div>}
+                <div style={{display:"flex",justifyContent:"center",gap:8,marginTop:8,flexWrap:"wrap"}}>
+                  <CrossLink text="Fatigue compounds matchups" tab="pitchcount" color="#f97316"/>
+                  <CrossLink text="How this affects win probability" tab="winprob" color="#6366f1"/>
+                </div>
               </div>;
             })()}
 
@@ -18222,6 +18240,10 @@ export default function App(){
                     <span style={{color:"#3b82f6"}}>Breaking ball: {Math.round(pe.temperature.altitude.coors.breakingBallPenalty*100)}%</span>
                   </div>
                 </div>}
+                <div style={{display:"flex",justifyContent:"center",gap:8,marginTop:8,flexWrap:"wrap"}}>
+                  <CrossLink text="Park affects pitch movement" tab="pitchlab" color="#8b5cf6"/>
+                  <CrossLink text="Famous park moments" tab="history" color="#f59e0b"/>
+                </div>
               </div>;
             })()}
 
@@ -18305,6 +18327,10 @@ export default function App(){
                 </div>}
                 {/* OF arm value */}
                 {vocabTier>=3&&<div style={{fontSize:9,color:"#9ca3af"}}>{dp.outfieldArm.rfArmPremium}</div>}
+                <div style={{display:"flex",justifyContent:"center",gap:8,marginTop:8,flexWrap:"wrap"}}>
+                  <CrossLink text="How depth affects win %" tab="winprob" color="#6366f1"/>
+                  <CrossLink text="Park factors change positioning" tab="park" color="#14b8a6"/>
+                </div>
               </div>;
             })()}
 
@@ -18382,6 +18408,10 @@ export default function App(){
                   </div>
                   <div style={{fontSize:8,color:"#9ca3af",marginTop:4}}>{lt.babip.teachingPoint}</div>
                 </div>}
+                <div style={{display:"flex",justifyContent:"center",gap:8,marginTop:8,flexWrap:"wrap"}}>
+                  <CrossLink text="Explore the RE24 data" tab="re24" color="#22c55e"/>
+                  <CrossLink text="Win probability context" tab="winprob" color="#6366f1"/>
+                </div>
               </div>;
             })()}
           </div>;
