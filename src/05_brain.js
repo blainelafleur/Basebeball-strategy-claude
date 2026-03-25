@@ -1152,7 +1152,7 @@ function enrichFeedback(scenario, choiceIdx, situation, playerAge, masteryData, 
   // Infield-in tradeoff insight
   if (scenario?.concept && /infield.*in/i.test(scenario.concept)) {
     const ii = BRAIN.stats.infieldInRunImpact;
-    insights.push({icon:"🧤", text:`Infield in: saves ~${ii.runsPreventedPerGame.toFixed(1)} runs/game but costs ~${Math.abs(ii.runsCostPerGame).toFixed(1)} runs from hits through. Net: ${ii.netCostPerGame} runs/game. ${ii.justifiedWhen}.`, deepLink:{tab:"defense"}});
+    insights.push({icon:"🧤", text:`Infield in: saves ~${ii.runsPreventedPerGame.toFixed(1)} runs/game but costs ~${Math.abs(ii.runsCostPerGame).toFixed(1)} runs from hits through. Net: ${ii.netCostPerGame} runs/game. ${ii.justifiedWhen}.`, deepLink:{tab:"defense",minAge:9}});
   }
   return insights.slice(0, 3);
 }

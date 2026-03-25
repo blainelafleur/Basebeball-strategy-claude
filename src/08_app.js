@@ -3254,7 +3254,7 @@ export default function App(){
                   <div style={{fontSize:10,color:"#9ca3af",textTransform:"uppercase",letterSpacing:1,marginBottom:2}}>{isYoung?"Chance to Score":"Expected Runs"}</div>
                   <div style={{fontSize:36,fontWeight:900,color:re24>1.5?"#22c55e":re24>0.5?"#f59e0b":"#ef4444",transition:"color .3s"}}>{isYoung?("⭐".repeat(Math.max(1,Math.round(re24/0.5)))):<NumberAnim value={re24} decimals={2}/>}</div>
                   {reLastAction&&<div style={{display:"inline-flex",alignItems:"center",gap:4,background:reLastAction.delta>=0?"rgba(34,197,94,.1)":"rgba(239,68,68,.1)",border:`1px solid ${reLastAction.delta>=0?"rgba(34,197,94,.2)":"rgba(239,68,68,.2)"}`,borderRadius:8,padding:"3px 10px",marginTop:4}}>
-                    <span style={{fontSize:11,fontWeight:700,color:reLastAction.delta>=0?"#22c55e":"#ef4444"}}>{reLastAction.delta>=0?"+":""}{reLastAction.delta.toFixed(2)}</span>
+                    <span style={{fontSize:11,fontWeight:700,color:reLastAction.delta>=0?"#22c55e":"#ef4444"}}>{reLastAction.delta>=0?"▲ +":"▼ "}{reLastAction.delta.toFixed(2)}</span>
                     <span style={{fontSize:10,color:"#9ca3af"}}>{reLastAction.name}</span>
                   </div>}
                   {reLastAction?.msg&&<div style={{fontSize:10,color:"#d1d5db",marginTop:4,maxWidth:280,margin:"4px auto 0"}}>{reLastAction.msg}</div>}
@@ -3266,6 +3266,13 @@ export default function App(){
                     <span style={{color:"#9ca3af"}}> scores: </span>
                     <span style={{color:prob>0.6?"#22c55e":prob>0.3?"#f59e0b":"#ef4444",fontWeight:700}}>{Math.round(prob*100)}%</span>
                   </div>;})}
+                </div>}
+                {/* Teaching notes: 2-out running, RE24 context */}
+                {reOuts===2&&reRunners.length>0&&<div style={{textAlign:"center",fontSize:10,color:"#f59e0b",marginBottom:6,padding:"4px 10px",background:"rgba(245,158,11,.06)",borderRadius:6,border:"1px solid rgba(245,158,11,.1)"}}>
+                  {isYoung?"With 2 outs, runners GO on contact! Always run!":"With 2 outs, runners go on contact — 100% of the time. No hesitation."}
+                </div>}
+                {!reLastAction&&reRunners.length>0&&!isYoung&&<div style={{textAlign:"center",fontSize:9,color:"#6b7280",marginBottom:4}}>
+                  {re24<0.3?"Low run expectancy — the inning is winding down.":re24<0.7?"Below average scoring position.":re24<1.2?"Solid scoring opportunity.":re24<1.8?"Strong position — expect runs.":"Premium run environment — big inning potential!"}
                 </div>}
                 {/* What If buttons */}
                 <div style={{display:"flex",flexWrap:"wrap",gap:4,justifyContent:"center",marginBottom:12}}>
@@ -4470,7 +4477,7 @@ export default function App(){
           </div>
 
           {/* === GAME FILM MODE: Replay the correct play on the SVG field === */}
-          {sc&&sc.anim&&<div style={{marginBottom:10}}>
+          {sc&&sc.anim&&!(typeof window!=='undefined'&&window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches)&&<div style={{marginBottom:10}}>
             {!showReplay?<button onClick={()=>{setShowReplay(true);setReplayKey(k=>k+1);snd.play('tap');
               // Replay sound effects timed to slow-mode animation phases (2.5x + 1s pre-delay)
               const a=sc.anim;if(a){
