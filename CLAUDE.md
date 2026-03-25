@@ -66,16 +66,17 @@ Lines 8800-12200:   Main App() component (game state, UI, all screens)
 - **Primary**: Claude Opus 4 (`claude-opus-4-20250514`) via multi-agent pipeline in Cloudflare Worker
 - **Fallback**: xAI Grok (`grok-4`) via Worker proxy when Claude fails or for batch jobs
 - Worker URL: `AI_PROXY_URL` constant in index.jsx (worker timeout: 55s)
-- AI_BUDGET: 90s total for AI generation (setup network calls excluded from clock)
-- **Multi-agent pipeline (primary)**: Planner→Generator→Critic→Rewriter via Claude Opus with Vectorize RAG, 21-item checklist + 5-dimension rubric, 9.5/10 pass threshold
-- **Agent pipeline (fallback)**: Plan→Generate→Grade via xAI Grok with `generateWithAgentPipeline()`, 25 OPTION_ARCHETYPES, QUALITY_FIREWALL grading (8 Tier 1 + 19 Tier 2 + 5 Tier 3 = 32 checks, 12 CONSISTENCY_RULES)
+- AI_BUDGET: 120s total for AI generation (setup network calls excluded from clock)
+- **Multi-agent pipeline (primary)**: Planner→Generator→Critic→Rewriter via Claude Opus with Vectorize RAG, 31-item checklist + 6-dimension rubric, 9.5/10 pass threshold
+- **Agent pipeline (fallback)**: Plan→Generate→Grade via xAI Grok with `generateWithAgentPipeline()`, 25 OPTION_ARCHETYPES, QUALITY_FIREWALL grading (11 Tier 1 + 19 Tier 2 + 5 Tier 3 = 35 checks, 15 CONSISTENCY_RULES)
 - **Standard pipeline (fallback)**: Direct xAI call with full prompt (position rules, brain data, knowledge maps, few-shot example)
 - **Pre-cache**: Unified AI scenario cache with concept-aware prefetch (`skipAgent=true` for speed), local pool fallback
 - **Self-learning**: Semantic feedback patterns + dynamic prompt patches from D1, real game feel injection, coaching voice guidance, decision windows
 - **A/B testing**: 9 active configs (ai_temperature, ai_system_prompt, bible_injection, brain_data_level, few_shot_count, agent_pipeline, coach_persona, session_planner, explanation_depth)
 - 21 knowledge maps conditionally injected into AI prompts by position relevance
 - 46 concepts in BRAIN.concepts with prerequisite graph, age minimums, difficulty levels
-- ROLE_VIOLATIONS regex validation, CONSISTENCY_RULES cross-checks (12 rules)
+- ROLE_VIOLATIONS regex validation (12 positions), CONSISTENCY_RULES cross-checks (15 rules)
+- Score convention: score=[HOME, AWAY]. score[0]=HOME, score[1]=AWAY. Bot=HOME bats, Top=AWAY bats
 - Worker secrets: `ANTHROPIC_API_KEY` (Claude Opus), `XAI_API_KEY` (Grok fallback), `ADMIN_KEY`
 - Triggers: "AI Coach's Challenge" button (Pro only) or when scenarios exhausted
 - Purple "AI" badge shown during AI-generated scenarios
@@ -174,3 +175,59 @@ After ANY significant code change, update the relevant documentation. These are 
 - Keep code compact but readable — this is a single-file app, space matters
 - Prefer inline styles in React over external CSS (artifact compatibility)
 - Use descriptive variable names for game logic, short names for SVG coordinates
+
+
+## Obsidian Integration - Second Brain Connection
+
+This project is connected to Blaine's Obsidian vault ("My Second Brain"). The vault serves as persistent memory across ALL Claude sessions - not just this project.
+
+### Vault Location
+```
+/Users/blainelafleur/Library/Mobile Documents/iCloud~md~obsidian/Documents/My Second Brain
+```
+
+### On Session Start - READ THESE FILES
+Before starting any significant work, read these files from the Obsidian vault for context:
+
+1. **Project context:** `20 Projects/Baseball App - Claude Code Context.md` - Big picture state, priorities, owner preferences, session history
+2. **Project note:** `20 Projects/Baseball Strategy Master App.md` - Architecture decisions log, dev session tracker
+3. **Recent dev logs:** Any files in `20 Projects/` with names starting with `BSM Dev Log` - What happened in recent sessions
+
+```bash
+# Quick context load for session startup
+VAULT="/Users/blainelafleur/Library/Mobile Documents/iCloud~md~obsidian/Documents/My Second Brain"
+cat "$VAULT/20 Projects/Baseball App - Claude Code Context.md"
+ls -t "$VAULT/20 Projects/BSM Dev Log"* 2>/dev/null | head -3 | while read f; do cat "$f"; done
+```
+
+### On Session End - WRITE A DEV LOG
+After every significant coding session, create a dev log in the Obsidian vault. Use this format:
+
+**Filename:** `20 Projects/BSM Dev Log YYYY-MM-DD.md`
+
+**Required frontmatter:**
+```yaml
+type: dev-log
+created: YYYY-MM-DD
+modified: YYYY-MM-DD
+tags: [dev-log, claude-code, baseball-dev-log]
+project: "[[Baseball Strategy Master App]]"
+date: YYYY-MM-DD
+summary: One-line summary of what this session accomplished
+```
+
+**Required sections:**
+- What I Built / Changed
+- Key Decisions Made (table: Decision | Rationale)
+- What Broke / Bugs Found
+- What I Learned
+- Next Session: Pick Up Here
+
+### Also Update the Context File
+After writing the dev log, update the "Current State and Priorities" section in `20 Projects/Baseball App - Claude Code Context.md` with:
+- Last session date and summary
+- Any priority changes
+- New known issues discovered
+
+### Why This Matters
+Every Claude Code session currently starts cold. The Obsidian vault eliminates this. Dev logs compound: after 10 sessions, the vault has a complete history of every decision, every bug, every priority shift. Future sessions start warm.

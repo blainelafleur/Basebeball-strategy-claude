@@ -147,6 +147,225 @@ Timed annotations like a coach talking during game film: "Watch the runner's jum
 
 ---
 
+## Final 5 Build Notes (TPA)
+
+**Date:** 2026-03-24 | **Reviewer:** Thought Partner Agent | **Scope:** Achievement triggers, IQ title ladder, haptic feedback, pitch tunnel visualization, Game Film speed control
+
+---
+
+### 1. Achievement Trigger Logic
+
+Five Brain achievements to implement. All require understanding, not just clicking.
+
+| # | Achievement | Trigger Condition | Where to Check | Implementation Notes |
+|---|---|---|---|---|
+| 1 | **"Aha Moment"** | Player follows a deep link from a wrong-answer explanation into Brain, then gets the SAME concept correct on their next quiz attempt. | In the outcome handler (around line 4494 of `src/08_app.js`), after `od` is computed: check if `stats.lastBrainDeepLinkConcept` matches `sc.conceptTag` AND `od.isOpt`. Clear the field after awarding. | Requires adding `lastBrainDeepLinkConcept` to state. Set it in the deep-link onClick handler when navigating from outcome screen to Brain. Reset on any non-matching quiz play. |
+| 2 | **"The Numbers Don't Lie"** | Use 5 deep links from quiz explanations into Brain tabs (cumulative, not per-session). | In the deep-link onClick handler (outcome screen insights, ~line 4630). Increment `stats.brainDeepLinkCount`. Check `>= 5`. | Track count in `brainExplored.deepLinkCount`. Persists across sessions via localStorage. |
+| 3 | **"Pitch Caller"** | Complete 10 sequencing rounds in Pitch Lab (cumulative). A "round" = building a full sequence (3 or 5 pitches) and seeing the score. | In the Pitch Lab sequencing score display block (~line 3542), where `seqPitches.length >= target`. Increment `stats.brainExplored.pitchlab.seqRounds`. Check `>= 10`. | Already have the exact render point -- it's where `scoreSeq(seqPitches)` runs. Just add a counter increment alongside the existing `challengeDone` logic. |
+| 4 | **"What If?"** | Tap 20 What-If action buttons in RE24 Explorer (cumulative). Actions: Single, Walk, K, Bunt, Steal, Sac Fly, Double Play. | In `doAction()` function (~line 3195). Increment `stats.brainExplored.re24.whatIfCount`. Check `>= 20`. | `doAction` already calls `trackInteraction("re24")`. Add the counter there. 20 taps means genuine experimentation across multiple game states. |
+| 5 | **"The 7th Inning Switch"** | In Win Probability tab, view WP for the same score differential in BOTH an early inning (1-6) AND a late inning (7-9). Must see the values diverge. | In the Win Probability tab's inning/diff change handler. Track `{ earlyViewed: Set<diff>, lateViewed: Set<diff> }`. When any diff appears in both sets, trigger. | Requires tracking viewed combinations in `brainExplored.winprob`. The "aha" is seeing that the same 2-run lead means different things in inning 2 vs inning 8. |
+
+**Achievement check pattern (shared):**
+```js
+// Add to ACHS array in src/03_config.js:
+{id:"brain_aha",n:"Aha Moment",d:"Wrong answer -> Brain -> got it right!",e:"💡",ck:s=>(s.brainExplored?.deepLinkAha||0)>=1},
+{id:"brain_numbers",n:"The Numbers Don't Lie",d:"Explored Brain data 5 times from quiz",e:"📊",ck:s=>(s.brainExplored?.deepLinkCount||0)>=5},
+{id:"brain_pitcher",n:"Pitch Caller",d:"Built 10 pitch sequences",e:"⚾",ck:s=>(s.brainExplored?.pitchlab?.seqRounds||0)>=10},
+{id:"brain_whatif",n:"What If?",d:"20 What-If experiments in RE24",e:"🔬",ck:s=>(s.brainExplored?.re24?.whatIfCount||0)>=20},
+{id:"brain_switch",n:"The 7th Inning Switch",d:"Saw win probability shift in late innings",e:"📈",ck:s=>s.brainExplored?.winprob?.switchSeen},
+```
+
+Also add matching entries to `achProgress()` for progress bar rendering.
+
+---
+
+### 2. IQ Title Ladder
+
+**Current state (line 3138):** 6 titles, raw number displayed prominently, progress bar absent.
+
+**Recommended change:** Hide raw number, show title + progress bar to next title. Per Risk 1 analysis in Section 6 of the Gamification TPA -- raw numbers create "low number = dumb" associations.
+
+| IQ Range | Title | Color | Progress Bar "Next" Target |
+|---|---|---|---|
+| 0-29 | Rookie Scout | #9ca3af (gray) | 30 |
+| 30-59 | Dugout Analyst | #f59e0b (amber) | 60 |
+| 60-89 | Front Office Prospect | #3b82f6 (blue) | 90 |
+| 90-119 | Analytics All-Star | #06b6d4 (cyan) | 120 |
+| 120-149 | Sabermetrics Expert | #22c55e (green) | 150 |
+| 150-179 | Baseball Genius | #a855f7 (purple) | 180 |
+| 180-200 | Hall of Fame Brain | #f59e0b (gold) | MAX |
+
+**UI spec (replace lines 3170-3173):**
+```jsx
+<div style={{textAlign:"center",flexShrink:0,minWidth:90}}>
+  <div style={{fontSize:11,fontWeight:900,color:iqColor}}>{iqTitle}</div>
+  <div style={{width:80,height:4,background:"rgba(255,255,255,.08)",borderRadius:2,marginTop:3,overflow:"hidden"}}>
+    <div style={{height:"100%",width:`${iqProgressPct}%`,background:iqColor,borderRadius:2,transition:"width .5s ease"}}/>
+  </div>
+  <div style={{fontSize:7,color:"rgba(255,255,255,.3)",marginTop:2}}>{iqTitle==="Hall of Fame Brain"?"MAX":`${brainIQ}/${iqNextThreshold}`}</div>
+</div>
+```
+
+**Compute `iqProgressPct` and `iqNextThreshold`:**
+```js
+const IQ_TIERS=[{min:0,t:"Rookie Scout",c:"#9ca3af"},{min:30,t:"Dugout Analyst",c:"#f59e0b"},
+  {min:60,t:"Front Office Prospect",c:"#3b82f6"},{min:90,t:"Analytics All-Star",c:"#06b6d4"},
+  {min:120,t:"Sabermetrics Expert",c:"#22c55e"},{min:150,t:"Baseball Genius",c:"#a855f7"},
+  {min:180,t:"Hall of Fame Brain",c:"#f59e0b"}];
+const iqTier=IQ_TIERS.slice().reverse().find(t=>brainIQ>=t.min)||IQ_TIERS[0];
+const iqTitle=iqTier.t; const iqColor=iqTier.c;
+const iqNextTier=IQ_TIERS.find(t=>t.min>brainIQ);
+const iqNextThreshold=iqNextTier?iqNextTier.min:200;
+const iqProgressPct=iqNextTier?Math.round((brainIQ-iqTier.min)/(iqNextThreshold-iqTier.min)*100):100;
+```
+
+This replaces the existing ternary chain at line 3138-3139 with a data-driven lookup. Adds "Hall of Fame Brain" (180+) as a new top tier.
+
+---
+
+### 3. Haptic Feedback Patterns
+
+**Current state:** Only ONE `navigator.vibrate?.(10)` call exists -- the Steal Calculator "Race!" button (line 3680). All other Brain interactions are silent.
+
+**Pattern spec:**
+
+| Interaction | Duration (ms) | Where to Add |
+|---|---|---|
+| Base toggle (RE24 diamond) | 10 | `onClick` handler in base `<g>` elements (~line 3229) |
+| What-If button tap (Single, Walk, K, etc.) | 10 | Inside `doAction()` (~line 3195), already has `snd.play('tap')` |
+| Count cell tap (Count Dashboard) | 10 | Count grid `onClick` handlers |
+| Pitch card tap (Pitch Lab) | 10 | Pitch card `onClick` (~line 3564) |
+| Tab switch | 10 | Tab strip `onClick` (~line 3181) |
+| Slider change (Steal Calculator) | 10 | Slider `onChange` handlers (~line 3665), debounce to once per 100ms |
+| "Throw!" button (Pitch Lab) | 20 | Throw button `onClick` (~line 3530) |
+| "Race!" button (Steal Calculator) | 10 | Already exists (line 3680) |
+| Challenge complete (any tab) | 50 | After `snd.play('lvl')` calls (~lines 3202, 3547, 3684) |
+| Achievement earned | 50 | In achievement celebration handler (wherever `setAchCelebration` is called) |
+| IQ title level-up | [50, 30, 50] | In `trackBrainVisit` or `trackInteraction` when `iqTitle` changes -- use pattern vibration |
+
+**Implementation helper:**
+```js
+const haptic=(ms)=>{try{navigator.vibrate?.(ms)}catch(e){}};
+// Usage: haptic(10) for taps, haptic(20) for actions, haptic(50) for celebrations
+// Pattern: haptic([50,30,50]) for IQ level-up (vibrate-pause-vibrate)
+```
+
+Add `haptic(10)` alongside every existing `snd.play('tap')` call within the Brain section. Add `haptic(50)` after every `snd.play('lvl')` call. The `try/catch` guards against environments where vibrate throws (some desktop browsers).
+
+---
+
+### 4. Pitch Tunnel Visualization in Pitch Lab
+
+**Current state (lines 3507-3533):** Single pitch trajectory SVG. ViewBox 300x90. Pitcher silhouette at x=15, plate at x=275. Each pitch type has a unique cubic Bezier path. Animated ball follows path on "Throw!" button.
+
+**Tunnel zone spec:**
+
+The "tunnel point" is where all pitches look identical to the batter -- roughly the first 1/3 of the pitch's flight. After the tunnel point, pitches diverge. This is the core teaching concept.
+
+**SVG additions (inside the existing `<svg viewBox="0 0 300 90">`):**
+
+```jsx
+{/* Tunnel zone: semi-transparent rectangle from pitcher to tunnel point */}
+<rect x="20" y="25" width="80" height="40" rx="4"
+  fill="rgba(168,85,247,.08)" stroke="rgba(168,85,247,.15)" strokeWidth=".5"/>
+{/* Tunnel point vertical line */}
+<line x1="100" y1="20" x2="100" y2="75" stroke="rgba(168,85,247,.25)"
+  strokeWidth="1" strokeDasharray="3,2"/>
+{/* Label (ages 11+ only, vocabTier >= 3) */}
+{vocabTier>=3&&<text x="100" y="16" fill="rgba(168,85,247,.5)"
+  fontSize="6" textAnchor="middle">Tunnel Point</text>}
+{/* Ghost paths: show 2 comparison pitches at low opacity when a pitch is selected */}
+{selPitch&&["fourSeam","changeup"].filter(p=>p!==selPitch).slice(0,2).map((p,i)=>
+  <path key={i} d={paths[p]} fill="none" stroke="rgba(255,255,255,.06)"
+    strokeWidth=".5" strokeDasharray="2,4"/>
+)}
+```
+
+**Why x=100 for the tunnel point:** The paths start at x=20 (pitcher) and end at x=280 (plate). The first ~80px of every path is nearly identical (all pitches travel roughly the same line out of the hand). By x=100, curves start to diverge (curveball drops, slider breaks, changeup slows). This maps to the real-world tunnel distance of ~20 feet out of the pitcher's release point (~1/3 of 60.5 feet).
+
+**Additional teaching element for ages 11+:**
+```jsx
+{vocabTier>=3&&selPitch&&<div style={{fontSize:8,color:"#c4b5fd",textAlign:"center",marginTop:2}}>
+  All pitches look the same in the purple zone. Great pitchers make them diverge AFTER the tunnel point.
+</div>}
+```
+
+**Ghost paths rationale:** Show fourSeam and changeup as faint comparison lines (they're the most common "tunneling pair"). When the player selects slider, they see the fourSeam ghost overlapping through the tunnel zone then diverging. This is the visual "aha" -- the two pitches are identical for 20 feet.
+
+---
+
+### 5. Speed Control Slider for Game Film Replay
+
+**Current state:** `slow={true}` prop triggers `useLayoutEffect` in Field component (lines 112-134 of `src/07_components.js`). It applies per-phase durFactor multipliers: setup phases get 2.0x, key moments get 3.5x, resolution gets 2.5x. Short pulses get 1.8x. There is a 1.0s `preDelay`. Tap-to-pause exists via `svg.pauseAnimations()`.
+
+**Speed slider spec:**
+
+Add a `replaySpeed` state (default 1.0) and a range input to the Game Film controls bar (line 4537).
+
+| Slider Position | Label | speedMultiplier | Effect on durFactor |
+|---|---|---|---|
+| Left | 0.5x | 2.0 | All existing durFactors doubled (ultra slow-mo) |
+| Center | 1x | 1.0 | Current behavior (the existing 2.0/3.5/2.5 factors unchanged) |
+| Right | 2x | 0.5 | All existing durFactors halved (faster replay) |
+| Far right | 3x | 0.33 | Near real-time speed |
+
+**How it interacts with `useLayoutEffect`:**
+
+The `slow` prop already triggers the useLayoutEffect. The speed slider multiplies the ALREADY-COMPUTED durFactor and phaseFactor values. Change in `src/07_components.js` Field component:
+
+```js
+// Add speedMultiplier prop to Field:
+const Field=React.memo(function Field({runners=[],outcome=null,ak=0,anim=null,
+  animVariant=null,theme=null,avatar=null,pos=null,slow=false,speedMultiplier=1.0}){
+```
+
+Then in the useLayoutEffect (line 122):
+```js
+const phaseFactor=(rawBegin<0.15?2.0:rawBegin<0.5?3.5:2.5)*speedMultiplier;
+const durFactor=(rawDur<0.15?1.8:rawDur<0.4?3.0:2.5)*speedMultiplier;
+const preDelay=1.0*speedMultiplier;
+```
+
+**UI placement (in Game Film controls bar, line 4537):**
+```jsx
+<div style={{display:"flex",alignItems:"center",gap:4}}>
+  <span style={{fontSize:8,color:"#6b7280"}}>Speed</span>
+  <input type="range" min="0.33" max="2" step="0.01" value={replaySpeed}
+    onChange={e=>{setReplaySpeed(parseFloat(e.target.value));setReplayKey(k=>k+1);}}
+    style={{width:60,accentColor:"#60a5fa"}}/>
+  <span style={{fontSize:8,color:"#93c5fd",fontWeight:700,minWidth:24}}>
+    {replaySpeed<=0.5?"0.5x":replaySpeed<=0.75?"1x":replaySpeed<=1.5?"2x":"3x"}
+  </span>
+</div>
+```
+
+**Key detail:** Changing the slider must re-trigger the animation by incrementing `replayKey`. The useLayoutEffect only runs on `[slow, ak]` dependency -- `ak` is the `replayKey`. So `setReplayKey(k=>k+1)` in the onChange handler will re-render Field with the new speed.
+
+**Sound timing adjustment:** The replay sound effects (lines 4512-4526) use hardcoded `sf=2.5`. Replace with:
+```js
+const sf=2.5*replaySpeed;
+```
+This keeps sound effects synchronized with the visual animation at any speed.
+
+**Pass to Field:** On the `<Field>` call at line 4558, add `speedMultiplier={replaySpeed}`:
+```jsx
+<Field key={`replay-${replayKey}`} ... slow={true} speedMultiplier={replaySpeed}/>
+```
+
+---
+
+### Summary: Build Order
+
+1. **IQ title ladder** (10 min) -- Data-driven lookup replaces ternary chain, adds progress bar, hides raw number
+2. **Haptic feedback** (15 min) -- Add `haptic()` helper, sprinkle 10/20/50ms calls alongside existing `snd.play()` calls
+3. **Speed control slider** (20 min) -- New state + slider UI + speedMultiplier prop on Field + sound timing fix
+4. **Pitch tunnel visualization** (15 min) -- Static SVG overlay + ghost paths + teaching text
+5. **Brain achievements** (30 min) -- 5 new ACHS entries + tracking fields in brainExplored + trigger logic at 5 code points
+
+Total estimated: ~90 minutes of implementation.
+
+---
+
 ## enrichFeedback: Additional Patterns (8 Not Yet Implemented)
 
 From thought partner analysis of 14 total detectable patterns (6 shipped):
@@ -885,3 +1104,1231 @@ This is smaller than any single Brain tab build, but the impact on retention and
 ---
 
 *This document grows with every build session. Ideas marked when implemented.*
+
+---
+
+## Baseball Brain Execution Monitor (TPA)
+
+**Date:** 2026-03-20 | **Scope:** Risk analysis, quality checks, and post-plan vision for the 36-item Brain improvement sprint
+
+---
+
+### 1. Execution Risks — What Could Go Wrong During Rapid 36-Item Changes
+
+**RISK E1: State explosion from new features stacking on 33 existing useState calls**
+
+The Brain section already has 33 `useState` calls at lines 99-131 of `src/08_app.js`. The improvement plan adds at minimum:
+- `brainOnboarded` (A1)
+- `buildInningState` with runs/outs/actions (B1)
+- `numberAnimTargets` for multiple tabs (B2)
+- `brainChallenges` per-tab completion tracking (D6)
+- `brainStreakDays` (E5)
+- Several new states for pitch trajectory SVGs (C1), steal race animation (C2), speedometer gauge (C3)
+
+Rapid addition of 10-15 new `useState` calls risks:
+- Accidentally placing a hook inside a conditional (the ORIGINAL sin, now fixed but could recur in a rush)
+- State interdependencies where resetting one tab's state doesn't reset another's (e.g., navigating from Steal to RE24 via deep link but leaving stale steal slider values)
+- localStorage bloat if all new state gets persisted via `brainExplored`
+
+**Mitigation:** Before starting Sprint B, do a state audit. Count all Brain useState calls. Group them by tab. Verify none are conditionally called. Consider a `brainState` reducer pattern if the count exceeds 40.
+
+**RISK E2: Cross-tab deep links (B3) create circular navigation**
+
+The plan calls for 10+ cross-tab links. If RE24 links to Steal, Steal links back to RE24, and both auto-scroll to the link, a curious kid could tap back and forth infinitely. Worse, each navigation could trigger `trackBrainVisit()` inflating IQ artificially.
+
+**Mitigation:** Deep links should NOT re-trigger IQ tracking on revisit within the same session. Add a `lastVisited` timestamp check: if same tab visited within 60 seconds, skip IQ increment. Also, cross-link UI should be a subtle footer, not a modal that demands attention.
+
+**RISK E3: Build Your Inning (B1) logic duplication with RE24 What-If buttons**
+
+The existing What-If buttons (Single, Walk, K, Bunt, Steal, Sac Fly, DP) already advance runners and track state. "Build Your Inning" adds a meta-layer (track total runs, count outs to 3, reset for new inning). The risk is duplicating the runner-advancement logic rather than reusing it, creating two sources of truth for "what happens on a single with runners on 1st and 2nd."
+
+**Mitigation:** Extract the runner-advancement logic from the What-If buttons into a shared function BEFORE building the inning sandbox. The sandbox should call the same function and just add run-tracking and out-counting on top.
+
+**RISK E4: Pitch trajectory SVGs (C1) are significantly more complex than estimated**
+
+The plan estimates 80 lines for 8 pitch paths with a "Throw" button and slow-motion toggle. In practice, baseball pitch movement involves:
+- 3D perspective projection (side view) of non-linear curves
+- Different pitches break in different planes (slider = horizontal, curveball = vertical, cutter = late horizontal)
+- Speed variation along the path (changeup decelerates)
+- A "tunnel point" where pitches look identical before diverging
+
+80 lines might produce static SVG paths, but the "Throw" button with slow-motion replay needs `requestAnimationFrame` or CSS `@keyframes`, which typically runs 30-50 lines per animation type. Expect 150-200 lines, not 80.
+
+**Mitigation:** Start with 3 pitch types (fastball, curveball, changeup) for Sprint C. Add the remaining 5 in a follow-up. The pitch tunneling overlay (E2) depends on C1 being solid, so under-investing in C1 creates a cascading delay.
+
+**RISK E5: Tab mastery rings (C4) and BrainIQ (A2) double-counting exploration**
+
+The current `trackBrainVisit` function at line 3078 already has a broken IQ calculation (the ternary is circular: `newIQ = min(200, tabs*5 + (brainIQ >= tabs*5 ? brainIQ : tabs*5))`). This effectively means IQ = max(previous IQ, tabs visited * 5), which only grows when visiting NEW tabs. But the plan says IQ should also grow from interactions, challenges, and quiz bridge usage. If the execution agent just patches the formula without restructuring it, IQ will remain a "tabs visited" counter dressed up as something more.
+
+**Mitigation:** Replace the entire IQ calculation with a proper scoring function. Define point values: tab visit = 5, meaningful interaction = 1 (capped at 10 per tab per day), challenge completed = 15, quiz bridge used = 3. Store the breakdown in `brainExplored` so debugging is possible.
+
+**RISK E6: Sound additions (B6) could clash with existing Web Audio system**
+
+The existing `snd.play()` system was built for quiz feedback sounds. Adding `snd.play('tap')` on every Brain interaction (base toggle, slider drag, button press) could create audio spam if a kid rapidly taps bases. The Web Audio context also has a limit on simultaneous AudioBufferSourceNodes.
+
+**Mitigation:** Add a debounce to Brain tap sounds: minimum 100ms between plays. Use a single re-triggerable oscillator rather than spawning a new source node per tap. Keep Brain sounds distinctly quieter than quiz feedback sounds.
+
+**RISK E7: Famous Moments content (D1) needs historical accuracy verification**
+
+Adding 4-8 new moments (Buckner 1986, Gibson HR 1988, Bumgarner 2014, Pine Tar Game, Jeter flip play) requires exact situational data. If the agent gets a detail wrong (wrong inning, wrong count, wrong score), a baseball-savvy parent or coach will lose trust in the entire app. These moments are well-documented — errors are inexcusable.
+
+**Mitigation:** Each new moment should include a source comment. The agent should verify: exact year, game number/context, score at the time of the play, inning/outs/runners. If unsure, use hedging language ("approximately" or "with the score close") rather than stating a wrong specific.
+
+**RISK E8: RPG skill tree (E1) rendering performance on mobile**
+
+120 lines for an SVG graph of 65+ concept nodes with edges, color-coded by mastery, with click handlers. On a low-end phone (the target device for many kids), rendering 65+ SVG elements with interactivity will likely cause:
+- Slow initial render (65 circles + 80+ lines + text labels)
+- Laggy pan/zoom if implemented
+- Overlapping labels making the graph unreadable
+
+**Mitigation:** Start with a simplified tree: show only the current domain (7-12 nodes per domain) rather than all 65 at once. Use the domain filter that already exists in the concept map. Defer full-graph view to desktop or a "zoom out" button.
+
+---
+
+### 2. Quality Checks — What to Verify After Each Sprint
+
+**After Sprint A (Critical Fixes):**
+- [ ] Onboarding tooltip appears on FIRST Brain visit, never again (check `brainExplored._onboarded` in localStorage)
+- [ ] Tapping a base on a 320px-wide phone screen works reliably (test on smallest target device)
+- [ ] Tab strip auto-scrolls to the active tab when navigating via deep link from quiz
+- [ ] BrainIQ displays in the header and updates when visiting new tabs
+- [ ] Daily fact rotates (change the date in localStorage, reload, verify new fact)
+- [ ] The truncated history text at line 4003 now shows the full trend string
+- [ ] Park selection shows individual park data, not just category-level
+- [ ] Concept map scrolls without nested scroll trap
+- [ ] TTO tooltip is visible and understandable to a 13-year-old
+
+**After Sprint B (Engagement):**
+- [ ] "Build Your Inning" tracks runs correctly through all 3 outs, including edge cases: bases-loaded walk (run scores), double play (2 outs at once), strikeout for 3rd out (inning ends)
+- [ ] Number animations don't flash or glitch when rapidly changing state (toggle bases on/off quickly)
+- [ ] Every cross-tab deep link lands on the correct tab with correct pre-loaded state
+- [ ] "Test Yourself" finds a real scenario matching the tab's concept (not a random one)
+- [ ] Tap sounds play but don't stack/overlap on rapid input
+- [ ] "Review This" on mastered concepts navigates to quiz and returns to Brain after answering
+
+**After Sprint C (Visual Polish):**
+- [ ] Pitch trajectory SVGs render correctly on both 320px and 1280px viewports
+- [ ] Steal race animation completes in 2 seconds, doesn't freeze mid-animation
+- [ ] Speedometer gauge needle points to correct position at boundary values (0, 50, 75, 90, 100, 120)
+- [ ] Tab mastery rings are visible but don't make the tab strip too tall
+- [ ] RE24 heatmap colors are distinguishable (check 0.11 vs 0.24 vs 0.54 color difference)
+- [ ] Color-blind accessibility: every count cell has a text label ("Hitter's" / "Pitcher's") in addition to color
+- [ ] "Double" button produces correct runner advancement (runners on 2nd/3rd score, 1st to 3rd, batter to 2nd)
+
+**After Sprint D (Content):**
+- [ ] All new Famous Moments have historically accurate data (verify year, score, inning, outcome)
+- [ ] Youth bunt disclaimer shows for vocabTier <= 3 and does NOT show for advanced players
+- [ ] Youth steal preset uses age-adjusted break-even (0.50 for youthPitch, 0.60 for travelMiddle)
+- [ ] DP Depth situation toggles correctly show "justified" only when R1 + <2 outs
+- [ ] Share button copies clean text to clipboard (test on mobile Safari — clipboard API requires HTTPS)
+- [ ] Tab challenges track completion and award IQ points
+
+**After Sprint E (Advanced):**
+- [ ] Skill tree renders without lag on a low-end device (test with 65+ nodes)
+- [ ] Pitch tunneling overlay shows two paths diverging from a common tunnel point
+- [ ] WP line graph handles all 7 score differentials without overlapping lines
+- [ ] Draggable fielders snap to presets and stats update on drop
+- [ ] Brain streak integrates with (not duplicates) the existing daily quiz streak
+- [ ] Haptic feedback fires on supported devices but doesn't error on desktop
+
+**Cross-Sprint Integration Check (after all 36 items):**
+- [ ] Navigate through the full loop: Home fact -> Brain tab -> cross-link -> another tab -> Test Yourself -> quiz -> wrong answer -> deep link back to Brain. Verify no state leaks, no stale data.
+- [ ] A brand-new player (0 games) cannot access Brain (gated at `gp>=1`)
+- [ ] A 6-year-old sees only age-appropriate tabs (no Matchup, no Defense until age 9)
+- [ ] All Brain state resets properly when switching tabs (no leftover state from previous tab)
+- [ ] localStorage size with full Brain exploration data stays under 100KB
+
+---
+
+### 3. Emerging Opportunities — Patterns Enabled by Cross-Tab Links
+
+**Opportunity 1: "Learning Journey" Auto-Detection**
+
+Once cross-tab links exist (B3) and tab exploration is tracked (C4), the app can detect NATURAL learning journeys: "This kid started at RE24, went to Steal Calculator, came back to RE24 and tried the steal button, then aced a steal scenario." This is a richer signal than individual tab visits. Track sequences of tab visits as a `brainJourney` array. After 3+ sessions with consistent patterns, surface: "You keep exploring steals! You're becoming a Steal Expert."
+
+**Opportunity 2: "Brain-Assisted Wrong Answer Recovery"**
+
+With deep links from enrichFeedback already partially implemented (line 1061-1153 of `src/05_brain.js` adds `deepLink` objects), the next step is tracking whether a player who uses a deep link after a wrong answer then gets the SAME concept right on their next attempt. This is the "Aha Moment" achievement (already designed in the Gamification TPA above), but it's also a powerful signal for the adaptive difficulty system. Players who use Brain links should get a slight difficulty boost on the retried concept -- they just studied it.
+
+**Opportunity 3: "Concept Cluster" Teaching via Tab Intersection**
+
+Some concepts span multiple tabs: "steal-breakeven" touches RE24 (break-even math), Steal Calculator (timing), Count Dashboard (best counts to steal on), and Win Probability (when steals matter most). Once cross-links connect these tabs, the app can create multi-tab mini-lessons: "The Steal Deep Dive: Visit 4 tabs to understand everything about stealing." This is more engaging than reading one explanation and more structured than random exploration.
+
+**Opportunity 4: "What Changed?" Context on Cross-Tab Navigation**
+
+When navigating from RE24 (where the kid just saw that stealing costs 0.28 RE on failure) to Steal Calculator (where they see the timing math), add a contextual bridge sentence: "You just saw that a failed steal costs 0.28 runs. Now let's find out HOW FAST the runner needs to be to avoid that." This connecting tissue turns tab-hopping from "clicking around" into "following a thread."
+
+**Opportunity 5: Tab-Specific AI Scenario Generation**
+
+After a kid spends 2+ minutes on Pitch Lab exploring sequencing, the "Test Yourself" button (B4) should generate an AI scenario specifically about pitch sequencing with the exact pitches they were just exploring. The Brain state (which pitches they viewed, what sequence they built) becomes context for the AI prompt. This creates a deeply personalized quiz-Brain loop.
+
+---
+
+### 4. Post-Plan Vision — What Would Make a Coach Say "I Need This for My Team"
+
+After all 36 items ship, Baseball Brain will be a solid individual exploration tool. But coaches need TEAM tools. Here's the gap between "cool app" and "essential coaching tool":
+
+**Gap 1: No Team Dashboard**
+
+A coach with 15 players needs to see: "Which of my players understand cutoff roles? Who is weak on situational hitting? What concepts should I teach at practice this week?" The Concept Map has all the mastery data per-player, but there's no aggregate view across players. Phase 3's Coach Mode Preview exists as a teaser, but the real value is: import a team roster (even just names), see each player's concept mastery grid, and get a "This Week's Practice Plan" auto-generated from collective gaps.
+
+**Gap 2: No "Assign This" Workflow**
+
+Coaches want to say "Do the RE24 Explorer and Build Your Inning before Tuesday's practice." Currently there's no assignment or sharing mechanism. A simple "Share Challenge" link that pre-loads a specific tab with specific state would be a lightweight first step. The share button (D5) copies a fact -- extend it to copy a challenge link.
+
+**Gap 3: No Progress Over Time**
+
+The Concept Map shows current mastery state but not trajectory. A coach wants: "Jaylen went from 0 mastered concepts to 12 in 3 weeks." The data exists in localStorage (mastery state changes are timestamped), but there's no visualization. A simple "Concepts Mastered Over Time" line graph per player would be transformative for parent conferences.
+
+**Gap 4: No Connection to Real Practice**
+
+Brain teaches WHAT to do. It doesn't connect to HOW to practice it. After a kid explores pitch sequencing in Pitch Lab, the app should suggest: "At your next bullpen session, try this sequence: fastball up, changeup down, slider away. Tell your catcher to set up for it." These are practice plans, not just data exploration.
+
+**Gap 5: No Game Prep Mode**
+
+Before a game, a coach could input: "We're playing at Fenway, their pitcher is a LHP who throws 85." Brain could auto-generate a pre-game briefing: "Park factor 106 (hitter-friendly). Your right-handed batters have platoon advantage (+18 BA pts). At 85 mph, look for the changeup -- it's his best pitch by run value but at this speed it won't fool patient hitters." This requires no new data -- it's just combining existing BRAIN data based on inputs.
+
+**The "I need this" moment for a coach:** When the app saves them 30 minutes of practice planning per week by automatically identifying what their team needs to work on and providing interactive tools to teach it.
+
+---
+
+### 5. Edge Cases — Boundary Conditions the Main Agent Will Likely Miss
+
+**Edge Case 1: 0 Games Played -- Reaching Brain**
+
+The Brain entry point is gated at `stats.gp>=1` (line 2006). But:
+- What if a player clicks "Baseball Brain" on the home screen before playing any games? The Brain Facts section is gated at `gp>=3` (line 1972), so there's a window at 1-2 games played where Brain is accessible but no daily fact shows.
+- More critically: a brand-new player has NO mastery data. The Concept Map will show ALL concepts as "unseen" with zero progress bars. This is discouraging. The onboarding (A1) should handle this: "Play some challenges first to start filling your map!"
+- The "Test Yourself" button (B4) will find no scenarios for a player who hasn't played any position yet. It should gracefully degrade: "Play some challenges first, then come back to test yourself!"
+
+**Edge Case 2: Ages 6-8 on Every Tab**
+
+The `isYoung` flag (vocabTier <= 2) triggers simplified UI in RE24 (stars instead of numbers) and Counts (emoji faces). But several new features don't account for this age group:
+
+- **Build Your Inning (B1):** "You scored 0.54 runs! Average: 0.47" is meaningless to a 7-year-old. Young mode should say: "You scored 1 run! Can you score 2?" and use whole numbers only.
+- **Pitch trajectories (C1):** Young kids don't know what a "sweeper" or "splitter" is. Limit to 3 pitches: "Fast ball," "Curve ball," "Change-up" with simple labels.
+- **Speedometer gauge (C3):** Great visual for all ages. But the labels should be: "Fresh / Getting tired / Very tired / Stop!" not "Fading / Danger Zone."
+- **Cross-tab links (B3):** Text like "Need 72% to break even" is jargon. Young links should say: "Want to see if the runner is fast enough? [Go!]"
+- **Tab challenges (D6):** "Score 4+ runs in an inning" works for all ages. "Build a 12+ point sequence" does NOT work for ages 6-8 because they shouldn't see the sequencing builder at all.
+- **Number animations (B2):** Stars (for young) can't animate the same way numbers do. Either skip animation for young or animate star count (1 star -> 2 stars with a "pop" effect).
+
+**Edge Case 3: Rapid Tab Switching**
+
+A hyperactive 8-year-old will tap through all 11 tabs in 10 seconds. Each tap calls `trackBrainVisit()` which calls `setStats()`. Eleven rapid `setStats` calls may batch in React but could also cause:
+- 11 localStorage writes in quick succession
+- IQ jumping from 0 to 55 in one session (11 tabs * 5 pts) -- feels unearned
+- `brainExplored` object growing with 11 entries simultaneously
+
+**Mitigation:** Debounce `trackBrainVisit`: only count a visit if the player stays on the tab for 2+ seconds. This prevents speed-clicking inflation and ensures IQ reflects actual exploration.
+
+**Edge Case 4: Deep Link from Quiz to Brain When Brain Tab Doesn't Exist for Age**
+
+A 7-year-old gets a wrong answer on a matchup scenario. The `enrichFeedback` deep link points to `tab:"matchup"`. But Matchup Analyzer has `minAge:11`. The kid taps the link and... what happens? Currently `activeTab = visibleTabs.find(t=>t.id===brainTab) || visibleTabs[0]`, so they'd land on the RE24 tab (first visible). The deep link would silently fail.
+
+**Mitigation:** Before showing a deep link in enrichFeedback, check the player's age against the target tab's `minAge`. If the tab is age-locked, either hide the deep link entirely or redirect to a related unlocked tab with appropriate context.
+
+**Edge Case 5: Concept Map "Practice This" Button When No Scenarios Match**
+
+The Concept Map's "Practice This" button (line 3635) searches `SCENARIOS` for matching `conceptTag`. Some concepts have 0 matching scenarios (the audit identified `of-wall-play`, `mound-composure`, `defensive-substitution` as having 0 scenarios). Clicking "Practice This" for these concepts will silently do nothing because `scens.length > 0` is false.
+
+**Mitigation:** If no scenarios match, show "No challenges available yet for this concept" instead of a dead button. Or better: trigger an AI scenario generation specifically for that concept (Pro only).
+
+**Edge Case 6: Build Your Inning with Bases Loaded Walk Scoring**
+
+The existing walk logic at lines 3189-3191 handles bases-loaded as a special case. But "Build Your Inning" needs to track TOTAL runs scored across the half-inning. The current walk handler calls `doAction()` with a `+1` for the run scored, but this is an RE24 delta display, not a cumulative counter. The sandbox needs its own cumulative run counter that persists through all 3 outs.
+
+**Edge Case 7: Share Button on HTTP (Not HTTPS)**
+
+The share/clipboard feature (D5) uses `navigator.clipboard.writeText()`. This API requires a secure context (HTTPS). The preview server (`npx serve .`) runs on HTTP at localhost. Sharing will fail silently in preview mode. The deployed app at `bsm-app.pages.dev` uses HTTPS and will work fine, but this will cause confusion during development testing.
+
+**Edge Case 8: brainExplored Persistence Across Prestige Resets**
+
+When a player prestiges (resets after Hall of Fame), the `DEFAULT` state object is applied. Does `brainExplored` survive prestige? If not, a prestigious player loses all Brain IQ and exploration progress. If yes, Brain progress becomes the only thing that persists across seasons -- which might be desirable ("your baseball knowledge is permanent") but needs to be intentional, not accidental.
+
+Check: does the prestige reset logic explicitly preserve `brainExplored` and `brainIQ`? If not, it should.
+
+---
+
+### 6. The One Thing the Plan Doesn't Address: Explanation-to-Brain Feedback Loop
+
+The plan has Quiz -> Brain (deep links from wrong answers) and Brain -> Quiz ("Test Yourself"). But it's missing the THIRD leg of the triangle: **Brain insights changing how explanations are written.**
+
+Currently, a kid who gets a steal scenario wrong sees a static explanation ("The steal break-even rate is 72%..."). After they visit the Steal Calculator and spend 3 minutes playing with sliders, they now UNDERSTAND the timing math. If they get a similar scenario wrong again, the explanation should be DIFFERENT: "Remember in the Steal Calculator, you found that a 1.35s delivery + 2.00s pop = 3.35s. The runner here needs 3.55s. Do the math." This is personalized explanation based on Brain exploration history.
+
+Implementation would be lightweight: check `brainExplored.steal.interactionCount > 5` and inject a "remember when you explored..." prefix into the steal explanation. No new data needed -- just conditional text in `enrichFeedback()` based on exploration state.
+
+This closes the loop: Quiz teaches through explanations -> Brain teaches through exploration -> Exploration improves explanations -> Quiz becomes more effective. That's the flywheel that makes Baseball Brain exceptional, not just useful.
+
+---
+
+### Summary: Top 5 Risks to Watch
+
+1. **State management complexity** -- 33+ useState calls becoming 45+. Consider a reducer before Sprint B.
+2. **BrainIQ calculation is currently broken** (circular ternary). Fix must be a real scoring function, not a patch.
+3. **Cross-tab deep links risk circular navigation and IQ inflation.** Debounce visits, cap IQ per session.
+4. **Pitch trajectory SVGs are 2x the estimated effort.** Start with 3 pitches, not 8.
+5. **Age 6-8 gets overlooked on every new feature.** Every item needs an `isYoung` check.
+
+---
+
+## Sprint E Execution Notes (TPA)
+
+**Date:** 2026-03-20 | **Reviewer:** Thought Partner Agent | **Scope:** Pre-execution code state, SVG complexity assessment, integration risks, new ideas, post-E vision
+
+---
+
+### 1. Pre-Execution Code State Check
+
+**Total useState count: 88 declarations** (up from 33 Brain-specific earlier). The Brain section alone has 37 useState calls at lines 99-137. This is within tolerance but approaching the zone where a `useReducer` would improve maintainability. Sprint E adds at minimum 3-5 more state variables for challenges, haptics toggle, etc.
+
+**Bugs from earlier TPAs -- status check:**
+
+- FIXED: `reRunners.sort()` mutation -- now correctly uses `[...reRunners].sort()` at line 3241.
+- FIXED: Hooks hoisted to top level -- all Brain useState calls are at lines 99-137, unconditional. No hooks inside IIFE conditionals.
+- FIXED: BrainIQ calculation -- line 3091 now uses `tabsVisited*5 + interactions sum (capped at 10 per tab)`. No longer circular.
+- FIXED: Cross-tab navigation -- `navigateBrain()` at line 3105 handles state pre-loading correctly.
+- FIXED: `brainExplored` preservation across prestige -- prestige reset at line 2423 only clears `pts,str,bs,sp,season` fields; `brainExplored` and `brainIQ` survive by default.
+- NOT YET ADDRESSED: IQ visit debounce -- `trackBrainVisit()` at line 3085 still counts every tab click immediately. No dwell-time check. E11 lists this fix.
+- NOT YET ADDRESSED: Practice This with 0 scenarios -- line 3737 silently does nothing when no scenarios match. E11 lists this fix.
+- NOT YET ADDRESSED: Deep links to age-locked tabs -- `enrichFeedback` at line 1061 can return a deepLink to "matchup" for a 7-year-old. E11 lists this fix.
+
+**State stubs already declared:** Lines 133-137 have `inningMode`, `inningRuns`, `inningActions`, `stealRacing`, `pitchThrow` -- declared but unused. Sprint E should use these, not create new ones.
+
+**`rePrevRE` is stored but never rendered (line 103).** E2 (Number Animation) should finally consume this value. Confirm during E2 that `rePrevRE` feeds the animation's "from" value.
+
+**`enrichFeedback` does NOT currently receive `brainExplored` data.** Line 4514: `enrichFeedback(sc,choice,sc.situation)` passes only 3 args. E10 needs to either (a) pass `stats.brainExplored` as a 6th argument, or (b) have the personalization logic live in `08_app.js` as a post-processing step on the returned insights. Option (b) is cleaner since `enrichFeedback` is in `05_brain.js` and shouldn't depend on app-level state.
+
+---
+
+### 2. SVG Complexity Assessment
+
+**E3: Pitch Trajectories (3 pitches)**
+
+The current Pitch Lab has zero SVG trajectory visualization. The pitches need to show a side view (like a pitching tunnel camera) from release point to plate. Here are the specific SVG elements needed:
+
+```
+ViewBox: "0 0 300 150" (horizontal = distance, vertical = drop/rise)
+Release point: (30, 60) -- left side, about 6 feet high
+Plate: (270, 100) -- right side, strike zone center
+
+FASTBALL path:
+  M30,60 C100,55 200,65 270,75
+  (Slight natural rise illusion, then gravity drop -- gentle curve)
+  Speed overlay: dashed line showing "expected" straight path vs actual
+
+CURVEBALL path:
+  M30,60 C80,50 160,60 270,120
+  (Starts level with fastball, then drops sharply -- the 12-to-6 break)
+  Drop magnitude: 15-20 SVG units more than fastball endpoint
+
+CHANGEUP path:
+  M30,60 C90,57 180,68 270,95
+  (Mirrors fastball trajectory for first 60%, then drops off)
+  Tunnel point: ~x=150 where path diverges from fastball
+```
+
+For the "Throw" button animation, use `stroke-dasharray` + `stroke-dashoffset` with CSS animation:
+```css
+@keyframes pitchDraw { from { stroke-dashoffset: 300; } to { stroke-dashoffset: 0; } }
+```
+Duration: 0.8s normal, 2.5s slow-motion. No `requestAnimationFrame` needed -- pure CSS animation on SVG path is sufficient and performant. The slow-motion toggle just changes the `animation-duration`.
+
+Add a faint "tunnel zone" rectangle at x=120-160 with 5% opacity fill to show where pitches look identical. Text label: "Tunnel Point" at age 11+.
+
+**Estimated actual lines: ~85 (not 100)** because CSS-animated SVG paths are concise.
+
+**E5: Speedometer Gauge**
+
+The current pitch count display (line 3762-3768) is a plain number + range slider. The speedometer needs:
+
+```
+ViewBox: "0 0 200 120" (semicircle)
+Center: (100, 110)  Radius: 90
+
+Arc path (background):
+  M10,110 A90,90 0 0,1 190,110
+  (semicircle from left to right)
+
+5 color zones (each ~36 degrees of the 180-degree arc):
+  0-25:   #22c55e (Fresh)         -- 0 to 36 deg
+  26-50:  #86efac (Strong)        -- 36 to 72 deg
+  51-75:  #f59e0b (Fading)        -- 72 to 108 deg
+  76-90:  #f97316 (Tired)         -- 108 to 144 deg
+  91-120: #ef4444 (Danger Zone)   -- 144 to 180 deg
+
+Each zone is a separate <path> using arc segments. The arc formula:
+  x = cx + r * cos(angle)
+  y = cy - r * sin(angle)
+  Where angle goes from pi (180 deg, left) to 0 (right)
+
+Needle:
+  <line x1="100" y1="110" x2={nx} y2={ny} />
+  Where angle = pi - (pcCount / 120) * pi
+  nx = 100 + 75 * cos(angle)
+  ny = 110 - 75 * sin(angle)
+  transition: transform 0.5s ease-out (use CSS transform-origin)
+
+Young labels: array of ["Fresh","Getting tired","Very tired","Stop!"]
+Adult labels: zone names above
+```
+
+Arc segment calculation for each zone boundary:
+```js
+const arcPoint = (pct) => {
+  const angle = Math.PI - (pct / 120) * Math.PI;
+  return `${100 + 90 * Math.cos(angle)},${110 - 90 * Math.sin(angle)}`;
+};
+// Zone boundaries: arcPoint(0), arcPoint(25), arcPoint(50), arcPoint(75), arcPoint(90), arcPoint(120)
+```
+
+**Estimated actual lines: ~45** -- the math is compact once the arc helper exists.
+
+**E6: Domain-Grouped Concept Tree**
+
+The current concept map (line 3666-3743) is a flat list with domain filters. The tree view needs to show prerequisite edges between nodes within a domain.
+
+Per-domain node count (from BRAIN.concepts):
+- defense: ~12 nodes
+- baserunning: ~8 nodes
+- pitching: ~8 nodes
+- hitting: ~6 nodes
+- strategy: ~10 nodes
+- rules: ~5 nodes
+- mental: ~3 nodes
+- catching: ~4 nodes
+
+Approach: Show nodes in a force-directed-ish layout within the filtered domain. Since max is ~12 nodes, a simple 3-column grid layout with SVG edge lines drawn between prerequisite pairs is sufficient. No need for a full force layout algorithm.
+
+```
+Container: <div style={{position:"relative"}}>
+  Nodes: Absolutely positioned <div> elements in a 3-column grid
+  Edges: An SVG overlay with <line> elements connecting prerequisite nodes
+
+  Node positions (for a domain with N nodes):
+  col = i % 3, row = Math.floor(i / 3)
+  x = 50 + col * 120, y = 30 + row * 80
+
+  Edge for each prereq: <line x1={parentX} y1={parentY} x2={childX} y2={childY}/>
+  Color: mastered prereq = #22c55e, unmastered = #ef4444 dashed
+```
+
+The key insight: DON'T try to render all 65+ nodes at once. The domain filter already exists. Just add an SVG edge layer on top of the existing domain-filtered list. This is ~50 lines, not 80, because most of the concept list rendering already exists.
+
+---
+
+### 3. Integration Risks and Execution Order
+
+**E2 (NumberAnimation) must be built BEFORE E1 (Build Your Inning), E4 (Steal Race), E5 (Speedometer), and E7 (WP Line)** because all four use animated numbers. The plan already has this order correct.
+
+**E1 (Build Your Inning) and E8 (Tab Challenges) are tightly coupled.** The RE24 challenge ("Score 3+ runs in an inning") literally requires the Build Your Inning sandbox. Build E1 first, then E8 can reference it. Plan order is correct.
+
+**E3 (Pitch Trajectories) is independent** and can be built in parallel with E1/E2 if two agents were working. In serial execution, E3's position at #5 is fine.
+
+**E10 (Brain->Explanation Personalization) has a hidden dependency on E11 (Edge Cases).** Specifically, E10 needs `brainExplored` to be passed to the explanation renderer. But the explanation renderer at line 4514 only passes 3 args to `enrichFeedback`. E10 should add `stats.brainExplored` as a new parameter BEFORE building the personalization logic. Do E11's edge case fixes first (as the plan says), then E10 falls into place.
+
+**E9 (Haptic Feedback) is truly independent** -- 5 lines, no dependencies. Can go last without any risk.
+
+**Risk: E4 (Animated Steal Race) + E2 (NumberAnimation) collision.** The steal race needs the bars to animate over 2 seconds on a "Race!" button. The NumberAnimation component interpolates numbers over ~500ms. These are different animation patterns. E4 should NOT try to reuse NumberAnimation for bar width -- use CSS `transition: width 2s` on the SVG rect elements instead. NumberAnimation is for the time displays (the "3.35s" text that counts up).
+
+**Risk: E6 (Domain Tree) + existing concept list.** The plan says "keep the list as fallback." The implementation should toggle between tree view and list view, not replace the list entirely. Add a small toggle button: "Tree | List" next to the domain filter strip.
+
+**Recommended execution order change:** Move E9 (Haptic) to slot #2 immediately after E11 (Edge Cases), not last. Reason: haptic feedback on base toggles, slider drags, and button taps will make testing E1-E8 more satisfying during development, and it's only 5 lines. Getting it in early means every subsequent feature automatically gets haptic feedback in the `snd.play('tap')` calls if you wire it there.
+
+Revised order:
+1. E11 (Edge cases) -- prevents bugs
+2. E9 (Haptic) -- 5 lines, improves all subsequent testing
+3. E2 (NumberAnimation) -- dependency for E1, E4, E5, E7
+4. E1 (Build Your Inning) -- top engagement feature
+5. E8 (Tab Challenges) -- depends on E1
+6. E3 (Pitch Trajectories) -- independent, high visual impact
+7. E4 (Steal Race) -- independent
+8. E5 (Speedometer) -- independent
+9. E7 (WP Line Graph) -- independent
+10. E6 (Domain Tree) -- independent, most complex SVG
+11. E10 (Brain->Explanation) -- depends on all Brain state being final
+
+---
+
+### 4. New Ideas from Combining E Items
+
+**Combo 1: Build Your Inning (E1) + Tab Challenges (E8) + Number Animation (E2) = "Inning Replay"**
+
+After a player finishes an inning in the sandbox (3 outs), show an animated replay of all their actions: "Single (+0.40) -> Walk (+0.18) -> K (-0.18) -> Sac Fly (-0.32 + 1 run)". Each line animates the RE24 delta using NumberAnimation. The cumulative run counter ticks up. This turns the sandbox result into a shareable story. The action log (`inningActions` state already exists) feeds this directly.
+
+**Combo 2: Pitch Trajectories (E3) + Steal Race (E4) = "Full At-Bat Simulator"**
+
+After E3 and E4 exist independently, a future sprint could combine them: the pitcher throws (E3 trajectory), the batter swings (hit animation from field system), the runner goes (E4 race). This would be the most visually impressive feature in the app. Not for Sprint E, but the architecture should allow it. Key: pitch trajectory SVG and steal race SVG should use the same viewBox convention (or easily composable viewBoxes).
+
+**Combo 3: Speedometer Gauge (E5) + Brain->Explanation Personalization (E10) = "Fatigue-Aware Coaching"**
+
+If `brainExplored.pitchcount.interactions > 5`, the enrichFeedback personalization (E10) can reference the specific pitch count the player explored: "Remember when you set the gauge to 95 pitches and saw velocity drop 2.1 mph? This pitcher is at 92." This is a natural extension of E10 using E5's exploration data.
+
+**Combo 4: Domain Tree (E6) + Tab Challenges (E8) = "Unlock Path Visualization"**
+
+When a player completes a tab challenge, light up the corresponding concept node in the domain tree. The tree becomes a visual progress map for challenges, not just mastery. "Complete the RE24 challenge to unlock the scoring-probability node" creates a natural goal chain.
+
+**Combo 5: WP Line Graph (E7) + Build Your Inning (E1) = "Inning WP Overlay"**
+
+During Build Your Inning, show a live WP line that updates with each action. If the player's inning is in the 9th of a tie game, each action moves the WP line visibly. This connects RE24 (individual play value) to WP (game-level stakes) in a visceral way.
+
+---
+
+### 5. Post-E Vision: The Single Most Impactful Thing to Build Next
+
+After all 11 Sprint E items ship, the Baseball Brain will have: interactive sandbox (E1), animated visualizations (E2-E5, E7), a concept tree (E6), gamified challenges (E8), haptic feedback (E9), personalized explanations (E10), and cleaned-up edge cases (E11).
+
+**The missing piece: the Quiz-to-Brain "Wrong Answer Recovery" loop.**
+
+The data is already there. `enrichFeedback` already generates deepLink objects pointing to specific Brain tabs (lines 1061-1153 of `05_brain.js`). But the outcome screen at line 4514 calls `enrichFeedback(sc,choice,sc.situation)` without passing age or mastery data, and most importantly: the insights render as plain text, not tappable deep links.
+
+**The single highest-impact post-E feature:**
+
+Make every `enrichFeedback` insight with a `deepLink` field tappable. When a kid gets a steal question wrong and sees "Need 72% success rate to break even on a steal here", tapping it should navigate to the Steal Calculator with the scenario's outs pre-loaded. After exploring the calculator, a "Back to Quiz" button returns them to try a similar scenario.
+
+This is approximately 25 lines of code:
+- ~10 lines: Pass `deepLink` from enrichFeedback to the insight renderer
+- ~10 lines: `onClick` handler that calls `navigateBrain(ins.deepLink.tab, ins.deepLink.state)` and `setScreen("brain")`
+- ~5 lines: Visual indicator (arrow icon, subtle underline) showing the insight is tappable
+
+Why this matters more than any new tab or feature: it closes the learning loop. Right now, wrong answers are dead ends -- the kid reads an explanation and moves on. With tappable deep links, wrong answers become entry points to interactive exploration. The kid who just failed a steal scenario gets to play with the Steal Calculator's sliders and figure out WHY their instinct was wrong. Then they understand it next time.
+
+Every Sprint A-E feature (sandbox, animations, gauge, tree, challenges) becomes more valuable when wrong answers route players into those features. The deep link is the connective tissue that makes the whole Brain system work as a learning engine, not just a collection of cool tools.
+
+---
+
+### Summary: 5 Key Watchpoints During E Execution
+
+1. **Use existing state stubs** (`inningMode`, `inningRuns`, `inningActions`, `stealRacing`, `pitchThrow`) at lines 133-137. Do not create duplicate state.
+2. **E10 requires passing `stats.brainExplored` to the outcome screen.** Do this as a post-processing step in `08_app.js` (line 4514 area), not by modifying `enrichFeedback`'s signature in `05_brain.js`.
+3. **Pitch trajectory SVGs: use CSS `stroke-dashoffset` animation, not `requestAnimationFrame`.** Simpler, more performant, ~85 lines.
+4. **Speedometer arc math:** `angle = PI - (pcCount / 120) * PI`. Needle endpoint: `(100 + 75*cos(angle), 110 - 75*sin(angle))`. Five zone arcs, one helper function.
+5. **After E ships, the #1 priority is making enrichFeedback deepLinks tappable on the outcome screen.** ~25 lines, closes the entire learning loop.
+
+---
+
+## Final 3 Items (TPA)
+
+**Date:** 2026-03-21 | **Reviewer:** Thought Partner Agent | **Scope:** NumberAnim component, domain tree SVG, tab challenges with IQ rewards
+
+---
+
+### 1. NumberAnim: How rePrevRE Feeds the Animation
+
+**Current state:** `rePrevRE` (line 103 of `08_app.js`) is set via `setRePrevRE(re24)` at line 3193 immediately BEFORE every `doAction()` call updates `reRunners`/`reOuts`. After the state update, the new `re24` is computed from the new runners/outs. So `rePrevRE` = the OLD value, and `re24` = the NEW value. This is exactly the from/to pair the animation needs.
+
+**The problem:** `rePrevRE` is never read in the render. The RE24 display at line 3249 just shows `re24.toFixed(2)` (or stars for young). It snaps instantly.
+
+**NumberAnim implementation spec:**
+
+```
+Props: { from, to, duration=500, decimals=2, prefix="", suffix="", color, fontSize }
+Internal: useRef for animationFrameId, useEffect that runs on `to` change
+Logic: on mount or `to` change, lerp from `from` to `to` over `duration` ms using requestAnimationFrame + easeOutCubic
+Display: renders a <span> with the interpolated value
+Cleanup: cancelAnimationFrame on unmount or new animation start
+```
+
+~25-30 lines. Key detail: the `from` prop should default to a ref that remembers the last rendered value, so you don't need to pass `rePrevRE` explicitly every time -- the component tracks its own "last displayed value."
+
+**Which values should animate across which tabs:**
+
+| Tab | Value | From Source | To Source | Format |
+|---|---|---|---|---|
+| RE24 Explorer | RE24 number | `rePrevRE` | `re24` (computed from `reRunners`/`reOuts`) | `X.XX` or stars for young |
+| RE24 Explorer | Inning runs (Build Your Inning) | prev `inningRuns` | new `inningRuns` | whole number |
+| Win Probability | WP% | prev `curWP` | new `curWP` (from `getWP(wpInning,wpDiff)`) | `XX%` |
+| Matchup Analyzer | Projected BA | prev `md.adjustedBA` | new `md.adjustedBA` | `.XXX` |
+| Pitch Count | Pitch count display | prev `pcCount` | new `pcCount` | whole number |
+| Pitch Count | Velocity drop | prev `veloDrop` | new `veloDrop` | `-X.X mph` |
+| Steal Calculator | Margin time | prev `margin` | new `margin` | `+X.XXs` |
+
+**For WP, Matchup, and Pitch Count:** These tabs don't have a dedicated `prev` state variable like RE24 does. The simplest approach: make NumberAnim self-tracking. Store `lastDisplayed` in a ref inside the component. When `to` changes, animate from `lastDisplayed.current` to the new `to`. This eliminates the need for `prev` state variables on every tab.
+
+**Young player (isYoung) handling:** Stars can't lerp. Two options: (a) skip animation entirely for young, just snap; (b) animate star count as a "pop" effect (scale 1 -> 1.3 -> 1 over 300ms when count changes). Option (b) is better UX, but it's a different component (StarAnim, not NumberAnim). Recommend: build NumberAnim first, add a `type="stars"` variant later if time permits. For now, young players get snap behavior.
+
+**Gotcha: rapid state changes.** A kid toggling bases quickly will queue multiple animations. The component MUST cancel the previous animation when a new one starts (via `cancelAnimationFrame`). The lerp should always start from the CURRENT interpolated position, not from `rePrevRE`, to avoid visual jumps.
+
+---
+
+### 2. Domain Tree: Per-Domain View, Not Full Graph
+
+**The numbers that drive this decision:**
+
+76 concepts across 8 domains. Domain sizes:
+- defense: ~19 nodes
+- pitching: ~13 nodes
+- strategy: ~12 nodes
+- baserunning: ~9 nodes
+- hitting: ~6 nodes
+- rules: ~5 nodes
+- mental: ~3 nodes
+- catching: ~1 node (most catcher concepts live in defense)
+
+Full graph = 76 nodes + ~90 edges. On a 320px mobile viewport, that is unreadable and laggy. Previous TPA (Risk E8) already flagged this.
+
+**Recommendation: per-domain view (7-12 nodes) with domain picker.**
+
+The domain filter buttons already exist at line 3754-3756. Replace the flat concept list (lines 3759-3791) with an SVG tree when a domain is selected, and show a domain overview grid when "All" is selected.
+
+**SVG layout algorithm (simplest that works):**
+
+Use a top-down layered layout based on prereq depth:
+1. Compute `depth` for each node: nodes with no prereqs = depth 0, nodes whose prereqs are all at depth N = depth N+1
+2. Group by depth layer
+3. X position: evenly space nodes within each layer
+4. Y position: `depth * 70px` (gives room for labels)
+5. Draw edges from each prereq to its dependent as straight lines (no Bezier needed at 7-12 nodes)
+
+For the largest domain (defense, ~19 nodes), this produces 4-5 layers. At 70px per layer, that is 280-350px tall -- fits in one screen on mobile with modest scroll. Each node is a circle (r=18) with mastery color fill + abbreviated label below.
+
+**SVG spec:**
+- ViewBox: `0 0 320 (layers*70+40)` -- full width, height scales with depth
+- Nodes: `<circle>` with mastery fill color + `<text>` label (8px, truncated to 12 chars)
+- Edges: `<line>` from parent center to child center, `stroke-opacity: 0.3`, color matching parent's mastery state
+- Tap handler: `onClick` sets `selConcept` to show the existing detail panel below the tree
+- Active node highlight: 2px stroke ring on selected node
+
+**Why NOT full graph with scroll:**
+- 76 nodes + 90 edges = ~250 SVG elements. On an iPhone SE (the budget target), this renders in ~80ms initially but becomes janky with tap handlers and repaints on mastery state changes.
+- Scroll-to-zoom adds ~40 lines of touch handler code and creates nested scrolling conflicts with the Brain tab's own scrollable container.
+- The domain filter is already built and understood by users. Switching from flat list to tree within the same filter paradigm is zero learning curve.
+
+**"All" view (no domain selected):** Show a 2x4 grid of domain cards, each showing: domain name, node count, mastery fraction (e.g., "5/19 mastered"), a tiny inline progress bar, and the domain color. Tapping a card sets `domainFilter` and renders the tree. This replaces the overwhelming 76-item flat list with a scannable dashboard.
+
+**Estimated code:** ~120 lines for the tree renderer + ~30 lines for the domain overview grid = ~150 lines total. The layout algorithm is ~25 lines (depth computation + layer positioning).
+
+---
+
+### 3. Tab Challenges: Exact Completion Conditions and IQ Values
+
+**Data structure (already stubbed):**
+
+`brainExplored[tabId].challengeDone` exists at line 3090. IQ formula at line 3094: `challengePts = Object.values(be).filter(v=>v?.challengeDone).length * 15`. So each completed challenge = 15 IQ points.
+
+**3 Starter Challenges:**
+
+**Challenge 1: RE24 "Build Your Inning" -- Score 3+ runs**
+
+- Tab: `re24`
+- Precondition: `inningMode === true` (player must click "Play an Inning" first)
+- Completion condition: `inningRuns >= 3` when `reOuts >= 3` (inning ends)
+- Detection point: Line 3196, inside the `if(newOuts>=3)` timeout callback. After computing `finalRuns`, check: `if(finalRuns >= 3 && !stats.brainExplored?.re24?.challengeDone)`
+- UI: Show a challenge banner inside the inning tracker (line 3241): "Challenge: Score 3+ runs this inning!" with a target icon
+- On completion: Set `be.re24.challengeDone = true` in stats, show toast "Challenge Complete! +15 IQ", play `snd.play('ach')`
+- Edge case: The `finalRuns` calculation at line 3196 uses `inningRuns + runsScored` where `runsScored` is from the final action. This is correct -- a bases-loaded walk that ends the inning with 3 outs would count the run. BUT there is a stale closure risk: `inningRuns` inside the `setTimeout` captures the value at the time of the action, not after the `setInningRuns` updater runs. The code already handles this correctly by using `inningRuns + runsScored` (the accumulated value plus the current action's runs). Verify this doesn't double-count.
+- Difficulty note: 3 runs in one inning is hard. MLB average is ~0.5. But the sandbox lets you choose outcomes (Single, Walk, Double), so a kid can manufacture a big inning. This is intentional -- the challenge teaches that stringing hits together is how big innings happen.
+
+**Challenge 2: Pitch Lab "Build a Sequence" -- Score 12+ points**
+
+- Tab: `pitchlab`
+- Precondition: `seqMode === true` AND `seqPitches.length >= (vocabTier>=4 ? 5 : 3)` (sequence is complete)
+- Completion condition: `scoreSeq(seqPitches).total >= 12`
+- Detection point: Line 3523, inside the `seqPitches.length >= target` conditional that already renders the score. After `const sc = scoreSeq(seqPitches)`, check: `if(sc.total >= 12 && !stats.brainExplored?.pitchlab?.challengeDone)`
+- UI: Show challenge text above the sequence builder: "Challenge: Build a 12+ point sequence!"
+- On completion: Same pattern as RE24 -- set challengeDone, toast, sound
+- Edge case: For younger players (vocabTier < 3), `seqMode` is hidden (the toggle button at line 3486 is gated at `vocabTier>=3`). This means the Pitch Lab challenge is only available to ages 11+. This is correct -- younger players should not see a challenge they cannot attempt.
+- Scoring math: Maximum possible per transition is +3 (best follow-up) +2 (eye level change) +1 (speed change) = +6. A 5-pitch sequence has 4 transitions, so max = 24. A 3-pitch sequence has 2 transitions, max = 12. So for younger players (3-pitch), 12 points requires a PERFECT sequence. Consider lowering threshold to 8 for vocabTier 3 (ages 11-12) and keeping 12 for vocabTier 4+ (ages 13+).
+
+**Challenge 3: Steal Calculator "Find the Bang-Bang Play" -- Margin within 0.05s**
+
+- Tab: `steal`
+- Precondition: Player has adjusted at least one slider (not still on default values)
+- Completion condition: `Math.abs(margin) <= 0.05` where `margin = throwTime - runnerTime`
+- Detection point: Inside the steal tab render (line 3620+), after computing `margin` at line 3630. Check on every slider change: `if(Math.abs(margin) <= 0.05 && !stats.brainExplored?.steal?.challengeDone)`
+- Additional requirement to prevent trivial completion: The player must have changed at least 2 of the 3 sliders from their default values (delivery: 1.35, pop: 2.00, runner: 3.55). Track this via a local ref or by comparing current values to defaults.
+- UI: Show challenge text below the sliders: "Challenge: Find a bang-bang play (margin < 0.05s)!"
+- On completion: Same pattern
+- Edge case: Default values (1.35 + 2.00 = 3.35 throw, 3.55 runner) give margin = -0.20, so defaults don't accidentally trigger the challenge. Good. But a kid could just nudge one slider by 0.05 to hit 0.05 margin. The "must change 2+ sliders" guard prevents trivial solutions.
+- Teaching value: This challenge teaches that stolen base outcomes are decided by fractions of a second. The kid has to understand what each variable does to find the sweet spot.
+
+**IQ Reward Structure:**
+
+| Challenge | IQ Points | Rationale |
+|---|---|---|
+| RE24: Score 3+ runs | 15 | Standard per existing formula at line 3094 |
+| Pitch Lab: 12+ sequence | 15 | Same |
+| Steal: Bang-bang play | 15 | Same |
+
+The existing formula `challengePts = completedCount * 15` means all challenges are worth the same. This is fine for now. If later challenges are harder, consider a `challengePoints` field per tab in BRAIN_TABS (line 3138) instead of the flat 15.
+
+**Total IQ impact:** A player who completes all 3 challenges earns 45 IQ points. Combined with tab visits (11 tabs * 5 = 55) and interactions (capped at 10 per tab = 110 max), the theoretical IQ ceiling is 55 + 110 + 45 = 210, clamped to 200 by `Math.min(200, ...)` at line 3095.
+
+---
+
+### 4. Risks and Edge Cases
+
+**Risk 1: NumberAnim requestAnimationFrame leak on unmount**
+
+If a player navigates away from the Brain screen mid-animation, the rAF callback will try to update state on an unmounted component. React will log a warning. Fix: the useEffect cleanup MUST call `cancelAnimationFrame`. This is standard but easy to forget in a compact codebase.
+
+**Risk 2: NumberAnim + isYoung star display**
+
+The RE24 tab renders stars for young players (line 3249): `"stars".repeat(Math.max(1,Math.round(re24/0.5)))`. NumberAnim cannot interpolate between star strings. The main agent must either: (a) skip NumberAnim for `isYoung` on RE24 and use a CSS scale pulse instead, or (b) have NumberAnim accept a `renderValue` prop that converts the interpolated number to stars. Option (a) is simpler and recommended.
+
+**Risk 3: Domain tree layout for defense domain (19 nodes)**
+
+Defense has the most concepts and the deepest prereq chains (force-vs-tag -> cutoff-roles -> bunt-defense -> no further, max depth 3). With 19 nodes across 4 layers on a 320px viewport, horizontal spacing gets tight. At layer depth 2, there could be 6-7 nodes sharing 320px width = ~46px per node. With 18px radius circles and 8px labels, this BARELY fits. Mitigation: allow horizontal scroll within the SVG for domains with >12 nodes, or use a narrower node radius (14px) for large domains.
+
+**Risk 4: Challenge detection timing for Build Your Inning**
+
+The inning-over logic at line 3196 runs inside a `setTimeout(1500)`. The `inningRuns` value captured in the closure is the value BEFORE `setInningRuns` processes. The code compensates by using `inningRuns + runsScored`. But if the challenge check also needs to update `brainExplored.re24.challengeDone`, that update must happen inside the same `setStats` call or in a subsequent one. Do NOT read `stats.brainExplored?.re24?.challengeDone` from the closure -- it may be stale. Instead, use the functional form: `setStats(p => { if(p.brainExplored?.re24?.challengeDone) return p; ... })`.
+
+**Risk 5: Pitch Lab challenge threshold too high for vocabTier 3**
+
+As noted above, 12 points on a 3-pitch sequence requires a perfect score. Consider: `threshold = vocabTier >= 4 ? 12 : 8` to make the challenge achievable but non-trivial for younger advanced players.
+
+**Risk 6: Steal challenge with pitch clock toggle**
+
+The steal margin changes when pitch clock is toggled (line 3628: `effectiveDT = showPitchClock ? deliveryTime : deliveryTime - sw.pitchClockEffect`). A player could toggle the clock to change the margin without understanding the sliders. Consider: require at least one SLIDER change (not just clock toggle) to count toward the challenge.
+
+**Risk 7: brainExplored.challengeDone persists forever**
+
+Once `challengeDone` is set, it never resets. This is correct for IQ (you earned it), but means there is no replay incentive. Consider adding a `challengeBest` field (e.g., `re24.challengeBest = 5` for runs scored) so players can beat their own record even after the IQ reward is claimed. This is a nice-to-have, not a blocker.
+
+**Risk 8: Tree SVG edge overlap at deep prereq chains**
+
+Some concepts have 2 prereqs from different depths (e.g., `baserunning-rates` prereqs `tag-up` at depth 1 and `steal-breakeven` at depth 0). Edges crossing layers will overlap other nodes. Mitigation: draw edges with `pointer-events: none` and low opacity (0.2-0.3). At 7-12 nodes per domain, the crossing count is low enough that this is acceptable without a proper edge-routing algorithm.
+
+---
+
+### Quick Reference: Implementation Order
+
+1. **NumberAnim component** (~30 lines) -- standalone, no dependencies, used by all other work
+2. **Challenge detection + IQ rewards** (~50 lines across 3 tabs) -- uses existing state, straightforward conditionals
+3. **Domain tree SVG** (~150 lines) -- most complex, should come last when the other two are stable
+
+This order minimizes risk: NumberAnim is self-contained and immediately testable. Challenges are simple conditionals in existing code paths. The tree is the most likely to need iteration.
+
+---
+
+## Comprehensive TPA Audit Checklist (Final)
+
+**Date:** 2026-03-24 | **Auditor:** Thought Partner Agent | **Scope:** Cross-reference ALL TPA recommendations against current codebase state
+
+### Legend
+- [x] = DONE and verified in code
+- [ ] = NOT DONE -- needs implementation
+- [~] = PARTIALLY DONE -- details on what is missing
+
+---
+
+### A. Critical Fixes (from Baseball Brain Build Review TPA)
+
+- [x] **A-HOOKS: Hoist all Brain useState to top level** (DONE - lines 99-137 of `src/08_app.js`, all 37 Brain useState calls are unconditional at top of App())
+- [x] **A-SORT: reRunners.sort() mutation fix** (DONE - line 3241 uses `[...reRunners].sort()`)
+- [x] **A-IQ-CALC: BrainIQ calculation is no longer circular** (DONE - line 3095: `tabsVisited*5 + interactionPts + challengePts`, proper scoring function)
+- [x] **A-PRESTIGE: brainExplored survives prestige reset** (DONE - prestige reset at line 2423 only clears specific fields; brainExplored persists by default)
+- [x] **A1: First-visit onboarding overlay** (DONE - lines 3153-3160, checks `_onboarded` in brainExplored, "Welcome to Baseball Brain!" with "Got it!" dismiss)
+- [x] **A2: Baseball IQ display in Brain header** (DONE - lines 3168-3171, shows raw IQ number + title + color-coded)
+- [x] **A3: Enlarged tap targets on RE24 diamond** (DONE - line 3217 uses 220x170 SVG, line 3229 adds invisible 36x36 hit area rects around bases)
+- [x] **A4: Tab strip scroll indicator fade** (DONE - line 3175 uses `maskImage: linear-gradient` for fade)
+- [x] **A8: Empty-state prompt for RE24** (DONE - line 3213, shows "Tap a base to put a runner on!" when no runners and no last action)
+
+### B. Engagement Features (from Gamification Review TPA)
+
+- [x] **B1: Build Your Inning sandbox** (DONE - lines 3242-3251, `inningMode`/`inningRuns`/`inningActions` state, tracks runs through 3 outs, inning-over logic at line 3195-3204)
+- [x] **B2: NumberAnim component** (DONE - `src/07_components.js` lines 2-22, uses requestAnimationFrame + easeOutCubic, self-tracking via `prevVal` ref, proper cleanup)
+- [x] **B2-USAGE-RE24: NumberAnim on RE24 display** (DONE - line 3255 uses `<NumberAnim value={re24} decimals={2}/>`)
+- [x] **B2-USAGE-WP: NumberAnim on Win Probability** (DONE - line 3948 uses `<NumberAnim value={Math.round(curWP*100)} decimals={0} suffix="%"/>`)
+- [x] **B2-USAGE-MATCHUP: NumberAnim on Matchup Analyzer** (DONE - line 4052 uses `<NumberAnim value={Math.round(md.adjustedBA*1000)} decimals={0}/>`)
+- [ ] **B2-USAGE-PITCHCOUNT: NumberAnim on Pitch Count display** (NOT DONE - line 3889 still uses plain text `{pcCount}` in the speedometer SVG, not NumberAnim)
+- [x] **B3: Cross-tab navigation helper** (DONE - `navigateBrain()` at line 3110, handles runners, count, inning, pitcher/batter, park, preset state pre-loading)
+- [x] **B3-LINKS: Cross-tab link buttons on tabs** (DONE - at least 4 links found: RE24->Steal at line 3328, RE24->Counts at line 3331, Steal->Counts at line 3626, Steal->RE24 at line 3730)
+- [~] **B3-BIDIRECTIONAL: Cross-links on ALL tabs** (PARTIAL - RE24, Steal, and Pitch Lab tabs have cross-links. Counts, WinProb, Matchup, Park, Defense, History, Concepts tabs do NOT have outbound navigateBrain links visible in the code)
+- [x] **B4: "Test Yourself" buttons** (DONE - `launchQuizFromBrain()` at line 3128, buttons on RE24 (3336), Steal (3627, 3731), PitchCount (3928), WinProb (4017). Finds scenarios by conceptTag or concept string match)
+- [ ] **B4-GRACEFUL: "Test Yourself" with 0 matching scenarios** (NOT DONE - `launchQuizFromBrain` at line 3129-3130 calls `findScenarioForConcept` which returns null when no match. If null, the function does nothing silently -- no "No challenges available yet" message to the user)
+- [x] **B5: Daily Brain Facts on home screen** (DONE - `BRAIN_FACTS` array at line 1980, daily rotation at line 2002-2003, "Did you know?" display on home screen at line 2007)
+- [x] **B6: Tap sound on Brain interactions** (DONE - `snd.play('tap')` called throughout Brain tabs, e.g., line 3193 on What-If actions, line 3227 on base toggles, line 3517 on pitch throw)
+
+### C. Visual Polish (from Sprint E TPA)
+
+- [x] **C1/E3: Pitch trajectory SVGs** (DONE - lines 3494-3521, 8 pitch paths defined in `paths` object, SVG with side view, "Throw!" button with animateMotion, dashed preview line)
+- [x] **C2/E4: Steal race animation** (DONE - lines 3663-3695, two bars (throw vs runner) with animated width, "Race!" button, stealRacing state)
+- [x] **C3/E5: Speedometer gauge** (DONE - lines 3874-3895, 5 arc segments, needle with angle math, young-friendly labels, slider input)
+- [x] **C4: Tab mastery rings on tab strip** (DONE - lines 3177-3182, `ring` computed from visitCount + interactions, small colored dot indicator at top-right of tab)
+- [x] **E6: Domain tree visualization** (DONE - lines 3779-3821, per-domain SVG tree with depth-based layout, prerequisite edge lines, mastery-colored nodes, click to select)
+- [x] **E7: WP line graph across innings** (DONE - lines 3965-3989, polyline SVG with multi-line for selected diff + tied, data points with WP% labels, inning axis)
+- [ ] **C4-RINGS-SVG: Tab mastery rings as SVG arcs** (NOT DONE - TPA recommended SVG arc rings around tab icons. Current implementation uses a small 8x8 colored dot at top-right corner, not a ring/arc. Functional but not the "gotta fill 'em all" visual the TPA described)
+- [ ] **E3-TUNNEL: Pitch tunnel point visualization** (NOT DONE - TPA spec called for a "tunnel zone" rectangle at x=120-160 with text label showing where pitches look identical before diverging. The current pitch trajectory SVG shows individual pitch paths but no tunnel point overlay)
+- [ ] **E3-SLOWMO: Slow-motion toggle for pitch throw** (NOT DONE - TPA spec called for a slow-motion toggle changing animation duration to 2.5s. Current "Throw!" button at line 3517 always uses 1.2s dur. No slow-motion option)
+
+### D. Content & Gamification
+
+- [x] **D-DOUBLE: "Double" What-If button** (DONE - line 3322, `doAction("Double",...)` with runner advancement logic)
+- [x] **E8: Tab challenges (RE24, Pitch Lab, Steal)** (DONE - RE24 challenge at line 3198 "Score 3+ runs", Pitch Lab challenge at line 3532 with age-adjusted threshold (8 for vocabTier<4, 12 for vocabTier>=4), Steal challenge at line 3669 "margin <= 0.05s")
+- [x] **E8-IQ: Challenge completion awards IQ** (DONE - each challenge sets `challengeDone=true` in brainExplored and recalculates IQ with `challengePts = completedCount * 15`)
+- [ ] **D-ACHIEVEMENTS: Brain-specific achievements** (NOT DONE - ACHS array at `src/03_config.js` lines 20-36 has 15 general gameplay achievements. None are Brain-specific. TPA recommended 5-10 earned achievements: "Aha Moment", "The Numbers Don't Lie", "Pitch Caller", "What If?", "Brain Before Brawn", etc. None exist)
+- [ ] **D-FAMOUS: Additional Famous Moments** (UNKNOWN - would need to check history tab content to verify if Buckner, Gibson HR, Bumgarner, Pine Tar Game, Jeter flip were added. The `selMoment` / `momentChoice` state exists and the history tab renders at line 4238)
+- [ ] **D-SHARE: Share button for Brain facts/stats** (NOT DONE - no clipboard/share functionality found within Brain tabs. The player card generator exists at `src/03_config.js` line 58 but is for profile sharing, not Brain tab data)
+
+### E. Edge Cases (from E11 TPA recommendations)
+
+- [x] **E11-DEBOUNCE: IQ visit debounce (2s dwell)** (DONE - lines 3085-3098, `brainVisitTimer` ref with `setTimeout(2000)`, clears previous timer on rapid switches)
+- [x] **E11-PRACTICE0: "Practice This" with 0 matching scenarios** (DONE - line 3850, the ternary checks `scens.length>0` and renders "No challenges available yet" span when no scenarios match)
+- [ ] **E11-DEEPLINK-AGE: Deep links to age-locked tabs** (NOT DONE - `enrichFeedback` at line 1150 of `05_brain.js` can return `deepLink:{tab:"matchup",minAge:11}` for the matchup insight. The outcome screen at line 4695 DOES check `!ins.deepLink.minAge||ageNum>=ins.deepLink.minAge` before rendering the "Explore" button. HOWEVER, only the matchup insight at line 1150 has `minAge` in its deepLink. Other insights pointing to age-gated tabs (defense minAge:9) do NOT include `minAge` in their deepLink objects. For example, line 1155 links to `tab:"defense"` without minAge. A 7-year-old could see a defense deep link even though the defense tab has `minAge:9`)
+- [ ] **E11-BRAINEXP-PASS: enrichFeedback receives brainExplored** (DONE - line 4700 passes 6 args: `enrichFeedback(sc,choice,sc.situation,ageNum,stats.masteryData,stats.brainExplored)`. The function signature at `05_brain.js` line 1050 accepts all 6. The `hasBrainExp` helper at line 1054 uses it for personalized text prefixes)
+- [x] **E11-STALE-CLOSURE: Inning-over challenge detection uses correct run count** (DONE - line 3196 uses `inningRuns + runsScored` to compute `finalRuns` before the state update, avoiding stale closure)
+
+### F. enrichFeedback Deep Links (from Gamification Review TPA)
+
+- [x] **F1: deepLink objects generated by enrichFeedback** (DONE - `src/05_brain.js` lines 1063-1155, approximately 15 insight types include `deepLink:{tab,state}` objects)
+- [x] **F2: Deep links rendered as tappable on outcome screen** (DONE - line 4695 of `src/08_app.js`, each insight with a deepLink gets an "Explore ->" button that calls `setBrainTab`, sets state, and navigates to Brain screen)
+- [x] **F3: Deep links set pre-loaded state** (DONE - line 4695 handles `runners`, `outs`, `count`, `inning`, `diff` from the deepLink state object)
+- [~] **F4: Brain exploration personalizes enrichFeedback text** (PARTIAL - line 1054 of `05_brain.js` defines `hasBrainExp(tab)` that checks `interactions >= 3`. Used on RE24 insight (line 1063: "Remember your RE24 Explorer experiments") and Steal insight (line 1078: "Like you saw in the Steal Calculator"). But only 2 of ~15 insight types have personalized prefixes. The TPA recommended ALL insight types reference exploration history when available)
+
+### G. Game Film / Animation System
+
+- [x] **G1: ANIM_DATA architecture** (DONE - `src/03_config.js` line 276, 11+ animation types defined as phase arrays)
+- [x] **G2: AnimPhases renderer** (DONE - `src/07_components.js` line 574+, renders ANIM_DATA phases as SVG+SMIL)
+- [x] **G3: Direction variants defined** (DONE - steal_2to3, steal_3toHome, advance_2to3, advance_3toHome, throwHome_OF, hit_CF, hit_LF, flyout_CF, flyout_LF, groundout_1B all defined in ANIM_DATA)
+- [x] **G4: Direction variants computed at render** (DONE - lines 4533-4559 of `src/08_app.js`, computes variant based on runners + position (steal direction, hit/flyout field side, groundout side))
+- [x] **G5: Field component accepts animVariant** (DONE - line 90 of `src/07_components.js`, Field prop destructuring includes `animVariant`)
+- [x] **G6: Variant lookup chain in Field** (DONE - lines 466-470: tries `dirVariant` -> `pitchVariant` -> `dataKey` -> `altKey` -> falls through to inline SMIL)
+- [x] **G7: Replay sounds** (DONE - batCrack, glovePop, slideDust, umpSafe, umpOut at lines 48-53 of `src/07_components.js`)
+- [x] **G8: Per-phase pacing (fast-slow-fast)** (DONE - per TPA CI1 in shipped section, setup 2x, key moment 3.5x, resolution 2.5x)
+- [x] **G9: Ghost/failure comparison** (DONE - per TPA AF2/CI2, GhostPhases renderer, "Compare" button)
+- [x] **G10: Highlight reel** (DONE - stats.highlights tracked, replay at line 2120)
+- [ ] **G11: Scenario-specific animVariant in scenario data** (NOT DONE - TPA recommended adding `animVariant` field to individual scenario objects in SCENARIOS data, e.g., `anim:"groundout", animVariant:"5-3"`. Currently, variants are computed at render time from runner/position context only, not from scenario metadata. No scenarios in SCENARIOS object have an explicit `animVariant` field beyond `pitchType`)
+- [ ] **G12: prefers-reduced-motion support** (NOT DONE - TPA recommended showing static field when user has motion reduction enabled. No `matchMedia('(prefers-reduced-motion: reduce)')` check found anywhere)
+- [ ] **G13: Aria labels for replay SVG** (NOT DONE - no `aria-label` or `role="img"` with descriptive text on Field SVG or animation elements)
+
+### H. UX Issues Identified but NOT Addressed
+
+- [~] **H1: Touch targets on RE24 outs buttons** (PARTIAL - line 3240: outs buttons are 28x28px, below 44px minimum. The BASE targets at line 3229 were enlarged with invisible 36x36 hit areas, but outs buttons were not enlarged)
+- [ ] **H2: Color-blind accessibility on count grid** (NOT DONE - count cells use green/red/yellow color alone to distinguish hitter/pitcher/neutral. No text labels, icons, or patterns as secondary indicators. TPA flagged 8% of boys have color vision deficiency)
+- [ ] **H3: Count grid cell size proportional to frequency** (NOT DONE - all 12 count cells are the same size. TPA recommended size-coding by frequency (0-0 occurs 100% vs 3-2 at ~15%))
+- [ ] **H4: RE24 number context bar** (NOT DONE - TPA recommended a visual bar showing where the RE24 value falls in the 0.11 to 2.29 range. Currently just shows the number)
+- [ ] **H5: Haptic feedback broadly** (PARTIAL - `navigator.vibrate?.(10)` found only on the Steal "Race!" button at line 3667. TPA recommended haptic on all base toggles, slider drags, and button taps across all Brain tabs. Only 1 of many interaction points has haptic)
+- [ ] **H6: Perspective toggle visible at vocabTier 2** (NOT DONE - TPA recommended showing the hitter/pitcher perspective toggle for ages 9-10. Currently hidden for vocabTier < 3)
+- [ ] **H7: Youth bunt disclaimer on RE24** (NOT DONE - TPA flagged that RE24 bunt data uses MLB numbers which are misleading for youth. No age-adjusted bunt cost display or disclaimer found in the RE24 tab)
+- [ ] **H8: Youth steal break-even adjustment** (NOT DONE - TPA flagged that steal break-even uses MLB 72%. Youth should use 50% per `levelAdjustments`. No age-conditional break-even found in RE24 or Steal tabs)
+- [ ] **H9: "Run on contact with 2 outs" highlight** (NOT DONE - TPA recommended auto-highlighting this teaching point when outs=2. Not implemented)
+
+### I. Shared Components / Patterns
+
+- [x] **P1: NumberAnim component** (DONE - `src/07_components.js` lines 2-22)
+- [ ] **P2: BrainSlider component** (NOT DONE - steal sliders, pitch count slider, etc. are all one-off HTML range inputs. No shared styled slider component)
+- [ ] **P3: BrainDetailPanel component** (NOT DONE - each tab hand-builds its own detail panels inline)
+- [ ] **P4: BrainStatBox component** (NOT DONE - stat boxes are hand-built inline per tab, not extracted)
+- [ ] **P5: AgeAdaptiveText helper** (NOT DONE - dozens of inline ternaries for `isYoung?X:Y` throughout Brain tabs. No shared helper function)
+- [ ] **P6: BrainTeachingMoment component** (NOT DONE - no shared teaching moment component)
+- [ ] **P7: Top-level Brain state management** (DONE - all Brain state is hoisted to App() top level at lines 99-137. However, not using a reducer pattern despite 37+ useState calls)
+
+### J. IQ / Gamification Display
+
+- [x] **J1: IQ score displayed in Brain header** (DONE - line 3169, shows raw number)
+- [x] **J2: IQ title displayed** (DONE - line 3170, shows title like "Dugout Analyst")
+- [ ] **J3: IQ shows title + progress bar, hides raw number** (NOT DONE - TPA recommended showing ONLY the title + progress bar to next title, hiding the raw number to avoid "low number = dumb" association. Currently shows the raw IQ number prominently at fontSize 18, with the title as tiny 7px text below it. The TPA recommended the OPPOSITE emphasis)
+- [ ] **J4: IQ on home screen** (NOT DONE - IQ is only visible inside the Brain section header. TPA recommended showing IQ title on the home screen to drive Brain visits)
+- [ ] **J5: IQ non-linear scaling for early progress** (NOT DONE - TPA recommended first 60 IQ points come fast. Current formula is linear: `tabs*5 + interactions(capped 10/tab) + challenges*15`. A kid visiting 2 tabs with 3 interactions each gets 10+6=16 IQ. Visiting all 11 tabs gets 55 IQ just from visits. The early progression feels reasonable but there is no explicit non-linear curve)
+- [ ] **J6: Age-adaptive gamification (6-8 sees stars, no IQ)** (NOT DONE - TPA recommended hiding IQ for ages 6-8, showing only stars. Currently all ages see the same IQ display)
+
+### K. Missing Features from Plan (Not Built)
+
+- [ ] **K1: "Build Your Inning" sandbox comparison mode** (NOT DONE - plan specified side-by-side steal outcome comparison. Not implemented)
+- [ ] **K2: Count Journey animated mode** (NOT DONE - plan called for animated at-bat walkthrough)
+- [ ] **K3: Count Heat Map** (NOT DONE - plan described color-gradient heat map showing BA across all counts)
+- [ ] **K4: RE24 full heatmap for vocabTier >= 4** (NOT DONE - TPA recommended heatmap with cell background gradients for the full RE24 matrix table. Not implemented)
+- [ ] **K5: Coach Film Voice Lines** (NOT DONE - planned timed annotations like "Watch the runner's jump..." during game film. Not implemented)
+- [ ] **K6: Play-by-Play Text Labels during replay** (NOT DONE - planned timed text annotations during animation replay. Not implemented)
+- [ ] **K7: Speed Control Slider for replay** (NOT DONE - planned 0.5x/1x/2x speed control. Currently only has tap-to-pause)
+- [ ] **K8: Fielder Repositioning Pre-Animation** (NOT DONE - planned 0.5s pre-animation showing fielders shifting to correct positions)
+- [ ] **K9: "What Happened Next" continuation** (NOT DONE - planned downstream impact display after replay)
+
+### Summary Statistics
+
+**DONE:** 38 items
+**PARTIALLY DONE:** 5 items
+**NOT DONE:** 35 items
+
+**Highest priority NOT DONE items (by impact):**
+1. **Brain-specific achievements** (D-ACHIEVEMENTS) -- drives long-term engagement, ~35 lines
+2. **IQ title emphasis over raw number** (J3) -- prevents "low = dumb" psychology, ~5 lines
+3. **Deep link minAge on ALL age-gated tabs** (E11-DEEPLINK-AGE) -- bug for young players, ~10 lines
+4. **Cross-tab links on ALL tabs** (B3-BIDIRECTIONAL) -- currently only 3 of 11 tabs have outbound links
+5. **Haptic feedback broadly** (H5) -- currently only on 1 button, ~10 lines to add everywhere
+6. **Youth bunt/steal disclaimers** (H7, H8) -- misleading MLB data shown to kids
+7. **Tab mastery rings as actual rings** (C4-RINGS-SVG) -- dots are functional but less motivating than the "fill the ring" visual
+8. **Pitch tunnel point visualization** (E3-TUNNEL) -- key teaching concept, ~10 lines
+9. **Color-blind accessibility** (H2) -- 8% of male users affected
+10. **NumberAnim on Pitch Count** (B2-USAGE-PITCHCOUNT) -- consistency, ~1 line
+
+---
+
+## AI Generation Audit -- TPA Deep Analysis (2026-03-25)
+
+### Finding 1: Score Convention is a 4-Way Contradiction (CRITICAL)
+
+The score array convention is contradicted in at least 4 different places across the codebase. This is the most dangerous inconsistency found.
+
+**Handcrafted scenarios use `score=[HOME, AWAY]`:**
+- Scenario b1: "down 2-1" in Bot 7, score:[1,2] -- home=1, away=2, home is losing. Correct for [HOME,AWAY].
+- Scenario p55: "up 6-4" in Bot 8 (pitcher=away), score:[4,6] -- home=4, away=6, away pitcher's team leads. Correct for [HOME,AWAY].
+
+**Client-side AI prompts say `score=[HOME, AWAY]`:**
+- Line 10577: `score=[HOME, AWAY]. Home team bats in "Bot" half`
+- Line 11527: same
+- Line 11549: `score=[HOME,AWAY]`
+
+**Worker multi-agent pipeline says `score=[AWAY, HOME]`:**
+- Line 3308 (PLANNER_SYSTEM): `score as [away, home]`
+- Line 3331-3333 (GENERATOR_SYSTEM): Confused self-correction: "score[0]=away, score[1]=home"
+- Line 3365 (CRITIC_SYSTEM): `score[0]=away, score[1]=home`
+- Line 3447 (REWRITER_SYSTEM): `score[0]=away, score[1]=home`
+
+**Worker batch/variant endpoints say `score=[HOME, AWAY]`:**
+- Line 2512: `score=[HOME,AWAY]`
+- Line 2653: `score=[HOME,AWAY]`
+
+**Client-side QUALITY_FIREWALL has BOTH conventions:**
+- Line 8741 (scoreInningPerspective): `const [away, home] = sit.score` -- treats as [AWAY,HOME]
+- Line 9146 (gradeScenario description check): `const [home, away] = s.score` -- treats as [HOME,AWAY]
+
+**Severity: CRITICAL.** The multi-agent pipeline (Claude Opus) generates scenarios with [AWAY,HOME], the handcrafted corpus uses [HOME,AWAY], and the QUALITY_FIREWALL destructures the score both ways in different functions. This means:
+1. AI-generated scenarios from the multi-agent pipeline will have INVERTED scores compared to handcrafted ones.
+2. The Critic checks the score against [AWAY,HOME] and may PASS scenarios that are actually wrong per the handcrafted convention.
+3. The client-side QUALITY_FIREWALL scoreInningPerspective check destructures as [AWAY,HOME], so it will incorrectly validate multi-agent scenarios and incorrectly reject handcrafted ones (or vice versa, depending on which is "right").
+4. The `gradeScenario` function uses the OPPOSITE convention from `scoreInningPerspective`, so these two checks can never agree.
+
+**Recommendation:** The handcrafted scenarios and the majority of client-side code say [HOME,AWAY]. The multi-agent pipeline in the worker is the outlier. Fix the worker pipeline prompts to say [HOME,AWAY] and fix the QUALITY_FIREWALL scoreInningPerspective to use `const [home, away] = sit.score`.
+
+---
+
+### Finding 2: GENERATOR_SYSTEM Has a Confused Self-Correction (HIGH)
+
+Worker line 3331-3333 shows the Generator prompt literally arguing with itself:
+```
+"Bot 7, score [3, 5]" means AWAY leads 3-5... wait, no: score = [away, home], so away=3, home=5, home leads.
+Actually: score[0] = away, score[1] = home. Bot = home bats. Top = away bats.
+```
+
+This "wait, no... Actually:" pattern is being sent directly to the LLM. An LLM seeing "AWAY leads... wait, no... home leads" has conflicting signals. This self-correction pattern likely confuses the model rather than clarifying. The prompt should state the convention once, clearly, without showing the thought process of someone figuring it out.
+
+**Severity: HIGH.** This is in the system prompt that Claude Opus reads for every multi-agent generation.
+
+---
+
+### Finding 3: A/B Test `agent_pipeline` Stuck at 100% Agent (MEDIUM)
+
+`AB_TESTS.agent_pipeline` (line 9441-9446) has a single variant with weight 100:
+```
+{ id: "agent", weight: 100, config: { useAgent: true } }
+```
+
+This means:
+- There is no control group. No data can be collected on whether the agent pipeline is better than standard.
+- The A/B test framework allocates the user to a variant using weighted random selection, but with only one variant at 100%, every user gets the agent pipeline.
+- This is technically correct if the agent pipeline is proven better, but it defeats the purpose of having an A/B test entry for it. Either remove the A/B test or add a control variant.
+
+**Severity: MEDIUM.** No data collection impact, but dead code obscures intent.
+
+---
+
+### Finding 4: OPTION_ARCHETYPES Coverage Analysis (LOW)
+
+Counted 72+ archetypes across positions. Distribution by position:
+- **pitcher**: 8 archetypes (first-pitch-strike, count-leverage, pickoff-mechanics, cutoff-roles, bunt-defense, pitch-calling, pitch-count-awareness, holding-runners, pitching-from-stretch, balk-rule) -- well covered
+- **catcher**: 9 archetypes (catcher-framing, steal-breakeven, first-third, cutoff-roles, blocking, throw-to-base, pitchout, pitch-calling, wild-pitch-passed-ball) -- well covered
+- **batter**: 7 archetypes (two-strike-approach, count-leverage, situational-hitting, hit-and-run, sacrifice-bunt, first-pitch-strike, hitters-count) -- well covered
+- **baserunner**: 8 archetypes (tag-up, force-vs-tag, secondary-lead, steal-breakeven, steal-window, lead-distance, first-to-third, tag-up-rules, pickoff-mechanics, squeeze-play) -- well covered
+- **manager**: 7 archetypes (times-through-order, cutoff-roles, bunt-defense, pitching-change, intentional-walk, defensive-positioning, pinch-hitter, steal-sign, mound-visit) -- well covered
+- **shortstop**: 5 archetypes -- well covered
+- **secondBase**: 4 archetypes -- adequate
+- **thirdBase**: 4 archetypes -- adequate
+- **firstBase**: 3 archetypes -- slightly thin
+- **leftField**: 3 archetypes -- slightly thin
+- **rightField**: 3 archetypes -- slightly thin
+- **centerField**: 3 archetypes -- slightly thin
+
+**Gaps:** No archetypes exist for the `famous`, `rules`, or `counts` position categories. These 3 categories have 89 combined scenarios (21+40+28) but zero archetypes to guide AI generation. If AI generation is ever requested for these positions, the archetype lookup returns `undefined` and the OPTION BLUEPRINT section is silently omitted.
+
+**Severity: LOW.** Outfield and corner infield positions have fewer archetypes but this matches their smaller scenario corpus. The `famous/rules/counts` gap matters only if AI scenarios are generated for those categories.
+
+---
+
+### Finding 5: Few-Shot Examples Are High Quality But Have One Issue (LOW)
+
+The `AI_FEW_SHOT_EXAMPLES` at line 5807 contain 3 pitcher, 3 fielder, 3 batter, 4 baserunner, and 4 manager examples. Quality is generally excellent:
+- All use 2nd person correctly
+- Explanations are specific and teach genuine concepts
+- Rate distributions follow the guidelines (best >= 75, one yellow 40-65)
+- All include `explSimple` equivalent quality
+
+**Issue found:** The fielder few-shot example at line 5814 ("Gap Ball Communication") has `count:"-"` which is a placeholder that the QUALITY_FIREWALL explicitly rejects at line 8730 (`if (count === "-") return "Count placeholder"`). The few-shot examples are teaching the AI that `count:"-"` is acceptable, but the firewall will reject scenarios that use it. This creates a "do as I say, not as I do" conflict.
+
+Two other fielder and all manager few-shot examples also use `count:"-"`. This is actually reasonable for fielder/manager scenarios where the count is irrelevant to the decision, but it conflicts with the firewall check.
+
+**Severity: LOW.** The few-shot examples using `count:"-"` may cause AI to generate scenarios that the firewall then rejects, wasting an API call.
+
+---
+
+### Finding 6: Self-Audit Data Flow is Working But Has Gaps (MEDIUM)
+
+The self-audit system (lines 12100-12150) does the following:
+1. After generating an AI scenario, sends it to xAI for a quick 1-5 quality rating across 4 dimensions (realistic, options, coach, tone)
+2. Logs the score to console
+3. Fires a POST to `/analytics/ai-audit` on the worker (fire-and-forget)
+4. If score < 3, rejects the scenario and retries
+
+**The data IS going somewhere useful:** The worker has an `/analytics/ai-audit` endpoint that stores results, and the client fetches weak spots from it at line 11223-11275 to inject into future AI prompts. This creates a feedback loop.
+
+**Gaps found:**
+- The self-audit uses the xAI standard API for grading, NOT the multi-agent pipeline. So when the primary Claude pipeline generates a scenario, it gets graded by xAI Grok. This cross-model grading may miss model-specific quality issues.
+- The 4 grading dimensions (realistic, options, coach, tone) do NOT match the multi-agent pipeline's 6 dimensions (factualAccuracy, explanationStrength, ageAppropriateness, educationalValue, varietyDistinctness, conceptClarity). Quality signals are fragmented across incompatible rubrics.
+- The self-audit has a 5-second timeout (line 12136). If it times out, no quality data is recorded. In high-latency conditions, many scenarios may ship without any quality score.
+
+**Severity: MEDIUM.** The feedback loop exists but the dimension mismatch means weak spots discovered by the self-audit may not correspond to dimensions the multi-agent Critic evaluates.
+
+---
+
+### Finding 7: Local Pool Has No Age-Based Eviction (LOW)
+
+The `saveToLocalPool` function (line 12766) stores scenarios with a `savedAt` timestamp and caps at 75 entries. Eviction is purely FIFO (`pool.shift()`). However:
+
+- There is no quality-based eviction. A scenario with `auditScore: 2` is treated the same as `auditScore: 5`.
+- There is no staleness eviction by age. A scenario saved 30 days ago is consumed just as readily as one from 5 minutes ago (unlike the prefetch cache which has a 5-minute staleness window at line 12975).
+- The quality field is stored (`quality: scenario.qualityGrade || 0`) but never read during consumption.
+- `consumeFromLocalPool` filters by position and difficulty but never by quality or age.
+
+**Severity: LOW.** The pool max of 75 is small enough that old scenarios cycle out naturally. But if a player doesn't use AI scenarios for weeks, the pool contains stale content that may reference outdated rules or have lower quality than current generation.
+
+---
+
+### Finding 8: Prefetch Race Condition -- In-Flight Promise Handling (MEDIUM)
+
+At line 15041-15049, when no cached scenario is available, the code checks for an in-flight prefetch promise:
+```
+const inFlight = aiCacheRef.current?.inFlightPromise?.[p]
+if (inFlight) {
+  const prefetchResult = await Promise.race([
+    inFlight,
+    new Promise((_, rej) => setTimeout(() => rej(new Error("prefetch-wait-timeout")), 30000))
+  ])
+```
+
+**Race condition scenario:**
+1. Player clicks "AI Coach's Challenge"
+2. No cached scenario exists, but prefetch is in-flight
+3. Code awaits the in-flight promise with 30s timeout
+4. While waiting, the player switches position (which calls `cancelPrefetchExcept`)
+5. The AbortController aborts the in-flight fetch
+6. But the Promise.race doesn't check if the abort happened -- it just catches the error
+7. The error path falls through to live generation for the NEW position, which is correct
+
+Actually, looking more carefully, the abort propagates correctly because the `generateAIScenario` call that created the in-flight promise respects the AbortController signal. When aborted, the promise rejects, which the Promise.race catches, and the code falls through to live generation. This is handled correctly.
+
+**However**, there is a subtle issue: `_prefetchControllers` is module-level (line 12885), while `aiCacheRef` is a React ref (line 14221). If multiple rapid position switches happen, the `cancelPrefetchExcept` function cleans up `_prefetchControllers` but the `inFlightPromise` reference on `aiCacheRef` may still point to the old (now-aborted) promise. The next read of `aiCacheRef.current?.inFlightPromise?.[p]` could get a stale promise for a different position. This is mitigated by the position key `[p]`, but if the player switches back to the original position before the abort propagates, they could await a promise that is in the process of being aborted.
+
+**Severity: MEDIUM.** Edge case that requires rapid position switching. Impact is a delayed/failed AI scenario, not data corruption.
+
+---
+
+### Finding 9: POS_ACTIONS Defined Twice in Separate Pipelines (LOW)
+
+The `POS_ACTIONS` object mapping position names to allowed actions is defined independently in two places:
+- Line 10587-10600 (agent pipeline prompt construction)
+- Line 11551-11564 (standard pipeline prompt construction)
+
+These are identical currently, but if one is updated and the other is not, the pipelines would disagree on what actions a position can take. This should be a single shared constant.
+
+**Severity: LOW.** Copy-paste maintenance risk.
+
+---
+
+### Finding 10: No TODO/FIXME/HACK/XXX Comments in AI Code (POSITIVE)
+
+Searched both `index.jsx` and `worker/index.js` for TODO/FIXME/HACK/XXX comments. Found zero in the worker and only one trivial match in `index.jsx` (a promo code URL check comment). The AI generation code is clean of technical debt markers.
+
+---
+
+### Finding 11: REAL_GAME_SITUATIONS Coverage (LOW)
+
+The `REAL_GAME_SITUATIONS` object (line 6717) provides position-specific real-game scenarios to inject into AI prompts. Coverage:
+- pitcher: 8 situations
+- catcher: 6 situations
+- firstBase: 4 situations
+- secondBase: 3 situations
+- shortstop: 3 situations
+- thirdBase: 3 situations
+- leftField: 3 situations
+- centerField: 3 situations
+- rightField: 3 situations
+- batter: 5 situations
+- baserunner: 8 situations (includes 3 that correct specific AI failure patterns)
+- manager: 7 situations (including banned-shift and bullpen-usage corrections)
+
+**Missing positions:** `famous`, `rules`, `counts` have no real-game situations. The code at line 11289 falls back using a key lookup which would return empty arrays for these positions. The baserunner section was clearly expanded to fix identified AI failure patterns (lines 6785-6787), which is a good practice.
+
+---
+
+### Finding 12: Circuit Breaker Uses sessionStorage, Not localStorage (MEDIUM)
+
+The circuit breaker (line 12742-12763) uses `sessionStorage`, not `localStorage`. This means:
+- Circuit breaker state resets when the browser tab is closed and reopened
+- If the AI service is down, closing and reopening the tab resets the breaker, allowing immediate retries against a still-broken service
+- However, the comment at line 14282 says "Clear stale circuit breakers from previous session" and the code iterates sessionStorage keys -- this clearing code is unnecessary since sessionStorage already clears on tab close
+
+The main agent's task #10 is specifically about moving the circuit breaker to localStorage, which aligns with this finding. The current sessionStorage approach means a user who encounters repeated AI failures can simply close and reopen the tab to bypass the protection.
+
+**Severity: MEDIUM.** The breaker should persist across sessions to properly protect against extended outages.
+
+---
+
+### Summary of Findings by Severity
+
+| Severity | Count | Key Items |
+|----------|-------|-----------|
+| CRITICAL | 1 | Score convention 4-way contradiction (#1) |
+| HIGH | 1 | Generator prompt self-correction confusion (#2) |
+| MEDIUM | 4 | A/B test stuck (#3), Self-audit dimension mismatch (#6), Prefetch race condition (#8), Circuit breaker sessionStorage (#12) |
+| LOW | 5 | Archetype gaps (#4), Few-shot count placeholder (#5), Pool eviction (#7), POS_ACTIONS duplication (#9), REAL_GAME_SITUATIONS gaps (#11) |
+| POSITIVE | 1 | No TODO/FIXME debt (#10) |
+
+**Top 3 actions to prioritize alongside the main audit:**
+1. Unify score convention to [HOME,AWAY] everywhere -- fix worker pipeline prompts and QUALITY_FIREWALL destructuring
+2. Remove the "wait, no... Actually:" self-correction from GENERATOR_SYSTEM -- state convention clearly once
+3. Align self-audit dimensions with multi-agent Critic dimensions so the feedback loop targets the same quality axes
+
+---
+
+### AI Generation Audit — Live Console Log Analysis (2026-03-25)
+
+**Context:** TPA analysis of console logs from live AI scenario generation session. Multi-agent pipeline completing in 29-38s, xAI fallback experiencing Connect Timeouts, several quality/grading anomalies observed.
+
+---
+
+#### Finding 13: Multi-Agent Scenarios Get `grade:0` Because They Skip `gradeScenario()` Entirely (HIGH)
+
+**Root cause confirmed.** When the multi-agent pipeline succeeds, `generateAIScenario()` returns early at line 3014:
+```
+if (maResult?.scenario) {
+  console.log("[BSM] Multi-agent pipeline succeeded")
+  return maResult
+}
+```
+
+This returns BEFORE the grading block at lines 3774-3795 where `gradeScenario()` runs and sets `scenario.qualityGrade`. The multi-agent scenario never receives a `qualityGrade` property.
+
+**Downstream effects:**
+1. `saveToLocalPool()` (line 4483) stores `quality: scenario.qualityGrade || 0` -- so multi-agent scenarios get `quality: 0` in the local pool.
+2. `submitToServerPool()` is never called for multi-agent scenarios (only call site is line 3793, inside the standard pipeline grading block). So the "grade:0" log the user saw must be from a standard pipeline scenario that scored poorly, or from a local pool entry being reported.
+3. The prompt-version analytics at line 3876 logs `generationGrade: scenario.qualityGrade || 0` -- but this is also standard-pipeline-only.
+
+**The irony:** Multi-agent scenarios pass a 9.5/10 server-side critic with a 21-item checklist and 5-dimension rubric, yet they're treated as quality:0 in the local pool. They're higher quality than standard pipeline scenarios but ranked lowest.
+
+**Fix:** After `generateWithMultiAgent` returns successfully, run `gradeScenario()` on the result and set `qualityGrade` before returning. Also call `submitToServerPool()` for multi-agent scenarios -- they should be the BEST candidates for the community pool. Something like:
+```js
+if (maResult?.scenario) {
+  const grade = gradeScenario(maResult.scenario, position, targetConcept)
+  maResult.scenario.qualityGrade = grade.score
+  if (grade.score >= 65) submitToServerPool(maResult.scenario, position, grade.score/10, 0, grade.score)
+  return maResult
+}
+```
+
+---
+
+#### Finding 14: Causal Reasoning Regex Is Too Narrow for AI-Written Explanations (MEDIUM)
+
+The `allExplanationsCausal` check at line 429 uses this regex:
+```
+/\b(because|so that|this means|the reason|which means|the key is|the advantage|this ensures|this prevents|this is why|if you|that way|otherwise|since|after all|remember|given that)\b/i
+```
+
+Claude Opus writes sophisticated explanations that often use causal reasoning without these exact trigger phrases. Common causal patterns that would PASS a human reader but FAIL this regex:
+
+- **Conditional causation:** "With runners in scoring position, the priority shifts to..." / "When the count is full, protecting the plate..."
+- **Consequence framing:** "That leaves the runner stranded" / "which opens up the double play" / "putting pressure on the defense"
+- **Implicit because:** "The infield is playing in, making the bunt less effective" (the "making" is causal)
+- **Comparative reasoning:** "Unlike a force play, this requires a tag" / "Rather than risk the throw, the safer play is..."
+- **Coach-voice causation:** "You want to..." / "The smart play here is..." / "What matters most is..."
+- **Result language:** "That gives you..." / "which leads to..." / "resulting in..." / "so the runner..."
+
+The regex also misses these common causal connectors: `therefore`, `as a result`, `consequently`, `that's why`, `the risk is`, `by doing this`, `to prevent`, `to avoid`, `to protect`, `which forces`, `making it`, `allowing`, `enabling`, `causing`.
+
+**The 60-word escape hatch partially saves this:** Explanations over 60 words are exempt from the check (line 430: `(e||"").split(/\s+/).length < 60`). But Claude sometimes writes tight 40-55 word explanations that are pedagogically excellent yet fail the regex.
+
+**Why this matters for multi-agent scenarios specifically:** The server-side Critic grades on a holistic rubric (explanationQuality is one of 5 dimensions). The client-side firewall then re-checks with this narrow regex. A scenario can score 9.8/10 on the server and still trigger "4 of 4 explanations lack causal reasoning" on the client. The warning is a Tier 2 (non-blocking), so it doesn't reject the scenario, but it creates misleading noise in the logs.
+
+**Suggested additions to the regex:**
+```
+/\b(because|so that|this means|the reason|which means|the key is|the advantage|this ensures|this prevents|this is why|if you|that way|otherwise|since|after all|remember|given that|therefore|as a result|that's why|the risk is|by doing this|to prevent|to avoid|which forces|making it|allowing you|what matters is|you want to)\b/i
+```
+
+---
+
+#### Finding 15: xAI Connect Timeouts Are Wasting Budget With No Fast Escape (MEDIUM)
+
+The xAI standard pipeline (fallback) hits "Connect Timeout" errors frequently. The current flow:
+1. Multi-agent (Claude) fails or is skipped
+2. Agent pipeline (xAI) attempted if budget allows (40s minimum)
+3. Standard pipeline (xAI) attempted with remaining budget (25s minimum)
+
+The worker proxy at line 1349 sets a 90-second timeout for xAI calls. But "Connect Timeout" errors are fundamentally different from slow responses -- they indicate the xAI API endpoint itself is unreachable or overloaded. The current code treats all xAI failures the same.
+
+**Key observations:**
+- When multi-agent times out (>50s), the code already skips the agent pipeline (line 3059-3061). Good.
+- But when multi-agent FAILS (not timeout), both xAI pipelines are attempted even if the failure was fast (e.g., a 502 from Cloudflare). This means two more xAI calls that will also likely fail.
+- There's no "xAI is unreachable" circuit breaker at the worker level. The client-side circuit breaker tracks per-position failures, not per-backend failures.
+- Connect Timeouts typically fail in 10-30 seconds, burning budget before the client-side timeout kicks in.
+
+**Mitigation ideas:**
+1. **Worker-level xAI health check:** Cache the last xAI response status in a Durable Object or KV. If the last 3 xAI calls failed with connect/timeout errors in the past 5 minutes, return a fast 503 with `"type": "xai_unavailable"` so the client can skip immediately to handcrafted fallback.
+2. **Client-side backend awareness:** When the standard pipeline gets a connect timeout error, set a session flag `_xaiDown = true` with a 5-minute TTL. On subsequent calls, skip xAI pipelines entirely and go straight to multi-agent only (with handcrafted fallback).
+3. **Shorter connect timeout in worker:** The 90s timeout at line 1349 is for the full request. Add a separate connect timeout of 10-15 seconds -- if the TCP connection isn't established in 15s, fail fast. (Cloudflare Workers don't natively support connect-vs-read timeouts, but the worker could use a AbortController race with a shorter timer for the initial connection phase.)
+
+---
+
+#### Finding 16: 500/504 Worker Errors Suggest Cloudflare CPU Limits (LOW)
+
+The 500/504 errors from the worker are likely Cloudflare Worker CPU time limits. Workers have a 30ms CPU time limit on the free plan, 50ms on paid. The multi-agent pipeline endpoint (`/v1/multi-agent`) does significant work:
+- RAG vector search
+- 4-stage LLM pipeline (Planner, Generator, Critic, Rewriter)
+- D1 database reads for calibration, patches, feedback patterns
+
+If any of these stages involve CPU-intensive JSON parsing or string manipulation, the worker could hit the CPU limit. The 504s specifically suggest the worker timed out (not the upstream API).
+
+**Diagnostic step:** Check `wrangler tail` logs for `exceeded CPU time limit` errors. If confirmed, consider:
+- Moving CPU-heavy work (like prompt construction) to the client
+- Using Cloudflare Workers Unbound (no CPU limit, pay per GB-ms) for the multi-agent endpoint
+- Splitting the multi-agent pipeline into separate worker invocations chained via Durable Objects
+
+---
+
+#### Finding 17: Pool Submission Quality Gate Has a Scoring Inconsistency (LOW)
+
+At line 3793, pool submission passes `grade.score / 10` as `qualityScore` and `grade.score` as `generationGrade`:
+```js
+submitToServerPool(scenario, position, grade.score / 10, scenario.auditScore || 0, grade.score)
+```
+
+Inside `submitToServerPool` at line 4540, the client-side gate checks:
+```js
+const poolGate = UNDERSERVED_POSITIONS.includes(position) ? 6.5 : 7.5
+if ((qualityScore || 0) < poolGate) { ... }
+```
+
+So `qualityScore` is on a 0-10 scale (grade.score/10) and the gate is 6.5 or 7.5. That means a grade of 65/100 passes for underserved positions, 75/100 for others.
+
+But the worker-side `scenario-pool/submit` endpoint at line 1882 does:
+```js
+const newQuality = quality_score || generation_grade || 7.0
+```
+
+This means if `quality_score` (0-10 scale) is falsy (e.g., 0), it falls back to `generation_grade` (0-100 scale), mixing scales. A scenario with `quality_score: 0, generation_grade: 80` would get `newQuality: 80` on a 0-10 scale, which is nonsensical.
+
+This probably doesn't trigger in practice (the client gate rejects quality_score < 6.5), but it's a latent bug if the gate logic ever changes.
+
+---
+
+#### Summary of Live Log Findings
+
+| # | Finding | Severity | Fix Effort |
+|---|---------|----------|------------|
+| 13 | Multi-agent scenarios get grade:0 (skip gradeScenario) | HIGH | Small -- add 4 lines after multi-agent return |
+| 14 | Causal reasoning regex too narrow for AI writing style | MEDIUM | Small -- expand regex with 12 more phrases |
+| 15 | xAI Connect Timeouts waste budget, no fast escape | MEDIUM | Medium -- add xAI health tracking |
+| 16 | 500/504 errors suggest worker CPU limits | LOW | Medium -- needs wrangler tail diagnosis |
+| 17 | Pool submission quality_score vs generation_grade scale mismatch | LOW | Small -- normalize scales in worker |
+
+**Priority recommendation:** Fix #13 first -- it's 4 lines of code and immediately improves pool quality by letting multi-agent scenarios (the best ones) contribute to the community pool instead of being stored as quality:0.

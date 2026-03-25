@@ -381,7 +381,7 @@ Scenarios where the score array contradicts the inning half (Top/Bot) and the de
 Prompt B6:
 Search index.jsx for all scenarios. For each:
 1. Check if inning starts with "Top" or "Bot"
-2. Score is [away, home] — score[0] is AWAY, score[1] is HOME
+2. Score is [HOME, AWAY] — score[0] is HOME, score[1] is AWAY
 3. Top inning = AWAY team bats, Bot inning = HOME team bats
 4. If description says "you're losing" in Top inning, verify score[0] < score[1]
    (away team trailing)

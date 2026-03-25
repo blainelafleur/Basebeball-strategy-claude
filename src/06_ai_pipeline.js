@@ -17,6 +17,22 @@ const SEMANTIC_OVERLAPS = [
   ["relay the throw", "be the cutoff", "cut the ball", "be the relay man"],
 ]
 
+// Position-action boundaries — shared by agent and standard pipelines
+const POS_ACTIONS_MAP = {
+  pitcher: "Pitcher=pitch selection, pitch location, pickoff attempts, fielding batted balls, covering 1B on grounders right side, backing up bases.",
+  catcher: "Catcher=calling pitches, setting up location targets, blocking, throwing out runners, framing, fielding bunts/WP/PB.",
+  batter: "Batter=swing decisions, bunt, take, protect the plate, hit-and-run swing.",
+  baserunner: "Baserunner=lead distance, jump timing, steal/hold, tag-up, sliding, secondary lead, advance/hold decisions, reading ball off bat.",
+  manager: "Manager=pitching changes, IBB signals, defensive alignment/shifts, steal/bunt signs, pinch hitters, lineup decisions.",
+  firstBase: "FirstBase=holding runners at 1B, scooping low throws, stretch footwork, charging bunts, cutoff on CF/RF throws home, 3-6-3 DP, fielding grounders.",
+  secondBase: "SecondBase=turning DPs (pivot at 2B), covering 1B on bunts, covering 2B on steals (LHB), relay on LF/CF throws, fielding grounders, positioning.",
+  shortstop: "Shortstop=turning DPs (feed to 2B), covering 2B on steals (RHB), relay on CF/RF throws, fielding grounders, cutoff alignment, positioning depth.",
+  thirdBase: "ThirdBase=guarding the line, charging bunts/slow rollers, bare-hand plays, tagging runners at 3B, fielding grounders, positioning depth.",
+  leftField: "LeftField=tracking fly balls, throwing to cutoff/bases, backing up 3B/SS, playing the wall, reading balls off bat.",
+  centerField: "CenterField=tracking fly balls, calling off corner OFs, throwing to cutoff/relay, backing up other OFs, gap coverage.",
+  rightField: "RightField=tracking fly balls, throwing to 3B/cutoff, backing up 1B/2B, playing the wall, strongest arm to 3B.",
+}
+
 // QUALITY_FIREWALL — Automated checks for every scenario (handcrafted or AI)
 // Tier 1: hard reject | Tier 2: warn + flag | Tier 3: quality suggestions
 // ============================================================================
@@ -164,6 +180,49 @@ const QUALITY_FIREWALL = {
       if (rates[best] !== maxRate) {
         const actualBest = rates.indexOf(maxRate)
         return "Best answer rate conflict: best=" + best + " (rate " + rates[best] + ") but option " + actualBest + " has higher rate " + maxRate
+      }
+      return null
+    },
+    // Check: Animation-situation mismatch
+    animationSituationMismatch(scenario) {
+      const anim = scenario.anim || ""
+      const outs = scenario.situation?.outs
+      const runners = scenario.situation?.runners || []
+      if (anim === "doubleplay" && outs === 2) return "Animation mismatch: doubleplay impossible with 2 outs"
+      if (anim === "steal" && runners.length === 0) return "Animation mismatch: steal animation but no runners on base"
+      if (anim === "score" && runners.length === 0) return "Animation mismatch: score animation but no runners on base"
+      if (anim === "advance" && runners.length === 0) return "Animation mismatch: advance animation but no runners on base"
+      if (anim === "bunt" && outs === 2) return "Animation mismatch: bunt with 2 outs is rarely correct"
+      return null
+    },
+    // Check: Score-description consistency (catches "trailing" when leading, etc.)
+    scoreDescriptionConsistency(scenario) {
+      const desc = (scenario.description || "").toLowerCase()
+      const sit = scenario.situation || {}
+      const score = sit.score || []
+      const inning = sit.inning || ""
+      if (score.length !== 2 || !inning) return null
+      const [home, away] = score
+      const isBot = /^bot/i.test(inning)
+      const isTop = /^top/i.test(inning)
+      // Bot: home team bats; Top: away team bats
+      if (isBot) {
+        if (/trailing|losing|behind|down \d/.test(desc) && home > away) return "Score-description: Bot inning, home leads " + home + "-" + away + " but desc says trailing"
+        if (/leading|winning|ahead|up \d/.test(desc) && home < away) return "Score-description: Bot inning, home trails " + home + "-" + away + " but desc says leading"
+      }
+      if (isTop) {
+        if (/trailing|losing|behind|down \d/.test(desc) && away > home) return "Score-description: Top inning, away leads " + away + "-" + home + " but desc says trailing"
+        if (/leading|winning|ahead|up \d/.test(desc) && away < home) return "Score-description: Top inning, away trails " + away + "-" + home + " but desc says leading"
+      }
+      return null
+    },
+    // Check: Concept tag must map to a known BRAIN concept
+    conceptTagValidity(scenario) {
+      if (!scenario.conceptTag) return "Missing conceptTag"
+      const knownConcepts = BRAIN?.concepts ? Object.keys(BRAIN.concepts) : []
+      if (knownConcepts.length > 0 && !knownConcepts.includes(scenario.conceptTag)) {
+        // Also check if it's a valid kebab-case format (AI generates new concepts sometimes)
+        if (!/^[a-z][a-z0-9-]+$/.test(scenario.conceptTag)) return "Invalid conceptTag format: " + scenario.conceptTag
       }
       return null
     },
@@ -320,16 +379,20 @@ const QUALITY_FIREWALL = {
       return null
     },
     // Audit-discovered: Score array must match Top/Bot inning perspective
+    // Convention: score=[HOME, AWAY]. Bot inning = HOME bats. Top inning = AWAY bats.
+    // Note: This check can't know the player's team (offensive vs defensive) — that's handled
+    // by the position-aware check in gradeScenario. Here we catch the most obvious cases.
     scoreInningPerspective(scenario) {
       const sit = scenario.situation
       if (!sit || !sit.inning || !sit.score) return null
       const desc = (scenario.description || "").toLowerCase()
       const isTop = sit.inning.startsWith("Top")
       const isBot = sit.inning.startsWith("Bot")
-      const [away, home] = sit.score
-      if (isTop && away > home && /you['re]*\s*(losing|behind|trailing)/i.test(desc)) return null // away team behind is correct for "losing" in Top
-      if (isBot && home > away && /you['re]*\s*(losing|behind|trailing)/i.test(desc)) return "Score-inning mismatch: Bot inning (home bats) with home leading " + home + "-" + away + " but description says losing"
-      if (isTop && away > home && /you['re]*\s*(winning|ahead|leading)/i.test(desc)) return "Score-inning mismatch: Top inning (away bats) with away leading " + away + "-" + home + " but description says winning for fielding team"
+      const [home, away] = sit.score  // score=[HOME, AWAY]
+      // Bot inning: HOME team bats. If home leads but desc says "losing" — likely mismatch
+      if (isBot && home > away && /you['re]*\s*(losing|behind|trailing)/i.test(desc)) return "Score-inning mismatch: Bot inning (home bats), home leads " + home + "-" + away + " but description says losing"
+      // Top inning: AWAY team bats. If away leads but desc says "losing" — likely mismatch
+      if (isTop && away > home && /you['re]*\s*(losing|behind|trailing)/i.test(desc)) return "Score-inning mismatch: Top inning (away bats), away leads " + away + "-" + home + " but description says losing"
       return null
     },
     // Audit-discovered: Explanation variety — 4 explanations should teach 4 different things
@@ -363,9 +426,9 @@ const QUALITY_FIREWALL = {
     allExplanationsCausal(scenario) {
       const exps = scenario.explanations || []
       if (exps.length !== 4) return null
-      const causalWords = /\b(because|so that|this means|the reason|which means|the key is|the advantage|this ensures|this prevents|this is why|if you|that way|otherwise|since|after all|remember|given that)\b/i
-      const weak = exps.filter((e, i) => !causalWords.test(e) && (e||"").split(/\s+/).length < 60)
-      if (weak.length >= 2) return "Explanation quality: " + weak.length + " of 4 explanations lack causal reasoning ('because', 'which means', etc.) and are under 60 words"
+      const causalWords = /\b(because|so that|this means|the reason|which means|the key is|the advantage|this ensures|this prevents|this is why|if you|that way|otherwise|since|after all|remember|given that|the problem|the risk|the benefit|the downside|what happens|the result|by doing|instead of|rather than|the tradeoff|which lets|which gives|which puts|and that|so the|meaning|leads to|results in|causing|allowing|preventing)\b/i
+      const weak = exps.filter((e, i) => !causalWords.test(e) && (e||"").split(/\s+/).length < 50)
+      if (weak.length >= 3) return "Explanation quality: " + weak.length + " of 4 explanations lack causal reasoning ('because', 'which means', etc.) and are under 50 words"
       return null
     },
     // Gold Standard: Rate sum should be in reasonable range (catches extreme outliers)
@@ -725,24 +788,34 @@ function gradeScenario(scenario, position, targetConcept = null) {
     if (s.score && (!Array.isArray(s.score) || s.score.length !== 2)) { score -= 15; deductions.push("invalid_score_format") }
   }
 
-  // 5b. Description must match situation
+  // 5b. Description must match situation (position-aware score check)
   if (scenario.description && scenario.situation) {
     const desc = scenario.description.toLowerCase()
     const s = scenario.situation
-    // Check trailing/leading consistency with score
     if (s.score && s.score.length === 2) {
       const [home, away] = s.score
       const isBot = s.inning && /^bot/i.test(s.inning)
       const isTop = s.inning && /^top/i.test(s.inning)
-      // In Bot half, the home team is batting
-      if (isBot && desc.includes("trailing") && home > away) {
-        score -= 15; deductions.push("score_direction_mismatch_trailing_but_leading")
-      }
-      if (isBot && desc.includes("leading") && home < away) {
-        score -= 15; deductions.push("score_direction_mismatch_leading_but_trailing")
-      }
-      if (isTop && desc.includes("trailing") && away > home) {
-        score -= 15; deductions.push("score_direction_mismatch_visitor")
+      // Determine the player's team based on position type and inning half
+      // Offensive positions (batter, baserunner): bat in their half
+      // Defensive positions (pitcher, catcher, fielders): field when opponent bats
+      const isOffensive = ["batter","baserunner"].includes(position)
+      const isDefensive = ["pitcher","catcher","firstBase","secondBase","shortstop","thirdBase","leftField","centerField","rightField"].includes(position)
+      // Player's team score — depends on who's batting
+      let playerScore, opponentScore
+      if (isBot && isOffensive) { playerScore = home; opponentScore = away } // home batting
+      else if (isBot && isDefensive) { playerScore = away; opponentScore = home } // away fielding
+      else if (isTop && isOffensive) { playerScore = away; opponentScore = home } // away batting
+      else if (isTop && isDefensive) { playerScore = home; opponentScore = away } // home fielding
+      else { playerScore = home; opponentScore = away } // fallback (manager, etc.)
+
+      if (playerScore !== undefined) {
+        if (desc.includes("trailing") && playerScore > opponentScore) {
+          score -= 15; deductions.push("score_direction_mismatch_trailing_but_leading")
+        }
+        if (desc.includes("leading") && playerScore < opponentScore) {
+          score -= 15; deductions.push("score_direction_mismatch_leading_but_trailing")
+        }
       }
     }
   }
@@ -841,7 +914,7 @@ function gradeScenario(scenario, position, targetConcept = null) {
     console.log("[BSM Grade] Concept target:", targetConcept, "got:", scenario.conceptTag, scenario.conceptTag === targetConcept ? "(match +3)" : "(drift -3)")
   }
 
-  return { score: Math.max(0, Math.min(100, score)), deductions, pass: score >= 65 }
+  return { score: Math.max(0, Math.min(100, score)), deductions, pass: score >= 67 }
 }
 
 // ============================================================================
@@ -896,6 +969,24 @@ const CONSISTENCY_RULES = {
     // Rule 12: Pitcher covers 1st on groundball to right side / 1B charges bunt
     { id:"CR12", name:"Pitcher covers 1st on right-side play",
       test(text) { return /1B\s*(charges?|fields?|comes?\s*in)/i.test(text) && !/pitcher\s*(covers?|goes?\s*to|takes?)\s*(1st|first)/i.test(text) && /bunt|ground\s*ball\s*(to|toward)\s*(the\s*)?(right|first\s*base)/i.test(text) ? "When 1B charges/fields, pitcher should cover 1st base" : null }},
+    // Rule 13: Tag-up requires the catch to happen first — runner must wait
+    { id:"CR13", name:"Tag-up: runner waits for catch",
+      test(text) { return /tag\s*up.*before\s*the\s*catch|leave.*before.*caught|go\s*before.*catch/i.test(text) ? "Tag-up: runner must wait on the base until the ball is caught, then advance" : null }},
+    // Rule 14: Infield fly rule only with <2 outs AND runners on 1st+2nd or bases loaded
+    { id:"CR14", name:"Infield fly conditions",
+      test(text, scenario) {
+        if (!scenario) return null
+        const runners = scenario.situation?.runners || []
+        const outs = scenario.situation?.outs
+        if (/infield\s*fly/i.test(text)) {
+          if (typeof outs === "number" && outs >= 2) return "Infield fly rule only applies with less than 2 outs"
+          if (runners.length > 0 && !(runners.includes(1) && runners.includes(2))) return "Infield fly requires runners on 1st AND 2nd (or bases loaded)"
+        }
+        return null
+      }},
+    // Rule 15: Wild pitch/passed ball — pitcher covers home plate
+    { id:"CR15", name:"Pitcher covers home on WP/PB",
+      test(text) { return /wild\s*pitch|passed\s*ball/i.test(text) && /catcher.*covers?\s*home/i.test(text) ? "On wild pitch/passed ball, PITCHER covers home — catcher retrieves the ball" : null }},
   ],
   // Run all consistency rules against scenario's actionable text (NOT explanations)
   // Explanations teach rules and legitimately mention wrong behavior — checking them causes false positives
@@ -1029,7 +1120,8 @@ const AB_TESTS = {
   agent_pipeline: {
     id: "agent_pipeline_v3",
     variants: [
-      { id: "agent", weight: 100, config: { useAgent: true } }
+      { id: "agent", weight: 85, config: { useAgent: true } },
+      { id: "control", weight: 15, config: { useAgent: false } }
     ]
   },
   // Phase E: Coach persona A/B test
@@ -2172,21 +2264,7 @@ SCORE RULES (READ FIRST — score errors are the #1 quality issue):
   const descriptionStyle = `
 DESCRIPTION STYLE: Write descriptions as if explaining a game situation to a young baseball player. Use simple, everyday language. Do NOT include statistics, RE24 values, batting averages, or advanced analytics in the description or options. Save numbers for explanations only.`
 
-  const POS_ACTIONS = {
-    pitcher: "Pitcher=pitch selection, pitch location, pickoff attempts, fielding batted balls, covering 1B on grounders right side, backing up bases.",
-    catcher: "Catcher=calling pitches, setting up location targets, blocking, throwing out runners, framing, fielding bunts/WP/PB.",
-    batter: "Batter=swing decisions, bunt, take, protect the plate, hit-and-run swing.",
-    baserunner: "Baserunner=lead distance, jump timing, steal/hold, tag-up, sliding, secondary lead, advance/hold decisions, reading ball off bat.",
-    manager: "Manager=pitching changes, IBB signals, defensive alignment/shifts, steal/bunt signs, pinch hitters, lineup decisions.",
-    firstBase: "FirstBase=holding runners at 1B, scooping low throws, stretch footwork, charging bunts, cutoff on CF/RF throws home, 3-6-3 DP, fielding grounders.",
-    secondBase: "SecondBase=turning DPs (pivot at 2B), covering 1B on bunts, covering 2B on steals (LHB), relay on LF/CF throws, fielding grounders, positioning.",
-    shortstop: "Shortstop=turning DPs (feed to 2B), covering 2B on steals (RHB), relay on CF/RF throws, fielding grounders, cutoff alignment, positioning depth.",
-    thirdBase: "ThirdBase=guarding the line, charging bunts/slow rollers, bare-hand plays, tagging runners at 3B, fielding grounders, positioning depth.",
-    leftField: "LeftField=tracking fly balls, throwing to cutoff/bases, backing up 3B/SS, playing the wall, reading balls off bat.",
-    centerField: "CenterField=tracking fly balls, calling off corner OFs, throwing to cutoff/relay, backing up other OFs, gap coverage.",
-    rightField: "RightField=tracking fly balls, throwing to 3B/cutoff, backing up 1B/2B, playing the wall, strongest arm to 3B.",
-  }
-  const posActionText = POS_ACTIONS[position] || POS_ACTIONS.manager
+  const posActionText = POS_ACTIONS_MAP[position] || POS_ACTIONS_MAP.manager
 
   const FIELDER_POS_LIST = ["firstBase","secondBase","shortstop","thirdBase","leftField","centerField","rightField"]
   const isFielder = FIELDER_POS_LIST.includes(position)
@@ -2419,11 +2497,9 @@ function gradeAgentScenario(scenario, plan) {
 
   grade.agentDeductions = agentDeductions
   grade.score = Math.max(0, grade.score)
-  // Pass threshold: 55 after normalization (auto-fixes already applied before grading).
-  // Note: standard pipeline gates on QUALITY_FIREWALL separately; this is the agent pipeline grade.
-  // Raised from 45→55: auto-fixes are now applied before grading, so raw-score inflation is gone.
-  // Still 10pts below standard pipeline's 65 because agent scenarios get additional Grade tool validation.
-  grade.pass = grade.score >= 55
+  // Pass threshold: 65 after normalization (auto-fixes already applied before grading).
+  // Raised from 55→65: quality floor improvement. Standard pipeline threshold is now 70.
+  grade.pass = grade.score >= 65
   return grade
 }
 
@@ -2538,7 +2614,7 @@ async function generateWithMultiAgent(position, stats, signal, targetConcept = n
     if (data.scenario.situation) {
       const inn = data.scenario.situation.inning || ""
       const desc = (data.scenario.description || "").toLowerCase()
-      const [aw, hm] = data.scenario.situation.score || [0, 0]
+      const [hm, aw] = data.scenario.situation.score || [0, 0]
       if (inn.startsWith("Bot") && hm > aw && /losing|behind|trailing/i.test(desc)) {
         console.warn("[BSM] AI scenario has score-inning mismatch: Bot inning, home leading, but desc says losing")
       }
@@ -2557,6 +2633,25 @@ async function generateWithMultiAgent(position, stats, signal, targetConcept = n
     const fwResult = QUALITY_FIREWALL.validate(data.scenario, position)
     if (!fwResult.pass) {
       console.warn("[BSM Multi-Agent] Client firewall rejected:", fwResult.tier1Fails)
+      return null
+    }
+
+    // Run ROLE_VIOLATIONS check (the server critic may not have position-specific regexes)
+    if (ROLE_VIOLATIONS[position]) {
+      const allText = [data.scenario.description, ...(data.scenario.options || []), ...(data.scenario.explanations || [])].join(" ")
+      const bestText = [(data.scenario.options || [])[data.scenario.best] || "", (data.scenario.explanations || [])[data.scenario.best] || ""].join(" ")
+      for (const pattern of ROLE_VIOLATIONS[position]) {
+        if (pattern.test(bestText)) {
+          console.warn("[BSM Multi-Agent] Role violation in best answer for", position)
+          return null
+        }
+      }
+    }
+
+    // Run CONSISTENCY_RULES check
+    const crViolations = CONSISTENCY_RULES.check(data.scenario)
+    if (crViolations.length > 0) {
+      console.warn("[BSM Multi-Agent] Consistency violations:", crViolations.map(v => v.message).join("; "))
       return null
     }
 
@@ -2828,11 +2923,13 @@ async function generateAIScenario(position, stats, conceptsLearned = [], recentW
       const patterns = patternData.patterns || []
       if (patterns.length > 0) {
         const CATEGORY_LABELS = { wrong_answer: "WRONG ANSWER", unrealistic: "UNREALISTIC", wrong_position: "WRONG POSITION", confusing_text: "CONFUSING", too_easy_hard: "DIFFICULTY" }
+        // Sanitize user-generated text to prevent prompt injection
+        const sanitizeFeedback = (text) => (text || "").replace(/[^a-zA-Z0-9\s.,!?'-]/g, "").slice(0, 80)
         flaggedAvoidText = "\nAVOID THESE PATTERNS — players flagged these issues in AI scenarios:\n" +
           patterns.slice(0, 3).map(p => {
             const label = CATEGORY_LABELS[p.flag_category] || p.flag_category
-            const titles = p.sample_titles ? ` Titles: ${p.sample_titles.slice(0, 80)}` : ""
-            const comments = p.sample_comments ? ` Players said: ${p.sample_comments.slice(0, 100)}` : ""
+            const titles = p.sample_titles ? ` Titles: ${sanitizeFeedback(p.sample_titles)}` : ""
+            const comments = p.sample_comments ? ` Players said: ${sanitizeFeedback(p.sample_comments)}` : ""
             return `- ${label} (${p.count} flags, ${p.position || position}):${titles}${comments}`
           }).join("\n") +
           "\nDo NOT repeat these mistake patterns."
@@ -2875,8 +2972,7 @@ async function generateAIScenario(position, stats, conceptsLearned = [], recentW
   // Phase C: Real game feel context injection
   try {
     const posSituations = REAL_GAME_SITUATIONS[position] || REAL_GAME_SITUATIONS[
-      ["firstBase","secondBase","shortstop","thirdBase"].includes(position) ? "firstBase" :
-      ["leftField","centerField","rightField"].includes(position) ? "leftField" : "manager"
+      ["famous","rules","counts"].includes(position) ? "manager" : "manager"
     ] || []
     if (posSituations.length > 0) {
       // Pick 2-3 random situations
@@ -2908,15 +3004,31 @@ async function generateAIScenario(position, stats, conceptsLearned = [], recentW
   const _aiFlowStart = Date.now()
 
   // Phase 0: Multi-Agent Pipeline (Claude Opus + RAG) — primary path
+  let multiAgentTimedOut = false
   if (!skipAgent) {
     console.log("[BSM] Attempting multi-agent pipeline (Claude Opus)")
+    const maStart = Date.now()
     const maResult = await generateWithMultiAgent(position, stats, signal, targetConcept)
     if (maResult?.scenario) {
-      console.log("[BSM] Multi-agent pipeline succeeded")
+      // Set qualityGrade from critique score (10-point → 100-point scale) so pool submission works
+      const critiqueScore = maResult.agentGrade?.score || maResult.agentGrade?.overallScore || 0
+      maResult.scenario.qualityGrade = Math.round(critiqueScore * 10)
+      maResult.scenario.scenarioSource = "multi-agent"
+      console.log("[BSM] Multi-agent pipeline succeeded, qualityGrade:", maResult.scenario.qualityGrade)
       return maResult
     }
-    console.warn("[BSM] Multi-agent pipeline failed, falling through to xAI pipeline")
-    // Fall through to existing xAI pipeline as backup
+    // Check if player aborted (clicked Skip or navigated away)
+    if (signal?.aborted) {
+      console.log("[BSM] Generation aborted by user after multi-agent")
+      return { scenario: null, error: "aborted" }
+    }
+    // Track if multi-agent timed out (took >50s) — signals infrastructure stress
+    multiAgentTimedOut = (Date.now() - maStart) > 50000
+    if (multiAgentTimedOut) {
+      console.warn("[BSM] Multi-agent timed out after", Math.round((Date.now() - maStart)/1000) + "s — infrastructure may be stressed, skipping xAI agent pipeline")
+    } else {
+      console.warn("[BSM] Multi-agent pipeline failed (not timeout), falling through to xAI pipeline")
+    }
   }
 
   // Calibration injection for standard pipeline (matching agent pipeline behavior)
@@ -2938,18 +3050,27 @@ async function generateAIScenario(position, stats, conceptsLearned = [], recentW
     }
   } catch (e) { /* non-blocking */ }
 
+  // Abort check before xAI pipelines
+  if (signal?.aborted) return { scenario: null, error: "aborted" }
+
   // Level 3.7: Agent pipeline A/B test — shadow mode
   try {
     const abConfigs = getActiveABConfigs(stats.sessionHash || "")
     const agentConfig = abConfigs.agent_pipeline || {}
     const agentBudget = budgetMs - (Date.now() - _aiFlowStart) - 2000
-    const agentTimeout = Math.min(65000, agentBudget)
-    if (!skipAgent && agentConfig.useAgent && agentBudget >= agentTimeout && agentBudget >= 65000) {
+    const agentTimeout = Math.min(55000, agentBudget)
+    // Skip agent pipeline if multi-agent timed out (infrastructure is likely stressed)
+    if (multiAgentTimedOut && !skipAgent) {
+      console.warn("[BSM] Skipping agent pipeline — multi-agent timed out, going straight to standard")
+    } else if (!skipAgent && agentConfig.useAgent && agentBudget < 40000) {
+      console.warn("[BSM] Agent pipeline skipped — budget cascade: only", Math.round(agentBudget / 1000) + "s remaining (need 40s)")
+    }
+    if (!multiAgentTimedOut && !skipAgent && agentConfig.useAgent && agentBudget >= 40000) {
       console.log("[BSM] Trying agent pipeline (A/B variant: agent, budget:", Math.round(agentBudget / 1000) + "s, timeout:", Math.round(agentTimeout / 1000) + "s)")
       const agentResult = await generateWithAgentPipeline(position, stats, conceptsLearned, recentWrong, signal, targetConcept, aiHistory, flaggedAvoidText + realGameFeelText + promptPatchText + auditInsightText, previousScenario, agentTimeout)
       if (agentResult && agentResult.scenario) {
         const _agScore = agentResult.agentGrade?.score || 0
-        console.log(`[BSM Quality] position=${position} concept=${agentResult.scenario.conceptTag || agentResult.scenario.concept || 'unknown'} source=agent grade=${_agScore} pass=${_agScore >= 55} cacheHit=false elapsed=${Date.now() - _aiFlowStart}ms`)
+        console.log(`[BSM Quality] position=${position} concept=${agentResult.scenario.conceptTag || agentResult.scenario.concept || 'unknown'} source=agent grade=${_agScore} pass=${_agScore >= 65} cacheHit=false elapsed=${Date.now() - _aiFlowStart}ms`)
         return { scenario: agentResult.scenario, abVariants: { pipeline: "agent", grade: _agScore } }
       }
       console.log("[BSM] Agent pipeline returned null, falling back to standard")
@@ -2961,6 +3082,9 @@ async function generateAIScenario(position, stats, conceptsLearned = [], recentW
   } catch (agentErr) {
     console.warn("[BSM] Agent pipeline error, falling back:", agentErr.message)
   }
+
+  // Abort check before standard pipeline
+  if (signal?.aborted) return { scenario: null, error: "aborted" }
 
   // Budget gate: skip standard pipeline if agent ate most of the budget
   const remainingBudget = budgetMs - (Date.now() - _aiFlowStart)
@@ -3135,23 +3259,7 @@ ${aiMapText}
 ${brainConfig.brainLevel !== "minimal" ? (formatBrainForAI(position, {count: null, inning: "", score: []}, targetConcept) || "").slice(0, 500) : ""}
 
 AUDIT: All 4 options must be actions THIS position performs at the SAME decision point. The scenario TITLE must describe something this position does (not another position's job). Best answer=coaching consensus backed by modern analytics. rates[best] MUST be highest. score=[HOME,AWAY].${errorReinforcement}
-POSITION-ACTION BOUNDARIES: ${(() => {
-  const POS_ACTIONS = {
-    pitcher: "Pitcher=pitch selection, pitch location, pickoff attempts, fielding batted balls, covering 1B on grounders right side, backing up bases.",
-    catcher: "Catcher=calling pitches, setting up location targets, blocking, throwing out runners, framing, fielding bunts/WP/PB.",
-    batter: "Batter=swing decisions, bunt, take, protect the plate, hit-and-run swing.",
-    baserunner: "Baserunner=lead distance, jump timing, steal/hold, tag-up, sliding, secondary lead, advance/hold decisions, reading ball off bat.",
-    manager: "Manager=pitching changes, IBB signals, defensive alignment/shifts, steal/bunt signs, pinch hitters, lineup decisions.",
-    firstBase: "FirstBase=holding runners at 1B, scooping low throws, stretch footwork, charging bunts, cutoff on CF/RF throws home, 3-6-3 DP, fielding grounders.",
-    secondBase: "SecondBase=turning DPs (pivot at 2B), covering 1B on bunts, covering 2B on steals (LHB), relay on LF/CF throws, fielding grounders, positioning.",
-    shortstop: "Shortstop=turning DPs (feed to 2B), covering 2B on steals (RHB), relay on CF/RF throws, fielding grounders, cutoff alignment, positioning depth.",
-    thirdBase: "ThirdBase=guarding the line, charging bunts/slow rollers, bare-hand plays, tagging runners at 3B, fielding grounders, positioning depth.",
-    leftField: "LeftField=tracking fly balls, throwing to cutoff/bases, backing up 3B/SS, playing the wall, reading balls off bat.",
-    centerField: "CenterField=tracking fly balls, calling off corner OFs, throwing to cutoff/relay, backing up other OFs, gap coverage.",
-    rightField: "RightField=tracking fly balls, throwing to 3B/cutoff, backing up 1B/2B, playing the wall, strongest arm to 3B.",
-  };
-  return POS_ACTIONS[position] || POS_ACTIONS.manager;
-})()}
+POSITION-ACTION BOUNDARIES: ${POS_ACTIONS_MAP[position] || POS_ACTIONS_MAP.manager}
 NEVER give this position options that belong to another position. Fielders do NOT call IBBs, shift the defense, call for pitchouts, or make pitching changes. Baserunner CANNOT "yell at pitcher", "call a play", "signal the batter". If a game event removes all meaningful decisions from a position, do NOT create a scenario about that event.
 ${position === "baserunner" ? `
 BASERUNNER OPTION STRUCTURE: Every option must be a physical running/positioning action the baserunner takes:
@@ -4002,8 +4110,7 @@ async function generateAISituation(stats, signal = null) {
   let realGameFeel = "";
   try {
     const allSits = selectedPos.flatMap(pos => {
-      const key = ["firstBase", "secondBase", "shortstop", "thirdBase"].includes(pos) ? "firstBase" :
-        ["leftField", "centerField", "rightField"].includes(pos) ? "leftField" : pos;
+      const key = ["famous","rules","counts"].includes(pos) ? "manager" : pos;
       return (REAL_GAME_SITUATIONS[pos] || REAL_GAME_SITUATIONS[key] || []).slice(0, 2);
     });
     if (allSits.length > 0) {
@@ -4326,27 +4433,35 @@ function getLocalPool() {
   } catch { return [] }
 }
 
-// Circuit breaker for AI calls — per-position to prevent one slow position from blocking all
+// Circuit breaker for AI calls — per-position, persists across refreshes (15 min TTL)
+const CB_TTL = 15 * 60 * 1000 // 15 minutes
 function getCircuitBreaker(position) {
   try {
     const key = position ? "bsm_cb_" + position : "bsm_circuit_breaker"
-    return JSON.parse(sessionStorage.getItem(key) || '{"responseTimes":[],"failures":0,"openUntil":0}')
+    const raw = JSON.parse(localStorage.getItem(key) || '{"responseTimes":[],"failures":0,"openUntil":0,"savedAt":0}')
+    // Expire stale circuit breakers (15 min TTL)
+    if (raw.savedAt && Date.now() - raw.savedAt > CB_TTL) {
+      localStorage.removeItem(key)
+      return { responseTimes: [], failures: 0, openUntil: 0 }
+    }
+    return raw
   } catch { return { responseTimes: [], failures: 0, openUntil: 0 } }
 }
 function updateCircuitBreaker(cb, position) {
   try {
     const key = position ? "bsm_cb_" + position : "bsm_circuit_breaker"
-    sessionStorage.setItem(key, JSON.stringify(cb))
+    cb.savedAt = Date.now()
+    localStorage.setItem(key, JSON.stringify(cb))
   } catch {}
 }
 function clearAllCircuitBreakers() {
   try {
     const keys = []
-    for (let i = 0; i < sessionStorage.length; i++) {
-      const k = sessionStorage.key(i)
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i)
       if (k && (k.startsWith("bsm_cb_") || k === "bsm_circuit_breaker")) keys.push(k)
     }
-    keys.forEach(k => sessionStorage.removeItem(k))
+    keys.forEach(k => localStorage.removeItem(k))
     if (keys.length > 0) console.log("[BSM] Cleared", keys.length, "circuit breaker(s) on app load")
   } catch {}
 }

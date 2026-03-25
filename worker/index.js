@@ -14,8 +14,8 @@ const ALLOWED_ORIGINS = [
 // Multi-agent pipeline (Phase 0 — Claude Opus + RAG)
 const ANTHROPIC_MODEL = "claude-opus-4-20250514";
 const ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages";
-const MULTI_AGENT_TIMEOUT = 120000; // 120s total pipeline budget
-const STAGE_TIMEOUT = 50000; // 50s per stage max
+const MULTI_AGENT_TIMEOUT = 80000; // 80s total pipeline budget (client times out at 90s — leave margin)
+const STAGE_TIMEOUT = 35000; // 35s per stage max (Opus typically responds in 5-20s)
 
 // Fine-tuned 70B model (drop-in ready — set LLM_70B_* secrets when deployed)
 // Supports any OpenAI-compatible API (vLLM, Together, Fireworks, RunPod, etc.)
@@ -3305,9 +3305,9 @@ Your job: create a PLAN for a scenario, NOT the scenario itself. Output a JSON p
 RULES:
 - teachingGoal must be one of: "introduce" (new concept), "reinforce" (practice known concept), "assess" (test mastery)
 - difficulty: 1 (Rookie, ages 6-8), 2 (Pro, ages 9-12), 3 (All-Star, ages 13+)
-- gameState must be physically possible (0-2 outs, valid runners, valid count, score as [away, home])
-- Score perspective: Bot inning = HOME team bats = batting team's score goes in score[1]
-- Top inning = AWAY team bats = batting team's score goes in score[0]
+- gameState must be physically possible (0-2 outs, valid runners, valid count, score as [home, away])
+- Score perspective: score[0]=HOME, score[1]=AWAY. Bot inning = HOME team bats. Top inning = AWAY team bats.
+- If "down 3-2" and player is HOME: score[0] < score[1], e.g. score=[2,3]
 - keyDistractors: 2-3 tempting wrong answers that test common misconceptions
 - dataToReference: specific stats/rules the scenario should reference (e.g., "RE24 with runners on 2nd", "steal break-even rate")
 
@@ -3328,9 +3328,9 @@ OUTPUT FORMAT: Valid JSON only. No markdown, no explanation outside the JSON.
 
 MANDATORY RULES:
 1. PERSPECTIVE: ALL text must use 2nd person ("you", "your"). NEVER "the pitcher should" — always "you should".
-2. SCORE PERSPECTIVE: Bot inning = HOME bats. The HOME team's score is score[1], AWAY is score[0].
-   "Bot 7, score [3, 5]" means AWAY leads 3-5... wait, no: score = [away, home], so away=3, home=5, home leads.
-   Actually: score[0] = away, score[1] = home. Bot = home bats. Top = away bats.
+2. SCORE PERSPECTIVE: score=[HOME, AWAY]. score[0] is HOME, score[1] is AWAY. Bot inning = HOME bats. Top = AWAY bats.
+   Example: "Bot 7, score [3, 5]" means HOME=3, AWAY=5, so the HOME team trails 3-5.
+   If description says "down 6-5", HOME team has 5 and AWAY has 6: score=[5,6].
 3. POSITION BOUNDARIES: Pitcher NEVER acts as cutoff/relay. Catcher NEVER leaves home unguarded. Outfielders throw TO relay man.
 4. EXPLANATIONS: Each explanation must discuss THAT specific option. The best option's explanation must argue FOR it (positive).
 5. RATES: Best option gets highest rate (75-90). One tempting wrong answer gets 40-65. Others get 15-40. Sum should be 165-195.
@@ -3362,7 +3362,7 @@ THE 31-ITEM CHECKLIST:
 2. Is the best answer index valid (0-3)?
 3. Does each explanation specifically discuss THAT option (not a generic response)?
 4. Does the best explanation argue FOR the correct choice (positive reasoning, not just "others are worse")?
-5. Is the score perspective correct? (Bot inning = HOME bats, score[0]=away, score[1]=home)
+5. Is the score perspective correct? (Bot inning = HOME bats, score[0]=HOME, score[1]=AWAY)
 6. Is the game situation physically possible? (valid outs, runners, count, score)
 7. Does the pitcher NEVER act as cutoff man?
 8. Does the catcher NEVER leave home plate unguarded with runners in scoring position?
@@ -3444,7 +3444,7 @@ RULES:
 - Keep the same game situation, concept, and teaching goal
 - Fix ONLY the specific issues identified by the critic
 - Maintain 2nd-person perspective throughout ("you", "your")
-- Ensure score perspective is correct (Bot = home bats, score[0]=away, score[1]=home)
+- Ensure score perspective is correct (Bot = home bats, score[0]=HOME, score[1]=AWAY)
 - Keep rates distributed properly (best=highest, one tempting wrong at 40-65, sum 165-195)
 
 Output ONLY the corrected scenario as valid JSON (same schema as the original).`;

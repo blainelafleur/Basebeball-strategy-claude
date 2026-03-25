@@ -975,6 +975,7 @@ export default function App(){
               inFlight,
               new Promise((_,rej)=>setTimeout(()=>rej(new Error("prefetch-wait-timeout")),30000))
             ])
+            if(_prefetchControllers[p]?.signal?.aborted){console.log("[BSM] Prefetch aborted during await for",p);throw new Error("aborted")}
             if(prefetchResult?.scenario)result=prefetchResult
           }catch(e){
             console.log("[BSM] Pre-fetch await failed:",e.message,"— proceeding with fresh call")

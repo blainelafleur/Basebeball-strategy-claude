@@ -1615,7 +1615,7 @@ The following rules were discovered through the Gold Standard audit process (4 a
 | Rule | What It Catches |
 |------|----------------|
 | `countFormatCheck` | count must be "X-Y" format, not "-" placeholder (except manager/rules/famous where count may not apply) |
-| `scoreInningConsistencyCheck` | score array must match Top/Bot perspective -- score[0]=AWAY, score[1]=HOME |
+| `scoreInningConsistencyCheck` | score array must match Top/Bot perspective -- score[0]=HOME, score[1]=AWAY |
 | `ageAppropriateComplexityCheck` | no advanced stats (OPS, WAR, BABIP, wOBA) in diff:1 scenarios |
 | `forcePlayAccuracyCheck` | force play mechanics must be correct given runner/base state |
 | `explanationVarietyCheck` | each of 4 explanations must teach a different principle (Jaccard similarity <0.4 between any pair) |
