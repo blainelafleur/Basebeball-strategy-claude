@@ -60,6 +60,7 @@ export default function App(){
   const[showFailComparison,setShowFailComparison]=useState(false);
   const[comparisonPhase,setComparisonPhase]=useState(0); // 0=failure, 1=transition, 2=success
   const[replayPaused,setReplayPaused]=useState(false);
+  const[replaySpeed,setReplaySpeed]=useState(2.5); // 1=normal, 2.5=default slow, 5=ultra slow
   const[showHighlights,setShowHighlights]=useState(false);
   const[highlightIdx,setHighlightIdx]=useState(0);
   // QW2: Auto-expand replay for wrong answers on outcome screen
@@ -3101,8 +3102,11 @@ export default function App(){
             setStats(p=>{
               const be={...(p.brainExplored||{})};
               if(be[tab])be[tab].interactions=(be[tab].interactions||0)+1;
-              const tabsVisited=Object.values(be).filter(v=>v.visited).length;
-              const newIQ=Math.min(200, tabsVisited*5 + Object.values(be).reduce((s,v)=>s+Math.min(10,(v.interactions||0)),0));
+              const tabsVisited=Object.values(be).filter(v=>typeof v==='object'&&v?.visited).length;
+              const achPts=(be._achievements?.length||0)*10;
+              const newIQ=Math.min(200, tabsVisited*5 + Object.values(be).reduce((s,v)=>typeof v==='object'&&v?.interactions?s+Math.min(10,v.interactions):s,0)+achPts);
+              // Check achievements after interaction update
+              setTimeout(()=>checkBrainAchs(be,Math.max(p.brainIQ||0,newIQ)),100);
               return{...p,brainExplored:be,brainIQ:Math.max(p.brainIQ||0,newIQ)};
             });
           };
@@ -3117,6 +3121,23 @@ export default function App(){
               if(state.batter)setMBatter(state.batter);
               if(state.parkIdx!==undefined)setParkType(state.parkIdx);
               if(state.preset)setDefPreset(state.preset);
+            }
+          };
+          // Brain achievements — earned, not participation trophies
+          const BRAIN_ACHS=[
+            {id:"what_if",name:"What If?",desc:"Tap 20 What-If buttons in RE24 Explorer",icon:"🤔",check:(be)=>(be.re24?.interactions||0)>=20},
+            {id:"pitch_caller",name:"Pitch Caller",desc:"Build 10 pitch sequences in Pitch Lab",icon:"⚾",check:(be)=>(be.pitchlab?.interactions||0)>=30},
+            {id:"numbers_dont_lie",name:"The Numbers Don't Lie",desc:"Use 5 deep links from quiz results to Brain",icon:"📊",check:(be)=>(be._deepLinkUses||0)>=5},
+            {id:"7th_inning",name:"The 7th Inning Switch",desc:"Compare Win Probability in early vs late innings",icon:"📈",check:(be)=>(be.winprob?.interactions||0)>=10},
+            {id:"iq_100",name:"IQ 100",desc:"Reach Baseball IQ 100",icon:"🧠",check:(be,iq)=>iq>=100},
+          ];
+          const checkBrainAchs=(be,iq)=>{
+            const earned=be._achievements||[];
+            const newAch=BRAIN_ACHS.find(a=>!earned.includes(a.id)&&a.check(be,iq));
+            if(newAch){
+              setStats(p=>{const b={...(p.brainExplored||{})};b._achievements=[...(b._achievements||[]),newAch.id];const challengePts=Object.values(b).filter(v=>v?.challengeDone).length*15;const achPts=(b._achievements?.length||0)*10;const tabsVisited=Object.values(b).filter(v=>v&&typeof v==='object'&&v.visited).length;const newIQ=Math.min(200,tabsVisited*5+Object.values(b).reduce((s,v)=>typeof v==='object'&&v?.interactions?s+Math.min(10,v.interactions):s,0)+challengePts+achPts);return{...p,brainExplored:b,brainIQ:Math.max(p.brainIQ||0,newIQ)};});
+              setToast(`🏆 Achievement: ${newAch.name}!`);
+              if(navigator.vibrate)navigator.vibrate(50);
             }
           };
           // Cross-tab link component
@@ -3135,8 +3156,12 @@ export default function App(){
           const vocabTier=ageNum<=8?1:ageNum<=10?2:ageNum<=12?3:ageNum<=15?4:5;
           const isYoung=vocabTier<=2;
           const brainIQ=stats.brainIQ||0;
-          const iqTitle=brainIQ>=150?"Baseball Genius":brainIQ>=120?"Sabermetrics Expert":brainIQ>=90?"Analytics All-Star":brainIQ>=60?"Front Office Prospect":brainIQ>=30?"Dugout Analyst":"Rookie Scout";
-          const iqColor=brainIQ>=120?"#22c55e":brainIQ>=60?"#3b82f6":brainIQ>=30?"#f59e0b":"#9ca3af";
+          const IQ_TITLES=[{min:0,title:"Rookie Scout",color:"#9ca3af"},{min:30,title:"Dugout Analyst",color:"#f59e0b"},{min:60,title:"Front Office Prospect",color:"#3b82f6"},{min:90,title:"Analytics All-Star",color:"#6366f1"},{min:120,title:"Sabermetrics Expert",color:"#22c55e"},{min:150,title:"Baseball Genius",color:"#10b981"},{min:180,title:"Hall of Fame Brain",color:"#f59e0b"}];
+          const iqTier=IQ_TITLES.filter(t=>brainIQ>=t.min).pop()||IQ_TITLES[0];
+          const nextTier=IQ_TITLES.find(t=>t.min>brainIQ);
+          const iqTitle=iqTier.title;
+          const iqColor=iqTier.color;
+          const iqProgress=nextTier?Math.round(((brainIQ-iqTier.min)/(nextTier.min-iqTier.min))*100):100;
           const BRAIN_TABS=[
             {id:"re24",label:"Run Expectancy",icon:"📊",color:"#22c55e",short:"RE24",concept:"scoring-probability"},
             {id:"counts",label:"Count Dashboard",icon:"🔢",color:"#3b82f6",short:"Counts",concept:"count-leverage"},
@@ -3167,9 +3192,12 @@ export default function App(){
                 <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:20,color:"#a855f7",letterSpacing:1.5}}>BASEBALL BRAIN</div>
                 <div style={{fontSize:10,color:"#9ca3af"}}>Explore the hidden math of baseball</div>
               </div>
-              <div style={{textAlign:"center",flexShrink:0}}>
-                <div style={{fontSize:18,fontWeight:900,color:iqColor}}>{brainIQ}</div>
-                <div style={{fontSize:7,color:iqColor,fontWeight:600}}>{iqTitle}</div>
+              <div style={{textAlign:"center",flexShrink:0,minWidth:100}}>
+                <div style={{fontSize:10,fontWeight:800,color:iqColor,letterSpacing:.5}}>{iqTitle}</div>
+                <div style={{height:4,background:"rgba(255,255,255,.06)",borderRadius:2,marginTop:3,overflow:"hidden"}}>
+                  <div style={{height:"100%",width:`${iqProgress}%`,background:iqColor,borderRadius:2,transition:"width .5s ease"}}/>
+                </div>
+                {nextTier&&<div style={{fontSize:7,color:"#6b7280",marginTop:2}}>{nextTier.title} in {nextTier.min-brainIQ} pts</div>}
               </div>
             </div>
             {/* Tab strip with A4: scroll indicator fade + larger touch targets */}
@@ -3520,11 +3548,24 @@ export default function App(){
                       <text x="18" y="20" fill="rgba(255,255,255,.3)" fontSize="7" textAnchor="middle">P</text>
                       <rect x="275" y="40" width="12" height="25" rx="1" fill="rgba(255,255,255,.15)"/>
                       <text x="281" y="38" fill="rgba(255,255,255,.3)" fontSize="7" textAnchor="middle">Plate</text>
+                      {/* Tunnel zone — where all pitches look identical */}
+                      <rect x="100" y="30" width="60" height="40" rx="4" fill="rgba(168,85,247,.06)" stroke="rgba(168,85,247,.12)" strokeWidth="0.5"/>
+                      {vocabTier>=3&&<text x="130" y="28" fill="rgba(168,85,247,.35)" fontSize="6" textAnchor="middle">Tunnel Zone</text>}
+                      {/* Fastball reference line (ghost) for non-fastball pitches */}
+                      {selPitch!=="fourSeam"&&<path d={paths.fourSeam} fill="none" stroke="rgba(255,255,255,.06)" strokeWidth="1.5" strokeDasharray="2,4"/>}
+                      {/* Selected pitch path */}
                       <path d={p} fill="none" stroke="rgba(255,255,255,.1)" strokeWidth="1" strokeDasharray="3,3"/>
-                      {isAnimating&&<circle r="4" fill="#ef4444">
-                        <animateMotion dur="1.2s" fill="freeze" path={p}/>
-                        <animate attributeName="opacity" values="1;1;0" dur="1.2s" fill="freeze"/>
-                      </circle>}
+                      {isAnimating&&<>
+                        <circle r="4" fill="#ef4444">
+                          <animateMotion dur="1.2s" fill="freeze" path={p}/>
+                          <animate attributeName="opacity" values="1;1;0" dur="1.2s" fill="freeze"/>
+                        </circle>
+                        {/* Trail showing where ball breaks away from tunnel */}
+                        <circle r="2" fill="rgba(239,68,68,.3)">
+                          <animateMotion dur="1.2s" begin=".08s" fill="freeze" path={p}/>
+                          <animate attributeName="opacity" values="0;.3;0" dur="1.2s" begin=".08s" fill="freeze"/>
+                        </circle>
+                      </>}
                     </svg>
                     <div style={{display:"flex",justifyContent:"center",gap:6}}>
                       <button onClick={()=>{setPitchThrow(null);setTimeout(()=>setPitchThrow(selPitch),50);snd.play('tap');}} style={{background:"rgba(239,68,68,.1)",border:"1px solid rgba(239,68,68,.2)",borderRadius:6,padding:"4px 12px",fontSize:9,fontWeight:600,color:"#fca5a5",cursor:"pointer",minHeight:28}}>Throw!</button>
@@ -4552,6 +4593,9 @@ export default function App(){
                       return !p;
                     });
                   }} style={{background:replayPaused?"rgba(245,158,11,.1)":"rgba(255,255,255,.04)",border:`1px solid ${replayPaused?"rgba(245,158,11,.2)":"rgba(255,255,255,.06)"}`,borderRadius:6,padding:"2px 8px",fontSize:9,color:replayPaused?"#f59e0b":"#9ca3af",cursor:"pointer",fontWeight:700}}>{replayPaused?"▶ Play":"⏸ Pause"}</button>
+                  <select value={replaySpeed} onChange={e=>{setReplaySpeed(parseFloat(e.target.value));setReplayKey(k=>k+1);}} style={{background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.06)",borderRadius:6,padding:"2px 4px",fontSize:8,color:"#9ca3af",cursor:"pointer",appearance:"none",textAlign:"center",minWidth:36}}>
+                    <option value="1">1x</option><option value="1.5">1.5x</option><option value="2.5">2.5x</option><option value="4">4x</option>
+                  </select>
                   <button onClick={()=>setShowReplay(false)} style={{background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.06)",borderRadius:6,padding:"2px 8px",fontSize:9,color:"#9ca3af",cursor:"pointer"}}>✕</button>
                 </div>
               </div>
@@ -4594,7 +4638,7 @@ export default function App(){
                   if(r.includes(2))return '2B';
                 }
                 return sc.animVariant||sc.pitchType||null;
-              })()} theme={FIELD_THEMES.find(th=>th.id===stats.fieldTheme)||FIELD_THEMES[0]} avatar={{j:stats.avatarJersey||0,c:stats.avatarCap||0,b:stats.avatarBat||0}} pos={pos} slow={true}/>
+              })()} theme={FIELD_THEMES.find(th=>th.id===stats.fieldTheme)||FIELD_THEMES[0]} avatar={{j:stats.avatarJersey||0,c:stats.avatarCap||0,b:stats.avatarBat||0}} pos={pos} slow={replaySpeed}/>
               <div style={{marginTop:2}}><Board sit={sc.situation}/></div>
               {/* AF7: Decision tree overlay — shows AFTER animation completes (delayed 4s) */}
               {showReplay&&sc.anim&&!replayPaused&&(()=>{
@@ -4744,7 +4788,7 @@ export default function App(){
                     <span style={{fontSize:13,flexShrink:0}}>{ins.icon}</span>
                     <div style={{flex:1}}>
                       <span style={{fontSize:12,color:"#d1d5db",lineHeight:1.4}}>{ins.text}</span>
-                      {ins.deepLink&&(!ins.deepLink.minAge||parseInt((stats.ageGroup||"13").split("-")[0])>=ins.deepLink.minAge)&&<button onClick={()=>{setBrainTab(ins.deepLink.tab);if(ins.deepLink.state){const s=ins.deepLink.state;if(s.runners!==undefined){setReRunners(s.runners);setReOuts(s.outs||0);}if(s.count)setSelCount(s.count);if(s.inning!==undefined){setWpInning(s.inning);setWpDiff(s.diff||0);}}setScreen("brain");}} style={{display:"inline-block",marginLeft:4,background:"none",border:"none",color:"#a855f7",fontSize:10,fontWeight:600,cursor:"pointer",padding:0,textDecoration:"underline"}}>Explore →</button>}
+                      {ins.deepLink&&(!ins.deepLink.minAge||parseInt((stats.ageGroup||"13").split("-")[0])>=ins.deepLink.minAge)&&<button onClick={()=>{setBrainTab(ins.deepLink.tab);if(ins.deepLink.state){const s=ins.deepLink.state;if(s.runners!==undefined){setReRunners(s.runners);setReOuts(s.outs||0);}if(s.count)setSelCount(s.count);if(s.inning!==undefined){setWpInning(s.inning);setWpDiff(s.diff||0);}}setStats(p=>({...p,brainExplored:{...(p.brainExplored||{}),_deepLinkUses:((p.brainExplored||{})._deepLinkUses||0)+1}}));setScreen("brain");}} style={{display:"inline-block",marginLeft:4,background:"none",border:"none",color:"#a855f7",fontSize:10,fontWeight:600,cursor:"pointer",padding:0,textDecoration:"underline"}}>Explore →</button>}
                     </div>
                   </div>
                 ))}

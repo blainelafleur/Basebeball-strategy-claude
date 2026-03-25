@@ -30,7 +30,10 @@ function useSound() {
     if(ctx.current?.state==='suspended')ctx.current.resume();return ctx.current;
   },[]);
   const play = useCallback((t)=>{
-    if(!enabled.current)return; const c=getCtx();if(!c)return;const n=c.currentTime;
+    if(!enabled.current)return;
+    // Haptic feedback: 10ms for taps, 20ms for actions, 40ms for achievements
+    if(navigator.vibrate){const hd=t==='ach'||t==='lvl'||t==='streak'?40:t==='correct'||t==='wrong'?20:10;navigator.vibrate(hd);}
+    const c=getCtx();if(!c)return;const n=c.currentTime;
     try{
       if(t==='tap'){const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.setValueAtTime(800,n);o.frequency.exponentialRampToValueAtTime(1200,n+.07);g.gain.setValueAtTime(.08,n);g.gain.exponentialRampToValueAtTime(.001,n+.08);o.start(n);o.stop(n+.08)}
       else if(t==='correct'){[523,659,784].forEach((f,i)=>{const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.type='triangle';o.frequency.setValueAtTime(f,n+i*.1);g.gain.setValueAtTime(.1,n+i*.1);g.gain.exponentialRampToValueAtTime(.001,n+i*.1+.18);o.start(n+i*.1);o.stop(n+i*.1+.18)})}
@@ -108,18 +111,19 @@ const Field=React.memo(function Field({runners=[],outcome=null,ak=0,anim=null,an
   },[slow,anim,ak]);
 
   // Game Film slow mode: per-phase pacing (fast-slow-fast) + 1s pre-delay
-  // Setup phases (begin<0.15s) = 2x, key moments (0.15-0.5s) = 3.5x, resolution (>0.5s) = 2.5x
+  // slow=true uses default 2.5x, slow=number uses that as base multiplier
+  const slowBase=typeof slow==='number'?slow:2.5;
   React.useLayoutEffect(()=>{
     if(!slow||!svgRef.current)return;
-    const preDelay=1.0;
+    const preDelay=slowBase>=2?1.0:0.5;
     svgRef.current.querySelectorAll('animate,animateMotion,animateTransform').forEach(el=>{
-      if(el.getAttribute('data-spotlight'))return; // Don't slow the highlight ring
+      if(el.getAttribute('data-spotlight'))return;
       const rawBegin=parseFloat(el.getAttribute('begin'))||0;
       const rawDur=parseFloat(el.getAttribute('dur'));
       if(isNaN(rawDur))return;
-      // Phase-aware speed: setup=fast, key moment=slow, resolution=medium
-      const phaseFactor=rawBegin<0.15?2.0:rawBegin<0.5?3.5:2.5;
-      const durFactor=rawDur<0.15?1.8:rawDur<0.4?3.0:2.5; // short pulses stay snappy
+      const sf=slowBase/2.5; // scale factor relative to default
+      const phaseFactor=(rawBegin<0.15?2.0:rawBegin<0.5?3.5:2.5)*sf;
+      const durFactor=(rawDur<0.15?1.8:rawDur<0.4?3.0:2.5)*sf;
       const begin=el.getAttribute('begin');
       const dur=el.getAttribute('dur');
       if(begin&&!begin.includes('indefinite')){
