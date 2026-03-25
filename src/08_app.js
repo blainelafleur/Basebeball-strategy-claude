@@ -4532,7 +4532,7 @@ export default function App(){
                 return movingRunner?r.filter(b=>b!==movingRunner):r;
               })()} outcome="success" ak={replayKey} anim={sc.anim} animVariant={(()=>{
                 // Compute direction variant for directional animations
-                const r=sc.situation?.runners||[];const a=sc.anim;
+                const r=sc.situation?.runners||[];const a=sc.anim;const p=pos;
                 if(a==='steal'){
                   if(r.includes(3))return '3toHome';
                   if(r.includes(2)&&!r.includes(1))return '2to3';
@@ -4540,6 +4540,21 @@ export default function App(){
                 if(a==='advance'){
                   if(r.includes(3))return '3toHome';
                   if(r.includes(2)&&!r.includes(1))return '2to3';
+                }
+                // Hit/flyout direction based on position (LF/CF/RF scenarios)
+                if(a==='hit'||a==='flyout'){
+                  if(p==='leftField')return 'LF';
+                  if(p==='centerField')return 'CF';
+                  // Default RF for rightField, batter, and all others
+                }
+                // Groundout to 1B side for firstBase/secondBase positions
+                if(a==='groundout'){
+                  if(p==='firstBase'||p==='secondBase')return '1B';
+                }
+                // Freeze variant based on which runner would go
+                if(a==='freeze'){
+                  if(r.includes(3))return '3B';
+                  if(r.includes(2))return '2B';
                 }
                 return sc.animVariant||sc.pitchType||null;
               })()} theme={FIELD_THEMES.find(th=>th.id===stats.fieldTheme)||FIELD_THEMES[0]} avatar={{j:stats.avatarJersey||0,c:stats.avatarCap||0,b:stats.avatarBat||0}} pos={pos} slow={true}/>

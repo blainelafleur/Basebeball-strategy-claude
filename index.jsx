@@ -5123,6 +5123,61 @@ const ANIM_DATA={
     {type:"flash",cx:200,cy:290,r:8,dur:.1,begin:.64,color:"rgba(239,68,68,.4)"},
     {type:"text",x:200,y:265,text:"GOT HIM!",size:10,color:"#ef4444",dur:1.2,begin:0},
   ],
+  // Hit direction variants (default is RF, add CF and LF)
+  hit_CF_success:[
+    {type:"flash",cx:200,cy:288,r:8,dur:.1,begin:0,color:"rgba(255,255,255,.9)"},
+    {type:"trail",path:"M200,290 Q200,178 200,60",dur:.45,begin:.04,color:"#f59e0b",r:2,easing:EASE.launch},
+    {type:"ball",path:"M200,290 Q200,178 200,60",dur:.45,begin:0,color:"#f59e0b",r:3,easing:EASE.launch,glow:true},
+    {type:"dust",cx:202,cy:292,r:5,dur:.3,begin:.1,color:"#c4a882"},
+    {type:"runner",path:"M200,290 Q248,252 290,210",dur:.6,begin:.15,easing:EASE.runner},
+    {type:"text",x:200,y:48,text:"BASE HIT",size:10,color:"#f59e0b",dur:1.3,begin:0},
+  ],
+  hit_LF_success:[
+    {type:"flash",cx:200,cy:288,r:8,dur:.1,begin:0,color:"rgba(255,255,255,.9)"},
+    {type:"trail",path:"M200,290 Q148,178 94,75",dur:.45,begin:.04,color:"#f59e0b",r:2,easing:EASE.launch},
+    {type:"ball",path:"M200,290 Q148,178 94,75",dur:.45,begin:0,color:"#f59e0b",r:3,easing:EASE.launch,glow:true},
+    {type:"dust",cx:198,cy:292,r:5,dur:.3,begin:.1,color:"#c4a882"},
+    {type:"runner",path:"M200,290 Q248,252 290,210",dur:.6,begin:.15,easing:EASE.runner},
+    {type:"text",x:135,y:112,text:"BASE HIT",size:10,color:"#f59e0b",dur:1.3,begin:0},
+  ],
+  // Flyout direction variants (default is RF, add CF and LF)
+  flyout_CF_success:[
+    {type:"flash",cx:200,cy:288,r:7,dur:.1,begin:0,color:"rgba(255,255,255,.7)"},
+    {type:"trail",path:"M200,290 Q200,120 200,60",dur:.55,begin:.04,color:"white",r:2,easing:EASE.flyArc},
+    {type:"ball",path:"M200,290 Q200,120 200,60",dur:.55,begin:0,color:"white",r:3,easing:EASE.flyArc,glow:true},
+    {type:"flash",cx:200,cy:60,r:10,dur:.12,begin:.54,color:"rgba(34,197,94,.5)"},
+    {type:"text",x:200,y:48,text:"CAUGHT!",size:10,color:"#22c55e",dur:1.2,begin:0},
+  ],
+  flyout_LF_success:[
+    {type:"flash",cx:200,cy:288,r:7,dur:.1,begin:0,color:"rgba(255,255,255,.7)"},
+    {type:"trail",path:"M200,290 Q158,118 118,108",dur:.55,begin:.04,color:"white",r:2,easing:EASE.flyArc},
+    {type:"ball",path:"M200,290 Q158,118 118,108",dur:.55,begin:0,color:"white",r:3,easing:EASE.flyArc,glow:true},
+    {type:"flash",cx:118,cy:108,r:10,dur:.12,begin:.54,color:"rgba(34,197,94,.5)"},
+    {type:"text",x:118,y:95,text:"CAUGHT!",size:10,color:"#22c55e",dur:1.2,begin:0},
+  ],
+  // Groundout to 1B side (default is SS area, add 1B/2B side)
+  groundout_1B_success:[
+    {type:"flash",cx:200,cy:288,r:6,dur:.1,begin:0,color:"rgba(255,255,255,.7)"},
+    {type:"ball",path:"M200,290 Q230,268 260,248 Q270,240 280,220",dur:.4,begin:0,color:"white",r:2.5,easing:EASE.ground,glow:true},
+    {type:"dust",cx:265,cy:245,r:4,dur:.2,begin:.16,color:"#c4a882"},
+    {type:"flash",cx:280,cy:220,r:5,dur:.1,begin:.39,color:"rgba(255,255,255,.5)"},
+    {type:"text",x:276,y:198,text:"OUT!",size:10,color:"#22c55e",dur:1.4,begin:0},
+  ],
+  // Freeze variants for runner on 2B and 3B
+  freeze_2B_success:[
+    {type:"runner",path:"M200,135 Q165,170 140,190",dur:.8,begin:.15,easing:EASE.runner,o:0.3},
+    {type:"ball",path:"M200,218 Q180,180 200,140",dur:.3,begin:.2,color:"#ef4444",r:2.5,easing:EASE.throw},
+    {type:"flash",cx:140,cy:190,r:12,dur:.15,begin:.48,color:"rgba(239,68,68,.5)"},
+    {type:"text",x:140,y:178,text:"✗ OUT",size:14,color:"#ef4444",dur:1.5,begin:0},
+    {type:"text",x:200,y:195,text:"SMART — DON'T RUN INTO AN OUT!",size:10,color:"#f59e0b",dur:2,begin:0},
+  ],
+  freeze_3B_success:[
+    {type:"runner",path:"M110,210 Q140,235 165,255",dur:.8,begin:.15,easing:EASE.runner,o:0.3},
+    {type:"ball",path:"M200,218 Q175,250 200,285",dur:.3,begin:.2,color:"#ef4444",r:2.5,easing:EASE.throw},
+    {type:"flash",cx:165,cy:255,r:12,dur:.15,begin:.48,color:"rgba(239,68,68,.5)"},
+    {type:"text",x:165,y:243,text:"✗ OUT",size:14,color:"#ef4444",dur:1.5,begin:0},
+    {type:"text",x:200,y:195,text:"SMART — DON'T RUN INTO AN OUT!",size:10,color:"#f59e0b",dur:2,begin:0},
+  ],
   // AF2: Ghost failure animations — transparent overlay showing what goes wrong
   steal_fail:[
     {type:"runner",path:"M290,210 Q265,190 248,178",dur:.4,begin:.08,easing:EASE.runner,o:0.3},
@@ -18544,7 +18599,7 @@ export default function App(){
                 return movingRunner?r.filter(b=>b!==movingRunner):r;
               })()} outcome="success" ak={replayKey} anim={sc.anim} animVariant={(()=>{
                 // Compute direction variant for directional animations
-                const r=sc.situation?.runners||[];const a=sc.anim;
+                const r=sc.situation?.runners||[];const a=sc.anim;const p=pos;
                 if(a==='steal'){
                   if(r.includes(3))return '3toHome';
                   if(r.includes(2)&&!r.includes(1))return '2to3';
@@ -18552,6 +18607,21 @@ export default function App(){
                 if(a==='advance'){
                   if(r.includes(3))return '3toHome';
                   if(r.includes(2)&&!r.includes(1))return '2to3';
+                }
+                // Hit/flyout direction based on position (LF/CF/RF scenarios)
+                if(a==='hit'||a==='flyout'){
+                  if(p==='leftField')return 'LF';
+                  if(p==='centerField')return 'CF';
+                  // Default RF for rightField, batter, and all others
+                }
+                // Groundout to 1B side for firstBase/secondBase positions
+                if(a==='groundout'){
+                  if(p==='firstBase'||p==='secondBase')return '1B';
+                }
+                // Freeze variant based on which runner would go
+                if(a==='freeze'){
+                  if(r.includes(3))return '3B';
+                  if(r.includes(2))return '2B';
                 }
                 return sc.animVariant||sc.pitchType||null;
               })()} theme={FIELD_THEMES.find(th=>th.id===stats.fieldTheme)||FIELD_THEMES[0]} avatar={{j:stats.avatarJersey||0,c:stats.avatarCap||0,b:stats.avatarBat||0}} pos={pos} slow={true}/>
