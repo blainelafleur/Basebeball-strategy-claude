@@ -1063,10 +1063,10 @@ function enrichFeedback(scenario, choiceIdx, situation, playerAge, masteryData, 
     insights.push({icon:"📊", text:`${hasBrainExp("re24")?"Remember your RE24 Explorer experiments — ":""}With ${runners.length === 3 ? "bases loaded" : runners.length === 2 ? "2 runners on" : "a runner on"}, your team expects ${re24.toFixed(2)} runs from here.`, deepLink:{tab:"re24",state:{runners,outs}}});
   const ci = getCountIntel(count);
   if (ci)
-    insights.push({icon:"🔢", text:`At ${count} (${ci.label}), hitters bat .${Math.round(ci.ba*1000)}.`, deepLink:{tab:"counts",state:{count}}});
+    insights.push({icon:"🔢", text:`${hasBrainExp("counts")?"You've studied this count — ":""}At ${count} (${ci.label}), hitters bat .${Math.round(ci.ba*1000)}.`, deepLink:{tab:"counts",state:{count}}});
   const pressure = getPressure(situation);
   if (pressure >= 50)
-    insights.push({icon:"🔥", text:`Pressure: ${pressure}/100 — ${pressure>=80?"Clutch time!":pressure>=60?"High stakes!":"Heating up!"}`, deepLink:{tab:"winprob",state:{inning:parseInt((situation.inning||"").replace(/\D/g,""))||7,diff:(situation.score?.[0]||0)-(situation.score?.[1]||0)}}});
+    insights.push({icon:"🔥", text:`${hasBrainExp("winprob")?"Your Win Probability work applies here — ":""}Pressure: ${pressure}/100 — ${pressure>=80?"Clutch time!":pressure>=60?"High stakes!":"Heating up!"}`, deepLink:{tab:"winprob",state:{inning:parseInt((situation.inning||"").replace(/\D/g,""))||7,diff:(situation.score?.[0]||0)-(situation.score?.[1]||0)}}});
   // Bunt insight if concept mentions bunt
   if (scenario?.concept && /bunt/i.test(scenario.concept)) {
     const bunt = evaluateBunt(runners, outs);
@@ -1098,7 +1098,7 @@ function enrichFeedback(scenario, choiceIdx, situation, playerAge, masteryData, 
     insights.push({icon:"🏃", text:`MLB runners score from 2nd on a single ${Math.round(BRAIN.stats.baserunningRates.second_to_home_on_single * 100)}% of the time. Reading the ball off the bat is the key.`});
   // Pitch type recommendation for pitcher scenarios with count data
   if (scenario?.concept && /pitch.*(seq|type|select|choice|tunnel)/i.test(scenario.concept))
-    insights.push({icon:"📊", text:"Best put-away pitches by run value: Sweeper (-1.6) → Slider (-1.4) → Changeup (-1.2). Fastball alone (+0.2) needs offspeed to be dangerous.", deepLink:{tab:"pitchlab"}});
+    insights.push({icon:"📊", text:`${hasBrainExp("pitchlab")?"From your Pitch Lab experiments — ":""}Best put-away pitches by run value: Sweeper (-1.6) → Slider (-1.4) → Changeup (-1.2). Fastball alone (+0.2) needs offspeed to be dangerous.`, deepLink:{tab:"pitchlab"}});
   // Win probability insight for late/close games
   if (situation.inning && situation.score) {
     const wpDiff = (situation.score[0]||0) - (situation.score[1]||0);
@@ -1132,7 +1132,7 @@ function enrichFeedback(scenario, choiceIdx, situation, playerAge, masteryData, 
     const youth = BRAIN.stats.pitchCountThresholds.youthByAge;
     const ageKey = playerAge <= 8 ? "7-8" : playerAge <= 10 ? "9-10" : playerAge <= 12 ? "11-12" : playerAge <= 14 ? "13-14" : playerAge <= 16 ? "15-16" : "17-18";
     const youthMax = youth[ageKey];
-    if (youthMax) insights.push({icon:"💪", text:`At your age group (${ageKey}), the recommended pitch limit is ${youthMax} pitches. After ${pc.softLimit}+ pitches, velocity drops ~${pc.velocityDrop["76-90"]}mph and ERA rises by ${pc.eraIncrease["76-90"]}.`, deepLink:{tab:"pitchcount"}});
+    if (youthMax) insights.push({icon:"💪", text:`${hasBrainExp("pitchcount")?"Remember the Pitch Count Tracker — ":""}At your age group (${ageKey}), the recommended pitch limit is ${youthMax} pitches. After ${pc.softLimit}+ pitches, velocity drops ~${pc.velocityDrop["76-90"]}mph and ERA rises by ${pc.eraIncrease["76-90"]}.`, deepLink:{tab:"pitchcount"}});
   }
   // League trend context for batting/pitcher approach scenarios
   if (scenario?.concept && /two.*strike|protect|strikeout|k.*rate/i.test(scenario.concept)) {
@@ -1147,7 +1147,7 @@ function enrichFeedback(scenario, choiceIdx, situation, playerAge, masteryData, 
   // Platoon matchup insight for batting/pitching scenarios with handedness
   if (scenario?.concept && /platoon|matchup|hand|left|right|switch/i.test(scenario.concept)) {
     const mm = BRAIN.stats.matchupMatrix.platoon;
-    insights.push({icon:"📊", text:`Opposite-hand batters hit ${mm.edge} BA points higher than same-hand (.${Math.round(mm.oppositeHand.ba*1000)} vs .${Math.round(mm.sameHand.ba*1000)}). Switch hitters (.${Math.round(mm.switchHitter.ba*1000)}) split the difference.`, deepLink:{tab:"matchup",minAge:11}});
+    insights.push({icon:"📊", text:`${hasBrainExp("matchup")?"Your Matchup Analyzer work is relevant — ":""}Opposite-hand batters hit ${mm.edge} BA points higher than same-hand (.${Math.round(mm.oppositeHand.ba*1000)} vs .${Math.round(mm.sameHand.ba*1000)}). Switch hitters (.${Math.round(mm.switchHitter.ba*1000)}) split the difference.`, deepLink:{tab:"matchup",minAge:11}});
   }
   // Infield-in tradeoff insight
   if (scenario?.concept && /infield.*in/i.test(scenario.concept)) {
