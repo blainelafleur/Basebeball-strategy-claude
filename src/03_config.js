@@ -400,8 +400,8 @@ const ANIM_DATA={
 };
 
 // === GUY COMPONENT — Full-body proportional player with 10 baseball poses ===
-// Top-level so AnimPhases and Field can both use it
-const Guy=({x,y,jersey="#2563eb",cap="#1d4ed8",pants="#eee",o=1,ring=false,bat=false,mask=false,batColor="#c8a060",pose="stand",number=null})=>{
+// function declaration (not const) so it's hoisted above AnimPhases and all callers
+function Guy({x,y,jersey="#2563eb",cap="#1d4ed8",pants="#eee",o=1,ring=false,bat=false,mask=false,batColor="#c8a060",pose="stand",number=null}){
   const showMask=mask||pose==="catcher"||pose==="catcher-squat";
   const p=({pitcher:'pw','pitcher-windup':'pw','pitcher-set':'ps',catcher:'cs','catcher-squat':'cs',batter:'br','batter-ready':'br','batter-swing':'bs',infielder:'ir','infielder-ready':'ir','infielder-throw':'it',outfielder:'or','outfielder-ready':'or','outfielder-catch':'oc',runner:'rs','runner-sprint':'rs',stand:'or'})[pose]||'or';
   const hy=p==='cs'?-10:-16;
@@ -466,7 +466,7 @@ const Guy=({x,y,jersey="#2563eb",cap="#1d4ed8",pants="#eee",o=1,ring=false,bat=f
     </g>
   </g>
   );
-};
+}
 
 // AF1: Generic Animation Renderer — converts ANIM_DATA phases to SVG+SMIL
 function AnimPhases({phases,ak}){

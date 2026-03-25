@@ -60,7 +60,7 @@
     }
 
     // Fetch index.jsx, transpile with Babel, and mount the App
-    fetch('./index.jsx')
+    fetch('./index.jsx?v=' + Date.now())
       .then(r => {
         if (!r.ok) throw new Error('HTTP ' + r.status + ': ' + r.statusText);
         return r.text();
