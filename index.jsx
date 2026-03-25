@@ -18480,19 +18480,22 @@ export default function App(){
               </div>
               <Field key={`replay-${replayKey}`} runners={(()=>{const r=sc.situation?.runners||[];const moveFrom={steal:1,score:3,advance:1,wildPitch:1,squeeze:3};const rm=moveFrom[sc.anim];return rm?r.filter(b=>b!==rm):r})()} outcome="success" ak={replayKey} anim={sc.anim} animVariant={sc.animVariant||sc.pitchType||null} theme={FIELD_THEMES.find(th=>th.id===stats.fieldTheme)||FIELD_THEMES[0]} avatar={{j:stats.avatarJersey||0,c:stats.avatarCap||0,b:stats.avatarBat||0}} pos={pos} slow={true}/>
               <div style={{marginTop:2}}><Board sit={sc.situation}/></div>
-              {/* AF7: Decision tree overlay — show outcome arrows after replay */}
+              {/* AF7: Decision tree overlay — shows AFTER animation completes (delayed 4s) */}
               {showReplay&&sc.anim&&!replayPaused&&(()=>{
                 const trees={steal:{from:[290,210],paths:[{to:[200,135],label:"SAFE",color:"#22c55e"},{to:[248,178],label:"OUT",color:"#ef4444"}]},
                   hit:{from:[200,290],paths:[{to:[306,75],label:"BASE HIT",color:"#22c55e"},{to:[248,195],label:"FIELDED",color:"#ef4444"}]},
                   groundout:{from:[200,290],paths:[{to:[290,210],label:"OUT AT 1B",color:"#22c55e"},{to:[200,135],label:"RUNNER SAFE",color:"#f59e0b"}]},
-                  score:{from:[110,210],paths:[{to:[200,290],label:"SCORES!",color:"#22c55e"},{to:[155,250],label:"HELD AT 3B",color:"#f59e0b"}]}};
+                  score:{from:[110,210],paths:[{to:[200,290],label:"SCORES!",color:"#22c55e"},{to:[155,250],label:"HELD AT 3B",color:"#f59e0b"}]},
+                  doubleplay:{from:[240,258],paths:[{to:[200,135],label:"FORCE AT 2B",color:"#22c55e"},{to:[290,210],label:"RELAY TO 1B",color:"#22c55e"}]},
+                  bunt:{from:[200,290],paths:[{to:[192,258],label:"BUNT DOWN",color:"#22c55e"},{to:[205,250],label:"POP UP",color:"#ef4444"}]},
+                  flyout:{from:[200,290],paths:[{to:[282,108],label:"CAUGHT",color:"#22c55e"},{to:[306,75],label:"OVER HEAD",color:"#f59e0b"}]}};
                 const tree=trees[sc.anim];
                 if(!tree)return null;
                 return <svg viewBox="0 0 400 310" style={{position:"absolute",top:0,left:0,width:"100%",height:"100%",pointerEvents:"none"}}>
-                  {tree.paths.map((p,i)=><g key={i} opacity="0"><animate attributeName="opacity" values="0;0;0;0;.6" dur="5s" fill="freeze"/>
-                    <line x1={tree.from[0]} y1={tree.from[1]} x2={p.to[0]} y2={p.to[1]} stroke={p.color} strokeWidth="1.5" strokeDasharray="3,3"/>
-                    <circle cx={p.to[0]} cy={p.to[1]} r="14" fill={`${p.color}15`} stroke={p.color} strokeWidth="1"/>
-                    <text x={p.to[0]} y={p.to[1]+3} textAnchor="middle" fontSize="5" fill={p.color} fontWeight="800">{p.label}</text>
+                  {tree.paths.map((p,i)=><g key={i} opacity="0"><animate attributeName="opacity" values="0;0;0;0;0;0;0;.7" dur="7s" fill="freeze"/>
+                    <line x1={tree.from[0]} y1={tree.from[1]} x2={p.to[0]} y2={p.to[1]} stroke={p.color} strokeWidth="1.5" strokeDasharray="4,3" opacity=".5"/>
+                    <circle cx={p.to[0]} cy={p.to[1]} r="18" fill={`${p.color}18`} stroke={p.color} strokeWidth="1.5"/>
+                    <text x={p.to[0]} y={p.to[1]+3} textAnchor="middle" fontSize="8" fill={p.color} fontWeight="800">{p.label}</text>
                   </g>)}
                 </svg>;
               })()}
