@@ -461,11 +461,13 @@ const Field=React.memo(function Field({runners=[],outcome=null,ak=0,anim=null,an
       {/* AF1: Check ANIM_DATA first. If found, use AnimPhases renderer. Otherwise fall through to inline SMIL. */}
       {(()=>{
         if(!anim||!outcome)return null;
-        // AF3+AF5: Check for animation variant (pitch type, position-specific path)
+        // AF3+AF5: Check for animation variant (pitch type OR direction)
+        // Direction variants: steal_2to3_success, advance_3toHome_success, etc.
+        const dirVariant=animVariant?anim+"_"+animVariant+"_"+outcome:null;
         const pitchVariant=animVariant?anim.replace("out","")+"_"+animVariant:null;
         const dataKey=anim+"_"+outcome;
-        const altKey=anim+"_success"; // strikeout uses strike data
-        const phases=ANIM_DATA[pitchVariant]||ANIM_DATA[dataKey]||ANIM_DATA[altKey];
+        const altKey=anim+"_success";
+        const phases=ANIM_DATA[dirVariant]||ANIM_DATA[pitchVariant]||ANIM_DATA[dataKey]||ANIM_DATA[altKey];
         if(phases)return <AnimPhases phases={phases} ak={ak}/>;
         return null; // Fall through to inline SMIL below
       })()}

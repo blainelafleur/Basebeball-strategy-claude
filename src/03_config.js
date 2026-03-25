@@ -315,6 +315,54 @@ const ANIM_DATA={
     {type:"text",x:212,y:282,text:"POP!",size:7,color:"rgba(255,200,50,.8)",dur:.4,begin:.38},
     {type:"text",x:200,y:263,text:"STRIKE!",size:10,color:"#f59e0b",dur:1.6,begin:0},
   ],
+  strikeout_success:[
+    {type:"flash",cx:200,cy:216,r:5,dur:.1,begin:0,color:"rgba(255,255,255,.5)"},
+    {type:"trail",path:"M200,218 L200,288",dur:.4,begin:.02,color:"white",r:1.5,easing:EASE.throw},
+    {type:"ball",path:"M200,218 L200,288",dur:.4,begin:0,color:"white",r:2.5,easing:EASE.throw},
+    {type:"flash",cx:200,cy:290,r:6,dur:.08,begin:.38,color:"rgba(255,200,50,.7)"},
+    {type:"text",x:212,y:282,text:"POP!",size:7,color:"rgba(255,200,50,.8)",dur:.4,begin:.38},
+    {type:"text",x:200,y:263,text:"STRUCK OUT!",size:13,color:"#ef4444",dur:1.6,begin:0},
+  ],
+  // Direction variants for steal (default is 1B→2B, add 2B→3B and 3B→Home)
+  steal_2to3_success:[
+    {type:"dust",cx:200,cy:137,r:6,dur:.3,begin:0,color:"#c4a882"},
+    {type:"runner",path:"M200,135 Q152,170 110,210",dur:.55,begin:.08,easing:EASE.runner},
+    {type:"ball",path:"M200,288 Q170,210 112,212",dur:.4,begin:.25,color:"white",r:2,easing:EASE.throw,opacity:.8},
+    {type:"dust",cx:112,cy:212,r:7,dur:.3,begin:.55,color:"#c4a882"},
+    {type:"text",x:110,y:195,text:"SAFE!",size:12,color:"#22c55e",dur:1.3,begin:0},
+  ],
+  steal_3toHome_success:[
+    {type:"dust",cx:112,cy:212,r:6,dur:.3,begin:0,color:"#c4a882"},
+    {type:"runner",path:"M110,210 Q160,252 200,290",dur:.55,begin:.08,easing:EASE.runner},
+    {type:"ball",path:"M200,288 Q180,250 112,212",dur:.4,begin:.25,color:"white",r:2,easing:EASE.throw,opacity:.8},
+    {type:"dust",cx:200,cy:292,r:7,dur:.3,begin:.55,color:"#c4a882"},
+    {type:"text",x:200,y:265,text:"SAFE!",size:12,color:"#22c55e",dur:1.3,begin:0},
+  ],
+  // Direction variants for advance
+  advance_2to3_success:[
+    {type:"dust",cx:200,cy:137,r:5,dur:.3,begin:0,color:"#c4a882"},
+    {type:"runner",path:"M200,135 Q152,170 110,210",dur:.5,begin:.05,easing:EASE.runner},
+    {type:"text",x:152,y:183,text:"ADVANCING!",size:9,color:"#3b82f6",dur:1,begin:0},
+  ],
+  advance_3toHome_success:[
+    {type:"dust",cx:112,cy:212,r:5,dur:.3,begin:0,color:"#c4a882"},
+    {type:"runner",path:"M110,210 Q160,252 200,290",dur:.5,begin:.05,easing:EASE.runner},
+    {type:"text",x:160,y:255,text:"ADVANCING!",size:9,color:"#3b82f6",dur:1,begin:0},
+  ],
+  // throwHome — default from 2B, variants from OF and SS
+  throwHome_success:[
+    {type:"line",x1:200,y1:135,x2:200,y2:290,color:"#ef4444",width:2,dash:"6,4",dur:.9,begin:0},
+    {type:"ball",path:"M200,135 L200,290",dur:.35,begin:0,color:"#ef4444",r:2.5,easing:EASE.throw},
+    {type:"flash",cx:200,cy:290,r:8,dur:.1,begin:.34,color:"rgba(239,68,68,.4)"},
+    {type:"text",x:200,y:265,text:"GOT HIM!",size:10,color:"#ef4444",dur:1.2,begin:0},
+  ],
+  throwHome_OF_success:[
+    {type:"ball",path:"M300,80 Q265,155 248,185",dur:.3,begin:0,color:"white",r:2.5,easing:EASE.throw,glow:true},
+    {type:"flash",cx:248,cy:185,r:5,dur:.08,begin:.29,color:"rgba(255,255,255,.4)"},
+    {type:"ball",path:"M248,185 L200,290",dur:.3,begin:.35,color:"#ef4444",r:2.5,easing:EASE.throw},
+    {type:"flash",cx:200,cy:290,r:8,dur:.1,begin:.64,color:"rgba(239,68,68,.4)"},
+    {type:"text",x:200,y:265,text:"GOT HIM!",size:10,color:"#ef4444",dur:1.2,begin:0},
+  ],
   // AF2: Ghost failure animations — transparent overlay showing what goes wrong
   steal_fail:[
     {type:"runner",path:"M290,210 Q265,190 248,178",dur:.4,begin:.08,easing:EASE.runner,o:0.3},

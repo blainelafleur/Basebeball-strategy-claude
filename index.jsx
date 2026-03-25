@@ -5075,6 +5075,54 @@ const ANIM_DATA={
     {type:"text",x:212,y:282,text:"POP!",size:7,color:"rgba(255,200,50,.8)",dur:.4,begin:.38},
     {type:"text",x:200,y:263,text:"STRIKE!",size:10,color:"#f59e0b",dur:1.6,begin:0},
   ],
+  strikeout_success:[
+    {type:"flash",cx:200,cy:216,r:5,dur:.1,begin:0,color:"rgba(255,255,255,.5)"},
+    {type:"trail",path:"M200,218 L200,288",dur:.4,begin:.02,color:"white",r:1.5,easing:EASE.throw},
+    {type:"ball",path:"M200,218 L200,288",dur:.4,begin:0,color:"white",r:2.5,easing:EASE.throw},
+    {type:"flash",cx:200,cy:290,r:6,dur:.08,begin:.38,color:"rgba(255,200,50,.7)"},
+    {type:"text",x:212,y:282,text:"POP!",size:7,color:"rgba(255,200,50,.8)",dur:.4,begin:.38},
+    {type:"text",x:200,y:263,text:"STRUCK OUT!",size:13,color:"#ef4444",dur:1.6,begin:0},
+  ],
+  // Direction variants for steal (default is 1B→2B, add 2B→3B and 3B→Home)
+  steal_2to3_success:[
+    {type:"dust",cx:200,cy:137,r:6,dur:.3,begin:0,color:"#c4a882"},
+    {type:"runner",path:"M200,135 Q152,170 110,210",dur:.55,begin:.08,easing:EASE.runner},
+    {type:"ball",path:"M200,288 Q170,210 112,212",dur:.4,begin:.25,color:"white",r:2,easing:EASE.throw,opacity:.8},
+    {type:"dust",cx:112,cy:212,r:7,dur:.3,begin:.55,color:"#c4a882"},
+    {type:"text",x:110,y:195,text:"SAFE!",size:12,color:"#22c55e",dur:1.3,begin:0},
+  ],
+  steal_3toHome_success:[
+    {type:"dust",cx:112,cy:212,r:6,dur:.3,begin:0,color:"#c4a882"},
+    {type:"runner",path:"M110,210 Q160,252 200,290",dur:.55,begin:.08,easing:EASE.runner},
+    {type:"ball",path:"M200,288 Q180,250 112,212",dur:.4,begin:.25,color:"white",r:2,easing:EASE.throw,opacity:.8},
+    {type:"dust",cx:200,cy:292,r:7,dur:.3,begin:.55,color:"#c4a882"},
+    {type:"text",x:200,y:265,text:"SAFE!",size:12,color:"#22c55e",dur:1.3,begin:0},
+  ],
+  // Direction variants for advance
+  advance_2to3_success:[
+    {type:"dust",cx:200,cy:137,r:5,dur:.3,begin:0,color:"#c4a882"},
+    {type:"runner",path:"M200,135 Q152,170 110,210",dur:.5,begin:.05,easing:EASE.runner},
+    {type:"text",x:152,y:183,text:"ADVANCING!",size:9,color:"#3b82f6",dur:1,begin:0},
+  ],
+  advance_3toHome_success:[
+    {type:"dust",cx:112,cy:212,r:5,dur:.3,begin:0,color:"#c4a882"},
+    {type:"runner",path:"M110,210 Q160,252 200,290",dur:.5,begin:.05,easing:EASE.runner},
+    {type:"text",x:160,y:255,text:"ADVANCING!",size:9,color:"#3b82f6",dur:1,begin:0},
+  ],
+  // throwHome — default from 2B, variants from OF and SS
+  throwHome_success:[
+    {type:"line",x1:200,y1:135,x2:200,y2:290,color:"#ef4444",width:2,dash:"6,4",dur:.9,begin:0},
+    {type:"ball",path:"M200,135 L200,290",dur:.35,begin:0,color:"#ef4444",r:2.5,easing:EASE.throw},
+    {type:"flash",cx:200,cy:290,r:8,dur:.1,begin:.34,color:"rgba(239,68,68,.4)"},
+    {type:"text",x:200,y:265,text:"GOT HIM!",size:10,color:"#ef4444",dur:1.2,begin:0},
+  ],
+  throwHome_OF_success:[
+    {type:"ball",path:"M300,80 Q265,155 248,185",dur:.3,begin:0,color:"white",r:2.5,easing:EASE.throw,glow:true},
+    {type:"flash",cx:248,cy:185,r:5,dur:.08,begin:.29,color:"rgba(255,255,255,.4)"},
+    {type:"ball",path:"M248,185 L200,290",dur:.3,begin:.35,color:"#ef4444",r:2.5,easing:EASE.throw},
+    {type:"flash",cx:200,cy:290,r:8,dur:.1,begin:.64,color:"rgba(239,68,68,.4)"},
+    {type:"text",x:200,y:265,text:"GOT HIM!",size:10,color:"#ef4444",dur:1.2,begin:0},
+  ],
   // AF2: Ghost failure animations — transparent overlay showing what goes wrong
   steal_fail:[
     {type:"runner",path:"M290,210 Q265,190 248,178",dur:.4,begin:.08,easing:EASE.runner,o:0.3},
@@ -13365,11 +13413,13 @@ const Field=React.memo(function Field({runners=[],outcome=null,ak=0,anim=null,an
       {/* AF1: Check ANIM_DATA first. If found, use AnimPhases renderer. Otherwise fall through to inline SMIL. */}
       {(()=>{
         if(!anim||!outcome)return null;
-        // AF3+AF5: Check for animation variant (pitch type, position-specific path)
+        // AF3+AF5: Check for animation variant (pitch type OR direction)
+        // Direction variants: steal_2to3_success, advance_3toHome_success, etc.
+        const dirVariant=animVariant?anim+"_"+animVariant+"_"+outcome:null;
         const pitchVariant=animVariant?anim.replace("out","")+"_"+animVariant:null;
         const dataKey=anim+"_"+outcome;
-        const altKey=anim+"_success"; // strikeout uses strike data
-        const phases=ANIM_DATA[pitchVariant]||ANIM_DATA[dataKey]||ANIM_DATA[altKey];
+        const altKey=anim+"_success";
+        const phases=ANIM_DATA[dirVariant]||ANIM_DATA[pitchVariant]||ANIM_DATA[dataKey]||ANIM_DATA[altKey];
         if(phases)return <AnimPhases phases={phases} ak={ak}/>;
         return null; // Fall through to inline SMIL below
       })()}
@@ -18436,16 +18486,18 @@ export default function App(){
             {!showReplay?<button onClick={()=>{setShowReplay(true);setReplayKey(k=>k+1);snd.play('tap');
               // Replay sound effects timed to slow-mode animation phases (2.5x + 1s pre-delay)
               const a=sc.anim;if(a){
-                if(a==='hit'||a==='groundout'||a==='flyout'||a==='bunt'||a==='squeeze'||a==='doubleplay')setTimeout(()=>snd.play('batCrack'),1200); // bat contact
-                if(a==='steal'||a==='advance'||a==='score'||a==='wildPitch')setTimeout(()=>snd.play('whoosh'),1500); // runner takes off
-                if(a==='strike'||a==='strikeout')setTimeout(()=>snd.play('whoosh'),1300); // pitch delivery
-                if(a==='strike'||a==='strikeout')setTimeout(()=>snd.play('glovePop'),2200); // catcher receives
-                if(a==='doubleplay'||a==='groundout'||a==='relay')setTimeout(()=>snd.play('glovePop'),3500); // fielder catch
-                if(a==='flyout')setTimeout(()=>snd.play('glovePop'),3200); // OF catch
-                if(a==='steal'||a==='score')setTimeout(()=>snd.play('slideDust'),3800); // slide into base
-                if(a==='steal'||a==='score'||a==='hit'||a==='advance')setTimeout(()=>snd.play('umpSafe'),4500); // safe call
-                if(a==='strike'||a==='strikeout'||a==='flyout'||a==='groundout'||a==='doubleplay')setTimeout(()=>snd.play('umpOut'),4000); // out call
-                if(a==='steal'||a==='score'||a==='hit')setTimeout(()=>snd.play('cheer'),4800); // crowd
+                // Slow mode multiplier (matches useLayoutEffect durFactor in Field)
+                const sf=2.5;
+                if(a==='hit'||a==='groundout'||a==='flyout'||a==='bunt'||a==='squeeze'||a==='doubleplay')setTimeout(()=>snd.play('batCrack'),200*sf);
+                if(a==='steal'||a==='advance'||a==='score'||a==='wildPitch')setTimeout(()=>snd.play('whoosh'),300*sf);
+                if(a==='strike'||a==='strikeout')setTimeout(()=>snd.play('whoosh'),200*sf);
+                if(a==='strike'||a==='strikeout')setTimeout(()=>snd.play('glovePop'),500*sf);
+                if(a==='doubleplay'||a==='groundout'||a==='relay')setTimeout(()=>snd.play('glovePop'),800*sf);
+                if(a==='flyout')setTimeout(()=>snd.play('glovePop'),700*sf);
+                if(a==='steal'||a==='score')setTimeout(()=>snd.play('slideDust'),900*sf);
+                if(a==='steal'||a==='score'||a==='hit'||a==='advance')setTimeout(()=>snd.play('umpSafe'),1200*sf);
+                if(a==='strike'||a==='strikeout'||a==='flyout'||a==='groundout'||a==='doubleplay')setTimeout(()=>snd.play('umpOut'),1100*sf);
+                if(a==='steal'||a==='score'||a==='hit')setTimeout(()=>snd.play('cheer'),1400*sf);
               }
             }} style={{width:"100%",background:"linear-gradient(135deg,rgba(59,130,246,.06),rgba(168,85,247,.06))",border:"1.5px solid rgba(59,130,246,.2)",borderRadius:12,padding:"12px 16px",cursor:"pointer",display:"flex",alignItems:"center",gap:10,transition:"all .2s"}}>
               <div style={{width:36,height:36,borderRadius:10,background:"linear-gradient(135deg,#2563eb,#7c3aed)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0}}>▶</div>
@@ -18461,11 +18513,11 @@ export default function App(){
                   <button onClick={()=>{
                     if(replayPaused){setReplayPaused(false);return}
                     setReplayKey(k=>k+1);setReplayPaused(false);snd.play('tap');
-                    const a=sc.anim;if(a){
-                      if(a==='hit'||a==='groundout'||a==='flyout'||a==='bunt'||a==='doubleplay')setTimeout(()=>snd.play('batCrack'),1200);
-                      if(a==='steal'||a==='score')setTimeout(()=>snd.play('whoosh'),1500);
-                      if(a==='strike'||a==='strikeout')setTimeout(()=>snd.play('glovePop'),2200);
-                      if(a==='steal'||a==='score'||a==='hit')setTimeout(()=>snd.play('cheer'),4800);
+                    const a=sc.anim;if(a){const sf=2.5;
+                      if(a==='hit'||a==='groundout'||a==='flyout'||a==='bunt'||a==='doubleplay')setTimeout(()=>snd.play('batCrack'),200*sf);
+                      if(a==='steal'||a==='score')setTimeout(()=>snd.play('whoosh'),300*sf);
+                      if(a==='strike'||a==='strikeout')setTimeout(()=>snd.play('glovePop'),500*sf);
+                      if(a==='steal'||a==='score'||a==='hit')setTimeout(()=>snd.play('cheer'),1400*sf);
                     }
                   }} style={{background:"rgba(59,130,246,.1)",border:"1px solid rgba(59,130,246,.2)",borderRadius:6,padding:"2px 8px",fontSize:9,color:"#60a5fa",cursor:"pointer",fontWeight:700}}>↻ Replay</button>
                   <button onClick={()=>{
@@ -18478,7 +18530,31 @@ export default function App(){
                   <button onClick={()=>setShowReplay(false)} style={{background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.06)",borderRadius:6,padding:"2px 8px",fontSize:9,color:"#9ca3af",cursor:"pointer"}}>✕</button>
                 </div>
               </div>
-              <Field key={`replay-${replayKey}`} runners={(()=>{const r=sc.situation?.runners||[];const moveFrom={steal:1,score:3,advance:1,wildPitch:1,squeeze:3};const rm=moveFrom[sc.anim];return rm?r.filter(b=>b!==rm):r})()} outcome="success" ak={replayKey} anim={sc.anim} animVariant={sc.animVariant||sc.pitchType||null} theme={FIELD_THEMES.find(th=>th.id===stats.fieldTheme)||FIELD_THEMES[0]} avatar={{j:stats.avatarJersey||0,c:stats.avatarCap||0,b:stats.avatarBat||0}} pos={pos} slow={true}/>
+              <Field key={`replay-${replayKey}`} runners={(()=>{
+                const r=sc.situation?.runners||[];const a=sc.anim;
+                // Determine which runner is being animated (dynamic, not hardcoded)
+                const movingRunner=(()=>{
+                  if(a==='score'||a==='squeeze')return r.includes(3)?3:r.includes(2)?2:3;
+                  if(a==='steal'||a==='advance'||a==='wildPitch'){
+                    // Highest base runner moves (3→home, then 2→3, then 1→2)
+                    if(r.includes(3))return 3;if(r.includes(2))return 2;return 1;
+                  }
+                  return null;
+                })();
+                return movingRunner?r.filter(b=>b!==movingRunner):r;
+              })()} outcome="success" ak={replayKey} anim={sc.anim} animVariant={(()=>{
+                // Compute direction variant for directional animations
+                const r=sc.situation?.runners||[];const a=sc.anim;
+                if(a==='steal'){
+                  if(r.includes(3))return '3toHome';
+                  if(r.includes(2)&&!r.includes(1))return '2to3';
+                }
+                if(a==='advance'){
+                  if(r.includes(3))return '3toHome';
+                  if(r.includes(2)&&!r.includes(1))return '2to3';
+                }
+                return sc.animVariant||sc.pitchType||null;
+              })()} theme={FIELD_THEMES.find(th=>th.id===stats.fieldTheme)||FIELD_THEMES[0]} avatar={{j:stats.avatarJersey||0,c:stats.avatarCap||0,b:stats.avatarBat||0}} pos={pos} slow={true}/>
               <div style={{marginTop:2}}><Board sit={sc.situation}/></div>
               {/* AF7: Decision tree overlay — shows AFTER animation completes (delayed 4s) */}
               {showReplay&&sc.anim&&!replayPaused&&(()=>{

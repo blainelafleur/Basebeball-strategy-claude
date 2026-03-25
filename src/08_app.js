@@ -4474,16 +4474,18 @@ export default function App(){
             {!showReplay?<button onClick={()=>{setShowReplay(true);setReplayKey(k=>k+1);snd.play('tap');
               // Replay sound effects timed to slow-mode animation phases (2.5x + 1s pre-delay)
               const a=sc.anim;if(a){
-                if(a==='hit'||a==='groundout'||a==='flyout'||a==='bunt'||a==='squeeze'||a==='doubleplay')setTimeout(()=>snd.play('batCrack'),1200); // bat contact
-                if(a==='steal'||a==='advance'||a==='score'||a==='wildPitch')setTimeout(()=>snd.play('whoosh'),1500); // runner takes off
-                if(a==='strike'||a==='strikeout')setTimeout(()=>snd.play('whoosh'),1300); // pitch delivery
-                if(a==='strike'||a==='strikeout')setTimeout(()=>snd.play('glovePop'),2200); // catcher receives
-                if(a==='doubleplay'||a==='groundout'||a==='relay')setTimeout(()=>snd.play('glovePop'),3500); // fielder catch
-                if(a==='flyout')setTimeout(()=>snd.play('glovePop'),3200); // OF catch
-                if(a==='steal'||a==='score')setTimeout(()=>snd.play('slideDust'),3800); // slide into base
-                if(a==='steal'||a==='score'||a==='hit'||a==='advance')setTimeout(()=>snd.play('umpSafe'),4500); // safe call
-                if(a==='strike'||a==='strikeout'||a==='flyout'||a==='groundout'||a==='doubleplay')setTimeout(()=>snd.play('umpOut'),4000); // out call
-                if(a==='steal'||a==='score'||a==='hit')setTimeout(()=>snd.play('cheer'),4800); // crowd
+                // Slow mode multiplier (matches useLayoutEffect durFactor in Field)
+                const sf=2.5;
+                if(a==='hit'||a==='groundout'||a==='flyout'||a==='bunt'||a==='squeeze'||a==='doubleplay')setTimeout(()=>snd.play('batCrack'),200*sf);
+                if(a==='steal'||a==='advance'||a==='score'||a==='wildPitch')setTimeout(()=>snd.play('whoosh'),300*sf);
+                if(a==='strike'||a==='strikeout')setTimeout(()=>snd.play('whoosh'),200*sf);
+                if(a==='strike'||a==='strikeout')setTimeout(()=>snd.play('glovePop'),500*sf);
+                if(a==='doubleplay'||a==='groundout'||a==='relay')setTimeout(()=>snd.play('glovePop'),800*sf);
+                if(a==='flyout')setTimeout(()=>snd.play('glovePop'),700*sf);
+                if(a==='steal'||a==='score')setTimeout(()=>snd.play('slideDust'),900*sf);
+                if(a==='steal'||a==='score'||a==='hit'||a==='advance')setTimeout(()=>snd.play('umpSafe'),1200*sf);
+                if(a==='strike'||a==='strikeout'||a==='flyout'||a==='groundout'||a==='doubleplay')setTimeout(()=>snd.play('umpOut'),1100*sf);
+                if(a==='steal'||a==='score'||a==='hit')setTimeout(()=>snd.play('cheer'),1400*sf);
               }
             }} style={{width:"100%",background:"linear-gradient(135deg,rgba(59,130,246,.06),rgba(168,85,247,.06))",border:"1.5px solid rgba(59,130,246,.2)",borderRadius:12,padding:"12px 16px",cursor:"pointer",display:"flex",alignItems:"center",gap:10,transition:"all .2s"}}>
               <div style={{width:36,height:36,borderRadius:10,background:"linear-gradient(135deg,#2563eb,#7c3aed)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0}}>▶</div>
@@ -4499,11 +4501,11 @@ export default function App(){
                   <button onClick={()=>{
                     if(replayPaused){setReplayPaused(false);return}
                     setReplayKey(k=>k+1);setReplayPaused(false);snd.play('tap');
-                    const a=sc.anim;if(a){
-                      if(a==='hit'||a==='groundout'||a==='flyout'||a==='bunt'||a==='doubleplay')setTimeout(()=>snd.play('batCrack'),1200);
-                      if(a==='steal'||a==='score')setTimeout(()=>snd.play('whoosh'),1500);
-                      if(a==='strike'||a==='strikeout')setTimeout(()=>snd.play('glovePop'),2200);
-                      if(a==='steal'||a==='score'||a==='hit')setTimeout(()=>snd.play('cheer'),4800);
+                    const a=sc.anim;if(a){const sf=2.5;
+                      if(a==='hit'||a==='groundout'||a==='flyout'||a==='bunt'||a==='doubleplay')setTimeout(()=>snd.play('batCrack'),200*sf);
+                      if(a==='steal'||a==='score')setTimeout(()=>snd.play('whoosh'),300*sf);
+                      if(a==='strike'||a==='strikeout')setTimeout(()=>snd.play('glovePop'),500*sf);
+                      if(a==='steal'||a==='score'||a==='hit')setTimeout(()=>snd.play('cheer'),1400*sf);
                     }
                   }} style={{background:"rgba(59,130,246,.1)",border:"1px solid rgba(59,130,246,.2)",borderRadius:6,padding:"2px 8px",fontSize:9,color:"#60a5fa",cursor:"pointer",fontWeight:700}}>↻ Replay</button>
                   <button onClick={()=>{
@@ -4516,7 +4518,31 @@ export default function App(){
                   <button onClick={()=>setShowReplay(false)} style={{background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.06)",borderRadius:6,padding:"2px 8px",fontSize:9,color:"#9ca3af",cursor:"pointer"}}>✕</button>
                 </div>
               </div>
-              <Field key={`replay-${replayKey}`} runners={(()=>{const r=sc.situation?.runners||[];const moveFrom={steal:1,score:3,advance:1,wildPitch:1,squeeze:3};const rm=moveFrom[sc.anim];return rm?r.filter(b=>b!==rm):r})()} outcome="success" ak={replayKey} anim={sc.anim} animVariant={sc.animVariant||sc.pitchType||null} theme={FIELD_THEMES.find(th=>th.id===stats.fieldTheme)||FIELD_THEMES[0]} avatar={{j:stats.avatarJersey||0,c:stats.avatarCap||0,b:stats.avatarBat||0}} pos={pos} slow={true}/>
+              <Field key={`replay-${replayKey}`} runners={(()=>{
+                const r=sc.situation?.runners||[];const a=sc.anim;
+                // Determine which runner is being animated (dynamic, not hardcoded)
+                const movingRunner=(()=>{
+                  if(a==='score'||a==='squeeze')return r.includes(3)?3:r.includes(2)?2:3;
+                  if(a==='steal'||a==='advance'||a==='wildPitch'){
+                    // Highest base runner moves (3→home, then 2→3, then 1→2)
+                    if(r.includes(3))return 3;if(r.includes(2))return 2;return 1;
+                  }
+                  return null;
+                })();
+                return movingRunner?r.filter(b=>b!==movingRunner):r;
+              })()} outcome="success" ak={replayKey} anim={sc.anim} animVariant={(()=>{
+                // Compute direction variant for directional animations
+                const r=sc.situation?.runners||[];const a=sc.anim;
+                if(a==='steal'){
+                  if(r.includes(3))return '3toHome';
+                  if(r.includes(2)&&!r.includes(1))return '2to3';
+                }
+                if(a==='advance'){
+                  if(r.includes(3))return '3toHome';
+                  if(r.includes(2)&&!r.includes(1))return '2to3';
+                }
+                return sc.animVariant||sc.pitchType||null;
+              })()} theme={FIELD_THEMES.find(th=>th.id===stats.fieldTheme)||FIELD_THEMES[0]} avatar={{j:stats.avatarJersey||0,c:stats.avatarCap||0,b:stats.avatarBat||0}} pos={pos} slow={true}/>
               <div style={{marginTop:2}}><Board sit={sc.situation}/></div>
               {/* AF7: Decision tree overlay — shows AFTER animation completes (delayed 4s) */}
               {showReplay&&sc.anim&&!replayPaused&&(()=>{
