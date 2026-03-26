@@ -1,7 +1,7 @@
 # BSM Ideas & Insights Log
 ## A living document of ideas, patterns, and future directions
 
-**Started:** 2026-03-19 | **Last updated:** 2026-03-20
+**Started:** 2026-03-19 | **Last updated:** 2026-03-26
 
 ---
 
@@ -2522,3 +2522,320 @@ A more robust version: for each option, check if it matches ANY other position's
 | 29 | Expand PREMISE_VIOLATIONS to cover catcher/pitcher receiving offensive topics | Small | Catches batter/baserunner premise leaking into defensive positions |
 
 **Priority:** #26 first (may reveal multi-agent pipeline is being silently discarded). #25 second (broadest protection). #28 third (targeted quick fix).
+
+---
+
+## Vite Migration -- TPA Risk Analysis (2026-03-26)
+
+**Context:** The main agent is migrating from CDN Babel-in-browser transpilation to Vite. This analysis covers what will break, hidden gotchas, and the wiring scope.
+
+### 1. The Global Variable Problem (HIGH RISK, HIGH EFFORT)
+
+The current architecture is a concatenated single file. Every `const`, `function`, and `let` in files 01-07 is a **global** that files 08 and later use freely. With Vite, each source file becomes an ES module with its own scope. Nothing leaks.
+
+**Scale of the wiring job:** I count roughly **150+ top-level declarations** across the 9 source files that are consumed cross-file. The dependency graph is one-directional (later files depend on earlier files), which simplifies things, but here is what each file exports to later files:
+
+| File | Approximate exports needed | Examples |
+|------|--------------------------|----------|
+| 01_scenarios.js | 1 | `SCENARIOS` |
+| 02_situations.js | 1 | `SITUATION_SETS` |
+| 03_config.js | ~60 | `ALL_POS`, `POS_META`, `LEVELS`, `ACHS`, `DAILY_FREE`, `AI_PROXY_URL`, `WORKER_BASE`, `LLM_70B_URL`, `S` (sound config), `FIELD_THEMES`, `SEASON_STAGES`, `SEASON_TOTAL`, `DEFAULT`, `STORAGE_KEY`, `LB_KEY`, `PLACEMENT_POOL`, `CONCEPT_GATES`, `COACH_VOICES`, `LEARNING_PATHS`, `AVATAR_OPTS`, `ANIM_DATA`, `ANIMS`, `EASE`, `Guy()`, `AnimPhases()`, `GhostPhases()`, `getDailyScenario()`, `getWeeklyScenario()`, `getDailySituation()`, `achProgress()`, `getLvl()`, `getNxt()`, `proGate()`, `trackFunnel()`, `themeOk()`, `getFlame()`, `kidConceptName()`, `getCoachVoice()`, `detectSituationalPatterns()`, `trackAnalyticsEvent()`, `reportError()`, `generatePlayerCard()`, + more |
+| 04_knowledge.js | ~20 | `POS_PRINCIPLES`, `AI_POS_PRINCIPLES`, `BIBLE_PRINCIPLES`, `KNOWLEDGE_MAPS`, `MAP_RELEVANCE`, `MAP_AUDIT`, `MASTERY_SCHEMA`, `ERROR_TAXONOMY`, `IMPROVEMENT_ENGINE`, `REAL_GAME_SITUATIONS`, `COACHING_VOICE`, `DECISION_WINDOWS`, `AI_FEW_SHOT_EXAMPLES`, `AI_SCENARIO_TOPICS`, `getRelevantMaps()`, `getAIFewShot()`, `getAIMap()`, + more |
+| 05_brain.js | ~6 | `BRAIN`, `runnersKey()`, `getRunExpectancy()`, `getPressure()`, `getCountIntel()`, `evaluateBunt()` |
+| 06_ai_pipeline.js | ~40+ | `QUALITY_FIREWALL`, `CONSISTENCY_RULES`, `AB_TESTS`, `OPTION_ARCHETYPES`, `ROLE_VIOLATIONS`, `gradeScenario()`, `planScenario()`, `buildAgentPrompt()`, `gradeAgentScenario()`, `computeBaseballIQ()`, `getIQColor()`, `planSession()`, `getCurrentPath()`, `getNextInPath()`, `shuffleAnswers()`, `fixPerspective()`, `consumeCachedAI()`, `cancelPrefetch()`, `saveToLocalPool()`, `consumeFromLocalPool()`, `getLocalPool()`, `getABGroup()`, `getABVariant()`, `getActiveABConfigs()`, `reportABResult()`, `queueLearningContribution()`, `buildLearningContribution()`, + many more |
+| 07_components.js | ~10 | `Field`, `Board`, `Coach`, `useSound()`, `NumberAnim`, `ParticleFX`, `PromoCodeInput`, `LoginScreen`, `SignupScreen`, `DIFF_TAG`, `getCoachLine()` |
+
+**Recommendation:** Do NOT try to add granular `import`/`export` statements for 150+ symbols across 9 files. Instead, consider two approaches:
+- **Option A (quick):** Keep assemble.sh as the build input. Create a single `src/index.jsx` that is the concatenated file, and have Vite's entry point be that file. No module wiring needed. You lose per-file editing but keep the Vite dev server, HMR, and production builds.
+- **Option B (proper):** Accept the wiring cost. Each file gets `export` on every top-level declaration, and each consuming file gets a barrel `import`. Since the dependency graph is strictly linear (01 never imports from 02, etc.), you can do this mechanically. But it is 9 files x ~20 imports each = ~180 import lines to write and maintain. This is a one-time cost but touching every file.
+
+### 2. The preview.html Regex Hacks (MUST REMOVE)
+
+Lines 70-75 of preview.html do critical transformations:
+```js
+code = code.replace(/import\s*\{[^}]*\}\s*from\s*["']react["'];?/,
+  'const { useState, useEffect, useCallback, useRef } = React;');
+code = code.replace('export default function App', 'function App');
+```
+
+And line 78 appends the React render call:
+```js
+code += '\nReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App));';
+```
+
+With Vite, none of this is needed -- Vite handles JSX, imports, and you have a proper `main.jsx` entry point. But the **import line in 00_header.js is incomplete**: it imports `useState, useEffect, useCallback, useRef` but the code also uses `useMemo` (in 07_components.js) and `React.memo` and `React.createElement` (via global `React`). Those references to the bare `React` global will fail in Vite's module system.
+
+**What breaks:**
+- `React.memo(function Field(...))` -- needs `import React from 'react'` or `import { memo } from 'react'`
+- `React.createElement("span", ...)` in NumberAnim -- needs the same
+- Any JSX in the files will need React in scope (Vite with `@vitejs/plugin-react` handles this via automatic JSX runtime, so `React` import is NOT needed for JSX, but explicit `React.memo` and `React.createElement` calls still need it)
+
+**Fix:** Add `import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'` or convert `React.memo` to `memo` and `React.createElement` to JSX.
+
+### 3. The `window.storage` Polyfill (MEDIUM RISK)
+
+The app uses `window.storage.get()` and `window.storage.set()` throughout 08_app.js (5 occurrences). This is a Claude.ai artifact API that preview.html polyfills with localStorage. With Vite, you need this polyfill to run BEFORE the app. Two options:
+- Put the polyfill in `index.html` in a plain `<script>` tag (before Vite's module script)
+- Create a `storage-polyfill.js` module imported at the top of the entry point
+
+The polyfill itself is simple (6 lines). Just make sure it runs before any component mounts.
+
+### 4. The `window.AudioContext` / `window.webkitAudioContext` Pattern (LOW RISK)
+
+In 07_components.js line 29: `new(window.AudioContext||window.webkitAudioContext)()`. This works fine in ES modules -- `window` is still available in browser modules. No change needed.
+
+### 5. `window.location`, `window.history`, `window.addEventListener` (NO RISK)
+
+These are standard browser APIs that work identically in ES modules. No changes needed.
+
+### 6. Cloudflare Pages Deployment (LOW RISK, EASY)
+
+Current deployment: static files (preview.html, index.jsx) on Cloudflare Pages.
+
+Vite outputs a `dist/` folder with `index.html` + bundled JS/CSS. Cloudflare Pages can serve this directly. The only change is setting the build command and output directory in the Pages config:
+- Build command: `npm run build` (which runs `vite build`)
+- Output directory: `dist`
+
+This is a standard Vite + Cloudflare Pages setup. No gotchas.
+
+### 7. React 18 CDN vs React 18/19 npm (MEDIUM RISK)
+
+The current CDN loads `react@18` and `react-dom@18`. The existing `package.json` has `react: "19.1.0"` and `react-dom: "19.1.0"` (for the Next.js app that shares this repo).
+
+**Key concern:** If the Vite migration uses the existing package.json's React 19, the BSM app code was written for React 18 patterns. React 19 differences that matter:
+- `ReactDOM.createRoot` still works in React 19 (no change)
+- `useEffect` cleanup timing changed slightly in React 19
+- `React.createElement` still works but is no longer needed with the new JSX transform
+- Strict mode double-rendering is more aggressive in React 19
+
+**Recommendation:** Pin React 18 for the Vite migration to avoid surprise behavior changes. Test thoroughly before upgrading to 19. Or if using the same package.json, be aware of React 19 differences.
+
+### 8. CSS / Inline Styles (NO RISK)
+
+The app uses inline styles throughout (React `style={{...}}` objects). preview.html has a small `<style>` block for mobile responsiveness. This CSS needs to move to a `.css` file imported by the Vite entry point, or stay inline in the new `index.html`. Either way, trivial.
+
+### 9. The Artifact Compatibility Question (STRATEGIC)
+
+The current design allows index.jsx to work as a Claude.ai artifact (the `import { ... } from "react"` line, the `export default function App` signature). The Vite migration breaks this dual-use:
+- Vite will transform JSX with its own plugin
+- The assembled index.jsx with module-style imports won't work as a standalone artifact anymore unless you keep assemble.sh producing the artifact-compatible version
+
+**Question for Blaine:** Is artifact compatibility still needed? If yes, you need two outputs: (1) assemble.sh for artifact, (2) Vite for web. If no, you can simplify significantly.
+
+### 10. HMR and the 17,500-Line Single File (PERFORMANCE)
+
+Vite's dev server uses Hot Module Replacement. With a single 17,500-line file, every edit triggers a full module reload (no granular HMR). If you split into 9 files with proper imports, HMR works per-file -- editing a component in 07 only reloads that module. This is one of the biggest DX wins of the migration.
+
+However: Vite's JSX transform on a 17,500-line file is still faster than in-browser Babel. Even without splitting, dev experience improves.
+
+### 11. Hidden Gotcha: Module-Level Side Effects
+
+Several files have code that runs at module load time:
+- `03_config.js` lines 154-157: `window.addEventListener("visibilitychange", ...)` and `window.addEventListener("beforeunload", flushAnalytics)` -- these run when the module is first imported
+- `03_config.js` lines 185-191: `window.addEventListener("error", ...)` and `window.addEventListener("unhandledrejection", ...)`
+- `06_ai_pipeline.js`: Several `let` variables initialized at module level (`_xaiDownUntil`, `_calibrationCache`, `_learningBatch`, `_recentAITitles`, etc.)
+
+In a script tag, these run once when the script executes. In ES modules, they run once when the module is first imported. The behavior is functionally the same, BUT: if Vite's HMR re-executes a module, those event listeners get re-added (duplicated). This causes analytics events to fire multiple times during development.
+
+**Fix:** Wrap side-effect listeners in a guard: `if (!window.__bsmListenersAttached) { ... window.__bsmListenersAttached = true; }` or move them into a React `useEffect` in the App component.
+
+### 12. The package.json Conflict (IMPORTANT)
+
+The current package.json is a **Next.js app** with Prisma, NextAuth, Tailwind, Socket.io, etc. The BSM single-file app has NOTHING to do with these dependencies. If you add Vite to this same package.json, you'll have conflicting build commands (`next build` vs `vite build`), conflicting configs, and React version conflicts.
+
+**Options:**
+- **Option A:** Create a separate `bsm-app/` directory with its own package.json for the Vite app. Clean separation.
+- **Option B:** Use the root package.json but add separate scripts (`bsm:dev`, `bsm:build`). Messy but workable.
+- **Option C:** If the Next.js app IS the future and BSM is being absorbed into it, then the Vite migration is temporary scaffolding. Clarify the end state before committing to either.
+
+### Summary: Migration Effort Estimate
+
+| Task | Effort | Risk |
+|------|--------|------|
+| Install Vite + plugin-react, create vite.config.js | 10 min | Low |
+| Create new index.html entry point | 10 min | Low |
+| Create main.jsx entry that imports App and renders | 5 min | Low |
+| Add window.storage polyfill | 5 min | Low |
+| Move preview.html CSS to a CSS file | 5 min | Low |
+| Wire imports/exports across 9 files (~150+ symbols) | 2-4 hours | Medium -- mechanical but tedious, easy to miss one |
+| Fix `React.memo` / `React.createElement` references | 15 min | Low |
+| Test all 15 position categories + AI pipeline | 1-2 hours | Medium |
+| Fix HMR side-effect duplication | 15 min | Low |
+| Update Cloudflare Pages build config | 10 min | Low |
+| Resolve package.json conflict (Next.js vs Vite) | 30 min | Medium |
+| **Total** | **4-7 hours** | |
+
+### Recommended Approach
+
+1. **Create a separate directory** (`bsm-vite/` or similar) with its own package.json to avoid Next.js conflicts
+2. **Keep assemble.sh working** as a fallback and for artifact compatibility (if still needed)
+3. **Start with Option A** (single concatenated file as Vite entry) to get the build pipeline working in 30 minutes
+4. **Then progressively split** into proper modules if the DX improvement justifies the wiring cost
+5. **Pin React 18** to avoid behavior changes during migration
+6. **Test the AI pipeline thoroughly** -- the fetch calls, timeouts, and abort controllers are the most likely to surface subtle timing differences
+
+---
+
+## Thought Partner: Phase 0 Blind Spot Audit (2026-03-26)
+
+After the Vite migration, PWA manifest, repo cleanup, Critic token fix, and package.json replacement, here are the blind spots found:
+
+### CRITICAL: 7 files still reference `preview.html` (now dead)
+
+The old entry point `preview.html` is gone in favor of `index.html` + Vite, but these files still point to it:
+
+1. **`sw.js` (service worker)** — 4 references. Push notification URLs, notificationclick handler, and periodic sync all open `/preview.html`. Users who "Add to Home Screen" and receive push notifications will land on a 404.
+2. **`coaches.html`** line 102 — "TRY IT NOW" CTA links to `/preview.html`.
+3. **`terms.html`** line 60 — "Back to Game" link points to `/preview.html`.
+4. **`privacy.html`** line 77 — "Back to Game" link points to `/preview.html`.
+5. **`build.sh`** line 8 — copies `preview.html` to dist. With Vite now doing builds, `build.sh` is likely dead, but if anyone runs it they will get stale output.
+
+**Fix:** Global find-and-replace `/preview.html` with `/` across sw.js, coaches.html, terms.html, privacy.html. For build.sh, either delete it or update it to run `vite build` instead.
+
+### CRITICAL: Missing PWA icons — iOS "Add to Home Screen" will show a blank icon
+
+`index.html` line 13 references `/icons/icon-192.png` for the Apple touch icon, but that file does not exist. The only file in `public/icons/` is `icon.svg`. The manifest only lists the SVG icon.
+
+**Problem:** Safari on iOS does not support SVG icons in the manifest. It uses `apple-touch-icon` which must be a PNG. Android Chrome also prefers raster icons (192x192 and 512x512 are recommended).
+
+**Fix:** Generate PNG icons from the SVG:
+- `icon-192.png` (192x192) — required for apple-touch-icon and Android install prompt
+- `icon-512.png` (512x512) — required for Android splash screen
+- Add both to `manifest.json` icons array alongside the SVG
+
+### CRITICAL: Missing `favicon.ico`
+
+`index.html` line 7 references `/favicon.ico` but the file does not exist anywhere in the project (not in root, not in `public/`). Every page load generates a 404 for the favicon.
+
+**Fix:** Generate a favicon.ico from the SVG icon, or convert the `<link>` tag to reference the SVG directly: `<link rel="icon" type="image/svg+xml" href="/icons/icon.svg" />`.
+
+### MEDIUM: Critic 1000 tokens — probably fine, but monitor
+
+The Critic output JSON structure contains:
+- 32 boolean checklist items (~128 tokens)
+- `checklistFailures` array with detailed strings (~50-150 tokens per failure)
+- 6 rubric dimension scores (~50 tokens)
+- `overallScore`, `pass`, `issues`, `suggestions` (~100-200 tokens)
+- JSON formatting overhead (~50 tokens)
+
+**Analysis:** With 0 checklist failures, output is ~350 tokens. With 3-4 failures (typical for a scenario that needs rewriting), output is ~600-800 tokens. 1000 tokens should handle most cases. The risk scenario is 6+ checklist failures with verbose descriptions — that could hit ~900-1000 and get truncated. The old 600 token limit was clearly too low; 1000 is a reasonable fix.
+
+**Recommendation:** Monitor for truncated Critic JSON in production logs. If truncation reappears, bump to 1200. The Critic's value comes precisely when there are many failures to report, so truncation hits hardest exactly when you need the output most.
+
+### MEDIUM: Rewriter token budget looks fine at 1500
+
+The Rewriter at 1500 tokens (line 3615) generates a full scenario JSON object. A typical scenario is ~800-1200 tokens of JSON. 1500 gives enough headroom. No change needed.
+
+### LOW: Vite config is minimal but functional
+
+Missing features that would help:
+1. **Sourcemaps** — `sourcemap: false` means production errors will be unreadable stack traces pointing to minified code. For a 12K+ line single-file app, this makes debugging reported bugs nearly impossible. Consider `sourcemap: 'hidden'` (generates maps but does not expose them via sourceMappingURL — you can upload to an error tracking service later).
+2. **Manual chunk splitting** — The 12K-line `index.jsx` will produce one giant JS bundle. The SCENARIOS object alone (~3800 lines) never changes between deploys. A manual chunk split would let browsers cache scenarios separately: `manualChunks: { scenarios: ['./index.jsx'] }` is not viable since it is one file, but if/when the codebase splits, this becomes important.
+3. **Environment variables** — No `define` or `envPrefix` config. If you ever need `import.meta.env.VITE_*` variables (e.g., for switching API URLs between dev/prod), you will need to add this.
+
+### LOW: `build.sh` is now redundant (but not deleted)
+
+`build.sh` manually copies files to `dist/`. With Vite, `vite build` handles this. The two will conflict — `build.sh` copies `preview.html` (old entry), while `vite build` produces its own `dist/index.html`. If Cloudflare Pages is configured to run `build.sh`, it will produce a broken build.
+
+**Check:** What is the Cloudflare Pages build command set to? If it is `sh build.sh`, it needs to change to `npm run build` (which runs `vite build`).
+
+### LOW: `assemble.sh` is still needed
+
+`assemble.sh` concatenates `src/` files into a single `index.jsx` — this is Vite's actual entry (via `main.jsx` importing `./index.jsx`). If anyone edits `src/` files directly and forgets to run `assemble.sh`, the changes will not appear in the running app. This is a footgun but a known one.
+
+### OBSERVATION: Manifest could use `scope` and `id`
+
+The PWA manifest is missing `"scope": "/"` and `"id": "/"`. Without `scope`, the PWA might not correctly handle navigation. Without `id`, Chrome may create duplicate install entries if the start_url ever changes. Both are one-line additions.
+
+### OBSERVATION: Service worker registers from where?
+
+`sw.js` exists at the project root, but there is no `navigator.serviceWorker.register('/sw.js')` call visible in `index.html` or `main.jsx`. Is it registered somewhere inside `index.jsx`? If not, push notifications will never work because the service worker is never installed.
+
+### OBSERVATION: `dist/` is properly gitignored
+
+Confirmed in `.gitignore` line 2: `dist/` is ignored. Good.
+
+---
+
+## Thought Partner Audit: AI-Graphics Connection Gaps (2026-03-26)
+
+Cross-cutting analysis of the intersection between AI scenario generation and field animation rendering. These are things neither a pure AI audit nor a pure graphics audit would catch because they live in the seam between the two systems.
+
+### HIGH: AI scenarios never set `animVariant` — direction variants are silently lost
+
+The AI prompt (line 2492 of `06_ai_pipeline.js`) asks the AI to set `anim` to one of 15 values but never mentions `animVariant`. The handcrafted scenarios also never set `animVariant`. The replay Field computes direction variants dynamically from `sc.situation.runners` and `pos` (lines 4618-4641 of `08_app.js`), which works great for replay mode.
+
+**But the live play Field at line 4484 passes `anim={fo?sc.anim:null}` with NO animVariant at all.** This means during the first play-through (not replay), every steal animation shows 1B-to-2B regardless of where the runner actually is. A steal-of-third scenario with `runners:[2]` will show the runner leaving from first base. The steal, advance, hit, flyout, groundout, and freeze direction variants are only applied in the replay Field, not the initial outcome animation.
+
+A coach watching would immediately notice: "The runner was on second, but the animation just showed him stealing from first."
+
+**Fix:** Compute the same `animVariant` logic for the live play Field at line 4484, or factor the computation into a shared function and use it in both places.
+
+### HIGH: `steal` animation hardcodes 1B-to-2B runner path even in ANIM_DATA fallback
+
+The `steal_success` ANIM_DATA entry (line 277 of `03_config.js`) has a runner path `M290,210 Q248,170 200,135` (1B to 2B) and catcher throw to second. When Field receives `anim="steal"` with no `animVariant`, it always plays the 1B-to-2B steal. The `steal_2to3_success` and `steal_3toHome_success` variants exist but are only reached when `animVariant` is "2to3" or "3toHome".
+
+The AI's firewall (line 261) correctly checks "steal animation but no runners on base" but does NOT check whether the steal animation direction matches where the runners actually are. An AI scenario with `anim:"steal"` and `runners:[2]` will pass the firewall but animate incorrectly (showing a 1B steal when the runner is on 2B).
+
+**Fix:** Add a firewall rule: if `anim==="steal"` and `!runners.includes(1)` and `runners.includes(2)`, warn "steal animation defaults to 1B-to-2B but runner is on 2B — consider adding animVariant support to AI prompt."
+
+### MEDIUM: Highlights reel stores raw `sc.animVariant||sc.pitchType` which is always null
+
+At line 1394 of `08_app.js`, when a player gets a correct answer and the highlight is saved, the variant is stored as `variant:sc.animVariant||sc.pitchType||null`. Since neither AI nor handcrafted scenarios ever set these fields, the highlights reel always replays with `animVariant=null`. The Field at line 2122 passes `animVariant={h.variant}` which will always be null.
+
+This means the highlights reel always plays the default animation direction. A great steal-of-third play would be replayed as a steal of second.
+
+**Fix:** Compute the variant at save time (like the replay Field does) rather than reading from the scenario object.
+
+### MEDIUM: No animation for `safe`, `catch`, `freeze`, `pickoff`, `relay`, `tag`, `popup`, `wildPitch`, `squeeze`, `hitByPitch` in live outcome
+
+The live play Field (line 4484) passes `anim={fo?sc.anim:null}`. The ANIM_DATA lookup (line 474) checks `anim+"_"+outcome`. But several animation types only exist as `_success` variants in ANIM_DATA. If `fo` (feedback outcome) is "warning" or "danger", the lookup tries e.g. `steal_warning` which does not exist, then falls back to `steal_success` via `altKey`. This means:
+
+1. A wrong answer on a steal scenario still shows the successful steal animation (runner safe) even though the player chose poorly.
+2. Only the replay's "Game Film" mode shows the fail animation via the separate `GhostPhases` overlay.
+
+A coach would expect: player picks wrong, animation shows what goes wrong. Instead, the field always shows the optimal outcome animation regardless of answer quality.
+
+### MEDIUM: Camera zoom map missing several animation types
+
+The `zoomMap` at line 100-102 of `07_components.js` only covers 9 animation types: steal, score, hit, doubleplay, groundout, flyout, relay, pickoff, bunt. But there are 22 animation types total. Missing from zoom: strikeout, strike, catch, advance, walk, safe, freeze, tag, popup, wildPitch, squeeze, hitByPitch. In replay mode, these animations play without the camera zoom effect, which is inconsistent.
+
+### MEDIUM: Trajectory dashed lines only cover 6 animation types
+
+The trajectory paths at lines 434-436 of `07_components.js` only map: hit, flyout, groundout, relay, doubleplay, bunt. A steal replay shows the spotlight ring and slow-motion but no trajectory guide line. throwHome, advance, score, and other animations with clear ball/runner paths have no trajectory visualization in replay mode.
+
+### LOW: AI loading spinner has no field preview — missed opportunity
+
+During AI generation (lines 4427-4440 of `08_app.js`), the player sees a spinning baseball emoji and text messages. The field SVG is not rendered at all. For waits of 5-15 seconds, this feels like a broken loading screen.
+
+**Idea:** Show the Field component with the player's current position highlighted and runners from the AI prompt's situation hint. This would feel like "setting up the play" rather than "waiting for the computer." The planner already picks situation params (inning, outs, runners) before generation starts.
+
+### LOW: Runner dots remain after animation shows them scoring/advancing
+
+In the live play Field (line 4484), `runners` comes from `sc.situation.runners`. If a score animation plays (runner goes from 3B to home), the static runner dot at 3B (line 430) remains visible because the `runners` prop still includes `3`. The animation overlays a moving runner on top, but the original dot stays put. In replay mode (lines 4603-4614), the code correctly filters out the moving runner from the `runners` array. The live play Field does not do this filtering.
+
+### LOW: `advance_success` always shows 1B-to-2B even for 2B-to-3B or 3B-to-home
+
+Same pattern as the steal issue. The default `advance_success` in ANIM_DATA (line 491-495) shows `M290,210 Q248,170 200,135` (1B to 2B). Variants `advance_2to3_success` and `advance_3toHome_success` exist but are only reached via `animVariant`, which is never set for live play.
+
+### OBSERVATION: Fielder positions are standard alignment — no shift representation
+
+The Field component hardcodes fielder positions: SS at (152,185), 2B at (248,185), 1B at (278,205), 3B at (122,205). There is no mechanism to adjust these based on a scenario's described defensive alignment. A scenario about "playing a shift with the shortstop behind second base" will still show the SS at the normal position. One of the 21 knowledge maps is `legal-shift` — the visual doesn't reflect it.
+
+### OBSERVATION: AI QUALITY_FIREWALL has an animation-situation mismatch check but it's incomplete
+
+The `animationSituationMismatch` check (lines 256-265 of `06_ai_pipeline.js`) validates 5 cases:
+- doubleplay with 2 outs
+- steal/score/advance with no runners
+- bunt with 2 outs
+
+Missing checks a coach would catch:
+- `hit` animation with no batter context (count field missing or "-")
+- `doubleplay` with runner only on 3rd (DP goes to 2B then 1B — needs runner at 1B or batter)
+- `throwHome` with no runners in scoring position (runners should include 2 or 3)
+- `score` with runner only on 1st (very unlikely to score from 1st on most plays)
+- `steal` when count has 2 strikes (extremely rare real baseball decision)
+
+### OBSERVATION: Guy() component scale factor creates sizing inconsistency
+
+Guy uses `scale(0.6)` (line 550 of `03_config.js`) for all poses. The ring highlight uses `r="16"` before the scale transform, so the ring is in the parent coordinate space (actual size 16). But the player body is in the 0.6-scaled child space. This means the player body is about 60% the size of what the ring suggests. The shadow ellipse (`rx=11, ry=3.5`) is also in scaled space, making it appear proportionally correct to the body but small relative to the ring. This is cosmetic but a coach might notice players look slightly small for their highlight rings.

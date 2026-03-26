@@ -1,0 +1,309 @@
+{
+  "systemicPatterns": [
+    {
+      "pattern": "ConceptTag mismatches - scenarios teaching different concepts than their tags indicate",
+      "frequency": "7 of 50 scenarios",
+      "severity": "high",
+      "examples": [
+        "p18",
+        "m1",
+        "fp16",
+        "rl1",
+        "rl6",
+        "r1",
+        "f57"
+      ]
+    },
+    {
+      "pattern": "Score perspective errors - home/away confusion in Top vs Bottom innings",
+      "frequency": "4 of 50 scenarios",
+      "severity": "medium",
+      "examples": [
+        "b1",
+        "p18",
+        "f46",
+        "f58"
+      ]
+    },
+    {
+      "pattern": "Repetitive explanations that don't teach different principles",
+      "frequency": "6 of 50 scenarios",
+      "severity": "medium",
+      "examples": [
+        "b8",
+        "f7",
+        "f11",
+        "r1",
+        "m9",
+        "rl6"
+      ]
+    },
+    {
+      "pattern": "Best answer designation doesn't match rate distributions",
+      "frequency": "2 of 50 scenarios",
+      "severity": "high",
+      "examples": [
+        "f15",
+        "f21"
+      ]
+    },
+    {
+      "pattern": "Invalid position categories - 'rules' and 'famous' used instead of standard positions",
+      "frequency": "7 of 50 scenarios",
+      "severity": "medium",
+      "examples": [
+        "rl1",
+        "rl6",
+        "fp16",
+        "fp3",
+        "fp2",
+        "fp1",
+        "rl4"
+      ]
+    },
+    {
+      "pattern": "Factual errors about force plays and game mechanics",
+      "frequency": "3 of 50 scenarios",
+      "severity": "high",
+      "examples": [
+        "f21",
+        "m1",
+        "fp3"
+      ]
+    },
+    {
+      "pattern": "Age-inappropriate complexity - advanced stats/concepts for young players",
+      "frequency": "4 of 50 scenarios",
+      "severity": "medium",
+      "examples": [
+        "p18",
+        "fp16",
+        "f13",
+        "m2"
+      ]
+    }
+  ],
+  "blindSpots": [
+    {
+      "description": "Current criteria don't check if explanations actually teach the conceptTag principle",
+      "proposedCheck": "Verify each explanation explicitly connects to the tagged concept",
+      "examples": [
+        "p18",
+        "f57"
+      ]
+    },
+    {
+      "description": "No validation that home/away team perspective matches inning half",
+      "proposedCheck": "Cross-check score display with Top/Bottom inning designation",
+      "examples": [
+        "b1",
+        "p18",
+        "f46",
+        "f58"
+      ]
+    },
+    {
+      "description": "Missing check for whether best answer's rate is highest among options",
+      "proposedCheck": "Validate that best=X has the highest rate value",
+      "examples": [
+        "f15",
+        "f21"
+      ]
+    },
+    {
+      "description": "No verification that position categories match standard baseball positions",
+      "proposedCheck": "Validate position against approved list: pitcher, catcher, firstBase, etc.",
+      "examples": [
+        "rules",
+        "famous"
+      ]
+    },
+    {
+      "description": "Explanations not checked for teaching variety - can be repetitive",
+      "proposedCheck": "Ensure each explanation teaches a different aspect or principle",
+      "examples": [
+        "rl6",
+        "f7",
+        "r1"
+      ]
+    },
+    {
+      "description": "Youth baseball realism not validated - unrealistic pitch arsenals for age",
+      "proposedCheck": "Verify pitch types and strategic complexity match the difficulty/age rating",
+      "examples": [
+        "p18"
+      ]
+    }
+  ],
+  "newRules": [
+    {
+      "id": "rule_01",
+      "name": "ConceptTag Alignment",
+      "description": "Scenario content must directly teach the principle indicated by conceptTag",
+      "appliesTo": [
+        "all"
+      ],
+      "checkType": "structural",
+      "severity": "reject"
+    },
+    {
+      "id": "rule_02",
+      "name": "Score Perspective Check",
+      "description": "In Top innings, away team bats and home team fields; score display must match this perspective",
+      "appliesTo": [
+        "all"
+      ],
+      "checkType": "factual",
+      "severity": "warn"
+    },
+    {
+      "id": "rule_03",
+      "name": "Best Answer Rate Validation",
+      "description": "The option marked as 'best' must have the highest rate value among all options",
+      "appliesTo": [
+        "all"
+      ],
+      "checkType": "structural",
+      "severity": "reject"
+    },
+    {
+      "id": "rule_04",
+      "name": "Valid Position Categories",
+      "description": "Position must be from: pitcher, catcher, firstBase, secondBase, thirdBase, shortstop, leftField, centerField, rightField, batter, baserunner, manager",
+      "appliesTo": [
+        "all"
+      ],
+      "checkType": "structural",
+      "severity": "reject"
+    },
+    {
+      "id": "rule_05",
+      "name": "Explanation Teaching Variety",
+      "description": "Each explanation must teach a different principle or aspect - no repetitive messaging",
+      "appliesTo": [
+        "all"
+      ],
+      "checkType": "pedagogical",
+      "severity": "warn"
+    },
+    {
+      "id": "rule_06",
+      "name": "Force Play Accuracy",
+      "description": "Force play mechanics must be correct - stepping on a base removes force at subsequent bases",
+      "appliesTo": [
+        "all"
+      ],
+      "checkType": "factual",
+      "severity": "reject"
+    },
+    {
+      "id": "rule_07",
+      "name": "Age-Appropriate Complexity",
+      "description": "Pitch types, statistics, and strategic concepts must match difficulty level (diff:1 = basic, diff:3 = advanced)",
+      "appliesTo": [
+        "all"
+      ],
+      "checkType": "pedagogical",
+      "severity": "warn"
+    },
+    {
+      "id": "rule_08",
+      "name": "Explanation Index Alignment",
+      "description": "Each explanation must address the option matching its index (explanation[0] for option[0])",
+      "appliesTo": [
+        "all"
+      ],
+      "checkType": "structural",
+      "severity": "reject"
+    },
+    {
+      "id": "rule_09",
+      "name": "Relay vs Cutoff Distinction",
+      "description": "Use 'relay' for deep outfield throws requiring middle infielder, 'cutoff' for shorter throws that might be cut",
+      "appliesTo": [
+        "all"
+      ],
+      "checkType": "factual",
+      "severity": "suggest"
+    },
+    {
+      "id": "rule_10",
+      "name": "Count Display Requirement",
+      "description": "Count should show specific balls-strikes (e.g., '2-1'), not placeholder '-'",
+      "appliesTo": [
+        "all"
+      ],
+      "checkType": "structural",
+      "severity": "suggest"
+    }
+  ],
+  "positionSpecificCriteria": {
+    "pitcher": [
+      "Verify pitch selection matches age/difficulty level",
+      "Check pickoff scenarios actually involve pickoff mechanics",
+      "Ensure pitch location and movement descriptions are realistic"
+    ],
+    "catcher": [
+      "Validate blocking technique descriptions match proper form",
+      "Check pitch calling logic uses realistic game context",
+      "Verify throw-down scenarios include accurate timing"
+    ],
+    "firstBase": [
+      "Ensure stretch technique is properly described",
+      "Validate force/tag play understanding at first base",
+      "Check 3-6-3 double play mechanics accuracy"
+    ],
+    "secondBase": [
+      "Verify double play pivot footwork is correct",
+      "Check relay positioning (100-130 feet typical)",
+      "Validate hit-and-run coverage assignments"
+    ],
+    "thirdBase": [
+      "Check bare-hand technique descriptions",
+      "Verify bunt defense positioning logic",
+      "Validate hot corner reaction time scenarios"
+    ],
+    "shortstop": [
+      "Ensure relay/cutoff positioning is accurate",
+      "Check double play feed mechanics",
+      "Verify hole coverage on steal attempts"
+    ],
+    "leftField": [
+      "Validate backup responsibilities are correct",
+      "Check relay throw target (usually SS)",
+      "Ensure sun/wind adjustments are realistic"
+    ],
+    "centerField": [
+      "Verify priority caller status is maintained",
+      "Check gap coverage assignments",
+      "Validate relay communication clarity"
+    ],
+    "rightField": [
+      "Check backup assignments (especially 1B)",
+      "Verify relay target (usually 2B)",
+      "Validate arm strength scenario realism"
+    ],
+    "batter": [
+      "Ensure count leverage is properly taught",
+      "Check swing decisions match situation",
+      "Verify approach adjustments are age-appropriate"
+    ],
+    "baserunner": [
+      "Validate steal timing and breakeven rates",
+      "Check tag-up scenarios for accuracy",
+      "Ensure base coach communication is included"
+    ],
+    "manager": [
+      "Verify strategic decisions have clear rationale",
+      "Check bullpen/lineup decisions are realistic",
+      "Ensure decisions match game situation pressure"
+    ]
+  },
+  "enhancedPromptAdditions": "ADDITIONAL VALIDATION REQUIREMENTS:\n\n1. CONCEPTTAG ALIGNMENT: Reject if scenario doesn't directly teach the concept in conceptTag\n2. SCORE PERSPECTIVE: Warn if Top inning shows home team ahead (should be behind)\n3. BEST ANSWER RATES: Reject if best answer doesn't have highest rate value\n4. VALID POSITIONS ONLY: pitcher|catcher|firstBase|secondBase|thirdBase|shortstop|leftField|centerField|rightField|batter|baserunner|manager\n5. EXPLANATION VARIETY: Each explanation must teach different principle - no repetition\n6. FORCE PLAY ACCURACY: Stepping on base removes subsequent forces\n7. AGE-APPROPRIATE: Match complexity to difficulty (1=basic, 2=intermediate, 3=advanced)\n8. EXPLANATION ALIGNMENT: explanation[i] must address option[i]\n9. RELAY VS CUTOFF: Use correct terminology based on throw distance\n10. COUNT DISPLAY: Show specific count (2-1) not placeholder (-)",
+  "qualitySummary": {
+    "overallHealth": "fair",
+    "strongestDimension": "roleCompliance",
+    "weakestDimension": "explanationQuality",
+    "estimatedIssueRate": "25% of scenarios likely have issues"
+  }
+}

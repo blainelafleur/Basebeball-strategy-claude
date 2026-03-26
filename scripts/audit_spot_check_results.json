@@ -1,0 +1,3830 @@
+{
+  "meta": {
+    "timestamp": "2026-03-18T01:45:58.728Z",
+    "type": "spot-check",
+    "scenarioCount": 149
+  },
+  "stats": {
+    "total": 149,
+    "passed": 117,
+    "failed": 32,
+    "errors": 0,
+    "passRate": "78.5%"
+  },
+  "results": [
+    {
+      "id": "r7",
+      "position": "baserunner",
+      "score": 4.2,
+      "passed": false,
+      "issues": [
+        "Category mismatch: 'stealing' is not a valid position category - this should be filed under 'baserunner'",
+        "Explanations lack natural flow - phrases like 'which means' and 'because' create awkward structures",
+        "Option 4 explanation is incomplete fragment: 'You have better info than the coach here.'",
+        "Diff 3 content uses simple language ('trust your eyes') instead of advanced terminology appropriate for ages 12+",
+        "Options 3 and 4 are too similar - both involve waiting/deferring the decision"
+      ],
+      "dimensions": {
+        "factualAccuracy": 9,
+        "bestAnswerCorrect": 8,
+        "explanationQuality": 3,
+        "optionDistinctness": 4,
+        "rateDistribution": 8,
+        "roleCompliance": 1,
+        "ageAppropriateness": 5,
+        "scenarioRealism": 9,
+        "conceptClarity": 8,
+        "engagementValue": 8,
+        "categoryAlignment": 1
+      },
+      "suggestedFix": "Move scenario to 'baserunner' category, rewrite explanations with natural flow avoiding formulaic transitions, expand option 4 explanation to a complete thought, add advanced terminology for diff 3, and make options 3-4 more distinct",
+      "elapsedMs": 15673
+    },
+    {
+      "id": "f6",
+      "position": "thirdBase",
+      "score": 5.2,
+      "passed": false,
+      "issues": [
+        "Best answer explanation uses formulaic 'Remember' structure and doesn't teach WHY sprinting back works",
+        "Explanations are fragments, not complete sentences teaching principles",
+        "ConceptTag 'bunt-defense' doesn't match the actual concept being taught (reacting to shown bunt during shift)",
+        "Option 2 explanation doesn't specify why staying gives a free hit (3B line is uncovered)",
+        "Rates don't reflect realistic success probabilities - sprinting back from shift position rarely succeeds at 80%"
+      ],
+      "dimensions": {
+        "factualAccuracy": 7,
+        "bestAnswerCorrect": 6,
+        "explanationQuality": 3,
+        "optionDistinctness": 8,
+        "rateDistribution": 4,
+        "roleCompliance": 9,
+        "ageAppropriateness": 8,
+        "scenarioRealism": 7,
+        "conceptClarity": 5,
+        "engagementValue": 7,
+        "categoryAlignment": 9
+      },
+      "suggestedFix": "Rewrite explanations as complete teaching sentences: 'When you see a bunt attempt while shifted, sprinting back to normal 3B position gives you the best chance to field it because the 3B line is completely uncovered in the shift.' Adjust rates to reflect that recovering from shift position is difficult (50-60% success). Change conceptTag to 'shift-adjustment'.",
+      "elapsedMs": 15696
+    },
+    {
+      "id": "p37",
+      "position": "pitcher",
+      "score": 5.8,
+      "passed": false,
+      "issues": [
+        "Explanations use formulaic 'because' structures that sound robotic, not conversational",
+        "Option 2 'Mix in more off-speed' could be a valid strategy - best answer (pitch to contact) isn't clearly superior",
+        "Explanation fragments: 'Emptying the tank in the 7th means you won't make it to the 8th, because pace yourself' is grammatically incorrect",
+        "Rates don't reflect realistic probability - 85 for best option is too high, should be 65-75 range"
+      ],
+      "dimensions": {
+        "factualAccuracy": 8,
+        "bestAnswerCorrect": 5,
+        "explanationQuality": 4,
+        "optionDistinctness": 7,
+        "rateDistribution": 6,
+        "roleCompliance": 9,
+        "ageAppropriateness": 8,
+        "scenarioRealism": 9,
+        "conceptClarity": 7,
+        "engagementValue": 7,
+        "categoryAlignment": 8
+      },
+      "suggestedFix": "Rewrite explanations conversationally: 'Pitching to contact at 85 pitches helps you stay in the game. You make quality strikes that induce ground balls and pop-ups, letting your defense do the work. This approach typically adds 15-20 more pitches to your endurance.' Also adjust best rate to 70 and make option 2 rate 55 as a tempting alternative.",
+      "elapsedMs": 15620
+    },
+    {
+      "id": "f30",
+      "position": "centerField",
+      "score": 5.8,
+      "passed": false,
+      "issues": [
+        "Cutoff explanation incorrectly states 'throw home, which means the cutoff can catch' - you either throw TO the cutoff or throw THROUGH the cutoff home",
+        "Runner 'from second to home' phrasing in option 2 explanation is awkward - should be 'runner going home from second'",
+        "Options confuse 'batter' with 'runner from first' - the batter didn't hit a triple, the runner from 1st is trying for 3rd",
+        "Scenario doesn't specify where in center field the ball is hit, which significantly affects whether CF can realistically throw home"
+      ],
+      "dimensions": {
+        "factualAccuracy": 4,
+        "bestAnswerCorrect": 7,
+        "explanationQuality": 5,
+        "optionDistinctness": 6,
+        "rateDistribution": 8,
+        "roleCompliance": 8,
+        "ageAppropriateness": 8,
+        "scenarioRealism": 6,
+        "conceptClarity": 7,
+        "engagementValue": 7,
+        "categoryAlignment": 9
+      },
+      "suggestedFix": "Fix option 2 to say 'Throw to third — get the runner from first' instead of 'batter'. Rewrite cutoff explanation to: 'Hitting the cutoff gives your defense options, but with the tying run scoring, you need to make the aggressive throw home if you have any chance at the plate.' Add detail about ball location (shallow/medium/deep) to make throw decision more realistic.",
+      "elapsedMs": 17721
+    },
+    {
+      "id": "b9",
+      "position": "batter",
+      "score": 5.9,
+      "passed": false,
+      "issues": [
+        "Explanations are too brief and don't teach underlying principles - they just state facts without explaining WHY",
+        "Option 2 'Hard grounder' and option 3 'Ground ball anywhere' are essentially the same strategy",
+        "Missing the key teaching point: infield playing in creates gaps that line drives can exploit",
+        "Explanations don't address the specific game situation (down 1 run, need to tie)",
+        "Best answer ignores that fly ball requires specific depth and may not score runner"
+      ],
+      "dimensions": {
+        "factualAccuracy": 6,
+        "bestAnswerCorrect": 5,
+        "explanationQuality": 4,
+        "optionDistinctness": 4,
+        "rateDistribution": 8,
+        "roleCompliance": 9,
+        "ageAppropriateness": 8,
+        "scenarioRealism": 9,
+        "conceptClarity": 6,
+        "engagementValue": 7,
+        "categoryAlignment": 9
+      },
+      "suggestedFix": "Replace options with: 'Deep fly ball to outfield', 'Line drive through the gaps', 'Bunt toward third', 'Pull grounder to right side'. Rewrite explanations to teach WHY each strategy works/fails with infield in, emphasizing that line drives exploit the gaps created when infielders move closer.",
+      "elapsedMs": 15650
+    },
+    {
+      "id": "f10",
+      "position": "centerField",
+      "score": 6.2,
+      "passed": false,
+      "issues": [
+        "Explanation 1 uses 'that's why this approach matters in this situation' - generic phrase that doesn't teach specific principle",
+        "Bottom 9th tie game with runner on 2nd is walk-off situation for HOME team, but scenario implies defense preventing run",
+        "Option 3 (hit cutoff) could be correct - many coaches teach always hitting cutoff on close plays for backup",
+        "Explanations use formulaic structures and fragments instead of natural teaching language",
+        "Concept doesn't match conceptTag 'of-depth-arm-value' - teaches decision-making, not arm strength from depth"
+      ],
+      "dimensions": {
+        "factualAccuracy": 5,
+        "bestAnswerCorrect": 5,
+        "explanationQuality": 4,
+        "optionDistinctness": 8,
+        "rateDistribution": 9,
+        "roleCompliance": 9,
+        "ageAppropriateness": 8,
+        "scenarioRealism": 7,
+        "conceptClarity": 6,
+        "engagementValue": 8,
+        "categoryAlignment": 9
+      },
+      "suggestedFix": "Fix score perspective (top 9th for defensive play), rewrite explanations to teach naturally without generic phrases, consider if hitting cutoff might be strategically correct, align concept with arm strength from depth positioning",
+      "elapsedMs": 15299
+    },
+    {
+      "id": "f24",
+      "position": "centerField",
+      "score": 6.2,
+      "passed": false,
+      "issues": [
+        "Explanation says 'throw through the cutoff' when it means 'throw past/bypass the cutoff' - confusing phrasing",
+        "For diff:1 (ages 6-8), young players should ALWAYS hit the cutoff - direct throws home are too advanced",
+        "The 85% success rate for a 6-year-old throwing from center field to home is unrealistic",
+        "Concept contradicts fundamental youth baseball teaching - cutoff discipline is crucial at this age",
+        "Grammar error: 'since crow-hop' should be 'so crow-hop'"
+      ],
+      "dimensions": {
+        "factualAccuracy": 4,
+        "bestAnswerCorrect": 3,
+        "explanationQuality": 6,
+        "optionDistinctness": 9,
+        "rateDistribution": 5,
+        "roleCompliance": 10,
+        "ageAppropriateness": 3,
+        "scenarioRealism": 8,
+        "conceptClarity": 7,
+        "engagementValue": 8,
+        "categoryAlignment": 10
+      },
+      "suggestedFix": "Change best answer to option 1 (hit the cutoff), adjust rates to [25, 85, 10, 5], and rewrite explanations to teach that young players should always hit the cutoff for better ball control and backup options. The direct throw home should be explained as too risky for youth players.",
+      "elapsedMs": 15471
+    },
+    {
+      "id": "r24",
+      "position": "baserunner",
+      "score": 6.3,
+      "passed": false,
+      "issues": [
+        "Explanations use formulaic structure starting with result before reason (violates natural teaching flow)",
+        "First explanation has grammatical error: 'which means bad idea' is a fragment",
+        "Third explanation has incomplete sentence: 'since either tag or stay' doesn't finish the thought",
+        "Explanations don't teach the underlying principle of reading fly ball depth and outfielder momentum",
+        "Options lack realistic baseball language - 'Tag up and go' should be 'Tag up and score'"
+      ],
+      "dimensions": {
+        "factualAccuracy": 8,
+        "bestAnswerCorrect": 9,
+        "explanationQuality": 4,
+        "optionDistinctness": 7,
+        "rateDistribution": 8,
+        "roleCompliance": 9,
+        "ageAppropriateness": 8,
+        "scenarioRealism": 8,
+        "conceptClarity": 7,
+        "engagementValue": 6,
+        "categoryAlignment": 9
+      },
+      "suggestedFix": "Rewrite explanations to flow naturally: 'Smart baserunning! With the left fielder only 200 feet away, his throw beats you home easily. Wait for a deeper fly ball where the outfielder has to run back first.' Fix grammatical errors and teach the principle of reading outfielder positioning.",
+      "elapsedMs": 15040
+    },
+    {
+      "id": "p1",
+      "position": "pitcher",
+      "score": 6.8,
+      "passed": false,
+      "issues": [
+        "Rates array has best=85 but options array has best=1 (index mismatch) - violates rate-best alignment rule",
+        "Bot 9 with tie game means home team bats, but 'cleanup hitter' implies away team context",
+        "Explanation uses 'MLB hitters bat .350+' which is too advanced for ageMin=9",
+        "Changeup explanation uses fragment 'walk-off walk' instead of complete sentence",
+        "Inside fastball option describes 'brush him back' which is inappropriate youth teaching"
+      ],
+      "dimensions": {
+        "factualAccuracy": 7,
+        "bestAnswerCorrect": 8,
+        "explanationQuality": 6,
+        "optionDistinctness": 8,
+        "rateDistribution": 5,
+        "roleCompliance": 9,
+        "ageAppropriateness": 5,
+        "scenarioRealism": 7,
+        "conceptClarity": 8,
+        "engagementValue": 8,
+        "categoryAlignment": 9
+      },
+      "suggestedFix": "Fix rate-best mismatch (best should be index 1 with rate 85), lower statistics complexity for age 9+, complete the changeup sentence, and replace 'brush him back' with age-appropriate inside pitch strategy",
+      "elapsedMs": 15581
+    },
+    {
+      "id": "p11",
+      "position": "pitcher",
+      "score": 6.8,
+      "passed": false,
+      "issues": [
+        "Explanation 1 has awkward capitalization 'dP' instead of 'DP' and unclear wording",
+        "Score perspective is incorrect: Top 6 means AWAY team bats, but down by 1 (2-3) implies HOME team perspective",
+        "Explanation 0 doesn't teach WHY strikeouts are less optimal here, just states a fact",
+        "Option 3 'Fastball — challenge him' is too similar to option 0 'Pitch for the strikeout'",
+        "Rates don't reflect realistic probabilities - 85% success for a DP attempt is too high"
+      ],
+      "dimensions": {
+        "factualAccuracy": 5,
+        "bestAnswerCorrect": 9,
+        "explanationQuality": 6,
+        "optionDistinctness": 6,
+        "rateDistribution": 7,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 7,
+        "conceptClarity": 8,
+        "engagementValue": 7,
+        "categoryAlignment": 10
+      },
+      "suggestedFix": "Fix score perspective (if Top 6 and down 2-3, team is AWAY not HOME), clean up explanation typos, differentiate options 0 and 3 better, and adjust rates to be more realistic (65-70% for DP attempt)",
+      "elapsedMs": 15198
+    },
+    {
+      "id": "f22",
+      "position": "pitcher",
+      "score": 6.8,
+      "passed": false,
+      "issues": [
+        "Explanation 2 has incomplete grammar: 'since everyone is moving forward and he's fast out of the box' lacks proper connection",
+        "Explanation 3 contains grammatical errors: 'you getting the lead runner' should be 'getting the lead runner'",
+        "Explanation 4 has awkward phrasing: 'because you make a play!' doesn't follow from 'eating the ball'",
+        "Runner on 2nd is already in scoring position, contradicting explanation 1's claim about preventing scoring position"
+      ],
+      "dimensions": {
+        "factualAccuracy": 6,
+        "bestAnswerCorrect": 9,
+        "explanationQuality": 5,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 8,
+        "scenarioRealism": 9,
+        "conceptClarity": 8,
+        "engagementValue": 7,
+        "categoryAlignment": 9
+      },
+      "suggestedFix": "Fix grammatical errors in explanations 2-4, and correct the factual error about scoring position (runner on 2nd is already in scoring position). Rewrite explanation 1 to focus on preventing the runner from reaching third base rather than 'scoring position'.",
+      "elapsedMs": 14315
+    },
+    {
+      "id": "f16",
+      "position": "shortstop",
+      "score": 6.8,
+      "passed": false,
+      "issues": [
+        "Explanations use formulaic 'because' structure and don't flow naturally",
+        "Explanation 4 is a fragment ('because the double play is the best play') and doesn't teach anything specific",
+        "Throwing home explanation is incorrect - with bases loaded there IS a force at home",
+        "Best explanation doesn't teach the mechanics (footwork, timing) of turning a 6-4-3 double play"
+      ],
+      "dimensions": {
+        "factualAccuracy": 4,
+        "bestAnswerCorrect": 9,
+        "explanationQuality": 5,
+        "optionDistinctness": 8,
+        "rateDistribution": 8,
+        "roleCompliance": 9,
+        "ageAppropriateness": 8,
+        "scenarioRealism": 9,
+        "conceptClarity": 7,
+        "engagementValue": 7,
+        "categoryAlignment": 9
+      },
+      "suggestedFix": "Fix factual error about force at home (runners on 1st and 2nd means bases loaded with batter). Rewrite explanations to flow naturally and teach specific mechanics: 'Step on second with your right foot while pivoting toward first. This gets the force out on the runner from first and sets up your throw to complete the double play.'",
+      "elapsedMs": 15292
+    },
+    {
+      "id": "cf2",
+      "position": "centerField",
+      "score": 6.8,
+      "passed": false,
+      "issues": [
+        "Explanations contain awkward 'because' and 'since' structures mid-sentence (violates rule_02)",
+        "Third explanation uses vague phrase 'this approach matters in this situation' without teaching specific principle (violates rule_07)",
+        "Score shows home team losing 1-3 in Bot 4th, but scenario doesn't leverage this game pressure context",
+        "ConceptTag 'of-communication' doesn't match the solo positioning decision being taught"
+      ],
+      "dimensions": {
+        "factualAccuracy": 9,
+        "bestAnswerCorrect": 9,
+        "explanationQuality": 5,
+        "optionDistinctness": 8,
+        "rateDistribution": 9,
+        "roleCompliance": 9,
+        "ageAppropriateness": 8,
+        "scenarioRealism": 7,
+        "conceptClarity": 6,
+        "engagementValue": 7,
+        "categoryAlignment": 9
+      },
+      "suggestedFix": "Rewrite explanations to flow naturally without awkward conjunctions. Change conceptTag to 'positioning' or 'defensive-shifts'. Add game context about preventing extra-base hits when trailing.",
+      "elapsedMs": 14333
+    },
+    {
+      "id": "f8",
+      "position": "thirdBase",
+      "score": 6.8,
+      "passed": false,
+      "issues": [
+        "Best answer rate mismatch: Option 3 marked as best but has rate 50, while option 4 has highest rate 85",
+        "Explanation 2 teaches incorrect principle - third baseman should charge even without SS covering, not 'hold'",
+        "Option descriptions lack clarity - 'Charge, spin-throw to 3rd' doesn't explain this is to get the lead runner",
+        "Rates don't match strategic value - throwing to 3rd (85) should be best if that's the wheel play purpose",
+        "Explanation 3 incomplete - doesn't finish explaining why getting lead runner is better"
+      ],
+      "dimensions": {
+        "factualAccuracy": 7,
+        "bestAnswerCorrect": 4,
+        "explanationQuality": 6,
+        "optionDistinctness": 7,
+        "rateDistribution": 5,
+        "roleCompliance": 9,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 8,
+        "conceptClarity": 7,
+        "engagementValue": 7,
+        "categoryAlignment": 9
+      },
+      "suggestedFix": "Change best answer to option 4 (index 3) since it has the highest rate and matches the wheel play strategy. Rewrite explanation 2 to explain why holding position fails the wheel play assignment.",
+      "elapsedMs": 15174
+    },
+    {
+      "id": "r4",
+      "position": "baserunner",
+      "score": 6.8,
+      "passed": false,
+      "issues": [
+        "Explanation 0 has awkward grammar: 'trust your 3rd base coach, which means he sees everything' - the 'which means' doesn't connect properly",
+        "Explanation 3 uses poor grammar: 'which means the outcome won't be what you need' - awkward and unclear",
+        "Explanations lack depth - they state outcomes but don't teach WHY (e.g., WHY does the coach see everything? WHERE should you look?)",
+        "Count (1-1) is irrelevant to a baserunning scenario - baserunners don't have counts",
+        "Option 3 'Stop at 2nd' is too obviously conservative - needs a more tempting wrong answer like 'Take a big turn and challenge the fielder'"
+      ],
+      "dimensions": {
+        "factualAccuracy": 8,
+        "bestAnswerCorrect": 9,
+        "explanationQuality": 5,
+        "optionDistinctness": 6,
+        "rateDistribution": 8,
+        "roleCompliance": 7,
+        "ageAppropriateness": 8,
+        "scenarioRealism": 6,
+        "conceptClarity": 7,
+        "engagementValue": 7,
+        "categoryAlignment": 8
+      },
+      "suggestedFix": "Rewrite explanations to teach specific mechanics: 'Round 2nd hard while looking at your 3rd base coach. He can see both the ball and your speed - information you can't process while running.' Remove the count from baserunning scenarios.",
+      "elapsedMs": 17862
+    },
+    {
+      "id": "r19",
+      "position": "baserunner",
+      "score": 6.8,
+      "passed": false,
+      "issues": [
+        "Explanation 2 contains awkward run-on sentence structure with excessive detail crammed together",
+        "Option rates don't reflect realistic success probabilities - 85% for delayed steal is too high even with lazy catcher",
+        "Explanation 3 uses vague teaching ('puts more pressure') instead of explaining specific delayed steal mechanics",
+        "Concept description is too simplistic - doesn't mention timing or recognition elements"
+      ],
+      "dimensions": {
+        "factualAccuracy": 8,
+        "bestAnswerCorrect": 9,
+        "explanationQuality": 5,
+        "optionDistinctness": 8,
+        "rateDistribution": 6,
+        "roleCompliance": 10,
+        "ageAppropriateness": 8,
+        "scenarioRealism": 9,
+        "conceptClarity": 7,
+        "engagementValue": 8,
+        "categoryAlignment": 10
+      },
+      "suggestedFix": "Rewrite explanation 2 as: 'Perfect! The delayed steal catches everyone off guard. You wait until the catcher starts his lazy lob back to the pitcher, then break for second. The pitcher won't be ready to receive and throw, and the middle infielders won't expect it. This smart baserunning turns their laziness into your advantage.' Also adjust rates to more realistic 70% for delayed steal.",
+      "elapsedMs": 15352
+    },
+    {
+      "id": "m23",
+      "position": "manager",
+      "score": 6.8,
+      "passed": false,
+      "issues": [
+        "Explanations use formulaic 'because' structures that violate natural language flow requirements",
+        "Second explanation repeats the same concept as first rather than teaching a different angle",
+        "Third explanation uses incomplete comparison ('risky — because') with poor grammar",
+        "Fourth explanation uses vague 'which means' structure instead of teaching a specific principle",
+        "Manager scenario incorrectly filed under 'manager' array when it's about batting strategy"
+      ],
+      "dimensions": {
+        "factualAccuracy": 9,
+        "bestAnswerCorrect": 9,
+        "explanationQuality": 4,
+        "optionDistinctness": 8,
+        "rateDistribution": 8,
+        "roleCompliance": 3,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 8,
+        "conceptClarity": 7,
+        "engagementValue": 7,
+        "categoryAlignment": 3
+      },
+      "suggestedFix": "1) Rewrite all explanations to flow naturally without 'because/which means' structures. 2) Make each explanation teach a unique principle (e.g., run expectancy, pressure on defense, rally momentum). 3) Move to 'batter' category since this is about the batter's decision, not managerial strategy.",
+      "elapsedMs": 15139
+    },
+    {
+      "id": "ct4",
+      "position": "catcher",
+      "score": 6.9,
+      "passed": false,
+      "issues": [
+        "Best answer is marked as index 1 but has rate 85, while index 0 has rate 55 - violates best/rate alignment rule",
+        "Explanation uses formulaic 'This is because' structure in option 3",
+        "Option 2 explanation references 'normal count' when 2-2 is actually a crucial count",
+        "Inconsistent messaging - option 1 says holding still is 'solid' but then suggests pulling is better"
+      ],
+      "dimensions": {
+        "factualAccuracy": 8,
+        "bestAnswerCorrect": 7,
+        "explanationQuality": 6,
+        "optionDistinctness": 9,
+        "rateDistribution": 5,
+        "roleCompliance": 10,
+        "ageAppropriateness": 8,
+        "scenarioRealism": 9,
+        "conceptClarity": 8,
+        "engagementValue": 7,
+        "categoryAlignment": 10
+      },
+      "suggestedFix": "Fix the best answer index to 0 (since option 1 has highest rate), rewrite explanations to avoid formulaic transitions, and clarify that 2-2 is a crucial count where subtle framing matters most",
+      "elapsedMs": 16443
+    },
+    {
+      "id": "p51",
+      "position": "pitcher",
+      "score": 7.1,
+      "passed": false,
+      "issues": [
+        "Best answer index mismatch: option 3 is marked best but option 4 has highest rate (85)",
+        "Option 3 says 'look at the runner' which contradicts its own explanation about not tipping off the runner",
+        "Explanations use formulaic 'This is because' implied structure rather than natural teaching language",
+        "Category 'baserunners' doesn't match - this is a pitcher pickoff scenario, not baserunner decision"
+      ],
+      "dimensions": {
+        "factualAccuracy": 8,
+        "bestAnswerCorrect": 5,
+        "explanationQuality": 6,
+        "optionDistinctness": 7,
+        "rateDistribution": 8,
+        "roleCompliance": 9,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 9,
+        "conceptClarity": 8,
+        "engagementValue": 8,
+        "categoryAlignment": 5
+      },
+      "suggestedFix": "Change best answer index from 3 to 4 to match rates, rewrite option 3 to remove contradiction about looking at runner, and move scenario to pitcher category since it's about pitcher execution",
+      "elapsedMs": 14109
+    },
+    {
+      "id": "m8",
+      "position": "manager",
+      "score": 7.1,
+      "passed": false,
+      "issues": [
+        "Explanations contain awkward phrasing and fragments ('since don't overthink', 'because if replay looks good, go')",
+        "Option 3 'Ask the bench coach' doesn't make sense as manager scenarios should show decisive actions",
+        "Explanations don't teach the underlying leverage index concept that the conceptTag promises",
+        "Second explanation is too brief and doesn't explain WHY saving challenges often fails",
+        "Count shows '0-0' but description says runner was called out at first, implying previous batter action"
+      ],
+      "dimensions": {
+        "factualAccuracy": 7,
+        "bestAnswerCorrect": 8,
+        "explanationQuality": 5,
+        "optionDistinctness": 6,
+        "rateDistribution": 9,
+        "roleCompliance": 7,
+        "ageAppropriateness": 8,
+        "scenarioRealism": 7,
+        "conceptClarity": 6,
+        "engagementValue": 8,
+        "categoryAlignment": 8
+      },
+      "suggestedFix": "Rewrite explanations with complete sentences that teach leverage index principles. Replace 'Ask the bench coach' with 'Challenge only if 100% certain'. Fix the count/situation inconsistency.",
+      "elapsedMs": 13827
+    },
+    {
+      "id": "b2",
+      "position": "batter",
+      "score": 7.2,
+      "passed": false,
+      "issues": [
+        "Explanations are fragments, not complete sentences (e.g., 'since game over')",
+        "Explanation 2 uses awkward 'because' structure mid-sentence",
+        "Explanation quality lacks depth - doesn't teach WHY choking up helps or specific two-strike mechanics",
+        "Option 3 explanation doesn't address why looking fastball is problematic with a dominant slider",
+        "Scenario is filed under 'batter' but marked as 'counts' category"
+      ],
+      "dimensions": {
+        "factualAccuracy": 9,
+        "bestAnswerCorrect": 9,
+        "explanationQuality": 5,
+        "optionDistinctness": 8,
+        "rateDistribution": 9,
+        "roleCompliance": 6,
+        "ageAppropriateness": 8,
+        "scenarioRealism": 9,
+        "conceptClarity": 8,
+        "engagementValue": 7,
+        "categoryAlignment": 6
+      },
+      "suggestedFix": "Rewrite explanations as complete sentences that teach specific principles: 'Guessing slider leaves you vulnerable to any other pitch, especially with the pitcher ahead in the count.' For the best answer, explain HOW choking up helps: 'Choking up shortens your swing path and improves bat control, allowing you to foul off tough pitches and extend the at-bat until the pitcher makes a mistake.'",
+      "elapsedMs": 15339
+    },
+    {
+      "id": "f20",
+      "position": "secondBase",
+      "score": 7.2,
+      "passed": false,
+      "issues": [
+        "First explanation contains a fragment ('because two men on, nobody out is much worse') - should be a complete sentence",
+        "Fourth explanation contains a fragment ('because the force at second is better') - should be a complete sentence",
+        "Best answer explanation focuses too much on what NOT to do (avoiding errors) rather than positively teaching the strategic principle",
+        "Scenario title 'Fast Runner — Can You Turn Two?' creates misleading expectation that turning two is the goal"
+      ],
+      "dimensions": {
+        "factualAccuracy": 9,
+        "bestAnswerCorrect": 8,
+        "explanationQuality": 5,
+        "optionDistinctness": 8,
+        "rateDistribution": 9,
+        "roleCompliance": 9,
+        "ageAppropriateness": 8,
+        "scenarioRealism": 9,
+        "conceptClarity": 7,
+        "engagementValue": 7,
+        "categoryAlignment": 9
+      },
+      "suggestedFix": "Rewrite explanations to eliminate fragments and teach positively. For example: 'When the runner is extremely fast, securing the force out at second is the smart play. You eliminate the lead runner and maintain control of the inning without risking a wild throw that could put two runners in scoring position.'",
+      "elapsedMs": 15349
+    },
+    {
+      "id": "f48",
+      "position": "shortstop",
+      "score": 7.2,
+      "passed": false,
+      "issues": [
+        "Explanation 2 has awkward fragment 'After all, you should adjust.' and doesn't teach why normal depth fails",
+        "Explanation 3 uses formulaic 'since' structure mid-sentence, violating natural language flow",
+        "Explanation 4 doesn't teach a complete principle about why shading is wrong here",
+        "Concept clarity weakened by multiple incomplete teaching moments"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 4,
+        "optionDistinctness": 8,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 8,
+        "scenarioRealism": 9,
+        "conceptClarity": 6,
+        "engagementValue": 8,
+        "categoryAlignment": 10
+      },
+      "suggestedFix": "Rewrite explanations to flow naturally: 'Normal depth lets routine grounders become infield singles. Fast runners force you to choose between range and throw time - always choose the quicker throw.' Make each explanation teach a complete defensive principle.",
+      "elapsedMs": 13848
+    },
+    {
+      "id": "rf1",
+      "position": "rightField",
+      "score": 7.2,
+      "passed": false,
+      "issues": [
+        "First explanation has grammatical error ('because you throwing' should be 'because throwing')",
+        "Score perspective error: Top 4 with 2-1 score means away team trails, but strong throw unlikely with 1-run deficit",
+        "Explanations use formulaic structures like 'is playing too safe, because' violating natural flow",
+        "Option 2 logic flawed: batter is not mentioned in situation, only runner on first",
+        "Conceptual confusion: situation describes runner already rounding second, making 'first-to-third' prevention too late"
+      ],
+      "dimensions": {
+        "factualAccuracy": 6,
+        "bestAnswerCorrect": 8,
+        "explanationQuality": 6,
+        "optionDistinctness": 7,
+        "rateDistribution": 9,
+        "roleCompliance": 9,
+        "ageAppropriateness": 8,
+        "scenarioRealism": 7,
+        "conceptClarity": 6,
+        "engagementValue": 7,
+        "categoryAlignment": 8
+      },
+      "suggestedFix": "Fix grammar in explanation 1, clarify that runner started on first before the hit (not batter-runner), and revise concept to focus on preventing extra bases rather than 'first-to-third' which already happened",
+      "elapsedMs": 15527
+    },
+    {
+      "id": "r17",
+      "position": "baserunner",
+      "score": 7.2,
+      "passed": false,
+      "issues": [
+        "Explanation 3 has incomplete sentence: 'since you take the risk' is a fragment",
+        "Options 0 and 3 are too similar - both advocate stealing but with slightly different reasoning",
+        "Explanation 4 has awkward phrasing: 'you getting into scoring position' should be 'getting into scoring position'",
+        "Rate distribution shows option 0 at 85% which is too high for a challenging strategic decision"
+      ],
+      "dimensions": {
+        "factualAccuracy": 9,
+        "bestAnswerCorrect": 8,
+        "explanationQuality": 6,
+        "optionDistinctness": 6,
+        "rateDistribution": 7,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 9,
+        "conceptClarity": 8,
+        "engagementValue": 7,
+        "categoryAlignment": 10
+      },
+      "suggestedFix": "Fix the incomplete sentence in explanation 3, make options 0 and 3 more distinct (perhaps option 3 could be about waiting for a better count), and adjust rates to show more uncertainty (best option around 70-75%)",
+      "elapsedMs": 13452
+    },
+    {
+      "id": "m44",
+      "position": "manager",
+      "score": 7.2,
+      "passed": false,
+      "issues": [
+        "Best answer rate (85) doesn't match highest rate in array (50 is at index 1)",
+        "Explanations use formulaic 'His job is simple' and 'If he can bunt' structures instead of natural teaching flow",
+        "Scenario doesn't test platoon-advantage concept at all - it's about lineup construction, not L/R matchups",
+        "Option 1 explanation states '8th is controversial' but doesn't teach WHY 9th is strategically better",
+        "Situation shows 'Top 1' with 0-0 count but this is a pregame lineup decision, not an in-game scenario"
+      ],
+      "dimensions": {
+        "factualAccuracy": 8,
+        "bestAnswerCorrect": 5,
+        "explanationQuality": 6,
+        "optionDistinctness": 8,
+        "rateDistribution": 4,
+        "roleCompliance": 9,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 7,
+        "conceptClarity": 5,
+        "engagementValue": 8,
+        "categoryAlignment": 9
+      },
+      "suggestedFix": "Fix rate array so index 0 has highest value (85), change conceptTag to 'lineup-construction', rewrite explanations to teach the mathematical principle of minimizing weak hitter at-bats rather than stating traditions",
+      "elapsedMs": 16754
+    },
+    {
+      "id": "fp3",
+      "position": "famous",
+      "score": 7.2,
+      "passed": false,
+      "issues": [
+        "Historical inaccuracy: Baez's famous rundown play occurred when he was the trail runner after Will Craig fielded the ball, not from a ground out with Baez on 1st",
+        "Option 3 explanation incorrectly states Baez ended up safe at 2nd AND a run scored - in the actual play, Baez scored from first base",
+        "Concept mismatch: Tagged as 'rundown-mechanics' but teaches chaos creation, not proper rundown execution technique",
+        "Option 2 is poorly constructed - doesn't explain which fielder or why this is different from option 3"
+      ],
+      "dimensions": {
+        "factualAccuracy": 4,
+        "bestAnswerCorrect": 8,
+        "explanationQuality": 7,
+        "optionDistinctness": 6,
+        "rateDistribution": 9,
+        "roleCompliance": 9,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 5,
+        "conceptClarity": 7,
+        "engagementValue": 8,
+        "categoryAlignment": 8
+      },
+      "suggestedFix": "Correct the historical details: Baez was the trail runner when Craig fielded a grounder to 1st, not caught in a traditional rundown. Fix the outcome description and align conceptTag with 'creating-chaos' rather than 'rundown-mechanics'.",
+      "elapsedMs": 15443
+    },
+    {
+      "id": "f12",
+      "position": "secondBase",
+      "score": 7.3,
+      "passed": false,
+      "issues": [
+        "Relay positioning incorrect: 2B doesn't relay from RF to home - 1B is the proper relay position for right field throws home",
+        "Explanations use formulaic structure starting with evaluation phrases rather than natural teaching language",
+        "Option 3 'shallow right field' is vague and doesn't specify a strategic position",
+        "Explanation for best answer doesn't teach the full principle of why straight-line alignment matters for relay efficiency"
+      ],
+      "dimensions": {
+        "factualAccuracy": 4,
+        "bestAnswerCorrect": 6,
+        "explanationQuality": 6,
+        "optionDistinctness": 7,
+        "rateDistribution": 9,
+        "roleCompliance": 3,
+        "ageAppropriateness": 8,
+        "scenarioRealism": 8,
+        "conceptClarity": 7,
+        "engagementValue": 8,
+        "categoryAlignment": 9
+      },
+      "suggestedFix": "Change scenario to SS relaying from left field or change player to 1B relaying from right field. Rewrite explanations to teach naturally: 'When you line up directly between the fielder and target, the ball travels its shortest path and maintains maximum velocity.'",
+      "elapsedMs": 15233
+    },
+    {
+      "id": "f31",
+      "position": "shortstop",
+      "score": 7.3,
+      "passed": false,
+      "issues": [
+        "Scenario describes shortstop as 'relay man' but shortstop is actually the CUTOFF man in this situation - relay happens in deep outfield, cutoff happens in shallow outfield/infield",
+        "Title says 'Cutoff Man' but description uses 'relay man' terminology incorrectly throughout",
+        "With runner starting on 1st on a double, runner would be rounding 3rd heading home, making this a cutoff situation not a relay",
+        "Explanations mix up cutoff and relay terminology - a true relay involves two throws (OF to relay to base), while cutoff is one throw that can be cut",
+        "Option wording assumes throw is definitely going home, but with 0 outs the correct play might be to hold at 3rd"
+      ],
+      "dimensions": {
+        "factualAccuracy": 4,
+        "bestAnswerCorrect": 7,
+        "explanationQuality": 6,
+        "optionDistinctness": 8,
+        "rateDistribution": 8,
+        "roleCompliance": 5,
+        "ageAppropriateness": 8,
+        "scenarioRealism": 7,
+        "conceptClarity": 5,
+        "engagementValue": 8,
+        "categoryAlignment": 9
+      },
+      "suggestedFix": "Change all instances of 'relay man' to 'cutoff man' and clarify that this is a cutoff situation (shallow outfield positioning to potentially cut the throw home), not a deep outfield relay. Also consider that with 0 outs, the play might be to third base to prevent the runner from advancing.",
+      "elapsedMs": 18728
+    },
+    {
+      "id": "m30",
+      "position": "manager",
+      "score": 7.3,
+      "passed": false,
+      "issues": [
+        "Explanation 3 has an incomplete sentence fragment: 'since you think about what gives your team the best result here.'",
+        "Explanation 4 criticizes taking a pitch but doesn't teach why swinging early might be better in this situation",
+        "The concept could be more specific about late-inning strategy rather than a general principle"
+      ],
+      "dimensions": {
+        "factualAccuracy": 9,
+        "bestAnswerCorrect": 9,
+        "explanationQuality": 6,
+        "optionDistinctness": 8,
+        "rateDistribution": 8,
+        "roleCompliance": 9,
+        "ageAppropriateness": 8,
+        "scenarioRealism": 9,
+        "conceptClarity": 7,
+        "engagementValue": 8,
+        "categoryAlignment": 8
+      },
+      "suggestedFix": "Fix explanation 3's incomplete sentence and rewrite explanation 4 to teach why aggressive swinging early in the count can be advantageous with a runner in scoring position",
+      "elapsedMs": 11249
+    },
+    {
+      "id": "m10",
+      "position": "manager",
+      "score": 7.4,
+      "passed": false,
+      "issues": [
+        "Best answer explanation uses formulaic 'Correct!' structure instead of natural teaching language",
+        "Option 2 explanation doesn't teach the underlying principle clearly - why is 'smart thinking' relevant here?",
+        "Concept of leverage index not fully explained - a 9-year-old won't understand why 3 runs is 'comfortable'",
+        "No teaching about what makes a 'setup man' different from a closer beyond the situation"
+      ],
+      "dimensions": {
+        "factualAccuracy": 9,
+        "bestAnswerCorrect": 9,
+        "explanationQuality": 5,
+        "optionDistinctness": 8,
+        "rateDistribution": 9,
+        "roleCompliance": 9,
+        "ageAppropriateness": 7,
+        "scenarioRealism": 8,
+        "conceptClarity": 6,
+        "engagementValue": 7,
+        "categoryAlignment": 9
+      },
+      "suggestedFix": "Rewrite explanations to naturally teach why 3 runs is a 'safe' lead and what makes setup men vs closers different. Remove 'Correct!' and explain the leverage principle in kid-friendly terms.",
+      "elapsedMs": 16577
+    },
+    {
+      "id": "rl6",
+      "position": "rules",
+      "score": 7.4,
+      "passed": false,
+      "issues": [
+        "The scenario premise is fundamentally flawed - if your pitcher bats 4th, you've already declined the DH option and cannot add one mid-game",
+        "Option 1 explanation incorrectly states 'the DH replaces the pitcher' when the scenario has the pitcher batting 4th",
+        "The description creates an impossible situation - managers must declare DH usage before the game starts",
+        "Explanations don't teach the actual DH rule: teams can choose to use or decline the DH at game start, but once declined, it's gone for the entire game"
+      ],
+      "dimensions": {
+        "factualAccuracy": 4,
+        "bestAnswerCorrect": 5,
+        "explanationQuality": 6,
+        "optionDistinctness": 8,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 3,
+        "conceptClarity": 7,
+        "engagementValue": 7,
+        "categoryAlignment": 10
+      },
+      "suggestedFix": "Reframe as a pregame decision: 'You're setting your lineup before the game. Do you want your pitcher to bat or use a DH?' This would make the scenario accurate and teach the real DH rule.",
+      "elapsedMs": 15967
+    },
+    {
+      "id": "m7",
+      "position": "manager",
+      "score": 7.6,
+      "passed": true,
+      "issues": [
+        "Explanations contain awkward phrasing like 'is the OBP machine you want' and incomplete fragments",
+        "Third explanation uses formula-like structure 'The leadoff spot needs baserunners first — only then can'",
+        "ConceptTag 'situational-hitting' doesn't match the actual concept of lineup construction",
+        "Explanations don't teach WHY high OBP matters for leadoff (sets table, more plate appearances, etc.)"
+      ],
+      "dimensions": {
+        "factualAccuracy": 9,
+        "bestAnswerCorrect": 9,
+        "explanationQuality": 6,
+        "optionDistinctness": 8,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 8,
+        "scenarioRealism": 8,
+        "conceptClarity": 7,
+        "engagementValue": 7,
+        "categoryAlignment": 8
+      },
+      "suggestedFix": "Rewrite explanations to flow naturally and teach the principle: 'Your leadoff hitter gets the most plate appearances in the game, so you want someone who reaches base frequently. Player A's .320 average plus his walks give him the highest on-base percentage, creating more scoring opportunities for your power hitters.'",
+      "elapsedMs": 13537
+    },
+    {
+      "id": "p3",
+      "position": "pitcher",
+      "score": 7.8,
+      "passed": true,
+      "issues": [
+        "First explanation is too brief and doesn't teach why throws only temporarily disrupt timing",
+        "Third explanation focuses on count disadvantage but doesn't explain why pitchouts are strategically flawed here",
+        "Concept statement is oversimplified - slide step does affect pitch quality, which should be acknowledged"
+      ],
+      "dimensions": {
+        "factualAccuracy": 9,
+        "bestAnswerCorrect": 9,
+        "explanationQuality": 6,
+        "optionDistinctness": 9,
+        "rateDistribution": 8,
+        "roleCompliance": 10,
+        "ageAppropriateness": 8,
+        "scenarioRealism": 9,
+        "conceptClarity": 7,
+        "engagementValue": 8,
+        "categoryAlignment": 9
+      },
+      "suggestedFix": "Enhance explanations: (1) 'Throwing over resets his lead but doesn't change his speed - he'll just take another big lead next pitch', (3) 'Pitchouts work best on 2-0 or 3-1 when you can afford the ball, not 1-0 where 2-0 gives huge hitting advantage'",
+      "elapsedMs": 14945
+    },
+    {
+      "id": "b3",
+      "position": "batter",
+      "score": 7.8,
+      "passed": true,
+      "issues": [
+        "Natural language flow violated - explanation 0 uses awkward 'because' structure",
+        "Age mismatch - diff:1 but ageMin:11 (diff 1 should be ages 6-8)",
+        "Explanations lack positive teaching for non-best options - they only say what NOT to do"
+      ],
+      "dimensions": {
+        "factualAccuracy": 9,
+        "bestAnswerCorrect": 9,
+        "explanationQuality": 6,
+        "optionDistinctness": 9,
+        "rateDistribution": 8,
+        "roleCompliance": 10,
+        "ageAppropriateness": 7,
+        "scenarioRealism": 9,
+        "conceptClarity": 8,
+        "engagementValue": 8,
+        "categoryAlignment": 10
+      },
+      "suggestedFix": "Rewrite explanations with natural flow: 'The runner breaks immediately on a hit-and-run, so you must swing to protect him from being thrown out.' Also adjust ageMin to 6-8 for diff:1 or change diff to 2.",
+      "elapsedMs": 12571
+    },
+    {
+      "id": "b19",
+      "position": "batter",
+      "score": 7.8,
+      "passed": true,
+      "issues": [
+        "Explanations use formulaic 'since/because/which means' transitions that break natural language flow",
+        "Score perspective error: Bot 8th with home team trailing 4-5 is impossible (home team would be leading 5-4)",
+        "Option 2 explanation starts with generic 'Being too aggressive' rather than teaching a specific principle",
+        "Concept doesn't fully capture the late-inning pressure aspect of the scenario"
+      ],
+      "dimensions": {
+        "factualAccuracy": 6,
+        "bestAnswerCorrect": 9,
+        "explanationQuality": 7,
+        "optionDistinctness": 8,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 7,
+        "conceptClarity": 8,
+        "engagementValue": 8,
+        "categoryAlignment": 9
+      },
+      "suggestedFix": "Fix score to 'down 4-5' (away-home format) and rewrite explanations to flow naturally: 'With a 2-1 count against a wild reliever, you're in the driver's seat. Wait for your pitch—a fastball in your zone—and drive it. His control problems work in your favor if you stay disciplined.'",
+      "elapsedMs": 15172
+    },
+    {
+      "id": "r3",
+      "position": "baserunner",
+      "score": 7.8,
+      "passed": true,
+      "issues": [
+        "Explanations use fragments and lack natural flow ('Hesitation kills' needs context)",
+        "Option 3 explanation incorrectly states 'Having 2 outs makes advancing MORE important' when it should explain why staying is wrong",
+        "Rates don't reflect realistic probabilities - 85% success on all wild pitches is too high"
+      ],
+      "dimensions": {
+        "factualAccuracy": 9,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 6,
+        "optionDistinctness": 8,
+        "rateDistribution": 7,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 8,
+        "conceptClarity": 9,
+        "engagementValue": 8,
+        "categoryAlignment": 10
+      },
+      "suggestedFix": "Rewrite explanations as complete sentences: 'When you hesitate, you give the catcher time to recover and make the throw' and adjust rates to 70/30/10/40 for more realistic probabilities",
+      "elapsedMs": 13153
+    },
+    {
+      "id": "r8",
+      "position": "baserunner",
+      "score": 7.8,
+      "passed": true,
+      "issues": [
+        "Explanations lack depth for teaching the underlying principle of trusting coaches vs. self-awareness",
+        "Option 3 'Round 1st and decide' is vague - decide what? Stop? Continue?",
+        "Explanation 4 is too brief and doesn't teach why it's reckless",
+        "Rates seem arbitrary - why is peeking (40) worse than deciding at 1st (30)?"
+      ],
+      "dimensions": {
+        "factualAccuracy": 9,
+        "bestAnswerCorrect": 8,
+        "explanationQuality": 6,
+        "optionDistinctness": 7,
+        "rateDistribution": 7,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 8,
+        "conceptClarity": 8,
+        "engagementValue": 8,
+        "categoryAlignment": 10
+      },
+      "suggestedFix": "Expand explanations to teach WHY coaches guide baserunners (they have better view, runner needs to focus on speed). Make option 3 clearer: 'Stop at 1st and look for the ball'. Explain why blind sprint to 3rd risks easy outs.",
+      "elapsedMs": 16286
+    },
+    {
+      "id": "r25",
+      "position": "baserunner",
+      "score": 7.8,
+      "passed": true,
+      "issues": [
+        "Explanations contain formulaic transitions like 'which means' that break natural flow",
+        "Count (1-1) in situation doesn't match the fly ball scenario - should be result of previous at-bat",
+        "Option 3 explanation has grammatical issue: 'which means commit' should be 'so you must commit'"
+      ],
+      "dimensions": {
+        "factualAccuracy": 8,
+        "bestAnswerCorrect": 9,
+        "explanationQuality": 6,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 7,
+        "conceptClarity": 8,
+        "engagementValue": 7,
+        "categoryAlignment": 10
+      },
+      "suggestedFix": "Rewrite explanations to flow more naturally without 'which means' transitions. For example: 'Going halfway leaves you vulnerable to a double play. You must commit to either tagging or staying put.'",
+      "elapsedMs": 11056
+    },
+    {
+      "id": "m1",
+      "position": "manager",
+      "score": 7.8,
+      "passed": true,
+      "issues": [
+        "Count says 2-1 but intentional walks don't have counts - should be 0-0 or omitted",
+        "Explanations use formulaic 'because' structure instead of natural teaching flow",
+        "Option 2 too vague - 'Pitch to him' doesn't specify strategy (carefully? aggressively?)",
+        "Score shows 5-4 but 'up by 1' in Bot 9 means home team leading, which should be 4-5"
+      ],
+      "dimensions": {
+        "factualAccuracy": 6,
+        "bestAnswerCorrect": 9,
+        "explanationQuality": 7,
+        "optionDistinctness": 7,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 8,
+        "scenarioRealism": 7,
+        "conceptClarity": 9,
+        "engagementValue": 8,
+        "categoryAlignment": 10
+      },
+      "suggestedFix": "Remove count from situation (IBBs have no count), fix score to [4,5] for home team leading by 1 in Bot 9, rewrite explanations without 'because' transitions",
+      "elapsedMs": 14145
+    },
+    {
+      "id": "m22",
+      "position": "manager",
+      "score": 7.8,
+      "passed": true,
+      "issues": [
+        "Explanation 3 contradicts itself by saying 'it matters a little' when the option states 'it doesn't matter'",
+        "The 'pitching' category doesn't match - this is a manager's decision scenario, not a pitcher scenario",
+        "No explanation teaches about studying switch hitter splits, which is crucial for this decision",
+        "Explanations 1 and 2 are nearly identical, not covering different teaching angles"
+      ],
+      "dimensions": {
+        "factualAccuracy": 9,
+        "bestAnswerCorrect": 9,
+        "explanationQuality": 6,
+        "optionDistinctness": 7,
+        "rateDistribution": 8,
+        "roleCompliance": 5,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 9,
+        "conceptClarity": 8,
+        "engagementValue": 8,
+        "categoryAlignment": 5
+      },
+      "suggestedFix": "Move to manager category and rewrite explanations to teach: 1) Switch hitter splits analysis, 2) Why forcing a side can backfire, 3) Momentum/confidence factors, 4) Why current performance trumps theoretical advantage",
+      "elapsedMs": 13366
+    },
+    {
+      "id": "m55",
+      "position": "manager",
+      "score": 7.8,
+      "passed": true,
+      "issues": [
+        "Option 1 explanation uses awkward 'which means' structure instead of natural language flow",
+        "Situation shows 0-0 score in Top 1st which is technically correct but could be clearer this is pre-game planning",
+        "Option 4 explanation says 'This is close' without explaining WHY that specific approach has merit"
+      ],
+      "dimensions": {
+        "factualAccuracy": 9,
+        "bestAnswerCorrect": 8,
+        "explanationQuality": 7,
+        "optionDistinctness": 8,
+        "rateDistribution": 8,
+        "roleCompliance": 9,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 8,
+        "conceptClarity": 8,
+        "engagementValue": 7,
+        "categoryAlignment": 9
+      },
+      "suggestedFix": "Rewrite option 1 explanation to flow naturally: 'Resting all your regulars sacrifices too much talent unless the game truly doesn't matter. Your bench players need experience, but not all at once.' Also clarify option 4's merit before dismissing it.",
+      "elapsedMs": 13916
+    },
+    {
+      "id": "ct26",
+      "position": "catcher",
+      "score": 7.8,
+      "passed": true,
+      "issues": [
+        "Option 0 incorrectly states the catcher signals to the umpire — the manager/coach signals, not the catcher",
+        "Explanation 3 has awkward phrasing with 'since but' creating a grammatical error",
+        "The scenario doesn't clearly establish whether the coach wants traditional or automatic IBB"
+      ],
+      "dimensions": {
+        "factualAccuracy": 7,
+        "bestAnswerCorrect": 8,
+        "explanationQuality": 7,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 8,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 8,
+        "conceptClarity": 8,
+        "engagementValue": 7,
+        "categoryAlignment": 9
+      },
+      "suggestedFix": "Change option 0 to 'Wait for your coach/manager to signal the umpire for the automatic intentional walk' to accurately reflect who initiates the automatic IBB",
+      "elapsedMs": 12875
+    },
+    {
+      "id": "fp15",
+      "position": "famous",
+      "score": 7.8,
+      "passed": true,
+      "issues": [
+        "Explanation 0 has awkward structure with 'because berra argued' lowercase mid-sentence",
+        "Explanations use formulaic transitions like 'which means' and 'because' that interrupt flow",
+        "Historical accuracy issue: Jackie stole home in 1955 World Series but specific game/inning details may be incorrect",
+        "Concept focuses on courage/pioneer aspects rather than the steal-window conceptTag"
+      ],
+      "dimensions": {
+        "factualAccuracy": 7,
+        "bestAnswerCorrect": 9,
+        "explanationQuality": 6,
+        "optionDistinctness": 9,
+        "rateDistribution": 8,
+        "roleCompliance": 10,
+        "ageAppropriateness": 8,
+        "scenarioRealism": 9,
+        "conceptClarity": 6,
+        "engagementValue": 9,
+        "categoryAlignment": 8
+      },
+      "suggestedFix": "Fix explanation grammar/flow, verify exact historical details, and align concept teaching with 'steal-window' tag to focus on timing/technique rather than courage narrative",
+      "elapsedMs": 13328
+    },
+    {
+      "id": "cn6",
+      "position": "counts",
+      "score": 7.8,
+      "passed": true,
+      "issues": [
+        "Explanation 4 has awkward phrasing: 'which means just find a good pitch' doesn't flow naturally from 'leads to overswinging'",
+        "Option 3 explanation could better teach WHY taking isn't optimal beyond just 'you might strike out looking'",
+        "Description could clarify the score context (down 4-3) to emphasize the pressure situation"
+      ],
+      "dimensions": {
+        "factualAccuracy": 9,
+        "bestAnswerCorrect": 9,
+        "explanationQuality": 7,
+        "optionDistinctness": 8,
+        "rateDistribution": 8,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 8,
+        "conceptClarity": 8,
+        "engagementValue": 7,
+        "categoryAlignment": 10
+      },
+      "suggestedFix": "Rewrite explanation 4 to flow better: 'Trying to do too much leads to overswinging and missing hittable pitches. Stay within yourself and put a good swing on a strike.'",
+      "elapsedMs": 13522
+    },
+    {
+      "id": "p12",
+      "position": "pitcher",
+      "score": 7.9,
+      "passed": true,
+      "issues": [
+        "Explanation 1 uses dash structure that could be smoother: 'overthrow and lose control — channel'",
+        "Explanation 2 uses dash structure: 'of the season — just throw'",
+        "Concept clarity could be stronger - 'first-pitch-value' tag doesn't fully capture the adrenaline management lesson"
+      ],
+      "dimensions": {
+        "factualAccuracy": 9,
+        "bestAnswerCorrect": 9,
+        "explanationQuality": 7,
+        "optionDistinctness": 8,
+        "scenarioRealism": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "conceptClarity": 7,
+        "engagementValue": 8,
+        "categoryAlignment": 9,
+        "rateDistribution": 9
+      },
+      "suggestedFix": "Rewrite explanations 1 and 2 to flow more naturally without dashes, and consider updating conceptTag to 'adrenaline-management' to better match the scenario's teaching focus",
+      "elapsedMs": 12733
+    },
+    {
+      "id": "f13",
+      "position": "shortstop",
+      "score": 7.9,
+      "passed": true,
+      "issues": [
+        "Explanations use formulaic transitions ('because', 'which means') that break natural flow",
+        "Option 2 explanation contains factual error: getting the out at first doesn't advance the runner to second",
+        "Option 3 explanation oversimplified - should teach why force at second is better than tag attempt"
+      ],
+      "dimensions": {
+        "factualAccuracy": 7,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 6,
+        "optionDistinctness": 8,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 9,
+        "conceptClarity": 9,
+        "engagementValue": 8,
+        "categoryAlignment": 10
+      },
+      "suggestedFix": "Rewrite explanations with natural flow and fix option 2: 'Throwing to first gets one out but leaves the runner at first base. You miss the chance for a double play, keeping the force out available but not maximizing your defensive opportunity.'",
+      "elapsedMs": 16877
+    },
+    {
+      "id": "f54",
+      "position": "leftField",
+      "score": 7.9,
+      "passed": true,
+      "issues": [
+        "Explanation for option 2 incorrectly states 'tying run at the plate' when runner would only be on 2nd after a single",
+        "Slide feet-first explanation is too dismissive - should teach why this technique is wrong/dangerous",
+        "Options 2 and 4 are too similar (both involve letting ball bounce for a single)"
+      ],
+      "dimensions": {
+        "factualAccuracy": 7,
+        "bestAnswerCorrect": 9,
+        "explanationQuality": 7,
+        "optionDistinctness": 6,
+        "rateDistribution": 8,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 9,
+        "conceptClarity": 9,
+        "engagementValue": 8,
+        "categoryAlignment": 9
+      },
+      "suggestedFix": "Fix factual error about runner position after single, improve option 3 explanation to teach why feet-first sliding is dangerous on sinking liners, and replace option 4 with a distinct choice like 'Charge hard and try to catch on the run'",
+      "elapsedMs": 13726
+    },
+    {
+      "id": "m29",
+      "position": "manager",
+      "score": 7.9,
+      "passed": true,
+      "issues": [
+        "The conceptTag 'platoon-advantage' doesn't match the scenario content, which is about managing slumps and lineup decisions",
+        "The situation shows Top 1 with 0-2 count, but the scenario setup doesn't explain why there's already a 0-2 count in the first inning",
+        "Explanation 2 uses conversational second-person ('Trust your guys') which is good, but then uses a formulaic structure that could flow more naturally",
+        "Option 3 lacks clear strategic reasoning - why would more at-bats in the 2-hole specifically help a slump?"
+      ],
+      "dimensions": {
+        "factualAccuracy": 8,
+        "bestAnswerCorrect": 9,
+        "explanationQuality": 7,
+        "optionDistinctness": 8,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 7,
+        "conceptClarity": 6,
+        "engagementValue": 8,
+        "categoryAlignment": 10
+      },
+      "suggestedFix": "Change conceptTag to 'lineup-management' or 'slump-management' to match the actual teaching content",
+      "elapsedMs": 14903
+    },
+    {
+      "id": "m58",
+      "position": "manager",
+      "score": 7.9,
+      "passed": true,
+      "issues": [
+        "Explanations use formulaic structure starting with position name, violating natural language flow",
+        "Second explanation has grammatical error: 'any ground ball scores the runner from 3rd, because in a tie game' - awkward 'because' placement",
+        "Fourth explanation has typo/fragment: 'Only corners in is a compromise — since but in a tie game'",
+        "Explanations could better teach the WHY behind infield positioning decisions rather than just stating outcomes"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 6,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 8,
+        "scenarioRealism": 9,
+        "conceptClarity": 8,
+        "engagementValue": 7,
+        "categoryAlignment": 10
+      },
+      "suggestedFix": "Rewrite explanations to flow naturally without formulaic starts, fix the grammar error in explanation 2 and typo in explanation 4, and focus more on teaching the strategic principle of risk vs. reward in defensive positioning",
+      "elapsedMs": 13507
+    },
+    {
+      "id": "p24",
+      "position": "pitcher",
+      "score": 8.1,
+      "passed": true,
+      "issues": [
+        "Explanation 1 has awkward phrasing with 'because if he gets' - should flow more naturally",
+        "Explanation 2 contains a fragment 'which means but being quick' - grammatically incorrect",
+        "Pickoff mechanics concept tag doesn't match the primary teaching point about balancing batter/runner focus"
+      ],
+      "dimensions": {
+        "factualAccuracy": 9,
+        "bestAnswerCorrect": 9,
+        "explanationQuality": 7,
+        "optionDistinctness": 9,
+        "rateDistribution": 8,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 9,
+        "conceptClarity": 8,
+        "engagementValue": 8,
+        "categoryAlignment": 9
+      },
+      "suggestedFix": "Fix grammatical errors in explanations 1-2 and change conceptTag to 'runner-management' or 'focus-priority' to better match the actual teaching point",
+      "elapsedMs": 11709
+    },
+    {
+      "id": "p58",
+      "position": "pitcher",
+      "score": 8.1,
+      "passed": true,
+      "issues": [
+        "Explanations use awkward 'because' structures that violate natural language flow",
+        "Second explanation is too brief and doesn't teach a specific principle",
+        "Third and fourth explanations focus on why NOT to do something rather than teaching positive principles"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 6,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 9,
+        "conceptClarity": 9,
+        "engagementValue": 8,
+        "categoryAlignment": 10
+      },
+      "suggestedFix": "Rewrite explanations to flow naturally without 'because' transitions. Make the second explanation teach a specific principle about pitcher hitting mechanics. Transform negative explanations into positive teaching moments about strategic advantages.",
+      "elapsedMs": 11900
+    },
+    {
+      "id": "b16",
+      "position": "batter",
+      "score": 8.1,
+      "passed": true,
+      "issues": [
+        "Explanation 3 has grammatical error: 'because you working the count' should be 'because working the count'",
+        "Explanation 4 could be phrased more positively about team baseball rather than calling the option 'selfish'"
+      ],
+      "dimensions": {
+        "factualAccuracy": 9,
+        "bestAnswerCorrect": 9,
+        "explanationQuality": 7,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 9,
+        "conceptClarity": 9,
+        "engagementValue": 8,
+        "categoryAlignment": 10
+      },
+      "elapsedMs": 10867
+    },
+    {
+      "id": "f1",
+      "position": "secondBase",
+      "score": 8.1,
+      "passed": true,
+      "issues": [
+        "Explanation 4 has unnecessary punctuation ('immediately!.')",
+        "Explanation 1 uses informal fragment 'because two outs!' instead of complete thought",
+        "Option 3 mentions 'SS covering 2nd' but SS wouldn't cover with runner on 1st and ball to 2B"
+      ],
+      "dimensions": {
+        "factualAccuracy": 8,
+        "bestAnswerCorrect": 9,
+        "explanationQuality": 7,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 9,
+        "conceptClarity": 8,
+        "engagementValue": 8,
+        "categoryAlignment": 10
+      },
+      "elapsedMs": 11464
+    },
+    {
+      "id": "f9",
+      "position": "leftField",
+      "score": 8.1,
+      "passed": true,
+      "issues": [
+        "ConceptTag mismatch: 'of-depth-arm-value' doesn't relate to sun fielding technique",
+        "Explanation 3 is too terse and doesn't teach why calling for help is ineffective",
+        "The scenario teaches sun defense but the tag suggests depth/arm value concepts"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 7,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 10,
+        "conceptClarity": 8,
+        "engagementValue": 8,
+        "categoryAlignment": 5
+      },
+      "suggestedFix": "Change conceptTag to 'of-sun-defense' or similar, and expand explanation 3 to teach: 'Calling for help takes precious seconds while the ball is falling — by the time another fielder reacts, it's too late to make the catch.'",
+      "elapsedMs": 12708
+    },
+    {
+      "id": "m2",
+      "position": "manager",
+      "score": 8.1,
+      "passed": true,
+      "issues": [
+        "Explanations lack natural flow and read like fragments rather than conversational teaching",
+        "Option 2 explanation doesn't teach a principle, just dismisses loyalty",
+        "Concept clarity issue: conceptTag 'leverage-index' is advanced analytics for diff:1 (ages 6+)"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 6,
+        "optionDistinctness": 9,
+        "rateDistribution": 10,
+        "roleCompliance": 10,
+        "ageAppropriateness": 7,
+        "conceptClarity": 7,
+        "engagementValue": 8,
+        "categoryAlignment": 10
+      },
+      "suggestedFix": "Rewrite explanations as complete sentences that teach principles: 'When you're down by 2 with bases loaded, you need your best hitter at the plate. Even great pitchers only hit around .120, while position players hit much better. This is your best chance to score multiple runs and tie the game.'",
+      "elapsedMs": 14047
+    },
+    {
+      "id": "m12",
+      "position": "manager",
+      "score": 8.1,
+      "passed": true,
+      "issues": [
+        "Description asks about 'fastest player who gets on base a lot' but explanations don't adequately teach WHY speed matters in leadoff position beyond getting on base",
+        "Explanation for option 1 mentions 'most at-bats over a season' which may be too advanced for difficulty 1 (ages 6-8)",
+        "Option 3 explanation references 'NL before universal DH' which is confusing for young players and historical rather than teaching current strategy"
+      ],
+      "dimensions": {
+        "factualAccuracy": 9,
+        "bestAnswerCorrect": 9,
+        "explanationQuality": 7,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 6,
+        "scenarioRealism": 8,
+        "conceptClarity": 8,
+        "engagementValue": 7,
+        "categoryAlignment": 10
+      },
+      "suggestedFix": "Simplify explanations for age 6-8: Focus on 'fast runners who get on base can steal bases and score runs' rather than season at-bat statistics. Remove historical NL/DH reference.",
+      "elapsedMs": 13806
+    },
+    {
+      "id": "f33",
+      "position": "catcher",
+      "score": 8.1,
+      "passed": true,
+      "issues": [
+        "Explanation 2 is fragmented ('because a pickoff attempt doesn't cost a ball' is an incomplete comparison)",
+        "Option 3 explanation doesn't teach why the specific option is wrong, just states ignoring is bad",
+        "For diff:1 (ages 6-8), the concept of 'calling' plays might be too advanced without explaining how catchers signal"
+      ],
+      "dimensions": {
+        "factualAccuracy": 9,
+        "bestAnswerCorrect": 9,
+        "explanationQuality": 7,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 7,
+        "scenarioRealism": 9,
+        "conceptClarity": 8,
+        "engagementValue": 8,
+        "categoryAlignment": 9
+      },
+      "elapsedMs": 11820
+    },
+    {
+      "id": "rl1",
+      "position": "rules",
+      "score": 8.1,
+      "passed": true,
+      "issues": [
+        "Explanation 2 uses awkward phrasing 'The reason is' which violates natural language flow",
+        "Explanation 3 is too brief and doesn't fully teach the principle behind why catch isn't required",
+        "Scenario doesn't mention the specific condition that infield fly requires runners on 1st & 2nd (or bases loaded) with less than 2 outs"
+      ],
+      "dimensions": {
+        "factualAccuracy": 9,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 6,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 9,
+        "conceptClarity": 8,
+        "engagementValue": 7,
+        "categoryAlignment": 10
+      },
+      "elapsedMs": 13322
+    },
+    {
+      "id": "rl5",
+      "position": "rules",
+      "score": 8.1,
+      "passed": true,
+      "issues": [
+        "First explanation has awkward phrasing with unclear 'it gives you the best chance of success'",
+        "Third explanation is circular reasoning - just says 'this is obstruction' without teaching why",
+        "Option 3 'Interference on the runner' is confusing since interference BY a runner exists but not in this context"
+      ],
+      "dimensions": {
+        "factualAccuracy": 9,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 6,
+        "optionDistinctness": 7,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 9,
+        "conceptClarity": 8,
+        "engagementValue": 8,
+        "categoryAlignment": 10
+      },
+      "suggestedFix": "Rewrite explanations to be clearer: (1) 'A fielder only has the right to the baseline when actively fielding the ball or already holding it. Without the ball, they must give the runner a clear path.' (3) 'Interference occurs when a runner disrupts a fielder making a play. Here, the fielder disrupted the runner, making it obstruction instead.'",
+      "elapsedMs": 13182
+    },
+    {
+      "id": "p10",
+      "position": "pitcher",
+      "score": 8.2,
+      "passed": true,
+      "issues": [
+        "Explanation 3 contains an incomplete sentence fragment ('Your fastball in a groove is highest-percentage.')",
+        "The concept teaches general aggressiveness but doesn't specifically address pitch sequencing as tagged",
+        "Option 3 'Best breaking ball' could be equally valid for many pitchers - the 'best' choice depends on pitcher's repertoire"
+      ],
+      "dimensions": {
+        "factualAccuracy": 9,
+        "bestAnswerCorrect": 7,
+        "explanationQuality": 7,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 9,
+        "conceptClarity": 7,
+        "engagementValue": 8,
+        "categoryAlignment": 10
+      },
+      "suggestedFix": "Rewrite explanation 3 as a complete sentence: 'Your fastball is your best pitch when you're in a groove, giving you the highest chance of success.' Also consider adjusting the conceptTag to 'pitching-rhythm' or making the scenario more explicitly about sequencing.",
+      "elapsedMs": 12850
+    },
+    {
+      "id": "p34",
+      "position": "pitcher",
+      "score": 8.2,
+      "passed": true,
+      "issues": [
+        "Explanation 1 uses 'You do not need to' which is awkward phrasing for age 6-8 readers",
+        "Concept of 'cruising' vs 'attacking' may be too abstract for diff:1 (ages 6-8)",
+        "Rate distribution shows option 0 at 85 which is good, but options 2 and 3 are too close (35 vs 15) for clear differentiation"
+      ],
+      "dimensions": {
+        "factualAccuracy": 9,
+        "bestAnswerCorrect": 9,
+        "explanationQuality": 7,
+        "optionDistinctness": 8,
+        "rateDistribution": 7,
+        "roleCompliance": 10,
+        "ageAppropriateness": 6,
+        "scenarioRealism": 9,
+        "conceptClarity": 8,
+        "engagementValue": 8,
+        "categoryAlignment": 9
+      },
+      "suggestedFix": "Simplify language for 6-year-olds: 'Keep throwing strikes' instead of 'Keep attacking', and 'Throw easy pitches' instead of 'Cruise'. Also adjust rates to better differentiate bad options (e.g., option 3 to 10).",
+      "elapsedMs": 14933
+    },
+    {
+      "id": "p42",
+      "position": "pitcher",
+      "score": 8.2,
+      "passed": true,
+      "issues": [
+        "Option 1 explanation contains formulaic 'This is because' structure mid-sentence",
+        "Explanation 2 doesn't teach a principle - just states a fact about manager decisions",
+        "Explanation 3 has a grammatical error: 'is too drastic, which means adjust' is a fragment"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 9,
+        "explanationQuality": 7,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 10,
+        "conceptClarity": 9,
+        "engagementValue": 8,
+        "categoryAlignment": 10
+      },
+      "suggestedFix": "Rewrite explanations to flow naturally: 'Asking for a reliever shows baseball IQ - fresh arms often dominate hitters seeing them for the first time. However, as the pitcher, you compete until the manager makes that call.' Also fix the fragment in explanation 3.",
+      "elapsedMs": 13664
+    },
+    {
+      "id": "b7",
+      "position": "batter",
+      "score": 8.2,
+      "passed": true,
+      "issues": [
+        "Explanation for option 3 is too brief and doesn't teach why moving in the box is problematic",
+        "Rate distribution could better reflect realistic success rates (85 is very high for a 2-strike situation)",
+        "Description doesn't mention the game is tied, which adds important context"
+      ],
+      "dimensions": {
+        "factualAccuracy": 9,
+        "bestAnswerCorrect": 9,
+        "explanationQuality": 7,
+        "optionDistinctness": 9,
+        "rateDistribution": 7,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 8,
+        "conceptClarity": 9,
+        "engagementValue": 8,
+        "categoryAlignment": 8
+      },
+      "elapsedMs": 10578
+    },
+    {
+      "id": "b8",
+      "position": "batter",
+      "score": 8.2,
+      "passed": true,
+      "issues": [
+        "Second explanation contains a confusing fragment 'since it's a close call' that doesn't connect to the rest of the sentence",
+        "Third explanation has awkward structure with 'because you think about' - should directly explain why ambushing fails",
+        "Fourth explanation uses a teaching cliche 'think about what gives your team the best result' instead of explaining why bunting specifically fails here"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 6,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 10,
+        "conceptClarity": 8,
+        "engagementValue": 9,
+        "categoryAlignment": 10
+      },
+      "suggestedFix": "Rewrite explanations to flow more naturally: (2) 'Without any at-bats, your timing will be off against 95mph. Seeing one pitch helps calibrate your eyes more than missing it hurts.' (3) 'Ambushing a specific pitch requires the locked-in timing you don't have yet when coming in cold.' (4) 'Bunting eliminates your runner's ability to score from second base, turning a potential game-tying hit into an automatic out.'",
+      "elapsedMs": 15083
+    },
+    {
+      "id": "b21",
+      "position": "batter",
+      "score": 8.2,
+      "passed": true,
+      "issues": [
+        "Score perspective is backwards - Bot 9th with home team down 5-6 should show as 5-6, not 6-5 in description",
+        "Explanations use formulaic 'This is because' and 'That's the smart play because' structures instead of natural teaching flow",
+        "Runner-on-third terminology inconsistent - mixing 'runner on 3rd' and 'runner on third'"
+      ],
+      "dimensions": {
+        "factualAccuracy": 8,
+        "bestAnswerCorrect": 9,
+        "explanationQuality": 7,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 9,
+        "conceptClarity": 9,
+        "engagementValue": 9,
+        "categoryAlignment": 10
+      },
+      "elapsedMs": 12671
+    },
+    {
+      "id": "f47",
+      "position": "secondBase",
+      "score": 8.2,
+      "passed": true,
+      "issues": [
+        "Explanation for option 3 doesn't explain why cutting off the run at home is wrong with runner on 2nd",
+        "Rates don't clearly show a 'tempting wrong answer' in the 40-65 range",
+        "Explanations could better teach the principle of maximizing outs early in the inning"
+      ],
+      "dimensions": {
+        "factualAccuracy": 9,
+        "bestAnswerCorrect": 9,
+        "explanationQuality": 7,
+        "optionDistinctness": 8,
+        "rateDistribution": 7,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 9,
+        "conceptClarity": 8,
+        "engagementValue": 7,
+        "categoryAlignment": 9
+      },
+      "suggestedFix": null,
+      "elapsedMs": 11591
+    },
+    {
+      "id": "3b6",
+      "position": "thirdBase",
+      "score": 8.2,
+      "passed": true,
+      "issues": [
+        "Situation shows runners on 1st and 2nd, but explanation references 'bases loaded' when discussing holding the ball",
+        "The explanation for option 1 has awkward phrasing: 'stepping on third base for the force out is the smart play, which means it's the closest base' - the 'which means' transition doesn't flow naturally",
+        "Count shows 3-1 but has no relevance to the fielding scenario - either remove it or explain why it matters"
+      ],
+      "dimensions": {
+        "factualAccuracy": 8,
+        "bestAnswerCorrect": 9,
+        "explanationQuality": 7,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 8,
+        "conceptClarity": 9,
+        "engagementValue": 8,
+        "categoryAlignment": 9
+      },
+      "elapsedMs": 12469
+    },
+    {
+      "id": "r50",
+      "position": "baserunner",
+      "score": 8.2,
+      "passed": true,
+      "issues": [
+        "Explanations contain formulaic transitions like 'because' and 'which means' that break natural flow",
+        "Option 2 explanation just states the rule without teaching the underlying principle of why balks exist",
+        "Category 'rules' scenario is labeled with 'cat': 'baserunning' which could be confusing"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 7,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 8,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 9,
+        "conceptClarity": 9,
+        "engagementValue": 8,
+        "categoryAlignment": 8
+      },
+      "suggestedFix": "Rewrite explanations to flow more naturally: 'On a balk, ALL runners advance one base. The pitcher made an illegal motion by starting and stopping his delivery, giving you a free trip to second base.'",
+      "elapsedMs": 12612
+    },
+    {
+      "id": "m3",
+      "position": "manager",
+      "score": 8.2,
+      "passed": true,
+      "issues": [
+        "Explanation 2 uses second-person 'You are trying' instead of teaching the principle directly",
+        "Explanation 4 is a fragment ('That misplay could BE the first batter getting on') lacking complete context",
+        "The 'leverage-index' conceptTag is too advanced/analytical for age 9+ difficulty 2"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 7,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 7,
+        "scenarioRealism": 9,
+        "conceptClarity": 8,
+        "engagementValue": 8,
+        "categoryAlignment": 10
+      },
+      "suggestedFix": "Rewrite explanations 2 and 4 as complete teaching sentences, and change conceptTag to 'defensive-priority' or 'late-game-defense' to match age 9+ understanding",
+      "elapsedMs": 14007
+    },
+    {
+      "id": "m34",
+      "position": "manager",
+      "score": 8.2,
+      "passed": true,
+      "issues": [
+        "Explanations use formulaic transitions like 'which means' and 'because' that break natural flow",
+        "Option 1 explanation has awkward structure with 'since you call timeout' mid-sentence",
+        "Explanation 2 fragment 'because start with communication' is grammatically incorrect"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 9,
+        "explanationQuality": 7,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 9,
+        "conceptClarity": 9,
+        "engagementValue": 8,
+        "categoryAlignment": 10
+      },
+      "elapsedMs": 10312
+    },
+    {
+      "id": "r2",
+      "position": "baserunner",
+      "score": 8.3,
+      "passed": true,
+      "issues": [
+        "Explanation 3 starts with rhetorical question instead of direct teaching",
+        "Explanation 2 uses '=' symbol instead of natural language flow",
+        "Concept statement could be more specific about 'deep' (how deep is deep for young players?)"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 7,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 8,
+        "scenarioRealism": 9,
+        "conceptClarity": 8,
+        "engagementValue": 8,
+        "categoryAlignment": 10
+      },
+      "suggestedFix": null,
+      "elapsedMs": 10661
+    },
+    {
+      "id": "cn22",
+      "position": "counts",
+      "score": 8.3,
+      "passed": true,
+      "issues": [
+        "Option 2 explanation uses 'The best answer!' which breaks the fourth wall - explanations should teach without labeling themselves",
+        "Option 3 doesn't explain WHY the pitcher would consider a curve (e.g., 'if trying to get a swing-and-miss') before explaining why it's wrong here",
+        "Concept statement could better emphasize the 2-2 count leverage aspect rather than just general running game management"
+      ],
+      "dimensions": {
+        "factualAccuracy": 9,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 7,
+        "optionDistinctness": 9,
+        "rateDistribution": 10,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 9,
+        "conceptClarity": 8,
+        "engagementValue": 8,
+        "categoryAlignment": 10
+      },
+      "elapsedMs": 13511
+    },
+    {
+      "id": "p4",
+      "position": "pitcher",
+      "score": 8.4,
+      "passed": true,
+      "issues": [
+        "Score perspective error: Top 8th with 3-1 score means away team trails by 2, not leads by 2 as scenario implies",
+        "Option 4 'Ask to come out' is unrealistic for ages 9+ - young pitchers rarely self-remove",
+        "Explanation 1 uses fragment structure 'Tired arm = less velocity' instead of complete sentence"
+      ],
+      "dimensions": {
+        "factualAccuracy": 7,
+        "bestAnswerCorrect": 9,
+        "explanationQuality": 8,
+        "optionDistinctness": 8,
+        "rateDistribution": 9,
+        "roleCompliance": 9,
+        "ageAppropriateness": 8,
+        "scenarioRealism": 8,
+        "conceptClarity": 9,
+        "engagementValue": 9,
+        "categoryAlignment": 10
+      },
+      "suggestedFix": "Change to 'Bot 8th' to fix perspective, or flip score to 1-3 to show away team leading. Replace option 4 with a realistic pitching choice like 'Breaking balls low'.",
+      "elapsedMs": 13392
+    },
+    {
+      "id": "p48",
+      "position": "pitcher",
+      "score": 8.4,
+      "passed": true,
+      "issues": [
+        "Explanation 3 uses awkward 'which means' transition and doesn't fully explain why quick-pitching is problematic",
+        "Explanation 4 is too brief and doesn't teach a principle about why holding the ball is ineffective"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 7,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 9,
+        "conceptClarity": 10,
+        "engagementValue": 8,
+        "categoryAlignment": 10
+      },
+      "elapsedMs": 9998
+    },
+    {
+      "id": "b1",
+      "position": "batter",
+      "score": 8.4,
+      "passed": true,
+      "issues": [
+        "Explanation 1 has awkward wording: 'selfish here, which means' should be 'selfish here. You only need'",
+        "Score perspective error: Bot 7 means HOME team (currently losing 1-2) is batting, but description says 'down 2-1' which implies 2-1 from batting team's perspective",
+        "Option 3 explanation could teach more about why right side grounders are preferred with runner on 3rd"
+      ],
+      "dimensions": {
+        "factualAccuracy": 7,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 8,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 10,
+        "scenarioRealism": 9,
+        "conceptClarity": 9,
+        "engagementValue": 8,
+        "categoryAlignment": 10
+      },
+      "elapsedMs": 11844
+    },
+    {
+      "id": "ss_new2",
+      "position": "shortstop",
+      "score": 8.4,
+      "passed": true,
+      "issues": [
+        "Option 2 should have lower rate (10-15) as it's clearly a bad choice that defeats the relay purpose",
+        "Explanation 3 starts with setting description before explaining why it's wrong - should lead with the teaching point",
+        "Animation 'groundout' doesn't match a relay scenario - should show outfield hit and relay positioning"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 8,
+        "optionDistinctness": 9,
+        "rateDistribution": 7,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 9,
+        "conceptClarity": 9,
+        "engagementValue": 8,
+        "categoryAlignment": 10
+      },
+      "suggestedFix": null,
+      "elapsedMs": 11286
+    },
+    {
+      "id": "1b10",
+      "position": "firstBase",
+      "score": 8.4,
+      "passed": true,
+      "issues": [
+        "The description says 'Nobody has called for it yet' but a proper bunt defense should have predetermined assignments - this creates confusion about standard bunt coverage",
+        "Options 0 and 3 are too similar - both involve sprinting and calling for the ball, differing only in the pitcher direction",
+        "Explanation for option 1 could better emphasize that hanging back violates the first baseman's primary responsibility on bunts in their zone"
+      ],
+      "dimensions": {
+        "factualAccuracy": 9,
+        "bestAnswerCorrect": 9,
+        "explanationQuality": 8,
+        "optionDistinctness": 7,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 8,
+        "conceptClarity": 9,
+        "engagementValue": 8,
+        "categoryAlignment": 10
+      },
+      "suggestedFix": "Revise options 0 and 3 to be more distinct - perhaps option 0 could be 'Sprint toward the ball and call for it loudly' without mentioning directing the pitcher, making the distinction clearer",
+      "elapsedMs": 13951
+    },
+    {
+      "id": "p45",
+      "position": "pitcher",
+      "score": 8.5,
+      "passed": true,
+      "issues": [
+        "Quick-pitch explanation is too brief and doesn't teach why predictability helps the runner",
+        "Scenario describes 'Bot 5th' with score 3-2 but doesn't clarify which team is ahead, making strategic context unclear"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 8,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 10,
+        "scenarioRealism": 8,
+        "conceptClarity": 9,
+        "engagementValue": 8,
+        "categoryAlignment": 9
+      },
+      "suggestedFix": null,
+      "elapsedMs": 10032
+    },
+    {
+      "id": "b53",
+      "position": "batter",
+      "score": 8.5,
+      "passed": true,
+      "issues": [
+        "Two explanations contain grammatically awkward fragments that disrupt flow",
+        "Explanation 3 has a confusing structure with 'which means get a hit' that doesn't connect properly",
+        "Explanation 4 ends with 'because you stay in your normal position' which doesn't clearly explain why crowding is bad"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 7,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 10,
+        "conceptClarity": 9,
+        "engagementValue": 9,
+        "categoryAlignment": 10
+      },
+      "suggestedFix": "Revise explanations for clarity: (3) 'Taking every pitch lets the pitcher off the hook. Getting a hit hurts him more than drawing a walk.' (4) 'Crowding the plate after an HBP invites another one. Stay in your normal stance and focus on hitting.'",
+      "elapsedMs": 13900
+    },
+    {
+      "id": "b56",
+      "position": "batter",
+      "score": 8.5,
+      "passed": true,
+      "issues": [
+        "Explanation for option 3 has awkward structure with comma splice - 'wastes the pressure on a nervous pitcher, which means if he grooves one, crush it'",
+        "Explanation 4 uses 'insane' which is too informal/harsh for teaching tone",
+        "Concept statement could be clearer - currently reads as two separate thoughts joined by dash"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 7,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 9,
+        "conceptClarity": 8,
+        "engagementValue": 9,
+        "categoryAlignment": 10
+      },
+      "suggestedFix": "Polish explanations: Option 3 - 'Being too patient wastes an opportunity against a nervous pitcher. If he grooves one, you need to be ready.' Option 4 - 'Bunting as the cleanup hitter throws away your power advantage when the team needs you to drive in runs.'",
+      "elapsedMs": 13709
+    },
+    {
+      "id": "f2",
+      "position": "shortstop",
+      "score": 8.5,
+      "passed": true,
+      "issues": [
+        "Scenario incorrectly assigns SS as cutoff for left-center hits - 3B is the proper cutoff for balls to left field going home",
+        "Option 3 'Cut and hold' is too obviously wrong for diff:2, lacking teaching value as a tempting wrong answer"
+      ],
+      "dimensions": {
+        "factualAccuracy": 6,
+        "bestAnswerCorrect": 9,
+        "explanationQuality": 9,
+        "optionDistinctness": 7,
+        "rateDistribution": 9,
+        "roleCompliance": 6,
+        "ageAppropriateness": 10,
+        "scenarioRealism": 8,
+        "conceptClarity": 9,
+        "engagementValue": 8,
+        "categoryAlignment": 10
+      },
+      "suggestedFix": "Change scenario to have SS as cutoff for a right-center hit (where SS is correct), or change the fielder to 3B for the left-center hit",
+      "elapsedMs": 13080
+    },
+    {
+      "id": "m39",
+      "position": "manager",
+      "score": 8.6,
+      "passed": true,
+      "issues": [
+        "Explanation 3 uses awkward phrasing 'which means think about' that breaks sentence flow",
+        "Explanation 4 has awkward structure with dash followed by 'because' creating a run-on"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 7,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 9,
+        "conceptClarity": 9,
+        "engagementValue": 8,
+        "categoryAlignment": 9
+      },
+      "elapsedMs": 10486
+    },
+    {
+      "id": "rl8",
+      "position": "rules",
+      "score": 8.6,
+      "passed": true,
+      "issues": [
+        "Explanation 1 teaches consequence but not the principle - should explain WHY tagging up is required",
+        "Option 0 rate (40) is too high for a clearly wrong answer that would result in an out"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 7,
+        "optionDistinctness": 9,
+        "rateDistribution": 7,
+        "roleCompliance": 10,
+        "ageAppropriateness": 10,
+        "scenarioRealism": 9,
+        "conceptClarity": 9,
+        "engagementValue": 8,
+        "categoryAlignment": 10
+      },
+      "elapsedMs": 10734
+    },
+    {
+      "id": "p5",
+      "position": "pitcher",
+      "score": 8.7,
+      "passed": true,
+      "issues": [
+        "Explanations lack specific teaching about WHY waste pitches work (making batter chase, protecting plate, etc.)",
+        "Option 2 explanation focuses only on negative (he homered before) rather than teaching about high fastball strategy",
+        "Bot 6 with home team trailing contradicts typical late-inning urgency"
+      ],
+      "dimensions": {
+        "factualAccuracy": 9,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 7,
+        "optionDistinctness": 9,
+        "rateDistribution": 10,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 8,
+        "conceptClarity": 9,
+        "engagementValue": 8,
+        "categoryAlignment": 10
+      },
+      "suggestedFix": null,
+      "elapsedMs": 13888
+    },
+    {
+      "id": "p9",
+      "position": "pitcher",
+      "score": 8.7,
+      "passed": true,
+      "issues": [
+        "Explanation for 'pitch inside' focuses on execution risk rather than strategic reasoning for why location change might work third time through",
+        "Slider explanation could better differentiate why changeup is superior for timing disruption specifically"
+      ],
+      "dimensions": {
+        "factualAccuracy": 9,
+        "bestAnswerCorrect": 9,
+        "explanationQuality": 8,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 9,
+        "conceptClarity": 9,
+        "engagementValue": 8,
+        "categoryAlignment": 10
+      },
+      "elapsedMs": 11776
+    },
+    {
+      "id": "b10",
+      "position": "batter",
+      "score": 8.7,
+      "passed": true,
+      "issues": [
+        "Option 3 uses 'YOUR' in all caps which may be unclear for ages 6-8",
+        "Explanation 2 uses an awkward dash structure that disrupts flow"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 8,
+        "optionDistinctness": 9,
+        "rateDistribution": 10,
+        "roleCompliance": 10,
+        "ageAppropriateness": 7,
+        "scenarioRealism": 9,
+        "conceptClarity": 9,
+        "engagementValue": 9,
+        "categoryAlignment": 10
+      },
+      "elapsedMs": 9526
+    },
+    {
+      "id": "b13",
+      "position": "batter",
+      "score": 8.7,
+      "passed": true,
+      "issues": [
+        "Explanation 2 uses exclamation mark which may feel condescending to young players",
+        "Option 2 'Close your eyes and swing hard' is unrealistic even as a bad option - no player would actually consider this"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 8,
+        "optionDistinctness": 7,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 10,
+        "scenarioRealism": 9,
+        "conceptClarity": 9,
+        "engagementValue": 8,
+        "categoryAlignment": 10
+      },
+      "elapsedMs": 10782
+    },
+    {
+      "id": "b30",
+      "position": "batter",
+      "score": 8.7,
+      "passed": true,
+      "issues": [
+        "Explanation 2 has awkward 'because' placement mid-sentence that disrupts flow",
+        "Explanation 1 has trailing 'because' that makes it feel incomplete"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 7,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 9,
+        "conceptClarity": 9,
+        "engagementValue": 8,
+        "categoryAlignment": 10
+      },
+      "elapsedMs": 9286
+    },
+    {
+      "id": "f5",
+      "position": "firstBase",
+      "score": 8.7,
+      "passed": true,
+      "issues": [
+        "Explanation 2 uses dash structure that could be smoother",
+        "Explanation 3 is too brief and doesn't teach why staying back is problematic"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 7,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 10,
+        "scenarioRealism": 9,
+        "conceptClarity": 9,
+        "engagementValue": 8,
+        "categoryAlignment": 10
+      },
+      "suggestedFix": "Expand explanation 3 to teach: 'Staying back from the bag means you can't stretch for offline throws and makes it harder for the fielder to see their target. Getting to the bag early gives everyone confidence.'",
+      "elapsedMs": 10507
+    },
+    {
+      "id": "r9",
+      "position": "baserunner",
+      "score": 8.7,
+      "passed": true,
+      "issues": [
+        "Explanation 2 has awkward grammar: 'doubled off, because the #1' needs rewording",
+        "Explanation 3 uses vague language ('the downside outweighs the potential gain') instead of teaching specific consequences"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 7,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 9,
+        "conceptClarity": 10,
+        "engagementValue": 8,
+        "categoryAlignment": 10
+      },
+      "suggestedFix": null,
+      "elapsedMs": 10460
+    },
+    {
+      "id": "r38",
+      "position": "baserunner",
+      "score": 8.7,
+      "passed": true,
+      "issues": [
+        "Score perspective error: Top of inning means AWAY team bats, but score shows home team ahead 3-2",
+        "Situation inconsistency: Description says 'up 3-2' but away team (batting) is down 2-3"
+      ],
+      "dimensions": {
+        "factualAccuracy": 7,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 9,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 8,
+        "conceptClarity": 9,
+        "engagementValue": 9,
+        "categoryAlignment": 10
+      },
+      "suggestedFix": "Change to 'down 3-2' in description or flip the score to [3,2] to match Top inning perspective",
+      "elapsedMs": 11505
+    },
+    {
+      "id": "r61",
+      "position": "baserunner",
+      "score": 8.7,
+      "passed": true,
+      "issues": [
+        "Explanations use repetitive structures and could flow more naturally without formulaic transitions",
+        "Third explanation has awkward phrasing with 'Do not slow down at second, since...' that reads unnaturally",
+        "Fourth explanation fragment 'because this is not a close call' creates a run-on sentence"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 7,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 10,
+        "scenarioRealism": 9,
+        "conceptClarity": 10,
+        "engagementValue": 9,
+        "categoryAlignment": 10
+      },
+      "suggestedFix": "Rewrite explanations to flow more conversationally: 'Perfect! With the ball in the corner and the fielder's back to you, plus your coach windmilling, this is textbook first-to-third. Sprint through second base and slide into third safely.'",
+      "elapsedMs": 13397
+    },
+    {
+      "id": "m5",
+      "position": "manager",
+      "score": 8.7,
+      "passed": true,
+      "issues": [
+        "Explanations focus too heavily on the best answer without teaching distinct principles for each option",
+        "Option 2 explanation doesn't explain WHY trusting current pitcher might work (momentum, confidence)",
+        "Concept clarity slightly muddled - teaches platoon advantage but situation includes multiple strategic factors"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 9,
+        "explanationQuality": 7,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 10,
+        "conceptClarity": 8,
+        "engagementValue": 9,
+        "categoryAlignment": 10
+      },
+      "suggestedFix": null,
+      "elapsedMs": 11638
+    },
+    {
+      "id": "m42",
+      "position": "manager",
+      "score": 8.7,
+      "passed": true,
+      "issues": [
+        "Explanations use generic phrases like 'speed without power doesn't help' without teaching WHY power matters in cleanup",
+        "Some explanations feel formulaic rather than conversational teaching"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 7,
+        "optionDistinctness": 9,
+        "rateDistribution": 10,
+        "roleCompliance": 10,
+        "ageAppropriateness": 10,
+        "scenarioRealism": 9,
+        "conceptClarity": 9,
+        "engagementValue": 8,
+        "categoryAlignment": 9
+      },
+      "elapsedMs": 11592
+    },
+    {
+      "id": "m52",
+      "position": "manager",
+      "score": 8.7,
+      "passed": true,
+      "issues": [
+        "Explanation 1 needs to teach a positive principle about team psychology, not just state the negative effect",
+        "Explanation 4 has awkward phrasing ('since you move forward') that doesn't complete the thought clearly",
+        "The conceptTag 'win-probability' doesn't match the actual teaching focus on team morale and psychology"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 7,
+        "optionDistinctness": 9,
+        "rateDistribution": 10,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 9,
+        "conceptClarity": 8,
+        "engagementValue": 9,
+        "categoryAlignment": 10
+      },
+      "suggestedFix": "Change conceptTag to 'team-psychology' or 'morale-management' to match the actual teaching focus. Rewrite explanation 1 to teach about creating psychological safety: 'Focusing on errors when confidence is already low creates a fear-based environment where players tighten up, making more mistakes likely.' Complete explanation 4's thought: 'A mound meeting in the 4th inning after errors just draws more attention to the mistakes when you need to move forward quickly.'",
+      "elapsedMs": 16536
+    },
+    {
+      "id": "f37",
+      "position": "catcher",
+      "score": 8.7,
+      "passed": true,
+      "issues": [
+        "Count should be 0-0 after consecutive walks, not 1-2",
+        "ConceptTag 'pitch-sequencing' doesn't match the actual lesson about mound visit psychology",
+        "Position not specified - scenario filed as 'catcher' but uses generic 'you' language"
+      ],
+      "dimensions": {
+        "factualAccuracy": 7,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 9,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 8,
+        "ageAppropriateness": 10,
+        "scenarioRealism": 9,
+        "conceptClarity": 9,
+        "engagementValue": 9,
+        "categoryAlignment": 8
+      },
+      "suggestedFix": "Change count to 0-0 (new batter after walks), update conceptTag to 'mound-visit-psychology', and clarify 'You're the catcher' earlier in the description",
+      "elapsedMs": 12761
+    },
+    {
+      "id": "rl7",
+      "position": "rules",
+      "score": 8.7,
+      "passed": true,
+      "issues": [
+        "Explanations 3 and 4 could be more educational - they state facts without teaching the underlying principle",
+        "Option 4 'do-over' is unrealistic even for young players - no baseball rule allows re-batting"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 7,
+        "optionDistinctness": 8,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 9,
+        "conceptClarity": 10,
+        "engagementValue": 8,
+        "categoryAlignment": 10
+      },
+      "elapsedMs": 16462
+    },
+    {
+      "id": "cn7",
+      "position": "counts",
+      "score": 8.7,
+      "passed": true,
+      "issues": [
+        "Explanation 2 starts with 'After a walk,' which is repetitive since the scenario already establishes this context",
+        "Option A creates a false dichotomy between 'careful' and strikes — strikes can be carefully placed",
+        "Rate for option D (40) seems high for a vague, non-strategic answer"
+      ],
+      "dimensions": {
+        "factualAccuracy": 9,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 8,
+        "optionDistinctness": 8,
+        "rateDistribution": 8,
+        "roleCompliance": 10,
+        "ageAppropriateness": 10,
+        "scenarioRealism": 9,
+        "conceptClarity": 9,
+        "engagementValue": 8,
+        "categoryAlignment": 10
+      },
+      "suggestedFix": null,
+      "elapsedMs": 11426
+    },
+    {
+      "id": "p40",
+      "position": "pitcher",
+      "score": 8.8,
+      "passed": true,
+      "issues": [
+        "Explanation 2 has a typo/grammar error: 'your mechanics are off, since simplify!' should be 'your mechanics are off, so simplify!'",
+        "Explanation 1 could teach more about the danger of overthrowing when struggling with control"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 8,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 10,
+        "conceptClarity": 9,
+        "engagementValue": 8,
+        "categoryAlignment": 10
+      },
+      "suggestedFix": "Fix the grammar error in explanation 2: change 'your mechanics are off, since simplify!' to 'your mechanics are off, so simplify!'",
+      "elapsedMs": 11522
+    },
+    {
+      "id": "1b1",
+      "position": "firstBase",
+      "score": 8.8,
+      "passed": true,
+      "issues": [
+        "Explanation 3 overstates risk - runner wouldn't 'easily score' from first on an overthrow to an unmanned base",
+        "Rates might be slightly high for diff 1 - simpler choices could have wider rate gaps for ages 6-8"
+      ],
+      "dimensions": {
+        "factualAccuracy": 9,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 9,
+        "optionDistinctness": 9,
+        "rateDistribution": 8,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 9,
+        "conceptClarity": 10,
+        "engagementValue": 8,
+        "categoryAlignment": 10
+      },
+      "suggestedFix": null,
+      "elapsedMs": 11177
+    },
+    {
+      "id": "f11",
+      "position": "rightField",
+      "score": 8.8,
+      "passed": true,
+      "issues": [
+        "Explanations use formulaic 'that is' structure instead of natural teaching language",
+        "Could better emphasize the teaching principle of anticipating plays before they happen"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 7,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 10,
+        "scenarioRealism": 9,
+        "conceptClarity": 9,
+        "engagementValue": 8,
+        "categoryAlignment": 10
+      },
+      "elapsedMs": 9390
+    },
+    {
+      "id": "m36",
+      "position": "manager",
+      "score": 8.8,
+      "passed": true,
+      "issues": [
+        "Explanations could be more specific about pitcher's role in covering third base when third baseman crashes",
+        "Third option explanation doesn't teach why holding positions is problematic beyond just 'less time'"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 8,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "conceptClarity": 9,
+        "engagementValue": 8,
+        "categoryAlignment": 10
+      },
+      "suggestedFix": null,
+      "elapsedMs": 10453
+    },
+    {
+      "id": "fp4",
+      "position": "famous",
+      "score": 8.8,
+      "passed": true,
+      "issues": [
+        "Explanations 0 and 1 are too similar, both just stating 'this is a balk' without teaching different angles",
+        "Option 1 ('pretend to have the ball') could be clearer about what the pitcher is actually doing"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 7,
+        "optionDistinctness": 8,
+        "rateDistribution": 9,
+        "roleCompliance": 9,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 9,
+        "conceptClarity": 9,
+        "engagementValue": 9,
+        "categoryAlignment": 10
+      },
+      "suggestedFix": "Differentiate explanations 0 and 1 by having one focus on why the rule exists (preventing deception) and the other on game consequences (runner advances)",
+      "elapsedMs": 12196
+    },
+    {
+      "id": "p6",
+      "position": "pitcher",
+      "score": 8.9,
+      "passed": true,
+      "issues": [
+        "Concept tag 'dp-positioning' doesn't match pitch selection focus",
+        "Option 2 explanation uses 'bad combo' which is too casual for teaching"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 8,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 10,
+        "conceptClarity": 8,
+        "engagementValue": 9,
+        "categoryAlignment": 10
+      },
+      "suggestedFix": "Change conceptTag to 'pitch-selection' or 'ground-ball-pitches' to match the actual teaching focus",
+      "elapsedMs": 10314
+    },
+    {
+      "id": "p8",
+      "position": "pitcher",
+      "score": 8.9,
+      "passed": true,
+      "issues": [
+        "Best answer is marked as index 3 but has lower rate (31) than option 3 which has rate 80, violating rate-best alignment",
+        "Explanation 2 uses vague phrase 'there are better options' without teaching why the slider is specifically ineffective here"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 9,
+        "explanationQuality": 8,
+        "optionDistinctness": 9,
+        "rateDistribution": 7,
+        "roleCompliance": 10,
+        "ageAppropriateness": 10,
+        "scenarioRealism": 9,
+        "conceptClarity": 9,
+        "engagementValue": 9,
+        "categoryAlignment": 10
+      },
+      "suggestedFix": "Swap the rates for options 3 and 4 so the curveball (best answer) has rate 80 and fastball off plate has rate 31",
+      "elapsedMs": 12706
+    },
+    {
+      "id": "b6",
+      "position": "batter",
+      "score": 8.9,
+      "passed": true,
+      "issues": [
+        "Taking on 3-1 with bases loaded wastes the best hitting count in baseball",
+        "Option 1 explanation uses rhetorical question instead of teaching directly"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 8,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 9,
+        "conceptClarity": 10,
+        "engagementValue": 8,
+        "categoryAlignment": 10
+      },
+      "elapsedMs": 9303
+    },
+    {
+      "id": "b11",
+      "position": "batter",
+      "score": 8.9,
+      "passed": true,
+      "issues": [
+        "Explanation 3 could teach more about why gathering data matters beyond just 'don't hack'"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 8,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 10,
+        "conceptClarity": 9,
+        "engagementValue": 8,
+        "categoryAlignment": 9
+      },
+      "elapsedMs": 9231
+    },
+    {
+      "id": "b43",
+      "position": "batter",
+      "score": 8.9,
+      "passed": true,
+      "issues": [
+        "Explanation 1 needs more specificity about WHY weak contact occurs on borderline pitches",
+        "Explanation 4 is too brief and doesn't teach the principle behind why power swings fail with 2 strikes"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 9,
+        "explanationQuality": 8,
+        "optionDistinctness": 9,
+        "rateDistribution": 10,
+        "roleCompliance": 10,
+        "ageAppropriateness": 10,
+        "scenarioRealism": 9,
+        "conceptClarity": 9,
+        "engagementValue": 8,
+        "categoryAlignment": 10
+      },
+      "suggestedFix": null,
+      "elapsedMs": 10537
+    },
+    {
+      "id": "b51",
+      "position": "batter",
+      "score": 8.9,
+      "passed": true,
+      "issues": [
+        "Explanation 3 is grammatically incomplete ('guessing blind, since you get some data first' - missing conclusion)",
+        "Explanation 4 could be more educational about what to actually observe from the dugout"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 8,
+        "optionDistinctness": 9,
+        "rateDistribution": 10,
+        "roleCompliance": 10,
+        "ageAppropriateness": 10,
+        "scenarioRealism": 10,
+        "conceptClarity": 9,
+        "engagementValue": 8,
+        "categoryAlignment": 10
+      },
+      "suggestedFix": null,
+      "elapsedMs": 11145
+    },
+    {
+      "id": "f17",
+      "position": "secondBase",
+      "score": 8.9,
+      "passed": true,
+      "issues": [
+        "Some explanations contain grammatical issues and awkward phrasing that could be smoothed out"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 8,
+        "optionDistinctness": 9,
+        "rateDistribution": 10,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 9,
+        "conceptClarity": 9,
+        "engagementValue": 8,
+        "categoryAlignment": 9
+      },
+      "elapsedMs": 9551
+    },
+    {
+      "id": "f44",
+      "position": "shortstop",
+      "score": 8.9,
+      "passed": true,
+      "issues": [
+        "Explanations could provide more teaching value for younger kids (diff:1) by using simpler language",
+        "Third explanation could explain why range matters less in this situation"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 8,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 7,
+        "scenarioRealism": 9,
+        "conceptClarity": 9,
+        "engagementValue": 8,
+        "categoryAlignment": 9
+      },
+      "elapsedMs": 10142
+    },
+    {
+      "id": "1b9",
+      "position": "firstBase",
+      "score": 8.9,
+      "passed": true,
+      "issues": [
+        "Explanation for option 1 doesn't fully explain why this specific approach fails in this situation",
+        "The 'conceptTag' says 'pickoff-mechanics' but the scenario is about holding runners and defensive positioning"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 8,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 10,
+        "conceptClarity": 8,
+        "engagementValue": 9,
+        "categoryAlignment": 10
+      },
+      "elapsedMs": 11124
+    },
+    {
+      "id": "f50",
+      "position": "thirdBase",
+      "score": 8.9,
+      "passed": true,
+      "issues": [
+        "Explanation 2 has awkward phrasing ('since you use the data') that doesn't flow naturally",
+        "Explanation 3 uses fragment 'because the downside outweighs the potential gain' without completing the thought"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 8,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 10,
+        "conceptClarity": 9,
+        "engagementValue": 8,
+        "categoryAlignment": 10
+      },
+      "elapsedMs": 10319
+    },
+    {
+      "id": "3b_new5",
+      "position": "thirdBase",
+      "score": 8.9,
+      "passed": true,
+      "issues": [
+        "Count shows '0-0' but the play involves a fly ball being caught - the count should reflect the actual pitch that was hit",
+        "Explanation 2 could be more specific about which player (1B or SS) typically takes the cutoff on this play"
+      ],
+      "dimensions": {
+        "factualAccuracy": 8,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 9,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 10,
+        "scenarioRealism": 8,
+        "conceptClarity": 10,
+        "engagementValue": 8,
+        "categoryAlignment": 9
+      },
+      "elapsedMs": 12082
+    },
+    {
+      "id": "r5",
+      "position": "baserunner",
+      "score": 8.9,
+      "passed": true,
+      "issues": [
+        "Explanation 2 uses awkward 'so' connector mid-sentence which disrupts natural flow",
+        "Option 3 could specify 'wild pitch/passed ball' for clarity to younger players"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 8,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 9,
+        "conceptClarity": 10,
+        "engagementValue": 8,
+        "categoryAlignment": 10
+      },
+      "elapsedMs": 9228
+    },
+    {
+      "id": "r11",
+      "position": "baserunner",
+      "score": 8.9,
+      "passed": true,
+      "issues": [
+        "Explanation 2 could teach more positively about why to go rather than focusing on why not to stay",
+        "Option 3 ('See where the ball goes first') could be more specific about what 'see' means"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 8,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 10,
+        "scenarioRealism": 9,
+        "conceptClarity": 9,
+        "engagementValue": 8,
+        "categoryAlignment": 10
+      },
+      "suggestedFix": null,
+      "elapsedMs": 10111
+    },
+    {
+      "id": "r16",
+      "position": "baserunner",
+      "score": 8.9,
+      "passed": true,
+      "issues": [
+        "Explanation 3 has awkward phrasing 'means the runner goes anyway on ball four' that could be clearer",
+        "Minor: Could mention pitcher's limited pickoff attention on 3-1 counts to strengthen the teaching"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 8,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 9,
+        "conceptClarity": 9,
+        "engagementValue": 8,
+        "categoryAlignment": 10
+      },
+      "elapsedMs": 10075
+    },
+    {
+      "id": "r32",
+      "position": "baserunner",
+      "score": 8.9,
+      "passed": true,
+      "issues": [
+        "Explanation 3 contains awkward phrasing with comma splice ('Waiting to see the throw wastes time, which means you need to be sprinting')",
+        "320+ feet claim needs clarification - warning tracks vary by field (could be 280-350 feet)"
+      ],
+      "dimensions": {
+        "factualAccuracy": 8,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 8,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 9,
+        "conceptClarity": 10,
+        "engagementValue": 9,
+        "categoryAlignment": 10
+      },
+      "suggestedFix": "Replace '320+ feet' with 'deep warning track' throughout, and revise explanation 3 to: 'Waiting to see the throw wastes precious time. You need to be sprinting the moment the ball hits the glove - the decision happens BEFORE the throw.'",
+      "elapsedMs": 11965
+    },
+    {
+      "id": "r37",
+      "position": "baserunner",
+      "score": 8.9,
+      "passed": true,
+      "issues": [
+        "Explanation 4 uses awkward 'which is why this approach matters' structure instead of natural language",
+        "Explanation 2 contains the formulaic phrase 'because you should be' instead of flowing naturally"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 8,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 9,
+        "conceptClarity": 10,
+        "engagementValue": 8,
+        "categoryAlignment": 10
+      },
+      "suggestedFix": null,
+      "elapsedMs": 10732
+    },
+    {
+      "id": "m6",
+      "position": "manager",
+      "score": 8.9,
+      "passed": true,
+      "issues": [
+        "The explanation for option 1 doesn't explain WHY the 72% break-even rate matters for youth players",
+        "Option 1 explanation uses MLB-level statistics without context for youth baseball"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 9,
+        "explanationQuality": 8,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 8,
+        "scenarioRealism": 9,
+        "conceptClarity": 9,
+        "engagementValue": 9,
+        "categoryAlignment": 10
+      },
+      "suggestedFix": null,
+      "elapsedMs": 10379
+    },
+    {
+      "id": "m57",
+      "position": "manager",
+      "score": 8.9,
+      "passed": true,
+      "issues": [
+        "Explanation 1 uses awkward phrasing with 'because' in the middle of the sentence",
+        "Explanation 3 contains a fragment after the dash that reads awkwardly"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 8,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 9,
+        "conceptClarity": 10,
+        "engagementValue": 8,
+        "categoryAlignment": 10
+      },
+      "suggestedFix": null,
+      "elapsedMs": 10634
+    },
+    {
+      "id": "ct5",
+      "position": "catcher",
+      "score": 8.9,
+      "passed": true,
+      "issues": [
+        "Age minimum of 6 is too low for understanding pitch types like curveballs and changeups",
+        "Explanation 2 uses fragmented structure with dash instead of complete sentence flow"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 8,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 7,
+        "scenarioRealism": 9,
+        "conceptClarity": 9,
+        "engagementValue": 8,
+        "categoryAlignment": 10
+      },
+      "suggestedFix": null,
+      "elapsedMs": 10912
+    },
+    {
+      "id": "ct11",
+      "position": "catcher",
+      "score": 8.9,
+      "passed": true,
+      "issues": [
+        "Explanation 1 uses formulaic 'As catcher, YOU are' structure that feels less natural",
+        "Explanation 4 repeats content from explanation 1 about being field general"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 9,
+        "explanationQuality": 7,
+        "optionDistinctness": 9,
+        "rateDistribution": 10,
+        "roleCompliance": 10,
+        "ageAppropriateness": 10,
+        "scenarioRealism": 9,
+        "conceptClarity": 9,
+        "engagementValue": 8,
+        "categoryAlignment": 9
+      },
+      "suggestedFix": null,
+      "elapsedMs": 9523
+    },
+    {
+      "id": "f36",
+      "position": "catcher",
+      "score": 8.9,
+      "passed": true,
+      "issues": [
+        "Explanation 3 could be more specific about why location changes alone aren't enough when timing is locked in",
+        "Wasting pitch explanation could mention pitch count considerations more explicitly"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 8,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 9,
+        "conceptClarity": 9,
+        "engagementValue": 8,
+        "categoryAlignment": 8
+      },
+      "elapsedMs": 9505
+    },
+    {
+      "id": "fp6",
+      "position": "famous",
+      "score": 8.9,
+      "passed": true,
+      "issues": [
+        "Explanation 4 uses 'This is because' structure in middle of sentence, violating natural language flow",
+        "Option 1 uses caps for emphasis which may seem aggressive to younger players"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 8,
+        "optionDistinctness": 9,
+        "rateDistribution": 10,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 9,
+        "conceptClarity": 10,
+        "engagementValue": 9,
+        "categoryAlignment": 10
+      },
+      "elapsedMs": 10172
+    },
+    {
+      "id": "fp10",
+      "position": "famous",
+      "score": 8.9,
+      "passed": true,
+      "issues": [
+        "Count leverage teaching missing - doesn't explain why 2-1 is crucial for the cutter choice",
+        "Score perspective unclear - Bot 7 with 2-0 score doesn't specify which team is ahead"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 9,
+        "explanationQuality": 8,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 9,
+        "conceptClarity": 8,
+        "engagementValue": 9,
+        "categoryAlignment": 10
+      },
+      "elapsedMs": 10165
+    },
+    {
+      "id": "rl2",
+      "position": "rules",
+      "score": 8.9,
+      "passed": true,
+      "issues": [
+        "Explanation 0 starts with formulaic 'Any motion' instead of teaching naturally",
+        "Option 2 is unrealistic - no umpire would call a strike on a non-pitch"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 8,
+        "optionDistinctness": 8,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 9,
+        "conceptClarity": 10,
+        "engagementValue": 8,
+        "categoryAlignment": 10
+      },
+      "elapsedMs": 9405
+    },
+    {
+      "id": "rl3",
+      "position": "rules",
+      "score": 8.9,
+      "passed": true,
+      "issues": [
+        "Explanation 1 has awkward wording ('which means but with 2 outs') that could confuse young readers",
+        "Explanation 4 has a grammar issue ('since know the rule') that needs fixing"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 7,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 10,
+        "conceptClarity": 10,
+        "engagementValue": 9,
+        "categoryAlignment": 10
+      },
+      "suggestedFix": "Fix grammar in explanations 1 and 4: 'which means but with' should be 'but with' and 'since know the rule' should be 'so know the rule'",
+      "elapsedMs": 11963
+    },
+    {
+      "id": "rl4",
+      "position": "rules",
+      "score": 8.9,
+      "passed": true,
+      "issues": [
+        "Explanation 1 uses vague language ('most missed rules') without teaching the specific appeal procedure",
+        "Rates don't perfectly reflect realistic probability - option 4 might be higher as runners often try to fix their mistake"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 8,
+        "optionDistinctness": 9,
+        "rateDistribution": 8,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 9,
+        "conceptClarity": 9,
+        "engagementValue": 8,
+        "categoryAlignment": 10
+      },
+      "elapsedMs": 10727
+    },
+    {
+      "id": "cn2",
+      "position": "counts",
+      "score": 8.9,
+      "passed": true,
+      "issues": [
+        "Explanation 2 could teach more about why swinging big fails (expanded zone, pitcher confidence)",
+        "Explanation 3 could include more specific teaching about 0-2 pitcher tendencies"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 8,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 9,
+        "conceptClarity": 10,
+        "engagementValue": 8,
+        "categoryAlignment": 10
+      },
+      "elapsedMs": 10732
+    },
+    {
+      "id": "cn8",
+      "position": "counts",
+      "score": 8.9,
+      "passed": true,
+      "issues": [
+        "Rates don't match difficulty level - 85% success is too high for a moderate difficulty scenario",
+        "Option 4 explanation references 'ball three' when count would be 3-2, not a walk"
+      ],
+      "dimensions": {
+        "factualAccuracy": 9,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 9,
+        "optionDistinctness": 9,
+        "rateDistribution": 7,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 9,
+        "conceptClarity": 10,
+        "engagementValue": 9,
+        "categoryAlignment": 10
+      },
+      "suggestedFix": "Lower the best option rate to 65-70 to reflect realistic success probability, and clarify option 4's explanation about the count",
+      "elapsedMs": 13517
+    },
+    {
+      "id": "b12",
+      "position": "batter",
+      "score": 9.1,
+      "passed": true,
+      "issues": [
+        "Explanation 0 uses formulaic 'leads to' structure rather than natural conversational teaching",
+        "Rate for option 3 (35) seems high for a guessing strategy that would likely fail more often"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 8,
+        "optionDistinctness": 9,
+        "rateDistribution": 8,
+        "roleCompliance": 10,
+        "ageAppropriateness": 10,
+        "scenarioRealism": 10,
+        "conceptClarity": 9,
+        "engagementValue": 9,
+        "categoryAlignment": 10
+      },
+      "elapsedMs": 11130
+    },
+    {
+      "id": "3b11",
+      "position": "thirdBase",
+      "score": 9.1,
+      "passed": true,
+      "issues": [
+        "Situation shows runners on first only, but description says runner is 'rounding second heading to third' - this is only possible if runner started on first and advanced during the play, which should be clarified",
+        "Count shown as 1-2 is irrelevant once ball is in play - should be removed or set to null"
+      ],
+      "dimensions": {
+        "factualAccuracy": 9,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 9,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 8,
+        "conceptClarity": 10,
+        "engagementValue": 9,
+        "categoryAlignment": 10
+      },
+      "elapsedMs": 11757
+    },
+    {
+      "id": "r18",
+      "position": "baserunner",
+      "score": 9.1,
+      "passed": true,
+      "issues": [
+        "Explanation 3 contains awkward phrasing 'which means lefties have the easiest pickoff move' that doesn't flow naturally",
+        "Explanation 4 has incomplete sentence structure with 'because learn to read the move'"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 8,
+        "optionDistinctness": 9,
+        "rateDistribution": 10,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 9,
+        "conceptClarity": 10,
+        "engagementValue": 9,
+        "categoryAlignment": 10
+      },
+      "suggestedFix": null,
+      "elapsedMs": 12834
+    },
+    {
+      "id": "r29",
+      "position": "baserunner",
+      "score": 9.1,
+      "passed": true,
+      "issues": [
+        "The description says the team is down 6-5, but the situation shows score [5,6] which would mean they're behind 5-6, not down 6-5",
+        "Category 'tagging' is not a valid position category - this should be in the 'baserunner' array"
+      ],
+      "dimensions": {
+        "factualAccuracy": 8,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 9,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 7,
+        "ageAppropriateness": 10,
+        "scenarioRealism": 9,
+        "conceptClarity": 10,
+        "engagementValue": 9,
+        "categoryAlignment": 8
+      },
+      "suggestedFix": null,
+      "elapsedMs": 10431
+    },
+    {
+      "id": "m9",
+      "position": "manager",
+      "score": 9.1,
+      "passed": true,
+      "issues": [
+        "Rate-best alignment error: Option 3 is marked as best but has rate 35, while option 4 has the highest rate 85",
+        "Explanation 3 contradicts the scenario - it criticizes 'one more batter' when that's exactly what option 3 proposes"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 8,
+        "explanationQuality": 9,
+        "optionDistinctness": 10,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 10,
+        "scenarioRealism": 10,
+        "conceptClarity": 10,
+        "engagementValue": 9,
+        "categoryAlignment": 10
+      },
+      "suggestedFix": "Change best answer from 3 to 4 to match the highest rate (85), or adjust rates so option 3 has the highest value",
+      "elapsedMs": 12902
+    },
+    {
+      "id": "m38",
+      "position": "manager",
+      "score": 9.1,
+      "passed": true,
+      "issues": [
+        "Missing specific runner scoring implications in explanations",
+        "Could benefit from mentioning that the .340 hitter is more likely to find gaps"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 8,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 10,
+        "scenarioRealism": 9,
+        "conceptClarity": 9,
+        "engagementValue": 8,
+        "categoryAlignment": 9
+      },
+      "elapsedMs": 9800
+    },
+    {
+      "id": "ct1",
+      "position": "catcher",
+      "score": 9.1,
+      "passed": true,
+      "issues": [
+        "Bot 5 means HOME team is batting, but score [3,2] shows AWAY leading - perspective mismatch",
+        "Explanation 1 lacks teaching depth - just states it's predictable without explaining why that matters"
+      ],
+      "dimensions": {
+        "factualAccuracy": 8,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 8,
+        "optionDistinctness": 10,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 10,
+        "scenarioRealism": 10,
+        "conceptClarity": 9,
+        "engagementValue": 9,
+        "categoryAlignment": 10
+      },
+      "suggestedFix": null,
+      "elapsedMs": 10741
+    },
+    {
+      "id": "ct2",
+      "position": "catcher",
+      "score": 9.1,
+      "passed": true,
+      "issues": [
+        "Explanations 1 and 3 use fragments ('Textbook!' and 'Block first, catch second.')",
+        "Option 2 uses 'mitt' which may be unfamiliar to 6-year-olds (use 'glove' for diff:1)"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 8,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 8,
+        "scenarioRealism": 10,
+        "conceptClarity": 9,
+        "engagementValue": 9,
+        "categoryAlignment": 10
+      },
+      "elapsedMs": 9815
+    },
+    {
+      "id": "ct3",
+      "position": "catcher",
+      "score": 9.1,
+      "passed": true,
+      "issues": [
+        "Scenario doesn't specify which position is making the decision - appears to be catcher but not explicitly stated",
+        "Pump fake option is unrealistic - no catcher would pump fake on a steal attempt"
+      ],
+      "dimensions": {
+        "factualAccuracy": 9,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 9,
+        "optionDistinctness": 7,
+        "rateDistribution": 10,
+        "roleCompliance": 8,
+        "ageAppropriateness": 10,
+        "scenarioRealism": 9,
+        "conceptClarity": 10,
+        "engagementValue": 9,
+        "categoryAlignment": 9
+      },
+      "elapsedMs": 10860
+    },
+    {
+      "id": "p7",
+      "position": "pitcher",
+      "score": 9.2,
+      "passed": true,
+      "issues": [
+        "Rate-best mismatch: Option 3 is marked as 'best' but has rate 40, while option 4 has highest rate 80",
+        "Explanation 3 contradicts being the best answer by saying 'Striking out a contact hitter when you're cold is tough'"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 8,
+        "optionDistinctness": 10,
+        "rateDistribution": 7,
+        "roleCompliance": 10,
+        "ageAppropriateness": 10,
+        "scenarioRealism": 10,
+        "conceptClarity": 10,
+        "engagementValue": 9,
+        "categoryAlignment": 10
+      },
+      "suggestedFix": "Change 'best' from 3 to 3 (index of option 4 'Pitch carefully'), or swap rates[2] and rates[3] to align with current best designation",
+      "elapsedMs": 12773
+    },
+    {
+      "id": "p43",
+      "position": "pitcher",
+      "score": 9.2,
+      "passed": true,
+      "issues": [
+        "Bot 4 with tied score means home team is batting while pitcher is still on mound - should be Top 4 for away team batting"
+      ],
+      "dimensions": {
+        "factualAccuracy": 8,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 9,
+        "optionDistinctness": 9,
+        "rateDistribution": 10,
+        "roleCompliance": 10,
+        "ageAppropriateness": 10,
+        "scenarioRealism": 9,
+        "conceptClarity": 10,
+        "engagementValue": 9,
+        "categoryAlignment": 10
+      },
+      "suggestedFix": "Change 'Bot of the 4th' to 'Top of the 4th' since the pitcher is on the mound defending",
+      "elapsedMs": 10873
+    },
+    {
+      "id": "p46",
+      "position": "pitcher",
+      "score": 9.2,
+      "passed": true,
+      "issues": [
+        "First explanation incorrectly states 'stepping off' when option says 'vary hold time'",
+        "Fourth explanation could clarify that spinning from stretch requires stepping off first"
+      ],
+      "dimensions": {
+        "factualAccuracy": 8,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 9,
+        "optionDistinctness": 10,
+        "rateDistribution": 10,
+        "roleCompliance": 10,
+        "ageAppropriateness": 10,
+        "scenarioRealism": 9,
+        "conceptClarity": 10,
+        "engagementValue": 9,
+        "categoryAlignment": 10
+      },
+      "suggestedFix": null,
+      "elapsedMs": 10011
+    },
+    {
+      "id": "b45",
+      "position": "batter",
+      "score": 9.2,
+      "passed": true,
+      "issues": [
+        "Explanation 4 uses 'which means' awkwardly mid-sentence instead of natural flow",
+        "Diff 2 scenario using '95 mph' might be too advanced for 9-year-olds"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 8,
+        "optionDistinctness": 9,
+        "rateDistribution": 10,
+        "roleCompliance": 10,
+        "ageAppropriateness": 8,
+        "scenarioRealism": 10,
+        "conceptClarity": 10,
+        "engagementValue": 9,
+        "categoryAlignment": 10
+      },
+      "suggestedFix": null,
+      "elapsedMs": 10440
+    },
+    {
+      "id": "f14",
+      "position": "secondBase",
+      "score": 9.2,
+      "passed": true,
+      "issues": [
+        "Second explanation could be more educational rather than just pointing out the mistake"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 8,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 10,
+        "scenarioRealism": 10,
+        "conceptClarity": 10,
+        "engagementValue": 8,
+        "categoryAlignment": 10
+      },
+      "elapsedMs": 9162
+    },
+    {
+      "id": "f21",
+      "position": "firstBase",
+      "score": 9.2,
+      "passed": true,
+      "issues": [
+        "Explanation 1 incorrectly states 'relay to second is meaningless' - should clarify runner from 2nd can still be forced at 3rd",
+        "Diff 3 scenario uses relatively simple language - could incorporate more advanced terminology for ages 12+"
+      ],
+      "dimensions": {
+        "factualAccuracy": 9,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 9,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 8,
+        "scenarioRealism": 10,
+        "conceptClarity": 10,
+        "engagementValue": 9,
+        "categoryAlignment": 10
+      },
+      "elapsedMs": 11185
+    },
+    {
+      "id": "f59",
+      "position": "firstBase",
+      "score": 9.2,
+      "passed": true,
+      "issues": [
+        "Slight ambiguity about 'near home' vs 'between three players' - scenario description could specify distance more clearly"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 9,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 10,
+        "scenarioRealism": 9,
+        "conceptClarity": 9,
+        "engagementValue": 8,
+        "categoryAlignment": 8
+      },
+      "elapsedMs": 10020
+    },
+    {
+      "id": "ct12",
+      "position": "catcher",
+      "score": 9.2,
+      "passed": true,
+      "issues": [
+        "Explanation 0 uses awkward 'because' structure mid-sentence",
+        "Explanation 1 could be more natural without the capitalized 'READY'",
+        "ConceptTag 'wild-pitch-coverage' doesn't perfectly match the teaching focus on anticipatory blocking technique"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 8,
+        "optionDistinctness": 9,
+        "rateDistribution": 10,
+        "roleCompliance": 10,
+        "ageAppropriateness": 10,
+        "scenarioRealism": 10,
+        "conceptClarity": 9,
+        "engagementValue": 9,
+        "categoryAlignment": 8
+      },
+      "elapsedMs": 11049
+    }
+  ]
+}

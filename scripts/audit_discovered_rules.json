@@ -1,0 +1,349 @@
+{
+  "systemicPatterns": [
+    {
+      "pattern": "Formulaic 'This is because' explanation structure that sounds robotic and unnatural",
+      "frequency": "31 of 50 scenarios",
+      "severity": "medium",
+      "examples": [
+        "p2",
+        "p3",
+        "f13",
+        "f9",
+        "m2",
+        "f1",
+        "f5",
+        "fp1"
+      ]
+    },
+    {
+      "pattern": "Generic filler phrases like 'since this approach doesn't match the situation' that teach nothing specific",
+      "frequency": "18 of 50 scenarios",
+      "severity": "high",
+      "examples": [
+        "p3",
+        "f9",
+        "f13",
+        "m1",
+        "cn6",
+        "f10",
+        "fp1",
+        "rl7"
+      ]
+    },
+    {
+      "pattern": "Best answer index mismatches where 'best' field doesn't match highest rate option",
+      "frequency": "5 of 50 scenarios",
+      "severity": "high",
+      "examples": [
+        "f15",
+        "f21",
+        "ct7",
+        "m9",
+        "m22"
+      ]
+    },
+    {
+      "pattern": "Explanations contain grammar errors, fragments, or incomplete sentences",
+      "frequency": "14 of 50 scenarios",
+      "severity": "medium",
+      "examples": [
+        "p1",
+        "cn2",
+        "f12",
+        "r5",
+        "f9",
+        "f28",
+        "f6",
+        "f5"
+      ]
+    },
+    {
+      "pattern": "Wrong answer explanations focus on why not to do something rather than teaching the positive principle",
+      "frequency": "12 of 50 scenarios",
+      "severity": "medium",
+      "examples": [
+        "p2",
+        "b1",
+        "b8",
+        "f9",
+        "m1",
+        "fp2",
+        "p56",
+        "cn6"
+      ]
+    },
+    {
+      "pattern": "Score perspective errors (Bot vs Top confusion affecting game context)",
+      "frequency": "4 of 50 scenarios",
+      "severity": "medium",
+      "examples": [
+        "fp1",
+        "m2",
+        "f7",
+        "fp2"
+      ]
+    },
+    {
+      "pattern": "Scenario setup contains impossible or contradictory situations",
+      "frequency": "6 of 50 scenarios",
+      "severity": "high",
+      "examples": [
+        "f2",
+        "f12",
+        "f13",
+        "f21",
+        "fp16",
+        "3b10"
+      ]
+    }
+  ],
+  "blindSpots": [
+    {
+      "description": "Rate distributions that violate strategic logic (best answer having lower rate than wrong answer)",
+      "proposedCheck": "Verify best answer always has highest rate among all options",
+      "examples": [
+        "f15",
+        "f21",
+        "ct7"
+      ]
+    },
+    {
+      "description": "Concept tags that don't match what the scenario actually teaches",
+      "proposedCheck": "Validate conceptTag aligns with the primary teaching point of the scenario",
+      "examples": [
+        "f15",
+        "f9",
+        "fp16",
+        "rl7"
+      ]
+    },
+    {
+      "description": "Explanations that contradict the option they're explaining",
+      "proposedCheck": "Ensure each explanation advocates for/against its corresponding option correctly",
+      "examples": [
+        "f2",
+        "cn2",
+        "f21",
+        "ct2"
+      ]
+    },
+    {
+      "description": "Age-inappropriate statistics or terminology for the difficulty level",
+      "proposedCheck": "Check that language, stats, and concepts match the ageMin for each difficulty",
+      "examples": [
+        "p2",
+        "m2",
+        "p1",
+        "cn1"
+      ]
+    },
+    {
+      "description": "Options that involve unrealistic player actions for the position",
+      "proposedCheck": "Validate each option represents something that position would actually do",
+      "examples": [
+        "f13",
+        "f10",
+        "f15",
+        "m1"
+      ]
+    },
+    {
+      "description": "Explanations teaching incorrect baseball fundamentals",
+      "proposedCheck": "Verify factual accuracy of strategic and technical claims in explanations",
+      "examples": [
+        "f21",
+        "ct7",
+        "f13",
+        "f2"
+      ]
+    }
+  ],
+  "newRules": [
+    {
+      "id": "rule_01",
+      "name": "Best Answer Rate Match",
+      "description": "The option marked as 'best' must have the highest rate value in the rates array",
+      "appliesTo": [
+        "all"
+      ],
+      "checkType": "structural",
+      "severity": "reject"
+    },
+    {
+      "id": "rule_02",
+      "name": "Natural Language Flow",
+      "description": "Explanations must not use formulaic transitions like 'This is because' at the start or awkwardly in the middle",
+      "appliesTo": [
+        "all"
+      ],
+      "checkType": "pedagogical",
+      "severity": "warn"
+    },
+    {
+      "id": "rule_03",
+      "name": "Positive Teaching Principle",
+      "description": "At least the best answer explanation must teach WHY to do something, not just why NOT to do alternatives",
+      "appliesTo": [
+        "all"
+      ],
+      "checkType": "pedagogical",
+      "severity": "warn"
+    },
+    {
+      "id": "rule_04",
+      "name": "Concept Tag Alignment",
+      "description": "The conceptTag must match what the scenario primarily teaches, not a tangential concept",
+      "appliesTo": [
+        "all"
+      ],
+      "checkType": "structural",
+      "severity": "warn"
+    },
+    {
+      "id": "rule_05",
+      "name": "Position Action Realism",
+      "description": "Each option must represent an action that position would realistically take in that situation",
+      "appliesTo": [
+        "all"
+      ],
+      "checkType": "role",
+      "severity": "reject"
+    },
+    {
+      "id": "rule_06",
+      "name": "Age-Appropriate Complexity",
+      "description": "Statistics, terminology, and concepts must match the ageMin for the difficulty level",
+      "appliesTo": [
+        "all"
+      ],
+      "checkType": "pedagogical",
+      "severity": "warn"
+    },
+    {
+      "id": "rule_07",
+      "name": "Explanation Specificity",
+      "description": "Explanations must teach specific principles, not use generic phrases like 'doesn't match the situation'",
+      "appliesTo": [
+        "all"
+      ],
+      "checkType": "pedagogical",
+      "severity": "warn"
+    },
+    {
+      "id": "rule_08",
+      "name": "Score Perspective Accuracy",
+      "description": "Top/Bot designation must correctly reflect which team is batting and game context",
+      "appliesTo": [
+        "all"
+      ],
+      "checkType": "factual",
+      "severity": "reject"
+    },
+    {
+      "id": "rule_09",
+      "name": "Relay/Cutoff Role Accuracy",
+      "description": "Cutoff and relay assignments must match actual baseball positioning (SS relays from left side to home)",
+      "appliesTo": [
+        "shortstop",
+        "secondBase",
+        "outfield"
+      ],
+      "checkType": "factual",
+      "severity": "reject"
+    },
+    {
+      "id": "rule_10",
+      "name": "Complete Sentences",
+      "description": "All explanations must be complete, grammatically correct sentences without fragments",
+      "appliesTo": [
+        "all"
+      ],
+      "checkType": "structural",
+      "severity": "warn"
+    }
+  ],
+  "positionSpecificCriteria": {
+    "pitcher": [
+      "Verify pitch selection makes sense for the count and game situation",
+      "Check that runner-control techniques (slide step, pickoffs) are used appropriately",
+      "Ensure pitch locations match strategic intent (high-and-tight for squeeze defense)"
+    ],
+    "catcher": [
+      "Validate pitch-calling logic aligns with batter history and game context",
+      "Check blocking/framing techniques are appropriate for runner situations",
+      "Verify defensive plays (squeeze, steal) have correct catcher positioning"
+    ],
+    "firstBase": [
+      "Ensure footwork and stretching mechanics are correctly described",
+      "Validate force play understanding, especially with bases loaded",
+      "Check that holding runners technique is age-appropriate"
+    ],
+    "secondBase": [
+      "Verify double play pivot mechanics and when to turn two alone",
+      "Check relay positioning for right-side balls (2B doesn't relay to home from RF)",
+      "Ensure force/tag play decisions are correct"
+    ],
+    "shortstop": [
+      "Validate cutoff positioning for left-center hits going home",
+      "Check double play feed decisions based on ball location",
+      "Ensure relay throw mechanics are properly taught"
+    ],
+    "thirdBase": [
+      "Verify bare-hand technique for slow rollers",
+      "Check bunt defense positioning and recovery",
+      "Validate tag application techniques for different slide types"
+    ],
+    "leftField": [
+      "Ensure relay throw decisions prioritize preventing runs",
+      "Check sun/wind adjustment techniques are taught",
+      "Validate backup assignments on throws to bases"
+    ],
+    "centerField": [
+      "Verify priority rules for fly balls are correctly applied",
+      "Check that deep position allows best angle for relay throws",
+      "Ensure communication responsibilities are taught"
+    ],
+    "rightField": [
+      "Validate backup responsibilities on infield plays",
+      "Check that shallow fly mechanics favor direct throws",
+      "Ensure wall play safety is balanced with aggression"
+    ],
+    "batter": [
+      "Verify two-strike approach emphasizes contact over power",
+      "Check that count leverage is age-appropriately explained",
+      "Ensure situational hitting matches game context"
+    ],
+    "baserunner": [
+      "Validate steal timing based on pitcher/catcher/count factors",
+      "Check that first-to-third decisions include coach signals",
+      "Ensure slide decisions match base and fielder positioning"
+    ],
+    "manager": [
+      "Verify substitution timing considers leverage and matchups",
+      "Check that pitching changes align with times-through-order data",
+      "Ensure defensive positioning matches hitter tendencies"
+    ],
+    "famous": [
+      "Validate historical accuracy of the play description",
+      "Check that the teaching point emerges from the actual play",
+      "Ensure the lesson applies to modern baseball"
+    ],
+    "rules": [
+      "Verify rule interpretations are 100% accurate",
+      "Check that examples clarify not confuse the rule",
+      "Ensure appeal play timing and mechanics are correct"
+    ],
+    "counts": [
+      "Validate strategic approach matches the specific count",
+      "Check that success rates/statistics are accurate",
+      "Ensure both pitcher and batter perspectives are considered"
+    ]
+  },
+  "enhancedPromptAdditions": "ADDITIONAL VALIDATION REQUIREMENTS:\n\n1. RATE-BEST ALIGNMENT: The option marked as 'best' MUST have the highest rate value. Reject if mismatched.\n\n2. NATURAL LANGUAGE: Explanations must flow conversationally. Avoid 'This is because' structures. Write as if teaching a student face-to-face.\n\n3. TEACH POSITIVELY: Best answer explanation must explain WHY to do it, not just why alternatives are wrong.\n\n4. POSITION REALISM: Every option must be something that position would actually do. No pitchers involved in routine infield plays.\n\n5. AGE-APPROPRIATE: Diff 1 (ages 6-8): simple language, no statistics. Diff 2 (ages 9-11): basic stats OK. Diff 3 (ages 12+): advanced concepts OK.\n\n6. SPECIFIC TEACHING: Ban generic phrases like 'doesn't match the situation'. Every explanation must teach a specific principle.\n\n7. COMPLETE SENTENCES: No fragments like 'This is because speed matters.' Must be full thoughts.\n\n8. FACTUAL ACCURACY: Cutoff assignments, force plays, and positioning must match real baseball. SS relays left side to home, not 2B.\n\n9. SCORE PERSPECTIVE: Bot = home team bats. Top = away team bats. Context must match.\n\n10. CONCEPT ALIGNMENT: The conceptTag must match what the scenario primarily teaches.",
+  "qualitySummary": {
+    "overallHealth": "fair",
+    "strongestDimension": "roleCompliance",
+    "weakestDimension": "explanationQuality",
+    "estimatedIssueRate": "50% of scenarios likely have issues"
+  }
+}

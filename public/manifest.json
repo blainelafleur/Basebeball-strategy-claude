@@ -1,0 +1,17 @@
+{
+  "name": "Baseball Strategy Master",
+  "short_name": "BSM",
+  "description": "Learn baseball strategy through interactive scenarios",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0d1117",
+  "theme_color": "#f59e0b",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

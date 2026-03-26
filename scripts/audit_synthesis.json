@@ -1,0 +1,254 @@
+{
+  "firewallRules": [
+    {
+      "name": "rateAlignment",
+      "description": "Ensures the option marked as 'best' has the highest rate value",
+      "appliesTo": [
+        "all"
+      ],
+      "implementation": "function checkRateAlignment(scenario) { const bestRate = scenario.rates[scenario.best]; const maxRate = Math.max(...scenario.rates); return bestRate === maxRate ? null : `Best answer (index ${scenario.best}) has rate ${bestRate} but highest rate is ${maxRate}`; }",
+      "tier": 1
+    },
+    {
+      "name": "naturalLanguageFlow",
+      "description": "Prevents formulaic transitions like 'This is because' in explanations",
+      "appliesTo": [
+        "all"
+      ],
+      "implementation": "function checkNaturalFlow(scenario) { const patterns = [/^This is because/i, /\\.\\s*This is because/i, /^That's because/i, /^Since this approach/i]; const violations = []; scenario.explanations.forEach((exp, i) => { patterns.forEach(pattern => { if (pattern.test(exp)) violations.push(`Explanation ${i} uses formulaic transition`); }); }); return violations.length > 0 ? violations.join('; ') : null; }",
+      "tier": 2
+    },
+    {
+      "name": "completeExplanations",
+      "description": "Ensures all explanations are complete sentences with proper grammar",
+      "appliesTo": [
+        "all"
+      ],
+      "implementation": "function checkCompleteSentences(scenario) { const issues = []; scenario.explanations.forEach((exp, i) => { if (!exp.match(/^[A-Z].*[.!?]$/)) issues.push(`Explanation ${i} is not a complete sentence`); if (exp.match(/\\s{2,}/)) issues.push(`Explanation ${i} has formatting issues`); if (exp.length < 20) issues.push(`Explanation ${i} is too short`); }); return issues.length > 0 ? issues.join('; ') : null; }",
+      "tier": 2
+    },
+    {
+      "name": "scoreContextValidation",
+      "description": "Validates that Top/Bottom innings align with team perspectives",
+      "appliesTo": [
+        "all"
+      ],
+      "implementation": "function checkScoreContext(scenario) { if (!scenario.inning) return null; const [home, away] = scenario.score || [0, 0]; const isTop = scenario.inning.includes('Top'); const perspective = scenario.situation.toLowerCase(); if (isTop && perspective.includes('your team') && perspective.includes('lead') && home > away) { return 'Top inning means away team bats, but score suggests home team perspective'; } return null; }",
+      "tier": 1
+    },
+    {
+      "name": "positionActionRealism",
+      "description": "Validates that actions are realistic for the given position",
+      "appliesTo": [
+        "all"
+      ],
+      "implementation": "function checkPositionRealism(scenario) { const positionActions = { pitcher: ['throw', 'pitch', 'field', 'cover', 'back up'], catcher: ['call', 'block', 'throw', 'tag', 'signal'], shortstop: ['field', 'throw', 'cover', 'relay', 'tag'] }; const validActions = positionActions[scenario.position] || []; const issues = []; scenario.options.forEach((opt, i) => { const optLower = opt.toLowerCase(); if (!validActions.some(action => optLower.includes(action))) { issues.push(`Option ${i} may be unrealistic for ${scenario.position}`); } }); return issues.length > 0 ? issues[0] : null; }",
+      "tier": 3
+    },
+    {
+      "name": "genericPhraseDetection",
+      "description": "Prevents generic teaching phrases that don't explain principles",
+      "appliesTo": [
+        "all"
+      ],
+      "implementation": "function checkGenericPhrases(scenario) { const genericPhrases = [/doesn't match the situation/i, /this approach doesn't match/i, /since this approach/i, /gives you the best chance/i]; const violations = []; scenario.explanations.forEach((exp, i) => { genericPhrases.forEach(phrase => { if (phrase.test(exp)) violations.push(`Explanation ${i} uses generic phrase`); }); }); return violations.length > 0 ? violations.join('; ') : null; }",
+      "tier": 2
+    },
+    {
+      "name": "conceptTagAlignment",
+      "description": "Ensures conceptTag matches the primary teaching point",
+      "appliesTo": [
+        "all"
+      ],
+      "implementation": "function checkConceptAlignment(scenario) { const conceptKeywords = { 'force-vs-tag': ['force', 'tag', 'out'], 'cutoff-plays': ['cutoff', 'relay', 'throw'], 'pitch-selection': ['pitch', 'fastball', 'curve', 'change'] }; const keywords = conceptKeywords[scenario.conceptTag] || []; const text = (scenario.title + ' ' + scenario.situation).toLowerCase(); if (keywords.length && !keywords.some(kw => text.includes(kw))) { return `ConceptTag '${scenario.conceptTag}' may not match scenario content`; } return null; }",
+      "tier": 3
+    },
+    {
+      "name": "ageAppropriateContent",
+      "description": "Validates content complexity matches age range for difficulty level",
+      "appliesTo": [
+        "all"
+      ],
+      "implementation": "function checkAgeAppropriate(scenario) { const complexTerms = ['whiff rate', 'leverage index', 'platoon advantage', 'WHIP', 'OPS']; const ageRanges = {1: [6,8], 2: [9,11], 3: [12,14]}; const [minAge, maxAge] = ageRanges[scenario.diff] || [6,14]; const text = (scenario.situation + ' ' + scenario.explanations.join(' ')).toLowerCase(); if (scenario.diff === 1 && complexTerms.some(term => text.includes(term.toLowerCase()))) { return 'Content too complex for difficulty 1 (ages 6-8)'; } return null; }",
+      "tier": 2
+    },
+    {
+      "name": "forcePlayAccuracy",
+      "description": "Validates force play understanding in relevant scenarios",
+      "appliesTo": [
+        "pitcher",
+        "firstBase",
+        "secondBase",
+        "shortstop",
+        "thirdBase"
+      ],
+      "implementation": "function checkForcePlayLogic(scenario) { const text = scenario.situation.toLowerCase(); if (text.includes('force') || text.includes('bases loaded')) { const hasRunner1st = text.includes('runner on first') || text.includes('runners on first'); const basesLoaded = text.includes('bases loaded'); if (basesLoaded && scenario.explanations.some(e => e.includes('removes all force'))) { return 'Force play logic error: retiring batter only removes force at first base'; } } return null; }",
+      "tier": 1
+    },
+    {
+      "name": "rateDistributionLogic",
+      "description": "Ensures rates follow logical baseball probabilities",
+      "appliesTo": [
+        "all"
+      ],
+      "implementation": "function checkRateLogic(scenario) { const rates = scenario.rates; const bestRate = Math.max(...rates); const worstRate = Math.min(...rates); if (bestRate > 95) return 'Best rate too high (>95) - unrealistic'; if (worstRate < 5) return 'Worst rate too low (<5) - unrealistic'; if (rates.filter(r => r >= 40 && r <= 65).length === 0 && scenario.diff < 3) { return 'Missing tempting wrong answer (40-65 range)'; } return null; }",
+      "tier": 3
+    }
+  ],
+  "fixRecommendations": [
+    {
+      "scenarioId": "f21",
+      "position": "firstBase",
+      "currentScore": 3.2,
+      "issueType": "rates",
+      "specificFix": "Change best answer to index 2 (option 3) which has rate 85. Fix force play explanation: stepping on first only removes force at FIRST, not other bases. With bases loaded after retiring batter, runners at 2nd and 3rd are still forced.",
+      "priority": "critical"
+    },
+    {
+      "scenarioId": "ct11",
+      "position": "catcher",
+      "currentScore": 3.2,
+      "issueType": "rates",
+      "specificFix": "Change best answer to index 0 (option 1 - signal to shift) and adjust rates to [85, 40, 20, 15]. Change conceptTag to 'if-positioning'. Raise ageMin to 9.",
+      "priority": "critical"
+    },
+    {
+      "scenarioId": "p10",
+      "position": "pitcher",
+      "currentScore": 3.8,
+      "issueType": "explanation",
+      "specificFix": "Rewrite all explanations: (0) 'Stay aggressive with your best pitch. When you're in rhythm and getting outs, trust your fastball to maintain that momentum. Changing approach now gives the hitter a chance to reset.' Remove all 'This is because' phrases.",
+      "priority": "high"
+    },
+    {
+      "scenarioId": "1b9",
+      "position": "firstBase",
+      "currentScore": 3.8,
+      "issueType": "rates",
+      "specificFix": "Change best to index 3 (option 4) to match rate 82. Adjust rates to [25, 15, 55, 82]. Rewrite explanations without 'This is because' and make option 3 explain WHY splitting works as a calculated compromise.",
+      "priority": "critical"
+    },
+    {
+      "scenarioId": "r8",
+      "position": "baserunner",
+      "currentScore": 3.8,
+      "issueType": "factual",
+      "specificFix": "Remove count '1-1' (no count after ball is hit). Change conceptTag to 'baserunning-aggression'. Rewrite explanations to teach principles: 'Sprint through second base first, then find your coach. Peeking slows you down and costs precious time.'",
+      "priority": "high"
+    },
+    {
+      "scenarioId": "m14",
+      "position": "manager",
+      "currentScore": 3.8,
+      "issueType": "rates",
+      "specificFix": "Fix rates array so index 3 has value 85 (not 25). Change conceptTag to 'bullpen-management'. Remove all 'This is because' phrases from explanations.",
+      "priority": "critical"
+    },
+    {
+      "scenarioId": "f38",
+      "position": "catcher",
+      "currentScore": 3.8,
+      "issueType": "factual",
+      "specificFix": "Change to 'Top 7th' since catcher (defense) is preventing a run. Rewrite explanations: 'Sprint to the backstop, grab the ball cleanly, and fire to your pitcher covering home. This practiced play is your best shot at nailing the tying run.'",
+      "priority": "high"
+    },
+    {
+      "scenarioId": "rl36",
+      "position": "rules",
+      "currentScore": 3.8,
+      "issueType": "rates",
+      "specificFix": "Keep option 1 as best but change its rate to 85, option 2 rate to 30. Change conceptTag to 'dead-ball-rules'. Clarify that HBP creates immediate dead ball.",
+      "priority": "critical"
+    },
+    {
+      "scenarioId": "1b15",
+      "position": "firstBase",
+      "currentScore": 4.1,
+      "issueType": "explanation",
+      "specificFix": "Fix grammar in explanation 0: 'Line up directly between the right fielder and home plate.' Change scenario to justify home cutoff (e.g., runner clearly scoring from 2nd).",
+      "priority": "high"
+    },
+    {
+      "scenarioId": "p5",
+      "position": "pitcher",
+      "currentScore": 4.2,
+      "issueType": "explanation",
+      "specificFix": "Remove all 'This is because' transitions. Consider changing best answer to slider (modern approach) with explanation: 'Your slider diving out of the zone gets swings and misses on 0-2. Modern analytics show strikes beat automatic waste pitches.'",
+      "priority": "medium"
+    },
+    {
+      "scenarioId": "r49",
+      "position": "baserunner",
+      "currentScore": 4.8,
+      "issueType": "factual",
+      "specificFix": "Complete rewrite needed. With runners on 1st and 2nd, ground ball to SS forces runner from 2nd at third base. Focus should be on runner from 1st deciding whether to break up DP at second.",
+      "priority": "critical"
+    },
+    {
+      "scenarioId": "p62",
+      "position": "pitcher",
+      "currentScore": 4.2,
+      "issueType": "rates",
+      "specificFix": "Change best answer to index 3 (option 4 - sinker) to match rate 85. Remove all 'This is because' phrases from explanations.",
+      "priority": "critical"
+    }
+  ],
+  "frameworkUpgrades": [
+    {
+      "area": "Explanation Quality Automation",
+      "currentGap": "Manual review catches formulaic language but doesn't prevent it systematically",
+      "proposedEnhancement": "Add pre-generation validation that flags formulaic transitions before content is created",
+      "implementation": "Create a library of banned phrases and transitions. Run all explanations through this filter during generation, forcing rewrites before scenarios are finalized."
+    },
+    {
+      "area": "Rate-Best Alignment Check",
+      "currentGap": "Misalignment between best answer and highest rate discovered only during audit",
+      "proposedEnhancement": "Implement mandatory validation that best answer index matches highest rate index",
+      "implementation": "Add automated check in scenario generation pipeline: if rates[best] !== Math.max(...rates), flag for immediate correction."
+    },
+    {
+      "area": "Position-Specific Baseball Accuracy",
+      "currentGap": "Some scenarios have positions performing unrealistic actions (SS as relay on right-side balls)",
+      "proposedEnhancement": "Create position-specific action validators based on real baseball mechanics",
+      "implementation": "Build a matrix of valid actions per position per situation. Validate all scenarios against this matrix before approval."
+    },
+    {
+      "area": "Score Context Validation",
+      "currentGap": "Top/Bottom inning perspectives often conflict with score descriptions",
+      "proposedEnhancement": "Automated validation of game state consistency",
+      "implementation": "If inning includes 'Top', batting team is AWAY. If 'Bottom', batting team is HOME. Validate all score descriptions match this logic."
+    },
+    {
+      "area": "Age-Appropriate Complexity Scoring",
+      "currentGap": "Complex statistics and concepts appear in low-difficulty scenarios",
+      "proposedEnhancement": "Create complexity scoring system that validates against difficulty level",
+      "implementation": "Build term/concept complexity database. Score each scenario's language complexity and ensure it matches the difficulty level's age range."
+    },
+    {
+      "area": "Positive Teaching Principle",
+      "currentGap": "Many explanations focus on what NOT to do rather than teaching principles",
+      "proposedEnhancement": "Require best answer explanations to lead with positive teaching",
+      "implementation": "Validation rule: Best answer explanation must start with WHY this choice works, not why others fail. Include specific mechanical or strategic reasoning."
+    }
+  ],
+  "overallAssessment": {
+    "totalScenarios": 608,
+    "passRate": "47.9%",
+    "avgScore": "7.25",
+    "criticalIssues": 15,
+    "highIssues": 42,
+    "mediumIssues": 256,
+    "topStrengths": [
+      "Strong factual accuracy (8.37 avg) in baseball rules and mechanics",
+      "Excellent role compliance (9.49 avg) with position-specific actions",
+      "Good category alignment (9.14 avg) between scenarios and teaching concepts"
+    ],
+    "topWeaknesses": [
+      "Poor explanation quality (5.48 avg) with formulaic language throughout",
+      "Systematic rate-best answer misalignment issues affecting game integrity",
+      "Repetitive 'This is because' transitions making content feel robotic"
+    ],
+    "goldStandardReady": false,
+    "recommendation": "Address critical issues (rate-best mismatches, factual errors) immediately. Implement automated explanation quality checks. After fixing high-priority issues and improving explanation naturalness, reaudit focused sample before gold standard approval."
+  }
+}

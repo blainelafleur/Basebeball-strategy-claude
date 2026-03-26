@@ -3573,7 +3573,7 @@ Generate the scenario as valid JSON.`;
 
     async function runCritic(scenarioToGrade) {
       const criticUserMsg = `Evaluate this Baseball Strategy Master scenario for position "${position}":\n\n${JSON.stringify(scenarioToGrade, null, 2)}`;
-      const criticResult = await callClaude(CRITIC_SYSTEM, criticUserMsg, env, 600, STAGE_TIMEOUT);
+      const criticResult = await callClaude(CRITIC_SYSTEM, criticUserMsg, env, 1000, STAGE_TIMEOUT);
       totalInputTokens += criticResult.usage.input_tokens || 0;
       totalOutputTokens += criticResult.usage.output_tokens || 0;
       stages.push({ name: "critic", elapsed: criticResult.elapsed, tokens: (criticResult.usage.input_tokens || 0) + (criticResult.usage.output_tokens || 0) });

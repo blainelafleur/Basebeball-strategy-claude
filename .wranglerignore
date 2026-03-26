@@ -1,0 +1,16 @@
+bsm-13b-test-adapter/
+bsm-70b-*/
+phase1-finetune/
+.claude/
+.git/
+.wrangler/
+node_modules/
+scripts/
+test_70b.py
+test_70b_direct.py
+together_import.py
+together_status.py
+fix_tokenizer.py
+*.safetensors
+*.bin
+*.gguf

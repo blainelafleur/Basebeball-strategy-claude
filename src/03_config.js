@@ -279,7 +279,7 @@ const ANIM_DATA={
     {type:"dust",cx:293,cy:210,r:4,dur:.25,begin:.05,color:"#c4a882"},
     {type:"dust",cx:287,cy:213,r:5,dur:.28,begin:.03,color:"#c4a882"},
     {type:"runner",path:"M290,210 Q248,170 200,135",dur:.55,begin:.08,easing:EASE.runner},
-    {type:"ball",path:"M200,288 Q210,210 200,138",dur:.4,begin:.25,color:"white",r:2,easing:EASE.throw,opacity:.8},
+    {type:"ball",path:"M200,300 Q210,215 200,138",dur:.4,begin:.25,color:"white",r:2,easing:EASE.throw,opacity:.8},
     {type:"dust",cx:200,cy:137,r:7,dur:.3,begin:.55,color:"#c4a882"},
     {type:"dust",cx:203,cy:135,r:5,dur:.25,begin:.58,color:"#c4a882"},
     {type:"text",x:200,y:120,text:"SAFE!",size:12,color:"#22c55e",dur:1.3,begin:0},
@@ -327,14 +327,14 @@ const ANIM_DATA={
   steal_2to3_success:[
     {type:"dust",cx:200,cy:137,r:6,dur:.3,begin:0,color:"#c4a882"},
     {type:"runner",path:"M200,135 Q152,170 110,210",dur:.55,begin:.08,easing:EASE.runner},
-    {type:"ball",path:"M200,288 Q170,210 112,212",dur:.4,begin:.25,color:"white",r:2,easing:EASE.throw,opacity:.8},
+    {type:"ball",path:"M200,300 Q170,210 112,212",dur:.4,begin:.25,color:"white",r:2,easing:EASE.throw,opacity:.8},
     {type:"dust",cx:112,cy:212,r:7,dur:.3,begin:.55,color:"#c4a882"},
     {type:"text",x:110,y:195,text:"SAFE!",size:12,color:"#22c55e",dur:1.3,begin:0},
   ],
   steal_3toHome_success:[
     {type:"dust",cx:112,cy:212,r:6,dur:.3,begin:0,color:"#c4a882"},
     {type:"runner",path:"M110,210 Q160,252 200,290",dur:.55,begin:.08,easing:EASE.runner},
-    {type:"ball",path:"M200,288 Q180,250 112,212",dur:.4,begin:.25,color:"white",r:2,easing:EASE.throw,opacity:.8},
+    {type:"ball",path:"M200,300 Q180,250 112,212",dur:.4,begin:.25,color:"white",r:2,easing:EASE.throw,opacity:.8},
     {type:"dust",cx:200,cy:292,r:7,dur:.3,begin:.55,color:"#c4a882"},
     {type:"text",x:200,y:265,text:"SAFE!",size:12,color:"#22c55e",dur:1.3,begin:0},
   ],
@@ -421,7 +421,7 @@ const ANIM_DATA={
   // AF2: Ghost failure animations — transparent overlay showing what goes wrong
   steal_fail:[
     {type:"runner",path:"M290,210 Q265,190 248,178",dur:.4,begin:.08,easing:EASE.runner,o:0.3},
-    {type:"ball",path:"M200,288 Q210,200 200,140",dur:.3,begin:.1,color:"#ef4444",r:2.5,easing:EASE.throw},
+    {type:"ball",path:"M200,300 Q210,200 200,140",dur:.3,begin:.1,color:"#ef4444",r:2.5,easing:EASE.throw},
     {type:"flash",cx:230,cy:175,r:10,dur:.12,begin:.4,color:"rgba(239,68,68,.4)"},
     {type:"text",x:230,y:165,text:"OUT!",size:11,color:"#ef4444",dur:1.2,begin:0},
   ],
@@ -562,7 +562,7 @@ function Guy({x,y,jersey="#2563eb",cap="#1d4ed8",pants="#eee",o=1,ring=false,bat
       {showBat&&p==='bs'&&<line x1="16" y1="-8" x2="24" y2="-14" stroke={batColor} strokeWidth="2.5" strokeLinecap="round"/>}
       <circle cy={hy} r="7.5" fill="#e8c4a0"/>
       <circle cx="-2.5" cy={hy-1} r="1.1" fill="#333"/><circle cx="2.5" cy={hy-1} r="1.1" fill="#333"/>
-      <path d={`M-2,${hy+2.5} Q0,${hy+4} 2,${hy+2.5}`} fill="none" stroke="#a0785a" strokeWidth=".7"/>
+      <ellipse cy={hy+2} rx="1.5" ry="1" fill="#c99b6d"/>
       <ellipse cy={hy-5} rx="9" ry="3.5" fill={cap}/><rect x="-9" y={hy-7} width="18" height="4.5" rx="3" fill={cap}/>
       <rect x="-1.5" y={hy-1} width="11" height="2.8" rx="1.5" fill={cap} opacity=".55"/>
       {showMask&&<><rect x="-6" y={hy+1} width="12" height="9" rx="2" fill="none" stroke="#555" strokeWidth="1" opacity=".6"/><line x1="-5" y1={hy+4} x2="5" y2={hy+4} stroke="#555" strokeWidth=".5" opacity=".4"/><line x1="-5" y1={hy+7} x2="5" y2={hy+7} stroke="#555" strokeWidth=".5" opacity=".4"/></>}

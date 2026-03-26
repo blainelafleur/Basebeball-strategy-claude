@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback, useRef, useMemo, useLayoutEffect } from "react";
 
 // ============================================================================
 // BASEBALL STRATEGY MASTER V5 — 605 handcrafted + unlimited AI scenarios
@@ -5039,7 +5039,7 @@ const ANIM_DATA={
     {type:"dust",cx:293,cy:210,r:4,dur:.25,begin:.05,color:"#c4a882"},
     {type:"dust",cx:287,cy:213,r:5,dur:.28,begin:.03,color:"#c4a882"},
     {type:"runner",path:"M290,210 Q248,170 200,135",dur:.55,begin:.08,easing:EASE.runner},
-    {type:"ball",path:"M200,288 Q210,210 200,138",dur:.4,begin:.25,color:"white",r:2,easing:EASE.throw,opacity:.8},
+    {type:"ball",path:"M200,300 Q210,215 200,138",dur:.4,begin:.25,color:"white",r:2,easing:EASE.throw,opacity:.8},
     {type:"dust",cx:200,cy:137,r:7,dur:.3,begin:.55,color:"#c4a882"},
     {type:"dust",cx:203,cy:135,r:5,dur:.25,begin:.58,color:"#c4a882"},
     {type:"text",x:200,y:120,text:"SAFE!",size:12,color:"#22c55e",dur:1.3,begin:0},
@@ -5087,14 +5087,14 @@ const ANIM_DATA={
   steal_2to3_success:[
     {type:"dust",cx:200,cy:137,r:6,dur:.3,begin:0,color:"#c4a882"},
     {type:"runner",path:"M200,135 Q152,170 110,210",dur:.55,begin:.08,easing:EASE.runner},
-    {type:"ball",path:"M200,288 Q170,210 112,212",dur:.4,begin:.25,color:"white",r:2,easing:EASE.throw,opacity:.8},
+    {type:"ball",path:"M200,300 Q170,210 112,212",dur:.4,begin:.25,color:"white",r:2,easing:EASE.throw,opacity:.8},
     {type:"dust",cx:112,cy:212,r:7,dur:.3,begin:.55,color:"#c4a882"},
     {type:"text",x:110,y:195,text:"SAFE!",size:12,color:"#22c55e",dur:1.3,begin:0},
   ],
   steal_3toHome_success:[
     {type:"dust",cx:112,cy:212,r:6,dur:.3,begin:0,color:"#c4a882"},
     {type:"runner",path:"M110,210 Q160,252 200,290",dur:.55,begin:.08,easing:EASE.runner},
-    {type:"ball",path:"M200,288 Q180,250 112,212",dur:.4,begin:.25,color:"white",r:2,easing:EASE.throw,opacity:.8},
+    {type:"ball",path:"M200,300 Q180,250 112,212",dur:.4,begin:.25,color:"white",r:2,easing:EASE.throw,opacity:.8},
     {type:"dust",cx:200,cy:292,r:7,dur:.3,begin:.55,color:"#c4a882"},
     {type:"text",x:200,y:265,text:"SAFE!",size:12,color:"#22c55e",dur:1.3,begin:0},
   ],
@@ -5181,7 +5181,7 @@ const ANIM_DATA={
   // AF2: Ghost failure animations — transparent overlay showing what goes wrong
   steal_fail:[
     {type:"runner",path:"M290,210 Q265,190 248,178",dur:.4,begin:.08,easing:EASE.runner,o:0.3},
-    {type:"ball",path:"M200,288 Q210,200 200,140",dur:.3,begin:.1,color:"#ef4444",r:2.5,easing:EASE.throw},
+    {type:"ball",path:"M200,300 Q210,200 200,140",dur:.3,begin:.1,color:"#ef4444",r:2.5,easing:EASE.throw},
     {type:"flash",cx:230,cy:175,r:10,dur:.12,begin:.4,color:"rgba(239,68,68,.4)"},
     {type:"text",x:230,y:165,text:"OUT!",size:11,color:"#ef4444",dur:1.2,begin:0},
   ],
@@ -5322,7 +5322,7 @@ function Guy({x,y,jersey="#2563eb",cap="#1d4ed8",pants="#eee",o=1,ring=false,bat
       {showBat&&p==='bs'&&<line x1="16" y1="-8" x2="24" y2="-14" stroke={batColor} strokeWidth="2.5" strokeLinecap="round"/>}
       <circle cy={hy} r="7.5" fill="#e8c4a0"/>
       <circle cx="-2.5" cy={hy-1} r="1.1" fill="#333"/><circle cx="2.5" cy={hy-1} r="1.1" fill="#333"/>
-      <path d={`M-2,${hy+2.5} Q0,${hy+4} 2,${hy+2.5}`} fill="none" stroke="#a0785a" strokeWidth=".7"/>
+      <ellipse cy={hy+2} rx="1.5" ry="1" fill="#c99b6d"/>
       <ellipse cy={hy-5} rx="9" ry="3.5" fill={cap}/><rect x="-9" y={hy-7} width="18" height="4.5" rx="3" fill={cap}/>
       <rect x="-1.5" y={hy-1} width="11" height="2.8" rx="1.5" fill={cap} opacity=".55"/>
       {showMask&&<><rect x="-6" y={hy+1} width="12" height="9" rx="2" fill="none" stroke="#555" strokeWidth="1" opacity=".6"/><line x1="-5" y1={hy+4} x2="5" y2={hy+4} stroke="#555" strokeWidth=".5" opacity=".4"/><line x1="-5" y1={hy+7} x2="5" y2={hy+7} stroke="#555" strokeWidth=".5" opacity=".4"/></>}
@@ -7849,7 +7849,7 @@ function findConceptTag(conceptText) {
     "bunt.*home":{tags:["squeeze-play"],weight:2},"squeeze defense":{tags:["squeeze-play"],weight:2},
     "familiarity.*pitcher":{tags:["times-through-order"],weight:2},"opener strateg":{tags:["times-through-order"],weight:1},
     "leverage index":{tags:["leverage-index"],weight:3},"high leverage":{tags:["leverage-index"],weight:2},"best reliever":{tags:["leverage-index"],weight:2},"setup man":{tags:["leverage-index"],weight:1},
-"cover.*1st base":{tags:["backup-duties"],weight:3},"cover first base":{tags:["backup-duties"],weight:3},"sprint.*first":{tags:["backup-duties"],weight:2},"pitcher.*cover":{tags:["backup-duties"],weight:2},"back up third":{tags:["backup-duties"],weight:3},"back up second":{tags:["backup-duties"],weight:3},"back up home":{tags:["backup-duties"],weight:3},"backs up third":{tags:["backup-duties"],weight:3},"slide.?step":{tags:["steal-window"],weight:3},"quick.*plate":{tags:["steal-window"],weight:2},"delivery.*1\\.2":{tags:["steal-window"],weight:3},"mixing.*speed":{tags:["pitch-sequencing"],weight:2},"mix.*speed":{tags:["pitch-sequencing"],weight:2},"change.*speed":{tags:["pitch-sequencing"],weight:2},"pitch count":{tags:["pitch-count-mgmt"],weight:2},"arm tired":{tags:["pitch-count-mgmt"],weight:3},"deep.*game":{tags:["pitch-count-mgmt"],weight:2},"third time":{tags:["times-through-order"],weight:2},"hit to right":{tags:["situational-hitting"],weight:3},"move.*runner":{tags:["situational-hitting"],weight:2},"advance.*runner":{tags:["situational-hitting"],weight:2},"sac fly":{tags:["tag-up"],weight:3},"sacrifice fly":{tags:["tag-up"],weight:3},"fly ball.*productive":{tags:["tag-up"],weight:2},"run on contact":{tags:["secondary-lead"],weight:2},"always run.*contact":{tags:["secondary-lead"],weight:2},"force play.*rule":{tags:["force-vs-tag"],weight:3},"must advance":{tags:["force-vs-tag"],weight:3},"forced to advance":{tags:["force-vs-tag"],weight:3},"dp depth":{tags:["dp-positioning"],weight:3},"line guard":{tags:["line-guarding"],weight:3},"drawn in":{tags:["infield-positioning"],weight:2},"opposite hand":{tags:["platoon-advantage"],weight:3},"same hand":{tags:["platoon-advantage"],weight:2},"closer.*high":{tags:["leverage-index"],weight:3},"tying run":{tags:["win-probability"],weight:2},"sun.*glove":{tags:["of-communication"],weight:3},"glove.*sun":{tags:["of-communication"],weight:3},"sun shield":{tags:["of-communication"],weight:3},"carom":{tags:["of-depth-arm-value"],weight:2},"delayed steal":{tags:["secondary-lead"],weight:3},"double steal":{tags:["secondary-lead"],weight:3},"first.?and.?third":{tags:["first-third"],weight:3},
+"cover.*1st base":{tags:["backup-duties"],weight:3},"cover first base":{tags:["backup-duties"],weight:3},"sprint.*first":{tags:["backup-duties"],weight:2},"pitcher.*cover":{tags:["backup-duties"],weight:2},"back up third":{tags:["backup-duties"],weight:3},"back up second":{tags:["backup-duties"],weight:3},"back up home":{tags:["backup-duties"],weight:3},"backs up third":{tags:["backup-duties"],weight:3},"slide.?step":{tags:["steal-window"],weight:3},"quick.*plate":{tags:["steal-window"],weight:2},"delivery.*1\\.2":{tags:["steal-window"],weight:3},"mixing.*speed":{tags:["pitch-sequencing"],weight:2},"mix.*speed":{tags:["pitch-sequencing"],weight:2},"change.*speed":{tags:["pitch-sequencing"],weight:2},"deep.*game":{tags:["pitch-count-mgmt"],weight:2},"third time":{tags:["times-through-order"],weight:2},"hit to right":{tags:["situational-hitting"],weight:3},"move.*runner":{tags:["situational-hitting"],weight:2},"advance.*runner":{tags:["situational-hitting"],weight:2},"sac fly":{tags:["tag-up"],weight:3},"sacrifice fly":{tags:["tag-up"],weight:3},"fly ball.*productive":{tags:["tag-up"],weight:2},"run on contact":{tags:["secondary-lead"],weight:2},"always run.*contact":{tags:["secondary-lead"],weight:2},"force play.*rule":{tags:["force-vs-tag"],weight:3},"must advance":{tags:["force-vs-tag"],weight:3},"forced to advance":{tags:["force-vs-tag"],weight:3},"line guard":{tags:["line-guarding"],weight:3},"drawn in":{tags:["infield-positioning"],weight:2},"opposite hand":{tags:["platoon-advantage"],weight:3},"same hand":{tags:["platoon-advantage"],weight:2},"closer.*high":{tags:["leverage-index"],weight:3},"tying run":{tags:["win-probability"],weight:2},"sun.*glove":{tags:["of-communication"],weight:3},"glove.*sun":{tags:["of-communication"],weight:3},"sun shield":{tags:["of-communication"],weight:3},"carom":{tags:["of-depth-arm-value"],weight:2},"delayed steal":{tags:["secondary-lead"],weight:3},"double steal":{tags:["secondary-lead"],weight:3},"first.?and.?third":{tags:["first-third"],weight:3},
   };
   let best = null, bestWeight = 0;
   for (const [kw, info] of Object.entries(keywords)) {
@@ -10262,7 +10262,7 @@ const OPTION_ARCHETYPES = {
     sounds_smart: 'Stay at shortstop depth to cover a hard bunt past the charging fielders',
     clearly_wrong: 'Cover second base'
   },
-  'manager:bunt-defense': {
+  'manager:bunt-defense-general': {
     moment: 'Opponent bunting with runners on first and second, nobody out',
     correct: 'Call the right bunt defense — wheel play or rotation based on the situation',
     kid_mistake: 'Have everyone stay in normal positions',
@@ -11507,10 +11507,11 @@ async function generateAIScenario(position, stats, conceptsLearned = [], recentW
       console.log("[BSM] Generation aborted by user after multi-agent")
       return { scenario: null, error: "aborted" }
     }
-    // Track if multi-agent timed out (took >50s) — signals infrastructure stress
-    multiAgentTimedOut = (Date.now() - maStart) > 50000
+    // Track if multi-agent HARD-FAILED (took >75s = hit the 80s worker timeout)
+    // 40-65s is normal for multi-agent — only skip xAI if it truly timed out
+    multiAgentTimedOut = (Date.now() - maStart) > 75000
     if (multiAgentTimedOut) {
-      console.warn("[BSM] Multi-agent timed out after", Math.round((Date.now() - maStart)/1000) + "s — infrastructure may be stressed, skipping xAI agent pipeline")
+      console.warn("[BSM] Multi-agent hard-timed-out after", Math.round((Date.now() - maStart)/1000) + "s — skipping xAI agent pipeline")
     } else {
       console.warn("[BSM] Multi-agent pipeline failed (not timeout), falling through to xAI pipeline")
     }
@@ -13618,9 +13619,9 @@ const Field=React.memo(function Field({runners=[],outcome=null,ak=0,anim=null,an
       {!outcome&&<Guy x={215} y={285} jersey="#dc2626" cap="#b91c1c" pants="#d1d5db" batColor={avatar?AVATAR_OPTS.bat[avatar.b||0]:"#c8a060"} ring={pos==="batter"} pose="batter" number={pos==="batter"?24:null}/>}
 
       {/* === RUNNERS (away team — always red, golden ring) === */}
-      {on(1)&&<Guy x={298} y={200} jersey="#dc2626" cap="#b91c1c" pants="#d1d5db" ring={true} pose="runner"/>}
-      {on(2)&&<Guy x={200} y={125} jersey="#dc2626" cap="#b91c1c" pants="#d1d5db" ring={true} pose="runner"/>}
-      {on(3)&&<Guy x={102} y={200} jersey="#dc2626" cap="#b91c1c" pants="#d1d5db" ring={true} pose="runner"/>}
+      {on(1)&&<Guy x={290} y={210} jersey="#dc2626" cap="#b91c1c" pants="#d1d5db" ring={true} pose="runner"/>}
+      {on(2)&&<Guy x={200} y={135} jersey="#dc2626" cap="#b91c1c" pants="#d1d5db" ring={true} pose="runner"/>}
+      {on(3)&&<Guy x={110} y={210} jersey="#dc2626" cap="#b91c1c" pants="#d1d5db" ring={true} pose="runner"/>}
 
       {/* === QW4: Trajectory dashed lines for ball flight (replay mode) === */}
       {slow&&anim&&(()=>{
@@ -15648,7 +15649,7 @@ export default function App(){
         lastWrongConceptTag:_newLastWrong,gapDetectionCache:_newGapCache,
         flaggedScenarios:p.flaggedScenarios||{},adaptiveDiff:_ad,
         // AF8: Save correct plays to highlight reel (last 10)
-        highlights:isOpt&&sc.anim?[...(p.highlights||[]),{anim:sc.anim,title:sc.title,pos,runners:sc.situation?.runners||[],situation:sc.situation,ts:Date.now(),variant:sc.animVariant||sc.pitchType||null}].slice(-10):(p.highlights||[]),
+        highlights:isOpt&&sc.anim?[...(p.highlights||[]),{anim:sc.anim,title:sc.title,pos,runners:sc.situation?.runners||[],situation:sc.situation,ts:Date.now(),variant:(()=>{const r=sc.situation?.runners||[];const a=sc.anim;if(a==='steal'){if(r.includes(3))return'3toHome';if(r.includes(2)&&!r.includes(1))return'2to3';}if(a==='advance'){if(r.includes(3))return'3toHome';if(r.includes(2)&&!r.includes(1))return'2to3';}if(a==='hit'||a==='flyout'){if(pos==='leftField')return'LF';if(pos==='centerField')return'CF';}if(a==='groundout'&&(pos==='firstBase'||pos==='secondBase'))return'1B';if(a==='freeze'){if(r.includes(3))return'3B';if(r.includes(2))return'2B';}return sc.animVariant||sc.pitchType||null;})()}].slice(-10):(p.highlights||[]),
         // enrichFeedback data: store situational context for adaptive pattern detection (last 50)
         playContextHistory:[...(p.playContextHistory||[]),_playContext].slice(-50)};
       ns.achs=checkAch(ns);
@@ -18738,7 +18739,7 @@ export default function App(){
           </div>}
 
           <div style={{background:"rgba(0,0,0,.25)",borderRadius:12,padding:6,marginBottom:8,border:"1px solid rgba(255,255,255,.03)"}}>
-            <Field runners={sc.situation.runners} outcome={fo} ak={ak} anim={fo?sc.anim:null} theme={FIELD_THEMES.find(th=>th.id===stats.fieldTheme)||FIELD_THEMES[0]} avatar={{j:stats.avatarJersey||0,c:stats.avatarCap||0,b:stats.avatarBat||0}} pos={pos}/>
+            <Field runners={sc.situation.runners} outcome={fo} ak={ak} anim={fo?sc.anim:null} animVariant={fo?(()=>{const r=sc.situation?.runners||[];const a=sc.anim;if(a==='steal'){if(r.includes(3))return'3toHome';if(r.includes(2)&&!r.includes(1))return'2to3';}if(a==='advance'){if(r.includes(3))return'3toHome';if(r.includes(2)&&!r.includes(1))return'2to3';}if(a==='hit'||a==='flyout'){if(pos==='leftField')return'LF';if(pos==='centerField')return'CF';}if(a==='groundout'){if(pos==='firstBase'||pos==='secondBase')return'1B';}if(a==='freeze'){if(r.includes(3))return'3B';if(r.includes(2))return'2B';}return sc.animVariant||sc.pitchType||null;})():null} theme={FIELD_THEMES.find(th=>th.id===stats.fieldTheme)||FIELD_THEMES[0]} avatar={{j:stats.avatarJersey||0,c:stats.avatarCap||0,b:stats.avatarBat||0}} pos={pos}/>
             <div style={{marginTop:3}}><Board sit={sc.situation}/></div>
           </div>
 

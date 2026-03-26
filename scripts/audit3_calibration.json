@@ -1,0 +1,2761 @@
+{
+  "meta": {
+    "timestamp": "2026-03-17T03:07:55.341Z",
+    "model": "claude-opus-4-via-worker",
+    "sampleSize": 50,
+    "stage": 1
+  },
+  "stats": {
+    "total": 50,
+    "scored": 50,
+    "passed": 41,
+    "failed": 9,
+    "errors": 0,
+    "avgScore": 8.292,
+    "minScore": 4.8,
+    "maxScore": 9.2,
+    "byPosition": {
+      "rules": {
+        "count": 3,
+        "avg": "6.30",
+        "passed": 1,
+        "failed": 2
+      },
+      "famous": {
+        "count": 4,
+        "avg": "7.47",
+        "passed": 2,
+        "failed": 2
+      },
+      "thirdBase": {
+        "count": 3,
+        "avg": "7.93",
+        "passed": 2,
+        "failed": 1
+      },
+      "manager": {
+        "count": 3,
+        "avg": "7.97",
+        "passed": 2,
+        "failed": 1
+      },
+      "centerField": {
+        "count": 3,
+        "avg": "8.07",
+        "passed": 2,
+        "failed": 1
+      },
+      "pitcher": {
+        "count": 4,
+        "avg": "8.30",
+        "passed": 3,
+        "failed": 1
+      },
+      "counts": {
+        "count": 3,
+        "avg": "8.33",
+        "passed": 3,
+        "failed": 0
+      },
+      "firstBase": {
+        "count": 3,
+        "avg": "8.43",
+        "passed": 2,
+        "failed": 1
+      },
+      "baserunner": {
+        "count": 3,
+        "avg": "8.50",
+        "passed": 3,
+        "failed": 0
+      },
+      "shortstop": {
+        "count": 4,
+        "avg": "8.68",
+        "passed": 4,
+        "failed": 0
+      },
+      "batter": {
+        "count": 4,
+        "avg": "8.70",
+        "passed": 4,
+        "failed": 0
+      },
+      "rightField": {
+        "count": 3,
+        "avg": "8.70",
+        "passed": 3,
+        "failed": 0
+      },
+      "leftField": {
+        "count": 3,
+        "avg": "8.83",
+        "passed": 3,
+        "failed": 0
+      },
+      "catcher": {
+        "count": 3,
+        "avg": "8.97",
+        "passed": 3,
+        "failed": 0
+      },
+      "secondBase": {
+        "count": 4,
+        "avg": "8.98",
+        "passed": 4,
+        "failed": 0
+      }
+    },
+    "dimAverages": {
+      "factualAccuracy": "8.56",
+      "bestAnswerCorrect": "9.06",
+      "explanationQuality": "7.36",
+      "optionDistinctness": "8.44",
+      "rateDistribution": "8.20",
+      "roleCompliance": "9.32",
+      "ageAppropriateness": "8.86",
+      "scenarioRealism": "8.62",
+      "conceptClarity": "8.38",
+      "engagementValue": "8.20"
+    },
+    "topIssues": [
+      {
+        "issue": "explanations could be more teaching-focused rather than just stating outcomes",
+        "count": 1
+      },
+      {
+        "issue": "option N and 3 are somewhat similar (both off-speed pitches)",
+        "count": 1
+      },
+      {
+        "issue": "explanation for option N doesn't teach why throwing over might be useful (holding runner close, disrupting timing)",
+        "count": 1
+      },
+      {
+        "issue": "rate for option N (50%) seems high for a relatively neutral choice that doesn't solve the problem",
+        "count": 1
+      },
+      {
+        "issue": "explanation for option N (changeup) focuses only on the negative (walk risk) without acknowledging why 55% of coaches might choose it",
+        "count": 1
+      },
+      {
+        "issue": "the 'best' option assumes the pitcher has good slider command, which may not apply to all age groups despite diff:3 rating",
+        "count": 1
+      },
+      {
+        "issue": "rates seem arbitrary - why exactly 85% for slider and 55% for changeup?",
+        "count": 1
+      },
+      {
+        "issue": "score should be 2-1 not 1-2 since home team (batting in bot 7) is losing",
+        "count": 1
+      },
+      {
+        "issue": "explanation for option N uses negative framing ('selfish') instead of teaching why fly ball is better",
+        "count": 1
+      },
+      {
+        "issue": "count 1-1 contradicts description saying 'pitcher throws mostly fastballs' without using that info",
+        "count": 1
+      },
+      {
+        "issue": "explanation 0 doesn't teach why guessing is bad with 0-2 count",
+        "count": 1
+      },
+      {
+        "issue": "explanation 2 could better explain the two-strike approach principle",
+        "count": 1
+      },
+      {
+        "issue": "explanations 2 and 3 end with identical phrase 'think about what gives your team the best result here' reducing teaching variety",
+        "count": 1
+      },
+      {
+        "issue": "explanation 1 contradicts itself by saying 'take the first pitch' but also 'be prepared to adjust' if he grooves one",
+        "count": 1
+      },
+      {
+        "issue": "option N 'swing if it's hittable' is too vague - every batter should swing at hittable pitches",
+        "count": 1
+      },
+      {
+        "issue": "for a high-pressure situation teaching moment, the concept doesn't address the pressure aspect strongly",
+        "count": 1
+      },
+      {
+        "issue": "ball 'right at you' is ambiguous - could mean directly at 2b or slightly to either side, which would change the play",
+        "count": 1
+      },
+      {
+        "issue": "explanation for option N could teach more about when taking the sure out is actually the right choice",
+        "count": 1
+      },
+      {
+        "issue": "explanations don't teach the underlying relay principles (when to use relay, communication, positioning adjustments)",
+        "count": 1
+      },
+      {
+        "issue": "missing the double-cut aspect referenced in concepttag - scenario only addresses single relay",
+        "count": 1
+      }
+    ],
+    "worstScenarios": [
+      {
+        "id": "fp16",
+        "position": "famous",
+        "title": "The Pine Tar Game",
+        "diff": 1,
+        "conceptTag": "force-vs-tag",
+        "score": 4.8,
+        "passed": false,
+        "issues": [
+          "conceptTag 'force-vs-tag' is completely wrong for a rules interpretation scenario about pine tar",
+          "Position 'famous' is not a valid baseball position - should be 'manager' since this is a managerial decision",
+          "Teaching 6-year-olds about a 1983 pine tar technicality rule is not age-appropriate for diff:1",
+          "This scenario doesn't teach applicable baseball strategy - it's just historical trivia",
+          "The concept has nothing to do with the force-vs-tag principle"
+        ],
+        "strengths": [
+          "Historically accurate recreation of the famous Pine Tar Game incident",
+          "Good explanation of why the AL president overturned the original ruling"
+        ],
+        "dimensions": {
+          "factualAccuracy": 9,
+          "bestAnswerCorrect": 8,
+          "explanationQuality": 7,
+          "optionDistinctness": 6,
+          "rateDistribution": 7,
+          "roleCompliance": 1,
+          "ageAppropriateness": 3,
+          "scenarioRealism": 8,
+          "conceptClarity": 1,
+          "engagementValue": 5
+        },
+        "suggestedFix": "Replace with an actual force-vs-tag play scenario for the appropriate position, or change conceptTag to 'rules-interpretation' and position to 'manager' while increasing difficulty to 2 or 3 for older kids who can appreciate historical rule controversies",
+        "usage": {
+          "input_tokens": 2025,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 0,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 0
+          },
+          "output_tokens": 388,
+          "service_tier": "standard",
+          "inference_geo": "not_available"
+        }
+      },
+      {
+        "id": "rl1",
+        "position": "rules",
+        "title": "Infield Fly Rule",
+        "diff": 2,
+        "conceptTag": "double-play-turn",
+        "score": 4.8,
+        "passed": false,
+        "issues": [
+          "conceptTag 'double-play-turn' doesn't match the scenario which teaches infield fly rule",
+          "Option 3 explanation is incomplete - doesn't explain WHY the rule exists or what happens",
+          "Explanations don't teach the CONDITIONS for infield fly (fair territory, ordinary effort, runners on 1st/2nd or bases loaded)",
+          "Category 'rules' and position 'rules' are redundant - should use a specific fielding position",
+          "Rates don't match realistic confusion patterns - option 3 (25%) should be higher than option 1 (20%)"
+        ],
+        "strengths": [
+          "Accurately explains the core infield fly rule mechanics",
+          "Good use of a common game situation where this rule applies"
+        ],
+        "dimensions": {
+          "factualAccuracy": 8,
+          "bestAnswerCorrect": 9,
+          "explanationQuality": 5,
+          "optionDistinctness": 7,
+          "rateDistribution": 4,
+          "roleCompliance": 1,
+          "ageAppropriateness": 8,
+          "scenarioRealism": 9,
+          "conceptClarity": 6,
+          "engagementValue": 7
+        },
+        "suggestedFix": "Change position to 'umpire' or specific fielder, fix conceptTag to 'infield-fly-rule', expand explanations to teach WHEN the rule applies (fair ball, ordinary effort, force play possible at 3rd), and adjust rates so dead ball option (20%) has lower rate than must-catch option (25%)",
+        "usage": {
+          "input_tokens": 1862,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 0,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 0
+          },
+          "output_tokens": 416,
+          "service_tier": "standard",
+          "inference_geo": "not_available"
+        }
+      },
+      {
+        "id": "rl6",
+        "position": "rules",
+        "title": "Designated Hitter Rule",
+        "diff": 1,
+        "conceptTag": "force-vs-tag",
+        "score": 5.2,
+        "passed": false,
+        "issues": [
+          "conceptTag 'force-vs-tag' is completely wrong — this is about DH rules, not force plays",
+          "Position 'rules' doesn't match standard positions (should be 'manager')",
+          "Explanations are repetitive — all say 'DH bats for pitcher' without teaching different aspects",
+          "Description lacks game context — why is manager deciding this in Top 1 with game started?",
+          "No explanation teaches WHY the DH rule exists or its strategic implications"
+        ],
+        "strengths": [
+          "Factually accurate about 2022 universal DH rule",
+          "Age-appropriate language for diff:1"
+        ],
+        "dimensions": {
+          "factualAccuracy": 8,
+          "bestAnswerCorrect": 9,
+          "explanationQuality": 3,
+          "optionDistinctness": 7,
+          "rateDistribution": 8,
+          "roleCompliance": 2,
+          "ageAppropriateness": 8,
+          "scenarioRealism": 4,
+          "conceptClarity": 3,
+          "engagementValue": 6
+        },
+        "suggestedFix": "Change position to 'manager', conceptTag to 'dh-rule', and rewrite explanations to teach: 1) What DH is, 2) Why it helps (pitchers focus on pitching), 3) Why pinch hitting fails (removes pitcher), 4) Why double-batting is illegal",
+        "usage": {
+          "input_tokens": 1817,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 0,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 0
+          },
+          "output_tokens": 388,
+          "service_tier": "standard",
+          "inference_geo": "not_available"
+        }
+      },
+      {
+        "id": "f15",
+        "position": "thirdBase",
+        "title": "Runner on Second — Check Before Throwing",
+        "diff": 1,
+        "conceptTag": "infield-positioning",
+        "score": 5.8,
+        "passed": false,
+        "issues": [
+          "Best answer is option 2 (tag at third) but has rate of 25, while option 2 (look back then throw) has rate of 85 - rates don't match best designation",
+          "Looking the runner back to 2nd before throwing to first is the correct play here, not attempting a tag at third on a non-force play",
+          "Explanation for option 2 correctly identifies no force play but doesn't explain why this makes it a poor choice",
+          "Rates don't follow required distribution - best option should be 65-90 but is only 25"
+        ],
+        "strengths": [
+          "Realistic game situation that teaches important concept about checking runners",
+          "Age-appropriate language and complexity for diff:1"
+        ],
+        "dimensions": {
+          "factualAccuracy": 8,
+          "bestAnswerCorrect": 2,
+          "explanationQuality": 6,
+          "optionDistinctness": 8,
+          "rateDistribution": 2,
+          "roleCompliance": 10,
+          "ageAppropriateness": 9,
+          "scenarioRealism": 9,
+          "conceptClarity": 8,
+          "engagementValue": 7
+        },
+        "suggestedFix": "Change best answer to option 2 (look runner back) and swap rates between options 1 and 2. Update explanation for option 1 to explain why tagging at third on a non-force is rarely successful.",
+        "usage": {
+          "input_tokens": 1861,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 0,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 0
+          },
+          "output_tokens": 385,
+          "service_tier": "standard",
+          "inference_geo": "not_available"
+        }
+      },
+      {
+        "id": "f3",
+        "position": "centerField",
+        "title": "Pop Fly Priority",
+        "diff": 1,
+        "conceptTag": "fly-ball-priority",
+        "score": 6.9,
+        "passed": false,
+        "issues": [
+          "Explanation 3 answers for option 3 correctly, but explanation 4 contradicts the scenario by telling RF to back off for CF when the player IS the CF",
+          "Score shows home team leading 1-0 in top of 2nd, but description doesn't establish meaningful game pressure to justify diff:1",
+          "Best option rate of 90 is too high for a communication scenario where multiple valid approaches exist",
+          "Option 1 could be more specific about when to call it (immediately vs after assessing)"
+        ],
+        "strengths": [
+          "Teaches critical safety concept of CF priority to prevent collisions",
+          "Age-appropriate language and concept for 6+ year olds"
+        ],
+        "dimensions": {
+          "factualAccuracy": 6,
+          "bestAnswerCorrect": 8,
+          "explanationQuality": 5,
+          "optionDistinctness": 8,
+          "rateDistribution": 6,
+          "roleCompliance": 10,
+          "ageAppropriateness": 9,
+          "scenarioRealism": 8,
+          "conceptClarity": 9,
+          "engagementValue": 7
+        },
+        "suggestedFix": "Fix explanation 4 to explain why RF should back off (e.g., 'RF should yield because you have the better angle from CF'), and lower best option rate to 75-80 to reflect that timing of the call matters",
+        "usage": {
+          "input_tokens": 1780,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 0,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 0
+          },
+          "output_tokens": 378,
+          "service_tier": "standard",
+          "inference_geo": "not_available"
+        }
+      },
+      {
+        "id": "m1",
+        "position": "manager",
+        "title": "Intentional Walk",
+        "diff": 2,
+        "conceptTag": "force-vs-tag",
+        "score": 6.9,
+        "passed": false,
+        "issues": [
+          "Description says '.220 hitter (8 HRs)' but explanation says '.245 hitter' - inconsistent stats",
+          "ConceptTag 'force-vs-tag' doesn't match the actual concept being taught (intentional walk strategy)",
+          "Explanation 0 incorrectly states walking sets up force at EVERY base - only at 3rd and home, not 2nd",
+          "Option 3 'Walk both' is unclear - can't intentionally walk the on-deck hitter",
+          "Explanation 3 about 'cold reliever' doesn't connect to the strategic decision of bringing in a new pitcher"
+        ],
+        "strengths": [
+          "Realistic late-game pressure situation that happens frequently in baseball",
+          "Good use of batting averages to create a clear strategic decision"
+        ],
+        "dimensions": {
+          "factualAccuracy": 5,
+          "bestAnswerCorrect": 8,
+          "explanationQuality": 6,
+          "optionDistinctness": 6,
+          "rateDistribution": 8,
+          "roleCompliance": 9,
+          "ageAppropriateness": 8,
+          "scenarioRealism": 7,
+          "conceptClarity": 6,
+          "engagementValue": 7
+        },
+        "suggestedFix": "Fix the batting average inconsistency (.220 vs .245), change conceptTag to 'intentional-walk', clarify option 3 to 'Walk him, then pitch carefully to next batter', and rewrite explanations to be more specific about the strategic reasoning",
+        "usage": {
+          "input_tokens": 1798,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 0,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 0
+          },
+          "output_tokens": 414,
+          "service_tier": "standard",
+          "inference_geo": "not_available"
+        }
+      },
+      {
+        "id": "p18",
+        "position": "pitcher",
+        "title": "Two-Two Tightrope",
+        "diff": 2,
+        "conceptTag": "pickoff-mechanics",
+        "score": 7.1,
+        "passed": false,
+        "issues": [
+          "Concept tag 'pickoff-mechanics' doesn't match scenario content about pitch selection and strikeouts",
+          "No indication how a 9-year-old pitcher would know slider whiff rates (30%) or have 4 different pitches",
+          "Score perspective error: Top 7th means visiting team bats, so 'up 5-4' should be 'down 5-4' from pitcher's view",
+          "Curveball explanation focuses on wild pitch risk rather than strategic choice evaluation",
+          "Rates don't reflect realistic strikeout probabilities for youth baseball"
+        ],
+        "strengths": [
+          "Clear strategic dilemma between strikeout vs contact in high-leverage situation",
+          "Explanations teach valuable principle about preventing scoring with runner on third"
+        ],
+        "dimensions": {
+          "factualAccuracy": 5,
+          "bestAnswerCorrect": 8,
+          "explanationQuality": 7,
+          "optionDistinctness": 8,
+          "rateDistribution": 6,
+          "roleCompliance": 9,
+          "ageAppropriateness": 4,
+          "scenarioRealism": 6,
+          "conceptClarity": 5,
+          "engagementValue": 8
+        },
+        "suggestedFix": "Change conceptTag to 'pitch-selection', fix score perspective (down 4-5 in Top 7th), simplify to 2-3 pitch options appropriate for youth level, remove advanced analytics references",
+        "usage": {
+          "input_tokens": 1910,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 0,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 0
+          },
+          "output_tokens": 393,
+          "service_tier": "standard",
+          "inference_geo": "not_available"
+        }
+      },
+      {
+        "id": "fp3",
+        "position": "famous",
+        "title": "Baez's Rundown Magic",
+        "diff": 3,
+        "conceptTag": "rundown-mechanics",
+        "score": 7.2,
+        "passed": false,
+        "issues": [
+          "Runner on 1st only but explanation mentions 'other runner score' - factual error",
+          "Best answer (option 3) references non-existent baserunner",
+          "Scenario setup contradicts the actual play - Baez's famous rundown had a runner on 3rd",
+          "Explanations don't clearly differentiate why option 3 is better than option 4",
+          "Category 'famous' doesn't match standard positions - should be 'baserunner'"
+        ],
+        "strengths": [
+          "Creative use of real MLB moment to teach strategy",
+          "Engaging scenario that kids would find exciting"
+        ],
+        "dimensions": {
+          "factualAccuracy": 4,
+          "bestAnswerCorrect": 5,
+          "explanationQuality": 6,
+          "optionDistinctness": 7,
+          "rateDistribution": 8,
+          "roleCompliance": 5,
+          "ageAppropriateness": 9,
+          "scenarioRealism": 8,
+          "conceptClarity": 8,
+          "engagementValue": 9
+        },
+        "suggestedFix": "Change runners to [1,3] to match the actual Baez play, rewrite option 3 as 'Create chaos to help runner on 3rd score', and file under 'baserunner' position instead of 'famous'",
+        "usage": {
+          "input_tokens": 1839,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 0,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 0
+          },
+          "output_tokens": 345,
+          "service_tier": "standard",
+          "inference_geo": "not_available"
+        }
+      },
+      {
+        "id": "f21",
+        "position": "firstBase",
+        "title": "First Baseman's DP — Bases Loaded",
+        "diff": 3,
+        "conceptTag": "double-play-turn",
+        "score": 7.3,
+        "passed": false,
+        "issues": [
+          "Factual error: With bases loaded and 1 out, stepping on first creates out #2, but throwing home is NOT a force play anymore - the force is removed once first base is touched",
+          "The 'best' answer (step on first, throw home) would not work as described - catcher cannot get a force out at home after first base is touched",
+          "Explanation states 'catcher steps on home plate for the force out' which is incorrect - it would require a tag after stepping on first",
+          "The correct play would be throw home first for force, then to first for double play (option 2 is actually closest to correct)"
+        ],
+        "strengths": [
+          "Realistic game situation with clear strategic decision",
+          "Good difficulty level for ages 12+ with advanced double play concept"
+        ],
+        "dimensions": {
+          "factualAccuracy": 2,
+          "bestAnswerCorrect": 2,
+          "explanationQuality": 6,
+          "optionDistinctness": 8,
+          "rateDistribution": 8,
+          "roleCompliance": 10,
+          "ageAppropriateness": 9,
+          "scenarioRealism": 9,
+          "conceptClarity": 7,
+          "engagementValue": 8
+        },
+        "suggestedFix": "Change best answer to option 2 (throw home first, then cover first) and rewrite explanations to correctly explain that stepping on first removes the force at home, so home-first preserves both force outs",
+        "usage": {
+          "input_tokens": 1897,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 0,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 0
+          },
+          "output_tokens": 396,
+          "service_tier": "standard",
+          "inference_geo": "not_available"
+        }
+      }
+    ]
+  },
+  "results": [
+    {
+      "id": "p2",
+      "position": "pitcher",
+      "title": "First Batter of the Game",
+      "diff": 1,
+      "conceptTag": "first-pitch-strike",
+      "score": 8.9,
+      "passed": true,
+      "issues": [
+        "Explanations could be more teaching-focused rather than just stating outcomes",
+        "Option 2 and 3 are somewhat similar (both off-speed pitches)"
+      ],
+      "strengths": [
+        "Excellent use of concrete statistic (ERAs 2 runs lower) to support the teaching point",
+        "Realistic game situation that every young pitcher will face",
+        "Age-appropriate language for diff:1"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 7,
+        "optionDistinctness": 8,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 10,
+        "scenarioRealism": 9,
+        "conceptClarity": 9,
+        "engagementValue": 8
+      },
+      "suggestedFix": null,
+      "usage": {
+        "input_tokens": 1798,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 238,
+        "service_tier": "standard",
+        "inference_geo": "not_available"
+      }
+    },
+    {
+      "id": "p3",
+      "position": "pitcher",
+      "title": "Runner Threatening to Steal",
+      "diff": 2,
+      "conceptTag": "steal-breakeven",
+      "score": 8.9,
+      "passed": true,
+      "issues": [
+        "Explanation for option 1 doesn't teach why throwing over might be useful (holding runner close, disrupting timing)",
+        "Rate for option 1 (50%) seems high for a relatively neutral choice that doesn't solve the problem"
+      ],
+      "strengths": [
+        "Excellent use of specific timing data (1.5s to 1.2s) to teach the concrete value of slide step",
+        "All four options represent genuinely different strategic approaches to handling base stealers"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 9,
+        "explanationQuality": 8,
+        "optionDistinctness": 10,
+        "rateDistribution": 8,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 9,
+        "conceptClarity": 9,
+        "engagementValue": 9
+      },
+      "suggestedFix": null,
+      "usage": {
+        "input_tokens": 1788,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 268,
+        "service_tier": "standard",
+        "inference_geo": "not_available"
+      }
+    },
+    {
+      "id": "p1",
+      "position": "pitcher",
+      "title": "Full Count Pressure",
+      "diff": 3,
+      "conceptTag": "count-leverage",
+      "score": 8.3,
+      "passed": true,
+      "issues": [
+        "Explanation for option 3 (changeup) focuses only on the negative (walk risk) without acknowledging why 55% of coaches might choose it",
+        "The 'best' option assumes the pitcher has good slider command, which may not apply to all age groups despite diff:3 rating",
+        "Rates seem arbitrary - why exactly 85% for slider and 55% for changeup?"
+      ],
+      "strengths": [
+        "Excellent high-pressure scenario that teaches real count leverage concepts",
+        "Options are genuinely distinct strategies that coaches actually debate"
+      ],
+      "dimensions": {
+        "factualAccuracy": 9,
+        "bestAnswerCorrect": 8,
+        "explanationQuality": 7,
+        "optionDistinctness": 9,
+        "rateDistribution": 8,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 9,
+        "conceptClarity": 9,
+        "engagementValue": 9
+      },
+      "suggestedFix": null,
+      "usage": {
+        "input_tokens": 1826,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 285,
+        "service_tier": "standard",
+        "inference_geo": "not_available"
+      }
+    },
+    {
+      "id": "b1",
+      "position": "batter",
+      "title": "RBI Opportunity",
+      "diff": 1,
+      "conceptTag": "situational-hitting",
+      "score": 8.7,
+      "passed": true,
+      "issues": [
+        "Score should be 2-1 not 1-2 since home team (batting in Bot 7) is losing",
+        "Explanation for option 1 uses negative framing ('selfish') instead of teaching why fly ball is better",
+        "Count 1-1 contradicts description saying 'pitcher throws mostly fastballs' without using that info"
+      ],
+      "strengths": [
+        "Teaches fundamental RBI concept perfectly for young players",
+        "Options are distinct and include realistic tempting wrong answer (ground ball)"
+      ],
+      "dimensions": {
+        "factualAccuracy": 7,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 8,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 9,
+        "conceptClarity": 10,
+        "engagementValue": 9
+      },
+      "suggestedFix": null,
+      "usage": {
+        "input_tokens": 1792,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 279,
+        "service_tier": "standard",
+        "inference_geo": "not_available"
+      }
+    },
+    {
+      "id": "b2",
+      "position": "batter",
+      "title": "Two-Strike Approach",
+      "diff": 2,
+      "conceptTag": "two-strike-approach",
+      "score": 9.2,
+      "passed": true,
+      "issues": [
+        "Explanation 0 doesn't teach why guessing is bad with 0-2 count",
+        "Explanation 2 could better explain the two-strike approach principle"
+      ],
+      "strengths": [
+        "Excellent two-strike teaching scenario with realistic game pressure",
+        "Options represent common batting approaches players actually consider",
+        "Best answer teaches fundamental hitting adjustment"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 8,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 9,
+        "conceptClarity": 9,
+        "engagementValue": 9
+      },
+      "suggestedFix": null,
+      "usage": {
+        "input_tokens": 1785,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 235,
+        "service_tier": "standard",
+        "inference_geo": "not_available"
+      }
+    },
+    {
+      "id": "b8",
+      "position": "batter",
+      "title": "Cold Off the Bench",
+      "diff": 3,
+      "conceptTag": "situational-hitting",
+      "score": 8,
+      "passed": true,
+      "issues": [
+        "Explanations 2 and 3 end with identical phrase 'Think about what gives your team the best result here' reducing teaching variety",
+        "Explanation 1 contradicts itself by saying 'take the first pitch' but also 'be prepared to adjust' if he grooves one",
+        "Option 2 'Swing if it's hittable' is too vague - every batter should swing at hittable pitches",
+        "For a high-pressure situation teaching moment, the concept doesn't address the pressure aspect strongly"
+      ],
+      "strengths": [
+        "Realistic high-pressure scenario that teaches a valuable pinch-hitting principle",
+        "Excellent rate distribution with tempting wrong answer (60%) and clear worst option (5%)"
+      ],
+      "dimensions": {
+        "factualAccuracy": 9,
+        "bestAnswerCorrect": 8,
+        "explanationQuality": 6,
+        "optionDistinctness": 7,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 9,
+        "conceptClarity": 8,
+        "engagementValue": 8
+      },
+      "suggestedFix": "Rewrite explanations 2-3 to teach different lessons (timing vs. zone awareness vs. pressure management) and clarify that option 1 means taking UNLESS it's right down the middle",
+      "usage": {
+        "input_tokens": 1858,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 385,
+        "service_tier": "standard",
+        "inference_geo": "not_available"
+      }
+    },
+    {
+      "id": "f1",
+      "position": "secondBase",
+      "title": "Double Play Chance",
+      "diff": 1,
+      "conceptTag": "double-play-turn",
+      "score": 8.9,
+      "passed": true,
+      "issues": [
+        "Ball 'right at you' is ambiguous - could mean directly at 2B or slightly to either side, which would change the play",
+        "Explanation for option 2 could teach more about when taking the sure out is actually the right choice"
+      ],
+      "strengths": [
+        "Perfect example of a fundamental double play concept for young players",
+        "Rates accurately reflect real-world decision making with 85% for the clearly best option"
+      ],
+      "dimensions": {
+        "factualAccuracy": 9,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 8,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 10,
+        "scenarioRealism": 8,
+        "conceptClarity": 9,
+        "engagementValue": 9
+      },
+      "suggestedFix": null,
+      "usage": {
+        "input_tokens": 1794,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 243,
+        "service_tier": "standard",
+        "inference_geo": "not_available"
+      }
+    },
+    {
+      "id": "f12",
+      "position": "secondBase",
+      "title": "Relay Position",
+      "diff": 2,
+      "conceptTag": "relay-double-cut",
+      "score": 8.9,
+      "passed": true,
+      "issues": [
+        "Explanations don't teach the underlying relay principles (when to use relay, communication, positioning adjustments)",
+        "Missing the double-cut aspect referenced in conceptTag - scenario only addresses single relay"
+      ],
+      "strengths": [
+        "Factually accurate relay mechanics for 2B on right field hits",
+        "Clear correct answer with appropriate difficulty for age 11+"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 7,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 10,
+        "scenarioRealism": 9,
+        "conceptClarity": 8,
+        "engagementValue": 8
+      },
+      "suggestedFix": null,
+      "usage": {
+        "input_tokens": 1777,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 241,
+        "service_tier": "standard",
+        "inference_geo": "not_available"
+      }
+    },
+    {
+      "id": "f20",
+      "position": "secondBase",
+      "title": "Fast Runner — Can You Turn Two?",
+      "diff": 3,
+      "conceptTag": "double-play-turn",
+      "score": 8.9,
+      "passed": true,
+      "issues": [
+        "Option 3 ('let the shortstop decide') is vague and doesn't teach clear decision-making",
+        "Explanation 1 could better explain WHY two on/nobody out is worse than one on/one out"
+      ],
+      "strengths": [
+        "Excellent teaching of when NOT to attempt a double play — crucial advanced concept",
+        "Realistic game situation with appropriate pressure (tie game, late innings)"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 8,
+        "optionDistinctness": 8,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 9,
+        "conceptClarity": 9,
+        "engagementValue": 8
+      },
+      "suggestedFix": null,
+      "usage": {
+        "input_tokens": 1860,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 264,
+        "service_tier": "standard",
+        "inference_geo": "not_available"
+      }
+    },
+    {
+      "id": "f13",
+      "position": "shortstop",
+      "title": "Ground Ball to Short — Runner on First",
+      "diff": 1,
+      "conceptTag": "double-play-turn",
+      "score": 8.9,
+      "passed": true,
+      "issues": [
+        "Age minimum of 6 is too young for double play concepts",
+        "Option 2 explanation incorrectly states runner advances to second on throw to first"
+      ],
+      "strengths": [
+        "Clear teaching of fundamental double play situation",
+        "Realistic game scenario with appropriate pressure"
+      ],
+      "dimensions": {
+        "factualAccuracy": 8,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 8,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 7,
+        "scenarioRealism": 10,
+        "conceptClarity": 10,
+        "engagementValue": 9
+      },
+      "suggestedFix": null,
+      "usage": {
+        "input_tokens": 1845,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 218,
+        "service_tier": "standard",
+        "inference_geo": "not_available"
+      }
+    },
+    {
+      "id": "f2",
+      "position": "shortstop",
+      "title": "Cutoff Decision",
+      "diff": 2,
+      "conceptTag": "cutoff-roles",
+      "score": 7.8,
+      "passed": true,
+      "issues": [
+        "Explanations don't teach underlying principles - just state outcomes without explaining WHY relay is better",
+        "Option 3 'Cut and hold' scenario doesn't make strategic sense - why would SS ever just hold the ball?",
+        "Missing key teaching point about reading the play and making split-second decision based on throw quality"
+      ],
+      "strengths": [
+        "Correctly identifies SS as proper cutoff for left-center hit",
+        "Game situation creates genuine pressure with tie game Bot 6"
+      ],
+      "dimensions": {
+        "factualAccuracy": 9,
+        "bestAnswerCorrect": 9,
+        "explanationQuality": 5,
+        "optionDistinctness": 7,
+        "rateDistribution": 8,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 8,
+        "conceptClarity": 8,
+        "engagementValue": 7
+      },
+      "suggestedFix": "Rewrite explanations to teach principles: (1) Why relay throws are more accurate, (2) How to judge when to let ball through, (3) Replace 'hold' with 'fake throw home, check runner at 2nd', (4) Why home is priority with game tied",
+      "usage": {
+        "input_tokens": 1762,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 344,
+        "service_tier": "standard",
+        "inference_geo": "not_available"
+      }
+    },
+    {
+      "id": "f31",
+      "position": "shortstop",
+      "title": "Cutoff Man Position on a Relay",
+      "diff": 3,
+      "conceptTag": "cutoff-roles",
+      "score": 8.9,
+      "passed": true,
+      "issues": [
+        "Explanation 0 incorrectly states 'The relay man is always an infielder' when talking about cutoff vs relay roles",
+        "The scenario title says 'Cutoff Man' but describes a relay situation - cutoff and relay are different roles"
+      ],
+      "strengths": [
+        "Excellent teaching of proper relay positioning with specific distance guidance (100-130 feet)",
+        "Realistic game situation with appropriate complexity for diff:3"
+      ],
+      "dimensions": {
+        "factualAccuracy": 8,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 9,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 10,
+        "conceptClarity": 8,
+        "engagementValue": 8
+      },
+      "suggestedFix": null,
+      "usage": {
+        "input_tokens": 1929,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 255,
+        "service_tier": "standard",
+        "inference_geo": "not_available"
+      }
+    },
+    {
+      "id": "f3",
+      "position": "centerField",
+      "title": "Pop Fly Priority",
+      "diff": 1,
+      "conceptTag": "fly-ball-priority",
+      "score": 6.9,
+      "passed": false,
+      "issues": [
+        "Explanation 3 answers for option 3 correctly, but explanation 4 contradicts the scenario by telling RF to back off for CF when the player IS the CF",
+        "Score shows home team leading 1-0 in top of 2nd, but description doesn't establish meaningful game pressure to justify diff:1",
+        "Best option rate of 90 is too high for a communication scenario where multiple valid approaches exist",
+        "Option 1 could be more specific about when to call it (immediately vs after assessing)"
+      ],
+      "strengths": [
+        "Teaches critical safety concept of CF priority to prevent collisions",
+        "Age-appropriate language and concept for 6+ year olds"
+      ],
+      "dimensions": {
+        "factualAccuracy": 6,
+        "bestAnswerCorrect": 8,
+        "explanationQuality": 5,
+        "optionDistinctness": 8,
+        "rateDistribution": 6,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 8,
+        "conceptClarity": 9,
+        "engagementValue": 7
+      },
+      "suggestedFix": "Fix explanation 4 to explain why RF should back off (e.g., 'RF should yield because you have the better angle from CF'), and lower best option rate to 75-80 to reflect that timing of the call matters",
+      "usage": {
+        "input_tokens": 1780,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 378,
+        "service_tier": "standard",
+        "inference_geo": "not_available"
+      }
+    },
+    {
+      "id": "f27",
+      "position": "centerField",
+      "title": "Extra Base Hit to the Gap",
+      "diff": 2,
+      "conceptTag": "relay-double-cut",
+      "score": 9,
+      "passed": true,
+      "issues": [
+        "Explanation doesn't specify which fielder (SS or 2B) would relay from right-center gap",
+        "Could mention that CF should hit relay man chest-high for quick transfer"
+      ],
+      "strengths": [
+        "Excellent teaching of relay fundamentals with memorable principle 'two short throws beat one long throw'",
+        "Realistic game situation with appropriate pressure and stakes",
+        "Great use of specific distance (300+ feet) to illustrate why direct throw won't work"
+      ],
+      "dimensions": {
+        "factualAccuracy": 9,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 8,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 9,
+        "conceptClarity": 9,
+        "engagementValue": 8
+      },
+      "suggestedFix": null,
+      "usage": {
+        "input_tokens": 1876,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 268,
+        "service_tier": "standard",
+        "inference_geo": "not_available"
+      }
+    },
+    {
+      "id": "f10",
+      "position": "centerField",
+      "title": "Do-or-Die Play",
+      "diff": 3,
+      "conceptTag": "of-depth-arm-value",
+      "score": 8.3,
+      "passed": true,
+      "issues": [
+        "Scenario setup has logical flaw: with 2 outs in bottom 9th tie game, a single wouldn't automatically send runner home - they'd likely stop at 3rd to avoid game-ending out",
+        "Best answer oversimplifies: charging hard while maintaining control is often optimal for shallow singles where runner is definitely going",
+        "Options don't specify depth of hit - shallow vs deep single completely changes the correct play",
+        "Concept doesn't match conceptTag 'of-depth-arm-value' - scenario teaches accuracy over arm strength"
+      ],
+      "strengths": [
+        "High-pressure game situation creates genuine drama and teaches clutch performance",
+        "Explanations are concise and teach clear principles about each option"
+      ],
+      "dimensions": {
+        "factualAccuracy": 6,
+        "bestAnswerCorrect": 7,
+        "explanationQuality": 9,
+        "optionDistinctness": 9,
+        "rateDistribution": 8,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 7,
+        "conceptClarity": 8,
+        "engagementValue": 9
+      },
+      "suggestedFix": "Specify 'shallow single' and change situation to 'runner rounds 3rd aggressively' to make the home throw necessary, or change to runner on 3rd with game-winning run",
+      "usage": {
+        "input_tokens": 1778,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 376,
+        "service_tier": "standard",
+        "inference_geo": "not_available"
+      }
+    },
+    {
+      "id": "f9",
+      "position": "leftField",
+      "title": "Ball in the Sun",
+      "diff": 1,
+      "conceptTag": "of-communication",
+      "score": 8.5,
+      "passed": true,
+      "issues": [
+        "Option 2 'Stop and call for help' could be clearer - should specify calling for CF/SS help immediately",
+        "Explanation 2 doesn't teach the principle of communication with nearby fielders when sun-blinded",
+        "Count should be specified (e.g., '2-1') not just '-' for completeness"
+      ],
+      "strengths": [
+        "Teaches essential outfield sun-defense technique that every player needs",
+        "Age-appropriate language and concept for 6+ year olds"
+      ],
+      "dimensions": {
+        "factualAccuracy": 9,
+        "bestAnswerCorrect": 9,
+        "explanationQuality": 7,
+        "optionDistinctness": 8,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 10,
+        "scenarioRealism": 9,
+        "conceptClarity": 8,
+        "engagementValue": 8
+      },
+      "suggestedFix": null,
+      "usage": {
+        "input_tokens": 1744,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 287,
+        "service_tier": "standard",
+        "inference_geo": "not_available"
+      }
+    },
+    {
+      "id": "f28",
+      "position": "leftField",
+      "title": "Runner Trying to Score from First on a Double",
+      "diff": 2,
+      "conceptTag": "relay-double-cut",
+      "score": 9.1,
+      "passed": true,
+      "issues": [
+        "Relay man position not specified (should be SS on left side of field)",
+        "Explanation could better address why chest-high throws are important for relays"
+      ],
+      "strengths": [
+        "Excellent teaching of relay concept with realistic 350+ foot distance reference",
+        "Strong age-appropriate language and clear strategic teaching for 9-12 year olds"
+      ],
+      "dimensions": {
+        "factualAccuracy": 9,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 8,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 9,
+        "conceptClarity": 9,
+        "engagementValue": 9
+      },
+      "suggestedFix": null,
+      "usage": {
+        "input_tokens": 1898,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 242,
+        "service_tier": "standard",
+        "inference_geo": "not_available"
+      }
+    },
+    {
+      "id": "f57",
+      "position": "leftField",
+      "title": "Wind Blowing Out — Play Deeper",
+      "diff": 3,
+      "conceptTag": "of-depth-arm-value",
+      "score": 8.9,
+      "passed": true,
+      "issues": [
+        "Concept clarity slightly muddled - title suggests depth positioning but conceptTag references arm value which isn't addressed",
+        "Could be more engaging by adding specific batter tendency or game pressure element"
+      ],
+      "strengths": [
+        "Excellent practical teaching about wind effects on outfield positioning",
+        "Clear, actionable advice with specific depth adjustment (10-15 feet)",
+        "Explanations effectively contrast each option and teach the underlying principle"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 9,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 9,
+        "conceptClarity": 7,
+        "engagementValue": 7
+      },
+      "suggestedFix": null,
+      "usage": {
+        "input_tokens": 1877,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 258,
+        "service_tier": "standard",
+        "inference_geo": "not_available"
+      }
+    },
+    {
+      "id": "f5",
+      "position": "firstBase",
+      "title": "First Base Fundamentals",
+      "diff": 1,
+      "conceptTag": "infield-positioning",
+      "score": 9.1,
+      "passed": true,
+      "issues": [
+        "Option 2 'Move toward the ball' could be clearer - specify moving off the bag toward the ball",
+        "Explanation 3 could teach the principle better - explain WHY stretching matters (keeps foot on bag while reaching)"
+      ],
+      "strengths": [
+        "Perfect fundamental scenario for young players - this is exactly what first basemen need to master",
+        "Excellent age-appropriate language and clear, actionable correct answer"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 8,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 10,
+        "scenarioRealism": 9,
+        "conceptClarity": 10,
+        "engagementValue": 8
+      },
+      "suggestedFix": null,
+      "usage": {
+        "input_tokens": 1751,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 257,
+        "service_tier": "standard",
+        "inference_geo": "not_available"
+      }
+    },
+    {
+      "id": "f46",
+      "position": "firstBase",
+      "title": "Pull Hitter — Shade or Stay?",
+      "diff": 2,
+      "conceptTag": "infield-positioning",
+      "score": 8.9,
+      "passed": true,
+      "issues": [
+        "Score perspective incorrect: Top inning means AWAY team bats, but HOME team is up 4-2 (should be 2-4)",
+        "Rate for option 3 (35) seems high for a partial measure that's clearly suboptimal"
+      ],
+      "strengths": [
+        "Teaches practical positioning based on hitter tendencies using real game evidence",
+        "Explanations clearly differentiate between shading vs full shift, explaining why each option is better/worse"
+      ],
+      "dimensions": {
+        "factualAccuracy": 7,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 9,
+        "optionDistinctness": 9,
+        "rateDistribution": 8,
+        "roleCompliance": 10,
+        "ageAppropriateness": 10,
+        "scenarioRealism": 9,
+        "conceptClarity": 10,
+        "engagementValue": 9
+      },
+      "suggestedFix": null,
+      "usage": {
+        "input_tokens": 1862,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 277,
+        "service_tier": "standard",
+        "inference_geo": "not_available"
+      }
+    },
+    {
+      "id": "f21",
+      "position": "firstBase",
+      "title": "First Baseman's DP — Bases Loaded",
+      "diff": 3,
+      "conceptTag": "double-play-turn",
+      "score": 7.3,
+      "passed": false,
+      "issues": [
+        "Factual error: With bases loaded and 1 out, stepping on first creates out #2, but throwing home is NOT a force play anymore - the force is removed once first base is touched",
+        "The 'best' answer (step on first, throw home) would not work as described - catcher cannot get a force out at home after first base is touched",
+        "Explanation states 'catcher steps on home plate for the force out' which is incorrect - it would require a tag after stepping on first",
+        "The correct play would be throw home first for force, then to first for double play (option 2 is actually closest to correct)"
+      ],
+      "strengths": [
+        "Realistic game situation with clear strategic decision",
+        "Good difficulty level for ages 12+ with advanced double play concept"
+      ],
+      "dimensions": {
+        "factualAccuracy": 2,
+        "bestAnswerCorrect": 2,
+        "explanationQuality": 6,
+        "optionDistinctness": 8,
+        "rateDistribution": 8,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 9,
+        "conceptClarity": 7,
+        "engagementValue": 8
+      },
+      "suggestedFix": "Change best answer to option 2 (throw home first, then cover first) and rewrite explanations to correctly explain that stepping on first removes the force at home, so home-first preserves both force outs",
+      "usage": {
+        "input_tokens": 1897,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 396,
+        "service_tier": "standard",
+        "inference_geo": "not_available"
+      }
+    },
+    {
+      "id": "f11",
+      "position": "rightField",
+      "title": "Backing Up Bases",
+      "diff": 1,
+      "conceptTag": "backup-duties",
+      "score": 9.1,
+      "passed": true,
+      "issues": [
+        "Explanations for options 2 and 3 end with identical phrase 'Think about what gives your team the best result here'",
+        "Count should be specified (e.g., '2-1') rather than '-' for realism"
+      ],
+      "strengths": [
+        "Excellent teaching of fundamental backup responsibilities for right fielder",
+        "Age-appropriate language and clear scenario setup for diff:1"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 8,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 10,
+        "scenarioRealism": 8,
+        "conceptClarity": 10,
+        "engagementValue": 8
+      },
+      "suggestedFix": null,
+      "usage": {
+        "input_tokens": 1778,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 263,
+        "service_tier": "standard",
+        "inference_geo": "not_available"
+      }
+    },
+    {
+      "id": "f7",
+      "position": "rightField",
+      "title": "Shallow Fly Tag-Up",
+      "diff": 2,
+      "conceptTag": "tag-up",
+      "score": 8.2,
+      "passed": true,
+      "issues": [
+        "Explanations are repetitive - options 0, 1, and 2 all make the same 'shallow = close' point without teaching different principles",
+        "Option 3 explanation doesn't teach WHY throwing to 2nd is wrong (no runner there to get)",
+        "Situation description could be clearer about how shallow the ball is and your position"
+      ],
+      "strengths": [
+        "Correctly teaches that shallow flies allow direct throws home",
+        "Baseball mechanics are accurate - right fielder can throw directly home on shallow balls"
+      ],
+      "dimensions": {
+        "factualAccuracy": 9,
+        "bestAnswerCorrect": 9,
+        "explanationQuality": 6,
+        "optionDistinctness": 8,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 8,
+        "conceptClarity": 8,
+        "engagementValue": 7
+      },
+      "suggestedFix": "Rewrite explanations to teach 4 different principles: (0) Direct throw faster than relay on shallow balls, (1) When to use cutoff vs direct, (2) Reading runner's speed/jump, (3) Why 2nd base throw wastes the out opportunity",
+      "usage": {
+        "input_tokens": 1756,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 352,
+        "service_tier": "standard",
+        "inference_geo": "not_available"
+      }
+    },
+    {
+      "id": "f58",
+      "position": "rightField",
+      "title": "Ball at the Wall — Make the Play or Protect Yourself?",
+      "diff": 3,
+      "conceptTag": "of-depth-arm-value",
+      "score": 8.8,
+      "passed": true,
+      "issues": [
+        "Score shows HOME leading 5-4 but it's Top 9th, so AWAY should be batting and trailing",
+        "Rate of 85 for best option is too high for a difficult wall play technique"
+      ],
+      "strengths": [
+        "Teaches crucial safety technique that prevents serious injuries",
+        "Explanations clearly differentiate why each option is better/worse",
+        "Age-appropriate advanced technique for 12+ players"
+      ],
+      "dimensions": {
+        "factualAccuracy": 7,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 9,
+        "optionDistinctness": 9,
+        "rateDistribution": 8,
+        "roleCompliance": 10,
+        "ageAppropriateness": 10,
+        "scenarioRealism": 9,
+        "conceptClarity": 10,
+        "engagementValue": 9
+      },
+      "suggestedFix": "Swap the score to [4, 5] so AWAY is trailing in Top 9th, and reduce best option rate to 75",
+      "usage": {
+        "input_tokens": 1895,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 299,
+        "service_tier": "standard",
+        "inference_geo": "not_available"
+      }
+    },
+    {
+      "id": "f15",
+      "position": "thirdBase",
+      "title": "Runner on Second — Check Before Throwing",
+      "diff": 1,
+      "conceptTag": "infield-positioning",
+      "score": 5.8,
+      "passed": false,
+      "issues": [
+        "Best answer is option 2 (tag at third) but has rate of 25, while option 2 (look back then throw) has rate of 85 - rates don't match best designation",
+        "Looking the runner back to 2nd before throwing to first is the correct play here, not attempting a tag at third on a non-force play",
+        "Explanation for option 2 correctly identifies no force play but doesn't explain why this makes it a poor choice",
+        "Rates don't follow required distribution - best option should be 65-90 but is only 25"
+      ],
+      "strengths": [
+        "Realistic game situation that teaches important concept about checking runners",
+        "Age-appropriate language and complexity for diff:1"
+      ],
+      "dimensions": {
+        "factualAccuracy": 8,
+        "bestAnswerCorrect": 2,
+        "explanationQuality": 6,
+        "optionDistinctness": 8,
+        "rateDistribution": 2,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 9,
+        "conceptClarity": 8,
+        "engagementValue": 7
+      },
+      "suggestedFix": "Change best answer to option 2 (look runner back) and swap rates between options 1 and 2. Update explanation for option 1 to explain why tagging at third on a non-force is rarely successful.",
+      "usage": {
+        "input_tokens": 1861,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 385,
+        "service_tier": "standard",
+        "inference_geo": "not_available"
+      }
+    },
+    {
+      "id": "3b2",
+      "position": "thirdBase",
+      "title": "Bare-Hand Roller",
+      "diff": 2,
+      "conceptTag": "infield-positioning",
+      "score": 9.1,
+      "passed": true,
+      "issues": [
+        "The count is listed as 0-1 but not mentioned in the description, creating unnecessary inconsistency",
+        "Explanations could better emphasize the specific technique of bare-handing (grip, footwork) rather than just timing"
+      ],
+      "strengths": [
+        "Excellent realistic scenario that third basemen face frequently in games",
+        "Clear distinction between options with a genuinely tempting wrong answer (glove fielding)",
+        "Rates perfectly reflect real-world success probabilities for each choice"
+      ],
+      "dimensions": {
+        "factualAccuracy": 9,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 8,
+        "optionDistinctness": 9,
+        "rateDistribution": 10,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 9,
+        "conceptClarity": 9,
+        "engagementValue": 8
+      },
+      "suggestedFix": null,
+      "usage": {
+        "input_tokens": 1913,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 273,
+        "service_tier": "standard",
+        "inference_geo": "not_available"
+      }
+    },
+    {
+      "id": "f6",
+      "position": "thirdBase",
+      "title": "Bunt Against the Shift",
+      "diff": 3,
+      "conceptTag": "bunt-defense",
+      "score": 8.9,
+      "passed": true,
+      "issues": [
+        "Explanation for option 0 doesn't teach the principle of why sprinting back works (angle, distance, momentum)",
+        "Option 2 'Yell for the pitcher' could be more specific about what to yell",
+        "Rates for options 2 and 3 are too close (30 vs 25) given their different strategic value"
+      ],
+      "strengths": [
+        "Excellent advanced scenario teaching shift adjustments and bunt defense",
+        "Realistic modern baseball situation with strategic depth"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 7,
+        "optionDistinctness": 9,
+        "rateDistribution": 8,
+        "roleCompliance": 10,
+        "ageAppropriateness": 10,
+        "scenarioRealism": 9,
+        "conceptClarity": 9,
+        "engagementValue": 9
+      },
+      "suggestedFix": null,
+      "usage": {
+        "input_tokens": 1756,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 275,
+        "service_tier": "standard",
+        "inference_geo": "not_available"
+      }
+    },
+    {
+      "id": "r1",
+      "position": "baserunner",
+      "title": "Stealing Second",
+      "diff": 1,
+      "conceptTag": "steal-breakeven",
+      "score": 7.9,
+      "passed": true,
+      "issues": [
+        "Explanation 3 repeats the same information as explanation 1 without adding new teaching value",
+        "Explanation 4 addresses option 3 (bigger lead) instead of option 0 (steal), causing misalignment",
+        "Scenario lacks specific teaching about steal breakeven percentage despite conceptTag",
+        "Description could specify pitcher's time to plate (e.g., '1.4+ seconds') for clearer teaching"
+      ],
+      "strengths": [
+        "Excellent setup with all key factors for teaching steal decisions: pitcher speed, catcher arm, count, and runner speed",
+        "Rate distribution realistic with 85% success rate matching MLB data for these conditions"
+      ],
+      "dimensions": {
+        "factualAccuracy": 9,
+        "bestAnswerCorrect": 9,
+        "explanationQuality": 6,
+        "optionDistinctness": 8,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 8,
+        "scenarioRealism": 9,
+        "conceptClarity": 7,
+        "engagementValue": 8
+      },
+      "suggestedFix": "Fix explanation alignment (each should match its option number) and make explanations teach different aspects: explain 70% breakeven rule, pitcher timing mechanics, count leverage, and risk of hesitation",
+      "usage": {
+        "input_tokens": 1796,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 361,
+        "service_tier": "standard",
+        "inference_geo": "not_available"
+      }
+    },
+    {
+      "id": "r4",
+      "position": "baserunner",
+      "title": "First-to-Third",
+      "diff": 2,
+      "conceptTag": "baserunning-rates",
+      "score": 8.7,
+      "passed": true,
+      "issues": [
+        "Explanations are too brief and don't teach underlying principles - just state outcomes",
+        "Option 3 explanation doesn't address why stopping at 2nd specifically hurts the team",
+        "Missing teaching about reading the ball off the bat and where singles typically go"
+      ],
+      "strengths": [
+        "Excellent realistic scenario that happens frequently in youth baseball",
+        "Perfect difficulty level for ages 9-12 with clear, accessible language"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 6,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 10,
+        "scenarioRealism": 9,
+        "conceptClarity": 8,
+        "engagementValue": 8
+      },
+      "suggestedFix": "Expand explanations to teach principles: Option 0 should explain WHY coaches have the best angle and what they're watching for. Option 1 should teach about momentum and decision timing. Add specific teaching value to each explanation.",
+      "usage": {
+        "input_tokens": 1762,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 316,
+        "service_tier": "standard",
+        "inference_geo": "not_available"
+      }
+    },
+    {
+      "id": "r5",
+      "position": "baserunner",
+      "title": "Delayed Steal",
+      "diff": 3,
+      "conceptTag": "steal-breakeven",
+      "score": 8.9,
+      "passed": true,
+      "issues": [
+        "Concept tag 'steal-breakeven' doesn't match the actual concept taught (delayed steal/defensive awareness)",
+        "Option 3 'Wait for a passed ball' isn't realistic with careful catcher observation described"
+      ],
+      "strengths": [
+        "Excellent teaching of advanced baserunning awareness and reading defensive lapses",
+        "Realistic scenario that happens frequently in real games",
+        "Strong explanations that teach the principle of awareness over speed"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 9,
+        "optionDistinctness": 8,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 9,
+        "conceptClarity": 7,
+        "engagementValue": 9
+      },
+      "suggestedFix": null,
+      "usage": {
+        "input_tokens": 1771,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 261,
+        "service_tier": "standard",
+        "inference_geo": "not_available"
+      }
+    },
+    {
+      "id": "m2",
+      "position": "manager",
+      "title": "Pinch Hitter Timing",
+      "diff": 1,
+      "conceptTag": "platoon-advantage",
+      "score": 8.7,
+      "passed": true,
+      "issues": [
+        "Explanation 2 is too brief and doesn't teach a principle - just states 'job is winning'",
+        "Option 2 'he's earned it' teaches poor strategy - managers shouldn't prioritize feelings over winning",
+        "Age range starts at 6 but pinch hitting strategy may be too advanced for that age"
+      ],
+      "strengths": [
+        "Clear high-leverage situation where the decision genuinely matters",
+        "Excellent rate distribution with tempting wrong answer at 60"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 7,
+        "optionDistinctness": 9,
+        "rateDistribution": 10,
+        "roleCompliance": 10,
+        "ageAppropriateness": 7,
+        "scenarioRealism": 9,
+        "conceptClarity": 9,
+        "engagementValue": 8
+      },
+      "suggestedFix": null,
+      "usage": {
+        "input_tokens": 1784,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 271,
+        "service_tier": "standard",
+        "inference_geo": "not_available"
+      }
+    },
+    {
+      "id": "m1",
+      "position": "manager",
+      "title": "Intentional Walk",
+      "diff": 2,
+      "conceptTag": "force-vs-tag",
+      "score": 6.9,
+      "passed": false,
+      "issues": [
+        "Description says '.220 hitter (8 HRs)' but explanation says '.245 hitter' - inconsistent stats",
+        "ConceptTag 'force-vs-tag' doesn't match the actual concept being taught (intentional walk strategy)",
+        "Explanation 0 incorrectly states walking sets up force at EVERY base - only at 3rd and home, not 2nd",
+        "Option 3 'Walk both' is unclear - can't intentionally walk the on-deck hitter",
+        "Explanation 3 about 'cold reliever' doesn't connect to the strategic decision of bringing in a new pitcher"
+      ],
+      "strengths": [
+        "Realistic late-game pressure situation that happens frequently in baseball",
+        "Good use of batting averages to create a clear strategic decision"
+      ],
+      "dimensions": {
+        "factualAccuracy": 5,
+        "bestAnswerCorrect": 8,
+        "explanationQuality": 6,
+        "optionDistinctness": 6,
+        "rateDistribution": 8,
+        "roleCompliance": 9,
+        "ageAppropriateness": 8,
+        "scenarioRealism": 7,
+        "conceptClarity": 6,
+        "engagementValue": 7
+      },
+      "suggestedFix": "Fix the batting average inconsistency (.220 vs .245), change conceptTag to 'intentional-walk', clarify option 3 to 'Walk him, then pitch carefully to next batter', and rewrite explanations to be more specific about the strategic reasoning",
+      "usage": {
+        "input_tokens": 1798,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 414,
+        "service_tier": "standard",
+        "inference_geo": "not_available"
+      }
+    },
+    {
+      "id": "m9",
+      "position": "manager",
+      "title": "Pitching Change Timing",
+      "diff": 3,
+      "conceptTag": "leverage-index",
+      "score": 8.3,
+      "passed": true,
+      "issues": [
+        "Explanations for options 0 and 2 end with identical phrasing ('Think about what gives your team the best result here'), reducing teaching variety",
+        "Option 2 ('face one more batter') is too similar to option 3 ('after he allows a baserunner') - both involve conditional removal",
+        "The concept teaches about 'short leash' but the scenario emphasizes velocity drop as the key indicator, creating slight disconnect"
+      ],
+      "strengths": [
+        "Excellent use of sabermetric concept (leverage index) appropriate for advanced players",
+        "Realistic game situation with nuanced decision-making that mirrors actual managerial choices"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 9,
+        "explanationQuality": 6,
+        "optionDistinctness": 7,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 9,
+        "conceptClarity": 8,
+        "engagementValue": 8
+      },
+      "suggestedFix": "Rewrite explanations 0 and 2 to teach different lessons (e.g., option 0 could discuss preserving pitcher health, option 2 could explain why arbitrary limits don't work)",
+      "usage": {
+        "input_tokens": 1809,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 364,
+        "service_tier": "standard",
+        "inference_geo": "not_available"
+      }
+    },
+    {
+      "id": "ct2",
+      "position": "catcher",
+      "title": "Blocking a Pitch in the Dirt",
+      "diff": 1,
+      "conceptTag": "wild-pitch-coverage",
+      "score": 8.8,
+      "passed": true,
+      "issues": [
+        "Scenario should specify who's batting (home/away) for clarity in Bot 7",
+        "Option 3 'swipe at it' is too vague - could mean with glove or bare hand"
+      ],
+      "strengths": [
+        "Perfect blocking technique in best answer matches professional coaching",
+        "Explanations teach different aspects: technique, priority, consequences, and common mistakes",
+        "High-pressure situation makes the blocking decision critical and engaging"
+      ],
+      "dimensions": {
+        "factualAccuracy": 9,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 9,
+        "optionDistinctness": 8,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 9,
+        "conceptClarity": 10,
+        "engagementValue": 8
+      },
+      "suggestedFix": null,
+      "usage": {
+        "input_tokens": 1822,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 253,
+        "service_tier": "standard",
+        "inference_geo": "not_available"
+      }
+    },
+    {
+      "id": "ct1",
+      "position": "catcher",
+      "title": "Pitch Calling — Full Count",
+      "diff": 2,
+      "conceptTag": "pitch-sequencing",
+      "score": 8.9,
+      "passed": true,
+      "issues": [
+        "Best explanation could better emphasize WHY the slider is optimal rather than just criticizing the fastball",
+        "Rates might be slightly high for bad options (35 and 30) in a critical situation"
+      ],
+      "strengths": [
+        "Excellent use of batter history to inform pitch selection",
+        "Realistic game situation with appropriate pressure",
+        "Clear teaching of pattern recognition concept"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 9,
+        "explanationQuality": 8,
+        "optionDistinctness": 9,
+        "rateDistribution": 8,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 9,
+        "conceptClarity": 9,
+        "engagementValue": 9
+      },
+      "suggestedFix": null,
+      "usage": {
+        "input_tokens": 1828,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 240,
+        "service_tier": "standard",
+        "inference_geo": "not_available"
+      }
+    },
+    {
+      "id": "ct7",
+      "position": "catcher",
+      "title": "Squeeze Play Defense",
+      "diff": 3,
+      "conceptTag": "bunt-defense",
+      "score": 9.2,
+      "passed": true,
+      "issues": [
+        "Explanation 2 is incomplete - charging doesn't always leave home uncovered if pitcher covers, which is standard squeeze defense",
+        "Rate distribution shows 85 for best option, which exceeds the 65-90 guideline by being at the extreme high end"
+      ],
+      "strengths": [
+        "Teaches advanced defensive strategy with clear tactical reasoning",
+        "Excellent use of situational cues (hands shifting, runner leaning) to teach reading the game"
+      ],
+      "dimensions": {
+        "factualAccuracy": 9,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 8,
+        "optionDistinctness": 10,
+        "rateDistribution": 8,
+        "roleCompliance": 10,
+        "ageAppropriateness": 10,
+        "scenarioRealism": 9,
+        "conceptClarity": 10,
+        "engagementValue": 9
+      },
+      "suggestedFix": null,
+      "usage": {
+        "input_tokens": 1866,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 263,
+        "service_tier": "standard",
+        "inference_geo": "not_available"
+      }
+    },
+    {
+      "id": "fp16",
+      "position": "famous",
+      "title": "The Pine Tar Game",
+      "diff": 1,
+      "conceptTag": "force-vs-tag",
+      "score": 4.8,
+      "passed": false,
+      "issues": [
+        "conceptTag 'force-vs-tag' is completely wrong for a rules interpretation scenario about pine tar",
+        "Position 'famous' is not a valid baseball position - should be 'manager' since this is a managerial decision",
+        "Teaching 6-year-olds about a 1983 pine tar technicality rule is not age-appropriate for diff:1",
+        "This scenario doesn't teach applicable baseball strategy - it's just historical trivia",
+        "The concept has nothing to do with the force-vs-tag principle"
+      ],
+      "strengths": [
+        "Historically accurate recreation of the famous Pine Tar Game incident",
+        "Good explanation of why the AL president overturned the original ruling"
+      ],
+      "dimensions": {
+        "factualAccuracy": 9,
+        "bestAnswerCorrect": 8,
+        "explanationQuality": 7,
+        "optionDistinctness": 6,
+        "rateDistribution": 7,
+        "roleCompliance": 1,
+        "ageAppropriateness": 3,
+        "scenarioRealism": 8,
+        "conceptClarity": 1,
+        "engagementValue": 5
+      },
+      "suggestedFix": "Replace with an actual force-vs-tag play scenario for the appropriate position, or change conceptTag to 'rules-interpretation' and position to 'manager' while increasing difficulty to 2 or 3 for older kids who can appreciate historical rule controversies",
+      "usage": {
+        "input_tokens": 2025,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 388,
+        "service_tier": "standard",
+        "inference_geo": "not_available"
+      }
+    },
+    {
+      "id": "fp2",
+      "position": "famous",
+      "title": "Merkle's Boner",
+      "diff": 2,
+      "conceptTag": "force-vs-tag",
+      "score": 9.2,
+      "passed": true,
+      "issues": [
+        "Rates don't quite match the historical confusion - option 3 (staying at 1st) should be higher as many players genuinely believed this"
+      ],
+      "strengths": [
+        "Excellent use of historical example to teach force play rules",
+        "Clear explanations that connect the historical event to the teaching principle"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 9,
+        "optionDistinctness": 9,
+        "rateDistribution": 8,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 9,
+        "conceptClarity": 10,
+        "engagementValue": 9
+      },
+      "suggestedFix": null,
+      "usage": {
+        "input_tokens": 1894,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 226,
+        "service_tier": "standard",
+        "inference_geo": "not_available"
+      }
+    },
+    {
+      "id": "fp1",
+      "position": "famous",
+      "title": "Jeter's Flip Play",
+      "diff": 3,
+      "conceptTag": "relay-double-cut",
+      "score": 8.7,
+      "passed": true,
+      "issues": [
+        "Situation shows no count but scenario involves a throw from the outfield (count should be shown)",
+        "Option 1 explanation could better explain why 1B can't reach it",
+        "Rate distribution slightly narrow between wrong answers (10-35)"
+      ],
+      "strengths": [
+        "Perfectly captures one of baseball's most famous plays with accurate historical context",
+        "Excellent teaching of anticipation and hustle through a memorable real example"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 8,
+        "optionDistinctness": 9,
+        "rateDistribution": 7,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 9,
+        "conceptClarity": 10,
+        "engagementValue": 10
+      },
+      "suggestedFix": null,
+      "usage": {
+        "input_tokens": 1853,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 251,
+        "service_tier": "standard",
+        "inference_geo": "not_available"
+      }
+    },
+    {
+      "id": "rl6",
+      "position": "rules",
+      "title": "Designated Hitter Rule",
+      "diff": 1,
+      "conceptTag": "force-vs-tag",
+      "score": 5.2,
+      "passed": false,
+      "issues": [
+        "conceptTag 'force-vs-tag' is completely wrong — this is about DH rules, not force plays",
+        "Position 'rules' doesn't match standard positions (should be 'manager')",
+        "Explanations are repetitive — all say 'DH bats for pitcher' without teaching different aspects",
+        "Description lacks game context — why is manager deciding this in Top 1 with game started?",
+        "No explanation teaches WHY the DH rule exists or its strategic implications"
+      ],
+      "strengths": [
+        "Factually accurate about 2022 universal DH rule",
+        "Age-appropriate language for diff:1"
+      ],
+      "dimensions": {
+        "factualAccuracy": 8,
+        "bestAnswerCorrect": 9,
+        "explanationQuality": 3,
+        "optionDistinctness": 7,
+        "rateDistribution": 8,
+        "roleCompliance": 2,
+        "ageAppropriateness": 8,
+        "scenarioRealism": 4,
+        "conceptClarity": 3,
+        "engagementValue": 6
+      },
+      "suggestedFix": "Change position to 'manager', conceptTag to 'dh-rule', and rewrite explanations to teach: 1) What DH is, 2) Why it helps (pitchers focus on pitching), 3) Why pinch hitting fails (removes pitcher), 4) Why double-batting is illegal",
+      "usage": {
+        "input_tokens": 1817,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 388,
+        "service_tier": "standard",
+        "inference_geo": "not_available"
+      }
+    },
+    {
+      "id": "rl1",
+      "position": "rules",
+      "title": "Infield Fly Rule",
+      "diff": 2,
+      "conceptTag": "double-play-turn",
+      "score": 4.8,
+      "passed": false,
+      "issues": [
+        "conceptTag 'double-play-turn' doesn't match the scenario which teaches infield fly rule",
+        "Option 3 explanation is incomplete - doesn't explain WHY the rule exists or what happens",
+        "Explanations don't teach the CONDITIONS for infield fly (fair territory, ordinary effort, runners on 1st/2nd or bases loaded)",
+        "Category 'rules' and position 'rules' are redundant - should use a specific fielding position",
+        "Rates don't match realistic confusion patterns - option 3 (25%) should be higher than option 1 (20%)"
+      ],
+      "strengths": [
+        "Accurately explains the core infield fly rule mechanics",
+        "Good use of a common game situation where this rule applies"
+      ],
+      "dimensions": {
+        "factualAccuracy": 8,
+        "bestAnswerCorrect": 9,
+        "explanationQuality": 5,
+        "optionDistinctness": 7,
+        "rateDistribution": 4,
+        "roleCompliance": 1,
+        "ageAppropriateness": 8,
+        "scenarioRealism": 9,
+        "conceptClarity": 6,
+        "engagementValue": 7
+      },
+      "suggestedFix": "Change position to 'umpire' or specific fielder, fix conceptTag to 'infield-fly-rule', expand explanations to teach WHEN the rule applies (fair ball, ordinary effort, force play possible at 3rd), and adjust rates so dead ball option (20%) has lower rate than must-catch option (25%)",
+      "usage": {
+        "input_tokens": 1862,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 416,
+        "service_tier": "standard",
+        "inference_geo": "not_available"
+      }
+    },
+    {
+      "id": "rl4",
+      "position": "rules",
+      "title": "Appeal Play — Missing a Base",
+      "diff": 3,
+      "conceptTag": "force-vs-tag",
+      "score": 8.9,
+      "passed": true,
+      "issues": [
+        "Missing count should be specified (e.g., '2-1') rather than '-' for realism",
+        "Option 3 could be more tempting with better wording like 'Appeal after time is called'"
+      ],
+      "strengths": [
+        "Teaches a crucial but often misunderstood rule that applies at all levels",
+        "Explanation 2 references MLB games, making it engaging and showing real-world importance"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 9,
+        "optionDistinctness": 8,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 8,
+        "conceptClarity": 9,
+        "engagementValue": 9
+      },
+      "suggestedFix": null,
+      "usage": {
+        "input_tokens": 1843,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 242,
+        "service_tier": "standard",
+        "inference_geo": "not_available"
+      }
+    },
+    {
+      "id": "cn1",
+      "position": "counts",
+      "title": "0-0: First Pitch Approach (Batter)",
+      "diff": 1,
+      "conceptTag": "first-pitch-value",
+      "score": 8.3,
+      "passed": true,
+      "issues": [
+        "The .340 batting average stat needs context - is this for all first pitches or specifically first-pitch fastballs?",
+        "Explanation 2 is too brief and doesn't teach why taking pitches can sometimes be strategic",
+        "The scenario doesn't specify strike zone location preference, which affects the decision"
+      ],
+      "strengths": [
+        "Excellent use of MLB statistics to support the teaching point",
+        "Clear pattern recognition concept that applies to all age levels"
+      ],
+      "dimensions": {
+        "factualAccuracy": 8,
+        "bestAnswerCorrect": 9,
+        "explanationQuality": 7,
+        "optionDistinctness": 9,
+        "rateDistribution": 8,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "conceptClarity": 9,
+        "engagementValue": 8
+      },
+      "suggestedFix": null,
+      "usage": {
+        "input_tokens": 1825,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 254,
+        "service_tier": "standard",
+        "inference_geo": "not_available"
+      }
+    },
+    {
+      "id": "cn2",
+      "position": "counts",
+      "title": "0-2: Pitcher's Count (Batter)",
+      "diff": 2,
+      "conceptTag": "two-strike-approach",
+      "score": 8.9,
+      "passed": true,
+      "issues": [
+        "Third option's explanation could better explain WHY taking isn't ideal (pitcher confidence, strike zone expansion)",
+        "Fourth option rate (20) might be too high for a desperation play in this situation"
+      ],
+      "strengths": [
+        "Excellent use of MLB statistics (.167 BA) to support the teaching point",
+        "Clear two-strike approach concept that applies across all age groups",
+        "Realistic game situation with appropriate pressure (down by 1, runner on first)"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 8,
+        "optionDistinctness": 9,
+        "rateDistribution": 8,
+        "scenarioRealism": 9,
+        "conceptClarity": 10,
+        "engagementValue": 9,
+        "roleCompliance": 9,
+        "ageAppropriateness": 9
+      },
+      "suggestedFix": null,
+      "usage": {
+        "input_tokens": 1854,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 266,
+        "service_tier": "standard",
+        "inference_geo": "not_available"
+      }
+    },
+    {
+      "id": "cn6",
+      "position": "counts",
+      "title": "Full Count: 3-2 with 2 Outs",
+      "diff": 3,
+      "conceptTag": "count-leverage",
+      "score": 7.8,
+      "passed": true,
+      "issues": [
+        "The scenario description says runner on 1st, but being down 3-4 in the 7th with 2 outs makes driving in that runner impossible from 1st base",
+        "Explanation 2 incorrectly states 'contact puts him in scoring position' - runner on 1st goes to 2nd on a single, not scoring position",
+        "The concept of 'runner going on the pitch' is underutilized in the explanations - only option 2 mentions it briefly",
+        "Rate for option 0 (30) seems low for a common youth baseball approach of protecting the plate with 2 strikes"
+      ],
+      "strengths": [
+        "Excellent teaching of 3-2 count discipline - being selective even with 2 strikes is advanced strategy",
+        "Options present realistic approaches players actually debate in this situation"
+      ],
+      "dimensions": {
+        "factualAccuracy": 6,
+        "bestAnswerCorrect": 9,
+        "explanationQuality": 7,
+        "optionDistinctness": 9,
+        "rateDistribution": 7,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "conceptClarity": 8,
+        "engagementValue": 8
+      },
+      "suggestedFix": "Fix the factual error in explanation 2: change 'puts him in scoring position' to 'moves him into scoring position at 2nd base' and better incorporate how the runner stealing affects the batter's approach",
+      "usage": {
+        "input_tokens": 1864,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 398,
+        "service_tier": "standard",
+        "inference_geo": "not_available"
+      }
+    },
+    {
+      "id": "2b8",
+      "position": "secondBase",
+      "title": "Hit and Run Coverage",
+      "diff": 3,
+      "conceptTag": "hit-and-run",
+      "score": 9.2,
+      "passed": true,
+      "issues": [
+        "Explanation for option 1 could emphasize more that this is the standard defensive assignment on hit-and-run plays"
+      ],
+      "strengths": [
+        "Excellent teaching of hit-and-run defensive responsibilities",
+        "Clearly explains why 2B holds position while SS covers the bag",
+        "Age-appropriate complexity for diff:3"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 8,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 10,
+        "scenarioRealism": 9,
+        "conceptClarity": 9,
+        "engagementValue": 8
+      },
+      "suggestedFix": null,
+      "usage": {
+        "input_tokens": 1988,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 232,
+        "service_tier": "standard",
+        "inference_geo": "not_available"
+      }
+    },
+    {
+      "id": "ss_new5",
+      "position": "shortstop",
+      "title": "The 5-4-3 Double Play — Your Throw",
+      "diff": 3,
+      "conceptTag": "double-play-turn",
+      "score": 9.1,
+      "passed": true,
+      "issues": [
+        "Situation shows outs as 1 but options discuss getting 'the out at second' as if no one is out yet",
+        "Option 2 explanation mentions 'force' but with bases loaded and 1 out, it's already a force at every base"
+      ],
+      "strengths": [
+        "Excellent use of MLB data to support the teaching point",
+        "Clear concept that accuracy beats speed on double play pivots",
+        "Realistic game pressure with bases loaded in a close game"
+      ],
+      "dimensions": {
+        "factualAccuracy": 8,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 9,
+        "optionDistinctness": 9,
+        "rateDistribution": 9,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "conceptClarity": 10,
+        "engagementValue": 9
+      },
+      "suggestedFix": null,
+      "usage": {
+        "input_tokens": 1976,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 258,
+        "service_tier": "standard",
+        "inference_geo": "not_available"
+      }
+    },
+    {
+      "id": "p18",
+      "position": "pitcher",
+      "title": "Two-Two Tightrope",
+      "diff": 2,
+      "conceptTag": "pickoff-mechanics",
+      "score": 7.1,
+      "passed": false,
+      "issues": [
+        "Concept tag 'pickoff-mechanics' doesn't match scenario content about pitch selection and strikeouts",
+        "No indication how a 9-year-old pitcher would know slider whiff rates (30%) or have 4 different pitches",
+        "Score perspective error: Top 7th means visiting team bats, so 'up 5-4' should be 'down 5-4' from pitcher's view",
+        "Curveball explanation focuses on wild pitch risk rather than strategic choice evaluation",
+        "Rates don't reflect realistic strikeout probabilities for youth baseball"
+      ],
+      "strengths": [
+        "Clear strategic dilemma between strikeout vs contact in high-leverage situation",
+        "Explanations teach valuable principle about preventing scoring with runner on third"
+      ],
+      "dimensions": {
+        "factualAccuracy": 5,
+        "bestAnswerCorrect": 8,
+        "explanationQuality": 7,
+        "optionDistinctness": 8,
+        "rateDistribution": 6,
+        "roleCompliance": 9,
+        "ageAppropriateness": 4,
+        "scenarioRealism": 6,
+        "conceptClarity": 5,
+        "engagementValue": 8
+      },
+      "suggestedFix": "Change conceptTag to 'pitch-selection', fix score perspective (down 4-5 in Top 7th), simplify to 2-3 pitch options appropriate for youth level, remove advanced analytics references",
+      "usage": {
+        "input_tokens": 1910,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 393,
+        "service_tier": "standard",
+        "inference_geo": "not_available"
+      }
+    },
+    {
+      "id": "b17",
+      "position": "batter",
+      "title": "Infield In — Fly or Ground?",
+      "diff": 2,
+      "conceptTag": "infield-positioning",
+      "score": 8.9,
+      "passed": true,
+      "issues": [
+        "Rates don't quite match realistic probabilities - 85% success rate for lifting a fly ball is too high for most youth players",
+        "Could better explain WHY infields play in (to get force at home) in the explanations"
+      ],
+      "strengths": [
+        "Excellent teaching of a specific strategic concept that many young players don't understand",
+        "Perfect game situation setup that clearly demonstrates when to apply this principle",
+        "Explanations each teach different aspects without repetition"
+      ],
+      "dimensions": {
+        "factualAccuracy": 10,
+        "bestAnswerCorrect": 10,
+        "explanationQuality": 8,
+        "optionDistinctness": 9,
+        "rateDistribution": 7,
+        "roleCompliance": 10,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 9,
+        "conceptClarity": 10,
+        "engagementValue": 9
+      },
+      "suggestedFix": null,
+      "usage": {
+        "input_tokens": 1877,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 250,
+        "service_tier": "standard",
+        "inference_geo": "not_available"
+      }
+    },
+    {
+      "id": "fp3",
+      "position": "famous",
+      "title": "Baez's Rundown Magic",
+      "diff": 3,
+      "conceptTag": "rundown-mechanics",
+      "score": 7.2,
+      "passed": false,
+      "issues": [
+        "Runner on 1st only but explanation mentions 'other runner score' - factual error",
+        "Best answer (option 3) references non-existent baserunner",
+        "Scenario setup contradicts the actual play - Baez's famous rundown had a runner on 3rd",
+        "Explanations don't clearly differentiate why option 3 is better than option 4",
+        "Category 'famous' doesn't match standard positions - should be 'baserunner'"
+      ],
+      "strengths": [
+        "Creative use of real MLB moment to teach strategy",
+        "Engaging scenario that kids would find exciting"
+      ],
+      "dimensions": {
+        "factualAccuracy": 4,
+        "bestAnswerCorrect": 5,
+        "explanationQuality": 6,
+        "optionDistinctness": 7,
+        "rateDistribution": 8,
+        "roleCompliance": 5,
+        "ageAppropriateness": 9,
+        "scenarioRealism": 8,
+        "conceptClarity": 8,
+        "engagementValue": 9
+      },
+      "suggestedFix": "Change runners to [1,3] to match the actual Baez play, rewrite option 3 as 'Create chaos to help runner on 3rd score', and file under 'baserunner' position instead of 'famous'",
+      "usage": {
+        "input_tokens": 1839,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 345,
+        "service_tier": "standard",
+        "inference_geo": "not_available"
+      }
+    }
+  ]
+}

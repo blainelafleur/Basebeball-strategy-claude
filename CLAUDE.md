@@ -177,35 +177,38 @@ After ANY significant code change, update the relevant documentation. These are 
 - Use descriptive variable names for game logic, short names for SVG coordinates
 
 
-## Obsidian Integration - Second Brain Connection
+## Obsidian Integration — Bidirectional Sync System
 
-This project is connected to Blaine's Obsidian vault ("My Second Brain"). The vault serves as persistent memory across ALL Claude sessions - not just this project.
+This project has a bidirectional sync with Blaine's Obsidian vault ("My Second Brain"). Knowledge flows BOTH ways: vault context enriches sessions, session work enriches the vault. The system compounds — each session adds knowledge that makes future sessions richer.
 
 ### Vault Location
 ```
 /Users/blainelafleur/Library/Mobile Documents/iCloud~md~obsidian/Documents/My Second Brain
 ```
+BSM files live in: `20 Projects/Baseball Strategy Master/`
 
-### On Session Start - READ THESE FILES
-Before starting any significant work, read these files from the Obsidian vault for context:
+### FLOW 1: Session Start — Vault → Project
+Before starting significant work, read these files for context:
 
-1. **Project context:** `20 Projects/Baseball App - Claude Code Context.md` - Big picture state, priorities, owner preferences, session history
-2. **Project note:** `20 Projects/Baseball Strategy Master App.md` - Architecture decisions log, dev session tracker
-3. **Recent dev logs:** Any files in `20 Projects/` with names starting with `BSM Dev Log` - What happened in recent sessions
+1. **Project context:** `Baseball App - Claude Code Context.md` — state, priorities, known issues
+2. **Recent dev logs:** Last 3 `BSM Dev Log *.md` files — what happened recently
+3. **Architecture decisions:** `BSM Architecture Decisions.md` — strategic decisions and rationale
+4. **Idea/observation notes:** Scan `BSM Idea - *.md` and `BSM Observation - *.md` — check if any were created or modified OUTSIDE Claude sessions (Blaine had an offline insight). If so, incorporate into session planning.
+5. **Polaris (first conversation only):** `Maps of Content/Polaris.md` — Blaine's north star, operating philosophy, values. Grounds your approach.
 
 ```bash
-# Quick context load for session startup
 VAULT="/Users/blainelafleur/Library/Mobile Documents/iCloud~md~obsidian/Documents/My Second Brain"
-cat "$VAULT/20 Projects/Baseball App - Claude Code Context.md"
-ls -t "$VAULT/20 Projects/BSM Dev Log"* 2>/dev/null | head -3 | while read f; do cat "$f"; done
+BSM="$VAULT/20 Projects/Baseball Strategy Master"
+cat "$BSM/Baseball App - Claude Code Context.md"
+ls -t "$BSM/BSM Dev Log"* 2>/dev/null | head -3 | while read f; do cat "$f"; done
+cat "$BSM/BSM Architecture Decisions.md" 2>/dev/null
+ls -t "$BSM/BSM Idea"* "$BSM/BSM Observation"* 2>/dev/null
 ```
 
-### On Session End - WRITE A DEV LOG
-After every significant coding session, create a dev log in the Obsidian vault. Use this format:
+### FLOW 2: Session End — Project → Vault
+After every significant coding session, write ALL of these:
 
-**Filename:** `20 Projects/BSM Dev Log YYYY-MM-DD.md`
-
-**Required frontmatter:**
+**A. Dev Log** (`BSM Dev Log YYYY-MM-DD.md`)
 ```yaml
 type: dev-log
 created: YYYY-MM-DD
@@ -213,21 +216,35 @@ modified: YYYY-MM-DD
 tags: [dev-log, claude-code, baseball-dev-log]
 project: "[[Baseball Strategy Master App]]"
 date: YYYY-MM-DD
-summary: One-line summary of what this session accomplished
+summary: One-line summary
 ```
-
-**Required sections:**
+Required sections:
 - What I Built / Changed
 - Key Decisions Made (table: Decision | Rationale)
 - What Broke / Bugs Found
 - What I Learned
+- **Cross-Domain Connections** — 1-2 connections between this session's work and Blaine's broader knowledge (Vested parallels, Dad's Playbook principles, AI Mastery curriculum material, coaching insights)
 - Next Session: Pick Up Here
 
-### Also Update the Context File
-After writing the dev log, update the "Current State and Priorities" section in `20 Projects/Baseball App - Claude Code Context.md` with:
-- Last session date and summary
-- Any priority changes
-- New known issues discovered
+**B. Context File Update** — Update "Current State and Priorities" in `Baseball App - Claude Code Context.md`
 
-### Why This Matters
-Every Claude Code session currently starts cold. The Obsidian vault eliminates this. Dev logs compound: after 10 sessions, the vault has a complete history of every decision, every bug, every priority shift. Future sessions start warm.
+**C. Atomic Note Sync** — If `IDEAS_AND_INSIGHTS.md` was modified this session:
+- Check for new ideas/observations that don't have corresponding Obsidian notes yet
+- Create `BSM Idea - [Name].md` or `BSM Observation - [Name].md` for each new entry
+- Each gets: frontmatter tags (`#project/bsm`, `#idea`/`#observation`, domain tags), cross-domain connections section, link back to `[[Baseball Strategy Master App]]`
+
+**D. Architecture Decision Update** — If strategic decisions were made, update `BSM Architecture Decisions.md`
+
+### FLOW 3: TPA Vault Awareness
+When spawning TPA agents, include vault context in the prompt:
+- Point TPA to relevant Obsidian idea/observation notes for cross-domain inspiration
+- Reference Blaine's operating philosophy (systems over heroics, measure against ideal, leverage)
+- Ask TPA: "How does this work connect to Blaine's business, coaching, or parenting?"
+- TPA findings that generate new ideas → become atomic notes at session end (Flow 2C)
+
+### Why This Compounds
+Session 1: TPA insight → IDEAS_AND_INSIGHTS.md → atomic note with cross-links
+Session 5: Blaine reads note offline, adds Vested connection
+Session 8: Claude reads updated note → uses cross-domain insight in feature design
+Session 12: Feature ships → dev log documents how vault knowledge shaped it
+Session 20: AI Mastery curriculum references dev log as case study for the boys

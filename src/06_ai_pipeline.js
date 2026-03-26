@@ -1850,7 +1850,7 @@ const OPTION_ARCHETYPES = {
     sounds_smart: 'Stay at shortstop depth to cover a hard bunt past the charging fielders',
     clearly_wrong: 'Cover second base'
   },
-  'manager:bunt-defense': {
+  'manager:bunt-defense-general': {
     moment: 'Opponent bunting with runners on first and second, nobody out',
     correct: 'Call the right bunt defense — wheel play or rotation based on the situation',
     kid_mistake: 'Have everyone stay in normal positions',
@@ -3095,10 +3095,11 @@ async function generateAIScenario(position, stats, conceptsLearned = [], recentW
       console.log("[BSM] Generation aborted by user after multi-agent")
       return { scenario: null, error: "aborted" }
     }
-    // Track if multi-agent timed out (took >50s) — signals infrastructure stress
-    multiAgentTimedOut = (Date.now() - maStart) > 50000
+    // Track if multi-agent HARD-FAILED (took >75s = hit the 80s worker timeout)
+    // 40-65s is normal for multi-agent — only skip xAI if it truly timed out
+    multiAgentTimedOut = (Date.now() - maStart) > 75000
     if (multiAgentTimedOut) {
-      console.warn("[BSM] Multi-agent timed out after", Math.round((Date.now() - maStart)/1000) + "s — infrastructure may be stressed, skipping xAI agent pipeline")
+      console.warn("[BSM] Multi-agent hard-timed-out after", Math.round((Date.now() - maStart)/1000) + "s — skipping xAI agent pipeline")
     } else {
       console.warn("[BSM] Multi-agent pipeline failed (not timeout), falling through to xAI pipeline")
     }

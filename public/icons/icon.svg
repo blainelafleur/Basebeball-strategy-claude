@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="80" fill="#0d1117"/>
+  <circle cx="256" cy="230" r="120" fill="none" stroke="#f59e0b" stroke-width="8"/>
+  <path d="M256 110 C220 160, 180 200, 180 230 C180 272, 214 350, 256 350 C298 350, 332 272, 332 230 C332 200, 292 160, 256 110Z" fill="none" stroke="#f59e0b" stroke-width="4"/>
+  <path d="M136 230 C170 180, 200 160, 256 110 M376 230 C342 180, 312 160, 256 110" fill="none" stroke="#f59e0b" stroke-width="4"/>
+  <text x="256" y="430" text-anchor="middle" font-family="Arial,sans-serif" font-weight="900" font-size="64" fill="#f59e0b">BSM</text>
+</svg>

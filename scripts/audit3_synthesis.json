@@ -1,0 +1,217 @@
+{
+  "firewallRules": [
+    {
+      "name": "conceptTagValidation",
+      "description": "Ensures scenario content directly teaches the concept specified in conceptTag",
+      "appliesTo": [
+        "all"
+      ],
+      "implementation": "function validateConceptTag(scenario) {\n  const conceptMap = {\n    'pitch-sequencing': ['sequence', 'setup', 'pattern'],\n    'pitch-count-mgmt': ['count', 'efficiency', 'pitches'],\n    'ibb-strategy': ['intentional', 'walk', 'IBB'],\n    'cutoff-roles': ['cutoff', 'relay', 'cut'],\n    'force-vs-tag': ['force', 'tag', 'out'],\n    'double-play-turn': ['double', 'turn', 'two']\n  };\n  const keywords = conceptMap[scenario.conceptTag] || [];\n  const content = scenario.description + ' ' + scenario.concept;\n  return keywords.some(kw => content.toLowerCase().includes(kw));\n}",
+      "tier": 1
+    },
+    {
+      "name": "scorePerspectiveCheck",
+      "description": "Validates score display matches inning perspective (Top=away bats, Bot=home bats)",
+      "appliesTo": [
+        "all"
+      ],
+      "implementation": "function validateScorePerspective(scenario) {\n  const { inning, score } = scenario.situation;\n  if (!inning || !score) return true;\n  const isTop = inning.toLowerCase().includes('top');\n  const [homeScore, awayScore] = score;\n  if (isTop && awayScore > homeScore) {\n    return scenario.description.includes('trailing') || scenario.description.includes('behind');\n  }\n  if (!isTop && homeScore < awayScore) {\n    return scenario.description.includes('trailing') || scenario.description.includes('down');\n  }\n  return true;\n}",
+      "tier": 1
+    },
+    {
+      "name": "bestAnswerRateAlignment",
+      "description": "Ensures the option marked as 'best' has the highest rate value",
+      "appliesTo": [
+        "all"
+      ],
+      "implementation": "function validateBestAnswerRate(scenario) {\n  const bestIndex = scenario.best;\n  const bestRate = scenario.rates[bestIndex];\n  return scenario.rates.every((rate, idx) => idx === bestIndex || rate <= bestRate);\n}",
+      "tier": 1
+    },
+    {
+      "name": "forcePlayAccuracy",
+      "description": "Validates force play mechanics - stepping on base removes subsequent forces",
+      "appliesTo": [
+        "pitcher",
+        "catcher",
+        "firstBase",
+        "secondBase",
+        "thirdBase",
+        "shortstop"
+      ],
+      "implementation": "function validateForcePlay(scenario) {\n  const forcePlayRegex = /step.{0,20}first.{0,20}throw.{0,20}home|force.{0,20}home.{0,20}after.{0,20}first/i;\n  if (forcePlayRegex.test(scenario.description + scenario.concept)) {\n    return !scenario.options.some(opt => opt.includes('force at home') || opt.includes('step on home'));\n  }\n  return true;\n}",
+      "tier": 1
+    },
+    {
+      "name": "ageAppropriatePitchTypes",
+      "description": "Prevents advanced pitch types (slider, curveball) in diff:1 scenarios",
+      "appliesTo": [
+        "pitcher"
+      ],
+      "implementation": "function validateAgePitchTypes(scenario) {\n  if (scenario.diff !== 1) return true;\n  const advancedPitches = /slider|curveball|cutter|splitter/i;\n  return !advancedPitches.test(scenario.description + scenario.options.join(' '));\n}",
+      "tier": 2
+    },
+    {
+      "name": "positionRoleCompliance",
+      "description": "Ensures scenarios match the responsibilities of their position",
+      "appliesTo": [
+        "all"
+      ],
+      "implementation": "function validatePositionRole(scenario) {\n  const positionKeywords = {\n    'manager': ['lineup', 'bullpen', 'pinch', 'strategy', 'decision'],\n    'pitcher': ['pitch', 'throw', 'mound', 'delivery'],\n    'catcher': ['frame', 'block', 'throw', 'signal', 'mask'],\n    'baserunner': ['run', 'steal', 'slide', 'lead', 'tag']\n  };\n  if (!positionKeywords[scenario.position]) return true;\n  const keywords = positionKeywords[scenario.position];\n  const content = scenario.description + ' ' + scenario.options.join(' ');\n  return keywords.some(kw => content.toLowerCase().includes(kw));\n}",
+      "tier": 2
+    },
+    {
+      "name": "rateDistributionLogic",
+      "description": "Validates rate distribution follows logical probability patterns",
+      "appliesTo": [
+        "all"
+      ],
+      "implementation": "function validateRateDistribution(scenario) {\n  const rates = scenario.rates;\n  const bestRate = Math.max(...rates);\n  const worstRate = Math.min(...rates);\n  return bestRate >= 65 && bestRate <= 90 && worstRate >= 5 && worstRate <= 35;\n}",
+      "tier": 3
+    },
+    {
+      "name": "explanationDistinctness",
+      "description": "Ensures each explanation teaches a different principle",
+      "appliesTo": [
+        "all"
+      ],
+      "implementation": "function validateExplanationVariety(scenario) {\n  const explanations = scenario.explanations;\n  const uniquePhrases = new Set();\n  explanations.forEach(exp => {\n    const key = exp.toLowerCase().replace(/[^a-z ]/g, '').split(' ').slice(0, 5).join(' ');\n    uniquePhrases.add(key);\n  });\n  return uniquePhrases.size >= explanations.length * 0.8;\n}",
+      "tier": 3
+    }
+  ],
+  "fixRecommendations": [
+    {
+      "scenarioId": "b52",
+      "position": "batter",
+      "currentScore": 3.8,
+      "issueType": "conceptTag",
+      "specificFix": "Change conceptTag from 'two-strike-approach' to 'slump-recovery' or rewrite scenario to teach two-strike adjustments with 0-2 count",
+      "priority": "critical"
+    },
+    {
+      "scenarioId": "2b2",
+      "position": "secondBase",
+      "currentScore": 3.8,
+      "issueType": "conceptTag",
+      "specificFix": "Add runner on first, change to <2 outs, focus on footwork for receiving shortstop's feed and turning to first. Change conceptTag to match or redesign for actual double-play-turn",
+      "priority": "critical"
+    },
+    {
+      "scenarioId": "fp18",
+      "position": "famous",
+      "currentScore": 3.8,
+      "issueType": "role",
+      "specificFix": "Rewrite as strategic decision: 'Your star player has played 150 straight games but looks tired before crucial series. Rest or play?' Change conceptTag to 'player-fatigue-mgmt'",
+      "priority": "critical"
+    },
+    {
+      "scenarioId": "p6",
+      "position": "pitcher",
+      "currentScore": 4.2,
+      "issueType": "rates",
+      "specificFix": "Fix rates so curveball (20) < changeup (55) to match explanations. Change conceptTag to 'ground-ball-pitches'. Add count-specific reasoning",
+      "priority": "high"
+    },
+    {
+      "scenarioId": "f21",
+      "position": "firstBase",
+      "currentScore": 6.2,
+      "issueType": "factual",
+      "specificFix": "Change best answer to option 1 (step on first, throw to second). Clarify that stepping on first removes force at home. Update rates: option 1=85, option 0=45",
+      "priority": "critical"
+    },
+    {
+      "scenarioId": "p33",
+      "position": "pitcher",
+      "currentScore": 4.8,
+      "issueType": "factual",
+      "specificFix": "Fix factual error: walking with bases loaded doesn't 'still' load them. Change conceptTag to 'pitch-around-strategy'. Adjust rates to 15/40/65/20",
+      "priority": "high"
+    },
+    {
+      "scenarioId": "f24",
+      "position": "centerField",
+      "currentScore": 5.2,
+      "issueType": "bestAnswer",
+      "specificFix": "Change best answer to option 1 (hit the cutoff). Update rates to [50, 85, 10, 5]. Rewrite explanations to teach proper cutoff mechanics",
+      "priority": "critical"
+    },
+    {
+      "scenarioId": "ct26",
+      "position": "catcher",
+      "currentScore": 4.2,
+      "issueType": "ageAppropriateness",
+      "specificFix": "Change age range to 12+ or replace with age-appropriate scenario about blocking/throwing. Fix rate array ordering",
+      "priority": "high"
+    },
+    {
+      "scenarioId": "m57",
+      "position": "manager",
+      "currentScore": 4.2,
+      "issueType": "conceptTag",
+      "specificFix": "Replace with strategic decision (bullpen management, defensive shifts). Change age cap to 18. Remove conflict management content",
+      "priority": "high"
+    },
+    {
+      "scenarioId": "f8",
+      "position": "thirdBase",
+      "currentScore": 4.8,
+      "issueType": "rates",
+      "specificFix": "Fix best answer index to 3, align explanation 3 with option 3, swap score to [0,1], change animation to 'fieldThrow'",
+      "priority": "high"
+    }
+  ],
+  "frameworkUpgrades": [
+    {
+      "area": "ConceptTag Validation",
+      "currentGap": "No systematic check that scenarios teach their tagged concepts",
+      "proposedEnhancement": "Add automated conceptTag-to-content mapping validation",
+      "implementation": "Create concept keyword dictionary and validate that scenario content contains relevant keywords for its conceptTag"
+    },
+    {
+      "area": "Score Perspective Validation",
+      "currentGap": "Inconsistent handling of home/away perspective in different innings",
+      "proposedEnhancement": "Add inning-aware score validation that checks description matches score display",
+      "implementation": "Validate that Top innings show away team batting scenarios and Bot innings show home team batting scenarios"
+    },
+    {
+      "area": "Position Role Compliance",
+      "currentGap": "Some scenarios assign field play decisions to managers or wrong positions",
+      "proposedEnhancement": "Add position-specific responsibility validation",
+      "implementation": "Create position responsibility matrix and validate scenarios match position capabilities"
+    },
+    {
+      "area": "Age Appropriateness Scaling",
+      "currentGap": "Complex concepts appear in low difficulty scenarios",
+      "proposedEnhancement": "Add vocabulary and concept complexity scoring by difficulty level",
+      "implementation": "Create age-appropriate term lists and validate against difficulty levels"
+    },
+    {
+      "area": "Explanation Quality Metrics",
+      "currentGap": "Explanations often repetitive or don't teach underlying principles",
+      "proposedEnhancement": "Add explanation diversity and teaching value scoring",
+      "implementation": "Measure explanation uniqueness and presence of teaching principles vs simple assertions"
+    }
+  ],
+  "overallAssessment": {
+    "totalScenarios": 605,
+    "passRate": "88.4%",
+    "avgScore": "8.45",
+    "criticalIssues": 12,
+    "highIssues": 25,
+    "mediumIssues": 32,
+    "topStrengths": [
+      "Strong factual accuracy (8.92 avg)",
+      "Excellent best answer selection (9.32 avg)",
+      "High role compliance (9.62 avg)",
+      "Good age appropriateness (9.11 avg)"
+    ],
+    "topWeaknesses": [
+      "ConceptTag misalignment issues",
+      "Score perspective errors in Top/Bot innings",
+      "Explanation quality and teaching value",
+      "Rate distribution logic problems"
+    ],
+    "goldStandardReady": false,
+    "recommendation": "Implement Tier 1 firewall rules immediately to catch critical errors. Fix all critical priority scenarios before launch. Schedule Tier 2-3 improvements for post-launch updates. Overall quality is good but needs targeted fixes for conceptTag alignment and score perspective issues."
+  }
+}

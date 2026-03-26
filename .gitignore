@@ -31,3 +31,6 @@ phase1-finetune/synthetic_batch_*.json
 phase1-finetune/golden_candidates_*.json
 phase1-finetune/judge_results_*.json
 phase1-finetune/logs/
+_archive/
+dist/
+node_modules/

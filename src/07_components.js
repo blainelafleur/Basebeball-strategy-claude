@@ -425,9 +425,9 @@ const Field=React.memo(function Field({runners=[],outcome=null,ak=0,anim=null,an
       {!outcome&&<Guy x={215} y={285} jersey="#dc2626" cap="#b91c1c" pants="#d1d5db" batColor={avatar?AVATAR_OPTS.bat[avatar.b||0]:"#c8a060"} ring={pos==="batter"} pose="batter" number={pos==="batter"?24:null}/>}
 
       {/* === RUNNERS (away team — always red, golden ring) === */}
-      {on(1)&&<Guy x={298} y={200} jersey="#dc2626" cap="#b91c1c" pants="#d1d5db" ring={true} pose="runner"/>}
-      {on(2)&&<Guy x={200} y={125} jersey="#dc2626" cap="#b91c1c" pants="#d1d5db" ring={true} pose="runner"/>}
-      {on(3)&&<Guy x={102} y={200} jersey="#dc2626" cap="#b91c1c" pants="#d1d5db" ring={true} pose="runner"/>}
+      {on(1)&&<Guy x={290} y={210} jersey="#dc2626" cap="#b91c1c" pants="#d1d5db" ring={true} pose="runner"/>}
+      {on(2)&&<Guy x={200} y={135} jersey="#dc2626" cap="#b91c1c" pants="#d1d5db" ring={true} pose="runner"/>}
+      {on(3)&&<Guy x={110} y={210} jersey="#dc2626" cap="#b91c1c" pants="#d1d5db" ring={true} pose="runner"/>}
 
       {/* === QW4: Trajectory dashed lines for ball flight (replay mode) === */}
       {slow&&anim&&(()=>{

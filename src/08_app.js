@@ -1391,7 +1391,7 @@ export default function App(){
         lastWrongConceptTag:_newLastWrong,gapDetectionCache:_newGapCache,
         flaggedScenarios:p.flaggedScenarios||{},adaptiveDiff:_ad,
         // AF8: Save correct plays to highlight reel (last 10)
-        highlights:isOpt&&sc.anim?[...(p.highlights||[]),{anim:sc.anim,title:sc.title,pos,runners:sc.situation?.runners||[],situation:sc.situation,ts:Date.now(),variant:sc.animVariant||sc.pitchType||null}].slice(-10):(p.highlights||[]),
+        highlights:isOpt&&sc.anim?[...(p.highlights||[]),{anim:sc.anim,title:sc.title,pos,runners:sc.situation?.runners||[],situation:sc.situation,ts:Date.now(),variant:(()=>{const r=sc.situation?.runners||[];const a=sc.anim;if(a==='steal'){if(r.includes(3))return'3toHome';if(r.includes(2)&&!r.includes(1))return'2to3';}if(a==='advance'){if(r.includes(3))return'3toHome';if(r.includes(2)&&!r.includes(1))return'2to3';}if(a==='hit'||a==='flyout'){if(pos==='leftField')return'LF';if(pos==='centerField')return'CF';}if(a==='groundout'&&(pos==='firstBase'||pos==='secondBase'))return'1B';if(a==='freeze'){if(r.includes(3))return'3B';if(r.includes(2))return'2B';}return sc.animVariant||sc.pitchType||null;})()}].slice(-10):(p.highlights||[]),
         // enrichFeedback data: store situational context for adaptive pattern detection (last 50)
         playContextHistory:[...(p.playContextHistory||[]),_playContext].slice(-50)};
       ns.achs=checkAch(ns);
@@ -4481,7 +4481,7 @@ export default function App(){
           </div>}
 
           <div style={{background:"rgba(0,0,0,.25)",borderRadius:12,padding:6,marginBottom:8,border:"1px solid rgba(255,255,255,.03)"}}>
-            <Field runners={sc.situation.runners} outcome={fo} ak={ak} anim={fo?sc.anim:null} theme={FIELD_THEMES.find(th=>th.id===stats.fieldTheme)||FIELD_THEMES[0]} avatar={{j:stats.avatarJersey||0,c:stats.avatarCap||0,b:stats.avatarBat||0}} pos={pos}/>
+            <Field runners={sc.situation.runners} outcome={fo} ak={ak} anim={fo?sc.anim:null} animVariant={fo?(()=>{const r=sc.situation?.runners||[];const a=sc.anim;if(a==='steal'){if(r.includes(3))return'3toHome';if(r.includes(2)&&!r.includes(1))return'2to3';}if(a==='advance'){if(r.includes(3))return'3toHome';if(r.includes(2)&&!r.includes(1))return'2to3';}if(a==='hit'||a==='flyout'){if(pos==='leftField')return'LF';if(pos==='centerField')return'CF';}if(a==='groundout'){if(pos==='firstBase'||pos==='secondBase')return'1B';}if(a==='freeze'){if(r.includes(3))return'3B';if(r.includes(2))return'2B';}return sc.animVariant||sc.pitchType||null;})():null} theme={FIELD_THEMES.find(th=>th.id===stats.fieldTheme)||FIELD_THEMES[0]} avatar={{j:stats.avatarJersey||0,c:stats.avatarCap||0,b:stats.avatarBat||0}} pos={pos}/>
             <div style={{marginTop:3}}><Board sit={sc.situation}/></div>
           </div>
 
