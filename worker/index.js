@@ -1879,7 +1879,8 @@ async function handlePoolSubmit(request, env, cors) {
         `).bind(signature).first()
 
         if (sigMatch) {
-          const newQuality = quality_score || generation_grade || 7.0
+          // Normalize to 0-10 scale: quality_score is already 0-10, generation_grade is 0-100
+          const newQuality = quality_score > 0 ? quality_score : (generation_grade > 0 ? generation_grade / 10 : 7.0)
           if (newQuality < sigMatch.quality_score * 1.10) {
             console.log(`[BSM Pool] Semantic duplicate rejected: "${scenario.title}" matches ${sigMatch.id} (sig: ${signature})`)
             return jsonResponse({
@@ -3355,7 +3356,7 @@ JSON SCHEMA:
 
 const CRITIC_SYSTEM = `You are a quality auditor for Baseball Strategy Master, an educational baseball app for kids ages 6-18.
 
-Evaluate the scenario against a 31-item checklist and a 6-dimension rubric. Be STRICT — only truly excellent scenarios should score 9.5+.
+Evaluate the scenario against a 32-item checklist and a 6-dimension rubric. Be STRICT — only truly excellent scenarios should score 9.5+.
 
 THE 31-ITEM CHECKLIST:
 1. Does the scenario have exactly 4 options?
@@ -3389,6 +3390,7 @@ THE 31-ITEM CHECKLIST:
 29. BSM uses 15 categories including 'famous' (historical strategic lessons), 'rules' (rule knowledge), and 'counts' (count-leverage strategy) — these are VALID categories, not errors.
 30. Does the relay/cutoff terminology match the throw distance? ('relay' for deep throws, 'cutoff' for shorter throws)
 31. Does the scenario teach a CLEAR single concept (not muddled)?
+32. Are ALL 4 options actions that THIS SPECIFIC POSITION actually performs? A catcher scenario must have catching/blocking/framing/calling options, NOT batting/baserunning options. A pitcher scenario must have pitching options, NOT fielding-only options. If the options belong to a different position, FAIL this item.
 
 EXPLANATION QUALITY DEEP CHECK (applies to all 4 explanations, not just best):
 - Each explanation must contain causal reasoning ("because", "which means", "the key", "since", "otherwise")
@@ -3422,7 +3424,7 @@ PASS: overallScore >= 9.5 AND zero checklist failures.
 
 Output ONLY valid JSON:
 {
-  "checklist": { "item_1": true, "item_2": true, ..., "item_31": true },
+  "checklist": { "item_1": true, "item_2": true, ..., "item_32": true },
   "checklistFailures": ["item_5: Score perspective wrong — Bot 3rd but uses score[0] for batting team"],
   "rubric": {
     "factualAccuracy": 9,

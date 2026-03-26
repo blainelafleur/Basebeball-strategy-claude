@@ -2332,3 +2332,193 @@ This probably doesn't trigger in practice (the client gate rejects quality_score
 | 17 | Pool submission quality_score vs generation_grade scale mismatch | LOW | Small -- normalize scales in worker |
 
 **Priority recommendation:** Fix #13 first -- it's 4 lines of code and immediately improves pool quality by letting multi-agent scenarios (the best ones) contribute to the community pool instead of being stored as quality:0.
+
+---
+
+### AI Generation Audit — Blind Spot Analysis for 3-Fix Sprint (2026-03-26)
+
+**Context:** Main agent is implementing 3 fixes: (1) multi-agent scenarios now submit to server pool, (2) xAI health tracking with 5min cooldown after connect timeout, (3) worker pool submission scale mismatch fix. This analysis looks for second-order effects and adjacent blind spots.
+
+#### Fix 1: Multi-Agent Pool Submission — Hidden Issues
+
+**Scale mismatch in the submission call itself (line 3020):**
+The multi-agent path calls `submitToServerPool(scenario, position, critiqueScore, 0, maResult.scenario.qualityGrade)` where `critiqueScore` is the raw 10-point critique score (e.g., 9.5) passed as the `qualityScore` parameter. Inside `submitToServerPool`, the client-side gate at line 4548 checks `qualityScore >= 7.5` (or 6.5 for underserved). A critiqueScore of 9.5 passes this gate correctly. But the worker receives this as `quality_score: 9.5` on a 0-10 scale, while standard pipeline scenarios send `grade.score / 10` (also 0-10), so the scales actually align. **No bug here — but document this explicitly** because it's confusing that qualityGrade is 0-100 but quality_score is 0-10.
+
+**Dual write to local pool + server pool:**
+When a multi-agent scenario succeeds, it returns at line 3028 (`return maResult`). The caller in the main App component will likely also save the scenario to local pool via `saveToLocalPool()` during prefetch eviction (line 4608). Meanwhile `submitToServerPool` fires in the background. This creates a scenario that exists in both localStorage AND D1. There is no dedup issue per se — the local pool deduplicates by `title + position` (line 4481), and the server pool deduplicates by content hash (line 1860). But if the same scenario is later fetched FROM the server pool, the player could see a scenario they already played (since it was also in their local pool). **Mitigation exists:** the `consumeFromLocalPool` function uses `excludeIds` but the server-fetched scenario gets a `pool_XXXX` ID while the local copy has the original `ma_XXXX` ID. This means the exclude filter won't match. **Recommendation:** Add title-based dedup to `fetchFromServerPool` exclude logic, or strip local pool entries when a matching scenario is consumed from server pool.
+
+**No firewall/consistency check before pool submission:**
+The multi-agent path at line 3019-3027 submits to the pool BEFORE the scenario is shuffled (shuffleAnswers happens inside generateWithMultiAgent at line 2665, before the return). The pool gets the shuffled version, which is correct. However, the multi-agent path does run client-side QUALITY_FIREWALL and CONSISTENCY_RULES (lines 2639-2662), and rejects the scenario if they fail (returns null). So only scenarios that pass both server-side critique AND client-side firewall reach the pool submission. **This is sound.**
+
+**Rate limiting concern:**
+`submitToServerPool` is fire-and-forget with a 10s timeout. If a player rapidly generates AI scenarios (e.g., clicking "AI Coach's Challenge" repeatedly), each successful multi-agent scenario triggers a pool submission. The worker has no rate limiting on `/scenario-pool/submit`. D1 free tier allows 100K writes/day, so this is fine at current scale. But if prefetch also submits (it currently doesn't for multi-agent since prefetch uses `skipAgent=true`), this could compound. **No action needed now.**
+
+#### Fix 2: xAI Health Tracking — Design Questions
+
+**Global vs per-position flag:**
+The current implementation at line 37-40 uses a single global `_xaiDownUntil` timestamp. This is the right call. xAI connect timeouts are infrastructure-level (the api.x.ai endpoint is unreachable), not position-specific. A per-position flag would be wrong — if xAI is down for pitcher, it's down for catcher too.
+
+**5-minute TTL — is it right?**
+The 5-minute cooldown (line 38) is reasonable for a connect timeout, which typically indicates a transient infrastructure issue. Shorter (2min) risks repeatedly hitting a dead endpoint. Longer (15min) risks missing recovery. 5 minutes is a good middle ground. **One concern:** the `markXaiDown()` trigger at line 3917-3918 catches ALL errors matching `/connect.*timeout|ETIMEDOUT|ECONNREFUSED|fetch failed|network/i`. The regex `fetch failed` is very broad — it could match a worker-side fetch failure that isn't xAI-specific (e.g., if the worker's D1 database connection fails and returns a generic "fetch failed" error message). **Recommendation:** Make the regex more specific: `/connect.*timeout|ETIMEDOUT|ECONNREFUSED/i` without the broad `fetch failed|network` patterns, OR only trigger on errors from the xAI-specific code path (check `errType`).
+
+**Where `isXaiDown()` is checked:**
+Searched the codebase — `isXaiDown()` is defined but I see no call sites yet. The main agent presumably needs to add checks before the xAI agent pipeline (around line 3072) and before the standard pipeline xAI call (around line 3381). Missing either check defeats the purpose. The standard pipeline is the most important one to gate since it's the final fallback that wastes 25-85s on timeout.
+
+**Interaction with multi-agent timeout flag:**
+When multi-agent times out (`multiAgentTimedOut = true` at line 3030), the code already skips the xAI agent pipeline (line 3067-3068). But it does NOT skip the xAI standard pipeline — it falls through to line 3372+. If xAI is also down, this wastes another 25-85s before the budget runs out. The `isXaiDown()` check on the standard pipeline is critical to prevent this double-timeout scenario. The player would wait up to 90s + 85s = 175s total before getting a fallback handcrafted scenario. **This is the highest-impact use of the health flag.**
+
+**No persistence across page loads:**
+`_xaiDownUntil` is a module-level variable that resets on page refresh. This means if a player refreshes after a timeout, they'll hit xAI again immediately. For a single-page app this is fine (players rarely refresh mid-session), but worth noting. Could use sessionStorage for persistence if this becomes an issue.
+
+#### Fix 3: Scale Mismatch — Remaining Inconsistencies
+
+**The fix being applied (based on finding #17):**
+The worker's semantic dedup at line 1882 compares `quality_score` (0-10) with `generation_grade` (0-100) via `quality_score || generation_grade || 7.0`. After the fix normalizes this, there's a downstream implication.
+
+**Worker-side `qualityGate` comparison (line 1851-1853):**
+The gate checks `quality_score >= 6.5` or `>= 7.5`. Multi-agent scenarios send `critiqueScore` (0-10 scale, e.g., 9.5) as `quality_score`. Standard pipeline sends `grade.score / 10` (0-10 scale, e.g., 7.5). Both are on the same 0-10 scale. **This is correct after the fix.**
+
+**But `generation_grade` field is on a different scale:**
+Multi-agent sends `generation_grade: maResult.scenario.qualityGrade` which is `critiqueScore * 10` (0-100 scale, e.g., 95). Standard pipeline sends `generation_grade: grade.score` (0-100 scale, e.g., 75). Both are 0-100. **This is consistent.**
+
+**The `scenario_grades` table (line 1750-1758) uses yet another field:**
+The analytics endpoint stores `quality_score` from grader details. The multi-agent pipeline reports grades to `/analytics/scenario-grade` only from the standard pipeline (line 3787-3792). Multi-agent scenarios skip this analytics call entirely — their grades only show up in the pool submission. **Observation:** After this fix, multi-agent scenarios will appear in the pool but NOT in `scenario_grades` analytics. This creates a blind spot in quality monitoring. Consider adding a grade report call in the multi-agent success path.
+
+**`agentGrade` field overwrite in worker (line 3645):**
+The worker stamps `scenario.agentGrade = Math.round(critique.overallScore * 10)` — this is a NUMBER (e.g., 95). But the client at line 2667 returns `{ agentGrade: data.critique }` where `data.critique` is an OBJECT with `{score, pass, rubric, ...}`. The client reads `maResult.agentGrade?.score` (line 3020) which gets the critique object's `score` field (0-10 scale). The worker's numeric `scenario.agentGrade` is on the scenario object itself, not in the wrapper. **No conflict, but confusing naming.** The scenario has `scenario.agentGrade = 95` (number) while the wrapper has `agentGrade: {score: 9.5, pass: true, ...}` (object). If any code reads `scenario.agentGrade` expecting a 0-10 score, it gets 0-100 instead.
+
+#### Adjacent Blind Spots Found
+
+**Blind Spot A: No `shuffleAnswers` before pool submission**
+At line 3019-3027, the multi-agent scenario is submitted to the pool. But `shuffleAnswers` was already called at line 2665 inside `generateWithMultiAgent`. This means the pool stores the shuffled version. When another player fetches this scenario from the pool, there's no re-shuffle — they get the same answer ordering. Over time, answer position bias could emerge. The standard pipeline calls `shuffleAnswers` at line 3864, AFTER pool submission at line 3800-3802, so pool stores the pre-shuffle version. **Inconsistency:** multi-agent pool entries are shuffled, standard pipeline pool entries are not. If re-shuffle is added on fetch, multi-agent entries get double-shuffled (fine mathematically, but the `best` index tracking could break if not careful).
+
+**Blind Spot B: Prefetch never uses multi-agent pipeline**
+`prefetchAIScenario` at line 4597 always passes `skipAgent=true`, meaning prefetched scenarios use xAI standard pipeline only. When xAI is down (new health flag), prefetch silently fails. The prefetch should check `isXaiDown()` early and skip entirely rather than burning a fetch attempt and abort controller. Also: prefetched scenarios are lower quality (no agent grading, no multi-agent critique) but enter the same local pool as multi-agent scenarios. The `quality` field in local pool entries preserves this distinction, but `consumeFromLocalPool` doesn't prioritize by quality — it takes the first match. **Recommendation:** Sort local pool by quality descending before consuming.
+
+**Blind Spot C: `_serverPoolCounts` may be stale**
+At line 3796, the standard pipeline's pool gate reads `_serverPoolCounts?.[position]` to decide the submission threshold. This object is populated... somewhere (searched but couldn't find the setter in the visible code range). If it's populated once at app boot and never refreshed, positions that were underserved at boot may have grown past 5 scenarios. The gate would still use the lower 65-threshold. Low risk but worth a periodic refresh (e.g., every 30 min or on session start).
+
+**Blind Spot D: Error catch regex too broad for `markXaiDown`**
+Repeating for emphasis: the catch block at line 3897-3918 handles ALL `generateAIScenario` errors, including parse errors, role violations, and quality firewall rejections. The `markXaiDown` trigger at line 3917-3918 only fires if the error message matches the connect-timeout regex, which is correct. But if a future code change adds an error message like "network validation failed" or "fetch failed to parse", it would falsely trigger the xAI cooldown. **Guard rail:** Add a dedicated error type like `errType === "connect"` and only trigger markXaiDown on that.
+
+| # | Finding | Severity | Fix Effort |
+|---|---------|----------|------------|
+| 18 | Local pool + server pool ID mismatch blocks cross-dedup | MEDIUM | Small -- add title-based exclude to fetchFromServerPool |
+| 19 | `isXaiDown()` not yet wired to standard pipeline gate | HIGH | Small -- add 2-line check before line 3372 |
+| 20 | Multi-agent scenarios skip analytics grade reporting | LOW | Small -- add fetch to /analytics/scenario-grade |
+| 21 | Shuffle inconsistency: multi-agent pool entries pre-shuffled, standard not | LOW | Small -- move shuffleAnswers after pool submit in multi-agent |
+| 22 | `markXaiDown` regex matches broad "fetch failed" patterns | MEDIUM | Small -- narrow regex to connect-specific errors |
+| 23 | Prefetch doesn't check isXaiDown(), wastes AbortController on dead endpoint | LOW | Small -- add early return in prefetchAIScenario |
+| 24 | Local pool consumeFromLocalPool doesn't prioritize by quality | LOW | Small -- sort by quality desc before match |
+
+**Priority:** #19 is critical -- without it, the xAI health flag exists but doesn't actually prevent the most expensive timeout (standard pipeline, 25-85s). #22 is a close second to prevent false positives.
+
+---
+
+## AI Position Cross-Contamination Bug -- TPA Deep Analysis (2026-03-26)
+
+**Bug report:** A BATTER scenario ("First Pitch Decision Leading Off") with options like "Look for a fastball in the zone and attack" and "Take the first pitch to see more pitches" was served to a player playing CATCHER position. All four options are batting decisions; none are catcher decisions. This passed every quality check.
+
+### Root Cause Analysis
+
+#### Finding 1: No "Position-Action Match" Check Exists Anywhere (CRITICAL)
+
+The entire quality pipeline -- ROLE_VIOLATIONS, QUALITY_FIREWALL, CONSISTENCY_RULES, PREMISE_VIOLATIONS, the server-side Critic checklist (31 items), and the cross-position action check -- **never asks the fundamental question: "Are these 4 options actions that the requested position actually performs?"**
+
+Every existing check is a negative pattern match ("catcher should NOT do X"). None is a positive match ("catcher options MUST be about calling pitches, blocking, framing, throwing out runners, or fielding bunts/WP/PB").
+
+Here is what happens when a batter scenario arrives for catcher:
+
+1. **ROLE_VIOLATIONS for catcher** (line 3518-3523 in 06_ai_pipeline.js): Checks for `catcher.*cutoff`, `catcher.*relay`, `catcher.*looks.*runner.*before.*field`. A batter scenario about "look for a fastball" matches NONE of these patterns. These patterns only catch catcher doing wrong catcher-adjacent things, not catcher doing an entirely different position's job.
+
+2. **Cross-position action check** (lines 3574-3592): Only checks fielders/baserunner/batter for manager/catcher/pitcher options. It does NOT check catcher for batter options. Catcher is not in the `FIELDER_POS` array and is not checked at all.
+
+3. **PREMISE_VIOLATIONS** (lines 3596-3630): Only two categories: `fielder` (checks for manager/pitcher/catcher topics) and `offensive` (checks for defensive positioning). There is NO `catcher` category that checks for batting topics. There is NO `pitcher` category that checks for batting topics.
+
+4. **Server-side Critic checklist** (worker lines 3362-3392): Item 7 says "Does the pitcher NEVER act as cutoff man?" Item 8 says "Does the catcher NEVER leave home plate unguarded?" These are action-specific checks, not position-identity checks. There is NO checklist item that says "Are all 4 options actions this position performs?"
+
+5. **POS_ACTIONS_MAP** (lines 21-34): This constant perfectly defines what each position does. It is used to inject position boundaries into AI generation prompts. But it is NEVER used for validation. It tells the AI "Catcher=calling pitches, setting up location targets, blocking..." but nobody checks the output against this map.
+
+**The gap:** POS_ACTIONS_MAP is a generation hint, not a validation gate. The system trusts the AI to obey position boundaries but never verifies.
+
+#### Finding 2: ROLE_VIOLATIONS Reference in Multi-Agent Handler is a Scoping Bug (HIGH)
+
+The multi-agent handler (`generateWithMultiAgent`, line 11058 in index.jsx) references `ROLE_VIOLATIONS[position]`:
+
+```javascript
+if (ROLE_VIOLATIONS[position]) {
+  // ... check patterns ...
+}
+```
+
+But `ROLE_VIOLATIONS` is defined as `const` inside `generateAIScenario` (line 11919), a completely different function. In the single-file Babel setup, `const` is function-scoped. `ROLE_VIOLATIONS` is NOT visible to `generateWithMultiAgent`.
+
+This means line 11058 throws a `ReferenceError: ROLE_VIOLATIONS is not defined`, which is caught by the outer try/catch at line 10970, causing the entire multi-agent result to return `null`. The multi-agent pipeline either: (a) always fails this check and falls back to xAI, or (b) Babel transpiles `const` to `var` in a way that hoists it (unlikely for nested function scope).
+
+**If (a) is happening:** Every multi-agent scenario is silently rejected by the client and the system falls back to the xAI pipeline, which DOES have ROLE_VIOLATIONS in scope. This would mean the multi-agent pipeline (Claude Opus, higher quality) is being thrown away and replaced by xAI every time. Massive waste of tokens.
+
+**If Babel hoisting makes it work:** The ROLE_VIOLATIONS check runs but still wouldn't catch batter-options-for-catcher because the catcher patterns only look for cutoff/relay/leaving-home violations.
+
+**To verify:** Add `console.log("[BSM] ROLE_VIOLATIONS type:", typeof ROLE_VIOLATIONS)` before line 11058 and check browser console.
+
+#### Finding 3: The Server Critic is an LLM, Not a Regex (MEDIUM)
+
+The Critic is Claude Opus evaluating against a 31-item checklist. Item 3 says "Does each explanation specifically discuss THAT option?" The Critic could, in theory, notice that batting options don't belong in a catcher scenario. But:
+
+1. The Critic prompt at line 3574 says: `Evaluate this Baseball Strategy Master scenario for position "${position}"`. It passes position as context.
+2. The checklist has no item that says "Do all options match the requested position's responsibilities?"
+3. The POSITION-SPECIFIC VALIDATION section (lines 3401-3411) says: `catcher: framing/blocking descriptions must be technically correct`. This checks catcher scenarios for catcher accuracy but does NOT check whether the scenario is actually about catching.
+4. An LLM Critic seeing a well-written batter scenario could score it 9.5+ on all rubric dimensions if it focuses on quality rather than position match.
+
+The Critic's blind spot: it evaluates scenario quality, not scenario identity.
+
+#### Finding 4: Server Pool is Not the Vector (CONFIRMED SAFE)
+
+The server pool fetch query (worker line 1968) correctly filters `WHERE position = ?`. The local pool's `consumeFromLocalPool` (line 4559) also filters `p.position === position`. The pool cannot serve a batter scenario to catcher unless the scenario was STORED with position="catcher".
+
+This confirms the bug originates at generation time, not at retrieval time. The AI generated a batter scenario, it was tagged as catcher (because catcher was requested), it passed all checks, and was served/stored as catcher.
+
+#### Finding 5: The Generator Prompt Has Position but No Enforcement (MEDIUM)
+
+The multi-agent Generator receives `Position: ${position}` in the user message (worker line 3546) and "POSITION BOUNDARIES: Pitcher NEVER acts as cutoff/relay. Catcher NEVER leaves home unguarded." in the system prompt (line 3335). But these are narrow prohibition rules, not identity enforcement. The system prompt never says "ALL 4 options MUST be actions this position performs" or "If position=catcher, options must be about calling pitches, blocking, framing, etc."
+
+### Proposed Fix: Position-Action Validator
+
+A new Tier 1 firewall check using the existing `POS_ACTIONS_MAP`:
+
+```
+positionActionMatch(scenario, position) {
+  const posActions = POS_ACTIONS_MAP[position]
+  if (!posActions) return null  // unknown position, skip
+
+  // Extract the action keywords for this position
+  const actionKeywords = posActions.split("=")[1].split(",").map(a => a.trim().toLowerCase())
+
+  // Check: do ANY of the 4 options reference actions from this position's domain?
+  // Use a broader approach: check against WRONG position action maps
+  const WRONG_POS_SIGNALS = {
+    catcher: [/swing|bat|hit|bunt.*runner|take the pitch|protect the plate|look for.*fastball|attack.*zone|foul.*off|work the count|leadoff|first pitch.*decision/i],
+    pitcher: [/swing|bat|take.*pitch|protect.*plate|look for.*fastball|steal|tag.*up|lead.*off/i],
+    // ... etc for each position
+  }
+  const wrongSignals = WRONG_POS_SIGNALS[position] || []
+  const optsText = scenario.options.join(" ")
+  const matchCount = wrongSignals.filter(rx => rx.test(optsText)).length
+  if (matchCount >= 2) return "Position mismatch: options contain actions for a different position"
+  return null
+}
+```
+
+A more robust version: for each option, check if it matches ANY other position's POS_ACTIONS_MAP better than the requested position. If 3+ of 4 options match a different position, reject.
+
+### Recommended Actions
+
+| # | Action | Effort | Impact |
+|---|--------|--------|--------|
+| 25 | Add Tier 1 firewall check: position-action match using POS_ACTIONS_MAP keywords | Medium | Catches this entire class of bugs |
+| 26 | Fix ROLE_VIOLATIONS scoping bug: move const to module level or duplicate in generateWithMultiAgent | Small | Either unblocks multi-agent or stops silent token waste |
+| 27 | Add Critic checklist item 32: "Are ALL 4 options actions this position performs?" | Small | Server-side catch before client |
+| 28 | Add cross-position check for catcher/pitcher receiving batter/baserunner options | Small | Targeted fix for the exact bug observed |
+| 29 | Expand PREMISE_VIOLATIONS to cover catcher/pitcher receiving offensive topics | Small | Catches batter/baserunner premise leaking into defensive positions |
+
+**Priority:** #26 first (may reveal multi-agent pipeline is being silently discarded). #25 second (broadest protection). #28 third (targeted quick fix).

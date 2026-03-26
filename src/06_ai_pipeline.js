@@ -33,6 +33,35 @@ const POS_ACTIONS_MAP = {
   rightField: "RightField=tracking fly balls, throwing to 3B/cutoff, backing up 1B/2B, playing the wall, strongest arm to 3B.",
 }
 
+// Role violation regexes — reject ACTUALLY wrong baseball (module-level so all pipelines can access)
+const ROLE_VIOLATIONS = {
+  pitcher: [
+    /pitcher.*cutoff/i, /pitcher.*relay\s*man/i, /pitcher.*lines?\s*up.*between/i,
+    /pitcher.*covers?\s*(second|2nd|third|3rd)\b/i, /pitcher.*fake.*third.*throw.*first/i,
+    /pitcher.*relay.*second/i, /pitcher.*stays.*on.*mound.*wild.*pitch/i, /pitcher.*backs?\s*up\s*(second|2nd)\b/i,
+  ],
+  catcher: [
+    /catcher.*cutoff/i, /catcher.*goes?\s*out.*cutoff/i,
+    /catcher.*(is|as|acts?\s+as|becomes?)\s*(the\s*)?relay/i, /catcher.*looks.*runner.*before.*field/i,
+  ],
+  shortstop: [/SS\s*covers?\s*(1st|first)\b.*bunt/i, /shortstop\s*covers?\s*(1st|first)\b.*bunt/i],
+  secondBase: [/2B\s*covers?\s*(3rd|third)\b.*bunt/i, /second\s*base.*covers?\s*(3rd|third)\b.*bunt/i],
+  thirdBase: [/third.*base.*stays.*at.*third.*wild.*pitch.*runner.*third/i, /third.*base.*cutoff.*right.*field/i, /third.*base.*relay.*right/i, /third\s*base(man)?\s*(is|as)\s*(the)?\s*cutoff.*cf/i, /third\s*base(man)?\s*(is|as)\s*(the)?\s*cutoff.*rf/i],
+  firstBase: [/first\s*base(man)?\s*(is|as)\s*(the)?\s*cutoff.*lf/i],
+  leftField: [/left.*field.*cutoff.*center/i, /left\s*field(er)?\s*(is|as|acts?\s+as|becomes?)\s*(the\s*)?relay.*(second|2nd)/i, /left\s*field(er)?\s*(back(s)?\s*up|cover(s)?)\s*(second|2nd|2b)\b/i],
+  centerField: [/center\s*field(er)?\s*(back(s)?\s*up|cover(s)?)\s*(third|3rd|3b)\b/i, /center\s*field(er)?.*cutoff.*3b/i, /center\s*field(er)?.*cutoff.*third/i, /cf.*cutoff.*3b/i],
+  rightField: [/right.*field.*cutoff.*left/i, /right\s*field(er)?\s*(is|as|acts?\s+as|becomes?)\s*(the\s*)?relay.*(third|3rd)/i, /right\s*field(er)?\s*(back(s)?\s*up|cover(s)?)\s*(third|3rd|3b)\b/i],
+  batter: [/you\s+(field|throw\s+to\s+(first|second|third)|cover\s+(first|second|third|home)|pitch|deliver)/i],
+  baserunner: [/you\s+(field|catch\s+the\s+(ball|throw)|pitch|bat|swing|throw\s+to)/i],
+  manager: [/you\s+(throw|catch|field|tag|dive|slide|pitch|bat|swing|bunt|run\s+to)/i],
+}
+
+// xAI health tracking — skip xAI pipelines for 5min after connect timeouts
+let _xaiDownUntil = 0
+const XAI_COOLDOWN = 5 * 60 * 1000 // 5 minutes
+function markXaiDown() { _xaiDownUntil = Date.now() + XAI_COOLDOWN; console.warn("[BSM] xAI marked down for 5 minutes") }
+function isXaiDown() { return Date.now() < _xaiDownUntil }
+
 // QUALITY_FIREWALL — Automated checks for every scenario (handcrafted or AI)
 // Tier 1: hard reject | Tier 2: warn + flag | Tier 3: quality suggestions
 // ============================================================================
@@ -180,6 +209,46 @@ const QUALITY_FIREWALL = {
       if (rates[best] !== maxRate) {
         const actualBest = rates.indexOf(maxRate)
         return "Best answer rate conflict: best=" + best + " (rate " + rates[best] + ") but option " + actualBest + " has higher rate " + maxRate
+      }
+      return null
+    },
+    // Check: Position-action boundary — reject when ALL options are actions for a DIFFERENT position
+    // Catches: batter scenario served to catcher, defensive scenario served to batter, etc.
+    positionActionBoundary(scenario, position) {
+      if (!position) return null
+      const opts = (scenario.options || []).map(o => (o||"").toLowerCase()).join(" ")
+      const desc = (scenario.description || "").toLowerCase()
+      const combined = opts + " " + desc
+
+      // Batting actions — should ONLY appear for batter position
+      const BATTING_ACTIONS = /\b(swing|look for a (fastball|pitch|curve|slider|changeup)|take the (first )?pitch|protect the plate|work the count|hit (behind|to)|pull for|drive the ball|foul off|bunt for a hit|attack .* pitch|wait for.*pitch)\b/i
+      // Defensive fielding — should NOT appear for batter/baserunner
+      const FIELDING_ACTIONS = /\b(throw to (first|second|third|home)|field the (ball|grounder|bunt)|turn the double play|tag the runner|cover (first|second|third|home)|relay.*throw|cutoff position|back up)\b/i
+      // Pitching actions — should ONLY appear for pitcher
+      const PITCHING_ACTIONS = /\b(throw a (fastball|curve|slider|changeup|sinker)|pitch (location|selection)|throw (inside|outside|high|low)|pitchout|work ahead|nibble|establish the fastball)\b/i
+      // Baserunning actions — should ONLY appear for baserunner
+      const BASERUNNING_ACTIONS = /\b(steal (second|third)|take a lead|get a jump|tag up and (go|advance|score)|round (second|third)|slide into|break for home|secondary lead)\b/i
+
+      // Defensive positions should not have ALL batting options
+      const DEFENSIVE = ["pitcher","catcher","firstBase","secondBase","shortstop","thirdBase","leftField","centerField","rightField"]
+      if (DEFENSIVE.includes(position)) {
+        const battingMatches = (scenario.options || []).filter(o => BATTING_ACTIONS.test(o||""))
+        if (battingMatches.length >= 3) return "Position boundary: " + position + " scenario has " + battingMatches.length + "/4 batting options — wrong position"
+      }
+      // Batter should not have ALL defensive/fielding options
+      if (position === "batter") {
+        const fieldingMatches = (scenario.options || []).filter(o => FIELDING_ACTIONS.test(o||""))
+        if (fieldingMatches.length >= 3) return "Position boundary: batter scenario has " + fieldingMatches.length + "/4 fielding options — wrong position"
+      }
+      // Non-pitcher should not have ALL pitching options
+      if (position !== "pitcher") {
+        const pitchingMatches = (scenario.options || []).filter(o => PITCHING_ACTIONS.test(o||""))
+        if (pitchingMatches.length >= 3) return "Position boundary: " + position + " scenario has " + pitchingMatches.length + "/4 pitching options — wrong position"
+      }
+      // Non-baserunner should not have ALL baserunning options (except manager who can signal)
+      if (position !== "baserunner" && position !== "manager") {
+        const runningMatches = (scenario.options || []).filter(o => BASERUNNING_ACTIONS.test(o||""))
+        if (runningMatches.length >= 3) return "Position boundary: " + position + " scenario has " + runningMatches.length + "/4 baserunning options — wrong position"
       }
       return null
     },
@@ -3015,6 +3084,10 @@ async function generateAIScenario(position, stats, conceptsLearned = [], recentW
       maResult.scenario.qualityGrade = Math.round(critiqueScore * 10)
       maResult.scenario.scenarioSource = "multi-agent"
       console.log("[BSM] Multi-agent pipeline succeeded, qualityGrade:", maResult.scenario.qualityGrade)
+      // Submit to server pool — multi-agent scenarios are highest quality and should seed the community pool
+      if (maResult.scenario.qualityGrade >= 75) {
+        submitToServerPool(maResult.scenario, position, critiqueScore, 0, maResult.scenario.qualityGrade)
+      }
       return maResult
     }
     // Check if player aborted (clicked Skip or navigated away)
@@ -3052,6 +3125,12 @@ async function generateAIScenario(position, stats, conceptsLearned = [], recentW
 
   // Abort check before xAI pipelines
   if (signal?.aborted) return { scenario: null, error: "aborted" }
+
+  // xAI health check — skip both xAI pipelines if recently down (applies to prefetch too)
+  if (isXaiDown()) {
+    console.warn("[BSM] xAI marked down — skipping agent + standard pipelines, falling to handcrafted")
+    return { scenario: null, error: "xai-down" }
+  }
 
   // Level 3.7: Agent pipeline A/B test — shadow mode
   try {
@@ -3486,36 +3565,7 @@ COMMON MISTAKES TO AVOID:
       console.warn("[BSM] Auto-fixed score to", scenario.situation.score);
     }
 
-    // Role violation regexes — reject only ACTUALLY wrong baseball.
-    // Pitcher covering/sprinting to 1B is CORRECT (grounders right side, D3S, bunt backup).
-    const ROLE_VIOLATIONS = {
-      pitcher: [
-        /pitcher.*cutoff/i,                              // Never the cutoff man
-        /pitcher.*relay\s*man/i,                          // Never the relay man
-        /pitcher.*lines?\s*up.*between/i,                 // Never in cutoff alignment
-        /pitcher.*covers?\s*(second|2nd|third|3rd)\b/i,   // Covers 1B only, never 2B/3B
-        /pitcher.*fake.*third.*throw.*first/i,            // Balk since 2013
-        /pitcher.*relay.*second/i,                        // SS/2B relay, not pitcher
-        /pitcher.*stays.*on.*mound.*wild.*pitch/i,        // Must sprint to cover home
-        /pitcher.*backs?\s*up\s*(second|2nd)\b/i,         // Never backs up 2B
-      ],
-      catcher: [
-        /catcher.*cutoff/i,                               // Never the cutoff man
-        /catcher.*goes?\s*out.*cutoff/i,                  // Never goes out as cutoff
-        /catcher.*(is|as|acts?\s+as|becomes?)\s*(the\s*)?relay/i, // Never the relay man (narrowed to avoid false positives)
-        /catcher.*looks.*runner.*before.*field/i,         // Must field ball first on WP/PB
-      ],
-      shortstop: [/SS\s*covers?\s*(1st|first)\b.*bunt/i, /shortstop\s*covers?\s*(1st|first)\b.*bunt/i],
-      secondBase: [/2B\s*covers?\s*(3rd|third)\b.*bunt/i, /second\s*base.*covers?\s*(3rd|third)\b.*bunt/i],
-      thirdBase: [/third.*base.*stays.*at.*third.*wild.*pitch.*runner.*third/i, /third.*base.*cutoff.*right.*field/i, /third.*base.*relay.*right/i, /third\s*base(man)?\s*(is|as)\s*(the)?\s*cutoff.*cf/i, /third\s*base(man)?\s*(is|as)\s*(the)?\s*cutoff.*rf/i],
-      firstBase: [/first\s*base(man)?\s*(is|as)\s*(the)?\s*cutoff.*lf/i],
-      leftField: [/left.*field.*cutoff.*center/i, /left\s*field(er)?\s*(is|as|acts?\s+as|becomes?)\s*(the\s*)?relay.*(second|2nd)/i, /left\s*field(er)?\s*(back(s)?\s*up|cover(s)?)\s*(second|2nd|2b)\b/i],
-      centerField: [/center\s*field(er)?\s*(back(s)?\s*up|cover(s)?)\s*(third|3rd|3b)\b/i, /center\s*field(er)?.*cutoff.*3b/i, /center\s*field(er)?.*cutoff.*third/i, /cf.*cutoff.*3b/i],
-      rightField: [/right.*field.*cutoff.*left/i, /right\s*field(er)?\s*(is|as|acts?\s+as|becomes?)\s*(the\s*)?relay.*(third|3rd)/i, /right\s*field(er)?\s*(back(s)?\s*up|cover(s)?)\s*(third|3rd|3b)\b/i],
-      batter: [/you\s+(field|throw\s+to\s+(first|second|third)|cover\s+(first|second|third|home)|pitch|deliver)/i],
-      baserunner: [/you\s+(field|catch\s+the\s+(ball|throw)|pitch|bat|swing|throw\s+to)/i],
-      manager: [/you\s+(throw|catch|field|tag|dive|slide|pitch|bat|swing|bunt|run\s+to)/i],
-    };
+    // Role violation check (ROLE_VIOLATIONS is now module-level for cross-pipeline access)
     const violations = ROLE_VIOLATIONS[position] || [];
     const allText = [scenario.description, ...scenario.options, ...scenario.explanations].join(" ");
     const matched = violations.find(rx => rx.test(allText));
@@ -3595,6 +3645,13 @@ COMMON MISTAKES TO AVOID:
         [/\brelay\s*(man|position)/i, "relay is a fielder decision"],
         [/\bshift\s*(the)?\s*defense/i, "defensive shifts are manager decisions"],
       ],
+      // Defensive positions should not have scenarios about batting/baserunning decisions
+      defensive: [
+        [/\b(leading|batting)\s*off\b.*\binning\b/i, "leading off an inning is a batter decision"],
+        [/\byou.{0,20}(swing|look for a|take the (first )?pitch|protect the plate|work the count)/i, "batting actions are batter decisions"],
+        [/\byou.{0,20}(steal|take a lead|get a jump|tag up and (go|score)|break for home)/i, "baserunning actions are baserunner decisions"],
+        [/\b(at[- ]bat|plate appearance|facing.*pitcher|hitter.s count)\b/i, "at-bat scenarios are batter decisions"],
+      ],
     };
     const titleDesc = (scenario.title || "") + " " + (scenario.description || "");
     const FIELDER_CHECK = ["firstBase","secondBase","shortstop","thirdBase","leftField","centerField","rightField"];
@@ -3607,6 +3664,15 @@ COMMON MISTAKES TO AVOID:
     }
     if (position === "baserunner" || position === "batter") {
       const premMatch = PREMISE_VIOLATIONS.offensive.find(([rx]) => rx.test(titleDesc));
+      if (premMatch) {
+        console.warn("[BSM] AI scenario rejected: premise violation for", position, "—", premMatch[1]);
+        throw new Error("Premise violation: " + position + " scenario about " + premMatch[1]);
+      }
+    }
+    // Defensive positions (pitcher, catcher, fielders) should not receive batting/baserunning scenarios
+    const DEFENSIVE_CHECK = ["pitcher","catcher",...FIELDER_CHECK];
+    if (DEFENSIVE_CHECK.includes(position)) {
+      const premMatch = PREMISE_VIOLATIONS.defensive.find(([rx]) => rx.test(titleDesc));
       if (premMatch) {
         console.warn("[BSM] AI scenario rejected: premise violation for", position, "—", premMatch[1]);
         throw new Error("Premise violation: " + position + " scenario about " + premMatch[1]);
@@ -3903,6 +3969,11 @@ Respond with ONLY JSON: {"score":3,"realistic":3,"options":3,"coach":3,"tone":3,
       return { scenario: null, error: "aborted" };
     }
     console.error("[BSM] AI generation failed:", errType, detail);
+    // Detect xAI connect failures and mark as down to skip future xAI calls
+    // Narrow to connect-specific errors only — avoid false positives from D1/other failures
+    if (/connect.*timeout|ETIMEDOUT|ECONNREFUSED|ENOTFOUND|socket hang up/i.test(msg)) {
+      markXaiDown()
+    }
     // Sprint 4.4: Report AI errors for monitoring
     reportError("ai_" + errType, detail || errType, { position });
     // Track AI error types per position in localStorage for learning
