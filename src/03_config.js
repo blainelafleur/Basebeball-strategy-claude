@@ -500,6 +500,118 @@ const ANIM_DATA={
     {type:"flash",cx:200,cy:290,r:8,dur:.1,begin:.64,color:"rgba(239,68,68,.4)"},
     {type:"text",x:224,y:240,text:"GOT HIM!",size:9,color:"#22c55e",dur:1.2,begin:0},
   ],
+
+  // === CATCH animations (84 scenarios — fielder catches the ball) ===
+  catch_success:[
+    // Ball launched from batter, arcs toward fielder position (center field area)
+    {type:"ball",path:"M200,290 Q200,160 220,120",dur:.5,begin:0,color:"white",r:2.5,easing:EASE.launch,glow:true},
+    // Fielder flash on catch
+    {type:"flash",cx:220,cy:120,r:8,dur:.12,begin:.48,color:"rgba(34,197,94,.5)"},
+    {type:"dust",cx:220,cy:122,r:5,dur:.25,begin:.5,color:"#c4a882"},
+    {type:"text",x:220,y:105,text:"CAUGHT!",size:11,color:"#22c55e",dur:1.2,begin:0},
+  ],
+  catch_fail:[
+    // Ball launched, drops past fielder
+    {type:"ball",path:"M200,290 Q200,160 230,115",dur:.5,begin:0,color:"white",r:2.5,easing:EASE.launch},
+    {type:"ball",path:"M230,115 Q245,120 260,130",dur:.3,begin:.5,color:"white",r:2,easing:"ease-in"},
+    {type:"dust",cx:260,cy:132,r:6,dur:.3,begin:.75,color:"#c4a882"},
+    {type:"text",x:230,y:100,text:"DROPS IN!",size:10,color:"#ef4444",dur:1.2,begin:0},
+  ],
+
+  // === SAFE animations (23 scenarios — runner reaches base safely) ===
+  safe_success:[
+    // Runner slides into base (default: reaching 2B from 1B)
+    {type:"dust",cx:290,cy:212,r:5,dur:.25,begin:0,color:"#c4a882"},
+    {type:"runner",path:"M290,210 Q248,175 200,135",dur:.5,begin:.05,easing:EASE.runner},
+    {type:"dust",cx:200,cy:137,r:7,dur:.3,begin:.5,color:"#c4a882"},
+    {type:"dust",cx:203,cy:135,r:5,dur:.25,begin:.53,color:"#c4a882"},
+    {type:"text",x:200,y:118,text:"SAFE!",size:12,color:"#22c55e",dur:1.3,begin:0},
+  ],
+  safe_fail:[
+    // Runner thrown out trying to advance
+    {type:"dust",cx:290,cy:212,r:5,dur:.25,begin:0,color:"#c4a882"},
+    {type:"runner",path:"M290,210 Q265,192 248,178",dur:.35,begin:.05,easing:EASE.runner,o:.3},
+    {type:"ball",path:"M200,300 Q210,200 200,138",dur:.35,begin:.1,color:"#ef4444",r:2.5,easing:EASE.throw},
+    {type:"flash",cx:225,cy:175,r:8,dur:.1,begin:.4,color:"rgba(239,68,68,.4)"},
+    {type:"text",x:225,y:160,text:"OUT!",size:11,color:"#ef4444",dur:1.2,begin:0},
+  ],
+
+  // === PICKOFF animations (6 scenarios — pitcher throws to base to catch runner) ===
+  pickoff_success:[
+    // Pitcher throws to 1B, runner dives back
+    {type:"ball",path:"M200,218 Q245,214 290,210",dur:.3,begin:0,color:"white",r:2.5,easing:EASE.throw,glow:true},
+    {type:"runner",path:"M298,202 Q294,206 290,210",dur:.2,begin:.05,easing:EASE.runner},
+    {type:"flash",cx:290,cy:210,r:6,dur:.1,begin:.28,color:"rgba(34,197,94,.4)"},
+    {type:"dust",cx:290,cy:212,r:5,dur:.25,begin:.3,color:"#c4a882"},
+    {type:"text",x:290,y:195,text:"BACK!",size:10,color:"#22c55e",dur:1.2,begin:0},
+  ],
+  pickoff_fail:[
+    // Pickoff throw, runner caught off base
+    {type:"ball",path:"M200,218 Q245,214 290,210",dur:.3,begin:0,color:"#ef4444",r:2.5,easing:EASE.throw},
+    {type:"runner",path:"M298,202 Q296,204 295,207",dur:.15,begin:.05,easing:EASE.runner,o:.3},
+    {type:"flash",cx:292,cy:208,r:8,dur:.12,begin:.3,color:"rgba(239,68,68,.5)"},
+    {type:"text",x:290,y:192,text:"PICKED OFF!",size:9,color:"#ef4444",dur:1.2,begin:0},
+  ],
+
+  // === POPUP animations (4 scenarios — infield popup, priority call) ===
+  popup_success:[
+    // Ball pops up high, fielder settles under it
+    {type:"ball",path:"M200,290 Q200,80 185,190",dur:.7,begin:0,color:"white",r:2.5,easing:"ease-out"},
+    {type:"flash",cx:185,cy:190,r:6,dur:.1,begin:.68,color:"rgba(34,197,94,.4)"},
+    {type:"dust",cx:185,cy:192,r:4,dur:.2,begin:.7,color:"#c4a882"},
+    {type:"text",x:185,y:175,text:"I GOT IT!",size:10,color:"#22c55e",dur:1.2,begin:0},
+  ],
+  popup_fail:[
+    // Ball pops up, miscommunication — drops
+    {type:"ball",path:"M200,290 Q200,80 190,188",dur:.7,begin:0,color:"white",r:2.5,easing:"ease-out"},
+    {type:"ball",path:"M190,188 Q192,195 195,205",dur:.2,begin:.7,color:"white",r:2,easing:"ease-in"},
+    {type:"dust",cx:195,cy:207,r:6,dur:.3,begin:.85,color:"#c4a882"},
+    {type:"text",x:195,y:170,text:"NO CALL!",size:10,color:"#ef4444",dur:1.2,begin:0},
+  ],
+
+  // === TAG animations (tag play at base) ===
+  tag_success:[
+    // Throw comes in, fielder applies tag
+    {type:"ball",path:"M200,300 Q210,215 200,138",dur:.35,begin:0,color:"white",r:2.5,easing:EASE.throw,glow:true},
+    {type:"flash",cx:200,cy:138,r:6,dur:.1,begin:.33,color:"rgba(34,197,94,.4)"},
+    {type:"runner",path:"M230,155 Q215,143 200,138",dur:.3,begin:.1,easing:EASE.runner,o:.3},
+    {type:"text",x:200,y:120,text:"TAG — OUT!",size:10,color:"#22c55e",dur:1.2,begin:0},
+  ],
+  tag_fail:[
+    // Throw comes in, runner beats the tag
+    {type:"ball",path:"M200,300 Q210,215 200,138",dur:.35,begin:0,color:"white",r:2.5,easing:EASE.throw},
+    {type:"runner",path:"M230,155 Q215,143 200,135",dur:.3,begin:.05,easing:EASE.runner},
+    {type:"dust",cx:200,cy:137,r:7,dur:.3,begin:.3,color:"#c4a882"},
+    {type:"text",x:200,y:118,text:"SAFE!",size:11,color:"#ef4444",dur:1.2,begin:0},
+  ],
+
+  // === WILDPITCH animations (2 scenarios — runner advances on wild pitch) ===
+  wildPitch_success:[
+    {type:"ball",path:"M200,218 Q210,260 225,295",dur:.3,begin:0,color:"white",r:2,easing:"ease-in"},
+    {type:"dust",cx:225,cy:297,r:5,dur:.25,begin:.28,color:"#c4a882"},
+    {type:"runner",path:"M200,135 Q155,175 110,210",dur:.5,begin:.2,easing:EASE.runner},
+    {type:"text",x:165,y:170,text:"WILD PITCH!",size:9,color:"#f59e0b",dur:1.2,begin:0},
+  ],
+  wildPitch_fail:[
+    {type:"ball",path:"M200,218 Q205,255 210,288",dur:.25,begin:0,color:"white",r:2,easing:"ease-in"},
+    {type:"flash",cx:210,cy:290,r:5,dur:.1,begin:.24,color:"rgba(34,197,94,.3)"},
+    {type:"text",x:200,y:270,text:"BLOCKED!",size:10,color:"#22c55e",dur:1.2,begin:0},
+  ],
+
+  // === SQUEEZE animations (2 scenarios — squeeze bunt play) ===
+  squeeze_success:[
+    {type:"runner",path:"M110,210 Q155,250 200,290",dur:.5,begin:0,easing:EASE.runner},
+    {type:"ball",path:"M200,290 Q200,270 190,260",dur:.2,begin:.1,color:"white",r:2,easing:"ease-out"},
+    {type:"dust",cx:190,cy:262,r:4,dur:.2,begin:.28,color:"#c4a882"},
+    {type:"dust",cx:200,cy:292,r:7,dur:.3,begin:.45,color:"#c4a882"},
+    {type:"text",x:200,y:265,text:"SCORES!",size:12,color:"#22c55e",dur:1.3,begin:0},
+  ],
+  squeeze_fail:[
+    {type:"ball",path:"M200,290 Q200,275 195,265",dur:.2,begin:0,color:"white",r:2,easing:"ease-out"},
+    {type:"runner",path:"M110,210 Q150,240 170,260",dur:.35,begin:0,easing:EASE.runner,o:.3},
+    {type:"ball",path:"M195,265 Q198,278 200,290",dur:.2,begin:.25,color:"#ef4444",r:2,easing:EASE.throw},
+    {type:"text",x:170,y:245,text:"HUNG UP!",size:10,color:"#ef4444",dur:1.2,begin:0},
+  ],
 };
 
 // === GUY COMPONENT — Full-body proportional player with 10 baseball poses ===

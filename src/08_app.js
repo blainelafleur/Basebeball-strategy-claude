@@ -5260,7 +5260,7 @@ export default function App(){
                 </div>
                 {/* Field with position highlight glow */}
                 <div style={{background:"rgba(0,0,0,.3)",borderRadius:12,padding:4,marginBottom:10,border:`1px solid ${pm?.color||"#3b82f6"}20`,position:"relative",overflow:"hidden"}}>
-                  <Field pos={r.pos} runners={sit.runners} anim="freeze" theme={thm} avatar={av}/>
+                  <Field pos={r.pos} runners={sit.runners} outcome={r.correct?"success":"fail"} ak={filmStep} anim={q?.anim||"freeze"} animVariant={(()=>{const rn=sit.runners||[];const a=q?.anim;if(a==='steal'){if(rn.includes(3))return'3toHome';if(rn.includes(2)&&!rn.includes(1))return'2to3';}if(a==='advance'){if(rn.includes(3))return'3toHome';if(rn.includes(2)&&!rn.includes(1))return'2to3';}if(a==='hit'||a==='flyout'){if(r.pos==='leftField')return'LF';if(r.pos==='centerField')return'CF';}if(a==='groundout'&&(r.pos==='firstBase'||r.pos==='secondBase'))return'1B';if(a==='freeze'){if(rn.includes(3))return'3B';if(rn.includes(2))return'2B';}return null;})()} theme={thm} avatar={av} slow={true}/>
                   {/* SVG glow overlay for highlighted position */}
                   <svg viewBox="0 0 400 340" style={{position:"absolute",top:4,left:4,right:4,bottom:4,width:"calc(100% - 8px)",height:"calc(100% - 8px)",pointerEvents:"none"}}>
                     <defs>

@@ -465,11 +465,17 @@ const Field=React.memo(function Field({runners=[],outcome=null,ak=0,anim=null,an
       {/* AF1: Check ANIM_DATA first. If found, use AnimPhases renderer. Otherwise fall through to inline SMIL. */}
       {(()=>{
         if(!anim||!outcome)return null;
+        // Position-aware outcome: for defensive positions, "success" (correct answer) on steal/score/advance
+        // means the RUNNER is OUT, not safe. Flip the animation outcome.
+        const DEFENSIVE_POS=["pitcher","catcher","firstBase","secondBase","shortstop","thirdBase","leftField","centerField","rightField"];
+        const FLIP_ANIMS=["steal","score","advance","safe"];
+        const effectiveOutcome=(DEFENSIVE_POS.includes(pos)&&FLIP_ANIMS.includes(anim))
+          ?(outcome==="success"?"fail":"success"):outcome;
         // AF3+AF5: Check for animation variant (pitch type OR direction)
         // Direction variants: steal_2to3_success, advance_3toHome_success, etc.
-        const dirVariant=animVariant?anim+"_"+animVariant+"_"+outcome:null;
+        const dirVariant=animVariant?anim+"_"+animVariant+"_"+effectiveOutcome:null;
         const pitchVariant=animVariant?anim.replace("out","")+"_"+animVariant:null;
-        const dataKey=anim+"_"+outcome;
+        const dataKey=anim+"_"+effectiveOutcome;
         const altKey=anim+"_success";
         const phases=ANIM_DATA[dirVariant]||ANIM_DATA[pitchVariant]||ANIM_DATA[dataKey]||ANIM_DATA[altKey];
         if(phases)return <AnimPhases phases={phases} ak={ak}/>;

