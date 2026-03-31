@@ -4576,8 +4576,8 @@ const SITUATION_SETS = [
         rates:[80,15,50,5],concept:"At 1-2 with the DP in order, set up low-and-away for the ground ball. The catcher's target selection determines whether the pitch induces the right contact type.",anim:"doubleplay"},
       {pos:"shortstop",id:"sr1a3c",conceptTag:"dp-positioning",title:"Shortstop: DP Pivot Mechanics",diff:3,cat:"fielder",ageMin:12,ageMax:99,
         options:["Cheat two steps toward second for DP depth, ready for the 6-4-3 pivot","Play at normal depth — range is more important than DP positioning","Move to double-play depth but shade toward the hole at third","Stay deep and concede the double play — just get the lead runner"],
-        best:0,explanations:["Per DP_POSITIONING_MAP, with bases loaded and one out you should be at double-play depth — two steps closer to second base and one step shallower than normal. This positions you for the 6-4-3 pivot: field the grounder, chest-to-chest feed to the second baseman at the bag, and he turns the relay to first. Your footwork is critical: field, right foot plant, underhand or backhand feed to the pivot man's chest. The DP is the priority play here.","Normal depth prioritizes range over the double play. With bases loaded and one out, the DP is worth 1.48 runs in RE24 — far more valuable than the extra range. Even a slow roller that you field at DP depth still gets the force at home.","Shading toward the hole at third takes you farther from the pivot point at second base. The DP requires quick feet to second — every step farther from the bag adds time to the turn. Per DP_POSITIONING_MAP, shade toward second, not away from it.","Conceding the DP and playing deep for range is the wrong calculus. Getting one out leaves runners on with one more out needed. Getting two outs clears the bases. The mathematical value of the DP is overwhelming at 1.48 RE24."],
-        rates:[80,20,25,15],concept:"Per DP_POSITIONING_MAP, bases loaded with one out requires double-play depth. The 6-4-3 pivot — a 1.48-run swing in RE24 — is the highest-value defensive play available.",anim:"doubleplay"},
+        best:0,explanations:["Per standard positioning,with bases loaded and one out you should be at double-play depth — two steps closer to second base and one step shallower than normal. This positions you for the 6-4-3 pivot: field the grounder, chest-to-chest feed to the second baseman at the bag, and he turns the relay to first. Your footwork is critical: field, right foot plant, underhand or backhand feed to the pivot man's chest. The DP is the priority play here.","Normal depth prioritizes range over the double play. With bases loaded and one out, the DP is worth 1.48 runs in RE24 — far more valuable than the extra range. Even a slow roller that you field at DP depth still gets the force at home.","Shading toward the hole at third takes you farther from the pivot point at second base. The DP requires quick feet to second — every step farther from the bag adds time to the turn. Per standard positioning,shade toward second, not away from it.","Conceding the DP and playing deep for range is the wrong calculus. Getting one out leaves runners on with one more out needed. Getting two outs clears the bases. The mathematical value of the DP is overwhelming at 1.48 RE24."],
+        rates:[80,20,25,15],concept:"Per standard positioning,bases loaded with one out requires double-play depth. The 6-4-3 pivot — a 1.48-run swing in RE24 — is the highest-value defensive play available.",anim:"doubleplay"},
       {pos:"baserunner",id:"sr1a3d",conceptTag:"baserunning-rates",title:"Runner on Third: Contact Quality Read",diff:3,cat:"baserunner",ageMin:12,ageMax:99,
         options:["Break on contact — any ground ball scores the tying run","Read the contact quality: go on slow rollers or balls hit to the right side, hold on sharp grounders near the battery","Tag up on all fly balls — even medium-depth flies can score the tying run","Hold at third and only score on a clean base hit or passed ball"],
         best:1,explanations:["Breaking on all contact with one out is a fundamentals error. A sharp grounder to the pitcher or a comebacker results in a 1-2-3 double play with you as the third out at home. With bases loaded and one out, the defense WANTS you to run into an out at home — it turns a potential DP into a triple play or at minimum gets the lead runner. Read the ball off the bat.","This is the correct read framework. Runners score from third on ground balls to the right side (1B/2B area) at approximately 88% because the fielder's momentum and throw angle point away from home. On slow rollers, the fielder must charge and throw, giving you time. But on sharp grounders to the pitcher, catcher, or third baseman, the throw home is short and direct — you're dead. Contact quality and direction determine everything.","Tagging on fly balls with bases loaded and one out is viable on deep flies, but medium-depth flies will get you thrown out. A sac fly here ties the game, which is valuable, but only if the fly is genuinely deep enough. The risk is getting thrown out at home for the second out while still having runners at first and second.","Holding at third only on base hits is too passive. With bases loaded and one out, ground balls to the right side, slow rollers, wild pitches, passed balls, and deep fly balls all create scoring opportunities. You need an active read, not a passive wait."],
@@ -4591,7 +4591,7 @@ const SITUATION_SETS = [
     questions:[
       {pos:"pitcher",id:"sr2a3a",conceptTag:"steal-window",title:"Pitcher: Delivery Time Management",diff:3,cat:"pitcher",ageMin:12,ageMax:99,
         options:["Slide step to minimize delivery time while maintaining pitch quality","Vary your hold times between 1-3 seconds to disrupt the runner's timing, then slide step","Quick-pitch from the stretch before the runner gets his secondary lead","Step off and try a pickoff throw to first base"],
-        best:1,explanations:["A straight slide step every time becomes predictable. The runner times your delivery and gets a consistent jump. While the slide step cuts delivery from ~1.5s to ~1.2s, if the runner knows it's coming, his jump improves by a comparable margin. Varying the hold time is what actually disrupts timing.","This is the complete approach. Per PICKOFF_MAP, varying hold times (1.0s, 1.5s, 2.5s) prevents the runner from timing your first movement. When you DO deliver, the slide step keeps the time to ~1.25s. Combined with the catcher's 1.95s pop time, total defense time is ~3.20s. The average runner needs 3.3-3.5s. Disruption + speed = out. The steal break-even at 0 outs is 72%, so you want to push the runner's success rate below that threshold.","Quick-pitching can draw a balk call if the batter isn't reasonably set. It's also difficult to locate when rushing, which means a hittable pitch. At 1-1, you don't want to fall behind 2-1 or throw a meatball.","Stepping off has value earlier in the sequence (establishing the threat), but once the runner is going, your job is to deliver quickly. A pickoff attempt after the runner has committed to stealing wastes time and accomplishes nothing — by the time you throw to first, he's already at second."],
+        best:1,explanations:["A straight slide step every time becomes predictable. The runner times your delivery and gets a consistent jump. While the slide step cuts delivery from ~1.5s to ~1.2s, if the runner knows it's coming, his jump improves by a comparable margin. Varying the hold time is what actually disrupts timing.","This is the complete approach. Per standard pickoff strategy,varying hold times (1.0s, 1.5s, 2.5s) prevents the runner from timing your first movement. When you DO deliver, the slide step keeps the time to ~1.25s. Combined with the catcher's 1.95s pop time, total defense time is ~3.20s. The average runner needs 3.3-3.5s. Disruption + speed = out. The steal break-even at 0 outs is 72%, so you want to push the runner's success rate below that threshold.","Quick-pitching can draw a balk call if the batter isn't reasonably set. It's also difficult to locate when rushing, which means a hittable pitch. At 1-1, you don't want to fall behind 2-1 or throw a meatball.","Stepping off has value earlier in the sequence (establishing the threat), but once the runner is going, your job is to deliver quickly. A pickoff attempt after the runner has committed to stealing wastes time and accomplishes nothing — by the time you throw to first, he's already at second."],
         rates:[50,80,15,25],concept:"Steal prevention isn't just the slide step — it's hold-time variation that disrupts the runner's jump timing. Vary between 1-3 seconds, then deliver with a slide step for a total defense time of ~3.2s.",anim:"steal"},
       {pos:"catcher",id:"sr2a3b",conceptTag:"steal-window",title:"Catcher: Pop Time Optimization",diff:3,cat:"catcher",ageMin:12,ageMax:99,
         options:["Quick transfer from the crouch position, throw to the shortstop side of the bag on a line","Receive, rise slightly to generate momentum, and throw over the top for maximum velocity","Catch, crow-hop for accuracy, and throw to the center of the bag","Pre-position your feet toward second before the pitch to cheat on the throw"],
@@ -4609,25 +4609,25 @@ const SITUATION_SETS = [
   {id:"sr3a3",title:"Sacrifice Bunt Situation (All-Star)",emoji:"🎯",color:"#22c55e",diff:3,
     situation:{inning:"Bot 7",outs:0,count:"0-0",runners:[1],score:[3,3]},
     desc:"Tie game, bottom 7th, runner on first, nobody out. Bunt defense vs. bunt execution — five positions, five coordinated roles. The RE24 cost of a sacrifice bunt is -0.23 runs, but win probability may justify it.",
-    debrief:"Per BUNT_DEFENSE_MAP, the corners charged, the second baseman rotated to cover first, and the shortstop held near second for the force option. The pitcher threw a high fastball — the optimal anti-bunt pitch. The batter executed correctly: squared late, bunted softly down the first-base line away from the charging third baseman. RE24 dropped from 0.94 (R1, 0 out) to 0.69 (R2, 1 out) — a -0.25 run cost. But with the game tied in the 7th, moving the runner to scoring position raises win probability from 53% to 57%.",
-    teamworkTakeaway:"Bunt defense is choreography from the BUNT_DEFENSE_MAP: pitcher makes the bunt difficult (high fastball), corners charge, 2B covers first, SS holds for the force. The offense pays a -0.23 RE24 cost for a +4% win probability gain in a tie game late.",
+    debrief:"Per standard bunt defense,the corners charged, the second baseman rotated to cover first, and the shortstop held near second for the force option. The pitcher threw a high fastball — the optimal anti-bunt pitch. The batter executed correctly: squared late, bunted softly down the first-base line away from the charging third baseman. RE24 dropped from 0.94 (R1, 0 out) to 0.69 (R2, 1 out) — a -0.25 run cost. But with the game tied in the 7th, moving the runner to scoring position raises win probability from 53% to 57%.",
+    teamworkTakeaway:"Bunt defense is choreography from the standard bunt defense rotation: pitcher makes the bunt difficult (high fastball), corners charge, 2B covers first, SS holds for the force. The offense pays a -0.23 RE24 cost for a +4% win probability gain in a tie game late.",
     questions:[
       {pos:"pitcher",id:"sr3a3a",conceptTag:"bunt-defense",title:"Pitcher: Anti-Bunt Arsenal",diff:3,cat:"pitcher",ageMin:12,ageMax:99,
         options:["High fastball up in the zone — hardest pitch to bunt down on the ground","Low sinker to induce a bunt into the ground for an easy fielding play","High inside fastball to jam the bat angle and force a popup","Slider low and away to get a bunt attempt that rolls foul"],
-        best:0,explanations:["Per BUNT_DEFENSE_MAP, the pitcher's primary weapon against the bunt is the elevated fastball. High pitches are geometrically difficult to bunt on the ground — the bat angle required to redirect a pitch above the belt toward the ground almost guarantees a popup, foul ball, or missed bunt. Data shows bunt attempts on pitches in the upper third of the zone result in popup/foul rates significantly higher than low pitches. At 0-0, you have the luxury of throwing this pitch without count consequences.","A low sinker is counterproductive against a bunt, because the batter can angle the bat down naturally on a low pitch, making it easier to deaden the ball on the ground. You're essentially making the bunt easier for the hitter.","High inside is a viable second option, but HBP risk is real — a hit batter puts two runners on with nobody out — much worse than the bunt scenario. The high fastball over the plate or slightly away carries no HBP risk while being equally effective against the bunt.","A slider low and away that rolls foul is ball one if the batter doesn't chase, putting you at 1-0. At 0-0 you have a free pitch — use it on the high fastball that has a higher probability of getting a popup or whiff than a breaking ball that might land for a ball."],
+        best:0,explanations:["Per standard bunt defense,the pitcher's primary weapon against the bunt is the elevated fastball. High pitches are geometrically difficult to bunt on the ground — the bat angle required to redirect a pitch above the belt toward the ground almost guarantees a popup, foul ball, or missed bunt. Data shows bunt attempts on pitches in the upper third of the zone result in popup/foul rates significantly higher than low pitches. At 0-0, you have the luxury of throwing this pitch without count consequences.","A low sinker is counterproductive against a bunt, because the batter can angle the bat down naturally on a low pitch, making it easier to deaden the ball on the ground. You're essentially making the bunt easier for the hitter.","High inside is a viable second option, but HBP risk is real — a hit batter puts two runners on with nobody out — much worse than the bunt scenario. The high fastball over the plate or slightly away carries no HBP risk while being equally effective against the bunt.","A slider low and away that rolls foul is ball one if the batter doesn't chase, putting you at 1-0. At 0-0 you have a free pitch — use it on the high fastball that has a higher probability of getting a popup or whiff than a breaking ball that might land for a ball."],
         rates:[80,15,50,20],concept:"The elevated fastball is the optimal anti-bunt pitch. The bat angle required to bunt a high pitch onto the ground is geometrically unfavorable, maximizing popup and foul ball probability.",anim:"bunt"},
       {pos:"thirdBase",id:"sr3a3b",conceptTag:"bunt-defense",title:"Third Base: The Aggressive Charge",diff:3,cat:"fielder",ageMin:12,ageMax:99,
         options:["Charge hard as the pitcher delivers — field the bunt early for a possible force at second","Charge halfway and read whether the bunt is toward you or the pitcher","Stay back at third to prevent a slash hit through the vacated hole","Charge hard but angle toward the first-base line where most bunts go"],
-        best:0,explanations:["Per BUNT_DEFENSE_MAP, the third baseman's assignment is an aggressive charge — full sprint toward home plate as the pitcher delivers. If you field the bunt early (within 40-50 feet of home), you have a throw to second base to get the lead runner. Even if you can't get the lead runner, fielding it quickly gives you the sure out at first. The key is committing fully — half-charges let the bunt die in no-man's-land.","A halfway charge is the worst of both worlds. You're not close enough to field the bunt quickly for the force at second, and you're not back far enough to field your position. Per BUNT_DEFENSE_MAP, the third baseman must commit to the full charge. Hesitation creates dead zones in the defense.","Protecting against the slash hit is the shortstop's secondary responsibility, not yours. If the batter pulls back and swings, the SS shifts to cover third. Your primary assignment is the charge — trust the system.","Angling toward the first-base line takes you away from the most direct path to the ball. The batter can bunt to either side. Your charge should be straight toward home plate, then adjust to where the bunt goes once it's down."],
-        rates:[80,25,15,20],concept:"Per BUNT_DEFENSE_MAP, the 3B charges aggressively on a sac bunt. A full sprint gives you the chance to get the force at second — the highest-value outcome.",anim:"bunt"},
+        best:0,explanations:["Per standard bunt defense,the third baseman's assignment is an aggressive charge — full sprint toward home plate as the pitcher delivers. If you field the bunt early (within 40-50 feet of home), you have a throw to second base to get the lead runner. Even if you can't get the lead runner, fielding it quickly gives you the sure out at first. The key is committing fully — half-charges let the bunt die in no-man's-land.","A halfway charge is the worst of both worlds. You're not close enough to field the bunt quickly for the force at second, and you're not back far enough to field your position. Per standard bunt defense,the third baseman must commit to the full charge. Hesitation creates dead zones in the defense.","Protecting against the slash hit is the shortstop's secondary responsibility, not yours. If the batter pulls back and swings, the SS shifts to cover third. Your primary assignment is the charge — trust the system.","Angling toward the first-base line takes you away from the most direct path to the ball. The batter can bunt to either side. Your charge should be straight toward home plate, then adjust to where the bunt goes once it's down."],
+        rates:[80,25,15,20],concept:"Per standard bunt defense,the 3B charges aggressively on a sac bunt. A full sprint gives you the chance to get the force at second — the highest-value outcome.",anim:"bunt"},
       {pos:"firstBase",id:"sr3a3c",conceptTag:"bunt-defense",title:"First Base: Charge and Cover",diff:3,cat:"fielder",ageMin:12,ageMax:99,
         options:["Charge in aggressively to field any bunt to the right side","Hold at first to keep the runner from taking a big lead, then react","Charge hard, but if someone else fields the bunt, sprint back to cover first for the throw","Charge halfway and read the bunt direction"],
-        best:2,explanations:["Charging in without a plan to cover first means nobody is there for the throw. Per BUNT_DEFENSE_MAP, the second baseman rotates to cover first when the first baseman charges, but this requires coordination. Your charge should include awareness of whether you or the pitcher/3B will field the bunt.","Holding the runner at first is irrelevant during a sacrifice bunt — the runner is going to second regardless. Your priority per the BUNT_DEFENSE_MAP is participating in the bunt defense, not holding a runner who's already been given the green light to advance.","This is the complete play. Per BUNT_DEFENSE_MAP, the first baseman charges aggressively to field bunts to the right side. If the third baseman or pitcher fields the bunt, you immediately redirect to cover first base for the throw. The second baseman is also rotating to first, but you're the primary coverage. This dual-responsibility approach is what makes bunt defense work.","A halfway charge is hesitation. In bunt defense, you need to commit. The bunt is only on the ground for 1-2 seconds before someone fields it. Halfway gets you to neither the ball nor the bag in time."],
-        rates:[25,15,80,20],concept:"Per BUNT_DEFENSE_MAP, the 1B charges but maintains first-base coverage awareness. If someone else fields it, redirect to first for the throw — the dual-responsibility play.",anim:"bunt"},
+        best:2,explanations:["Charging in without a plan to cover first means nobody is there for the throw. Per standard bunt defense,the second baseman rotates to cover first when the first baseman charges, but this requires coordination. Your charge should include awareness of whether you or the pitcher/3B will field the bunt.","Holding the runner at first is irrelevant during a sacrifice bunt — the runner is going to second regardless. Your priority per standard bunt defense is participating in the bunt defense, not holding a runner who's already been given the green light to advance.","This is the complete play. Per standard bunt defense,the first baseman charges aggressively to field bunts to the right side. If the third baseman or pitcher fields the bunt, you immediately redirect to cover first base for the throw. The second baseman is also rotating to first, but you're the primary coverage. This dual-responsibility approach is what makes bunt defense work.","A halfway charge is hesitation. In bunt defense, you need to commit. The bunt is only on the ground for 1-2 seconds before someone fields it. Halfway gets you to neither the ball nor the bag in time."],
+        rates:[25,15,80,20],concept:"Per standard bunt defense,the 1B charges but maintains first-base coverage awareness. If someone else fields it, redirect to first for the throw — the dual-responsibility play.",anim:"bunt"},
       {pos:"secondBase",id:"sr3a3e",conceptTag:"bunt-defense",title:"Second Base: Cover First",diff:3,cat:"fielder",ageMin:12,ageMax:99,
         options:["Rotate toward first base to cover when the first baseman charges in","Hold your position near second base for a possible force play on the bunt","Charge in to help field the bunt — more defenders near the ball is better","Cover the area between first and second in case of a slash hit"],
-        best:0,explanations:["Per BUNT_DEFENSE_MAP, when the first baseman charges on a bunt play, the second baseman rotates to cover first base. This is a predetermined assignment — you start rotating as soon as the bunt is shown. Your path is a curved route to the inside (home plate side) of first base so you can receive the throw while touching the bag. This rotation is what allows the first baseman to charge aggressively.","Holding near second for the force play sounds logical, but the shortstop handles force play coverage at second per the BUNT_DEFENSE_MAP. If you stay at second, nobody covers first and the batter reaches safely even on a well-fielded bunt.","Three fielders charging the bunt creates chaos, not efficiency. Bunt defense is about coverage assignments. If you charge in, nobody covers first, and the entire play breaks down even if someone fields the bunt cleanly.","The slash hit is a secondary concern covered by defensive positioning. Your primary assignment is first base coverage. If the batter pulls back and swings, the SS covers third and you return to your normal position. Don't abandon the primary assignment for a contingency."],
-        rates:[80,20,15,25],concept:"Per BUNT_DEFENSE_MAP, the 2B rotates to cover first base when the 1B charges on a bunt. This predetermined rotation is what makes aggressive bunt defense possible.",anim:"bunt"},
+        best:0,explanations:["Per standard bunt defense,when the first baseman charges on a bunt play, the second baseman rotates to cover first base. This is a predetermined assignment — you start rotating as soon as the bunt is shown. Your path is a curved route to the inside (home plate side) of first base so you can receive the throw while touching the bag. This rotation is what allows the first baseman to charge aggressively.","Holding near second for the force play sounds logical, but the shortstop handles force play coverage at second per standard bunt defense. If you stay at second, nobody covers first and the batter reaches safely even on a well-fielded bunt.","Three fielders charging the bunt creates chaos, not efficiency. Bunt defense is about coverage assignments. If you charge in, nobody covers first, and the entire play breaks down even if someone fields the bunt cleanly.","The slash hit is a secondary concern covered by defensive positioning. Your primary assignment is first base coverage. If the batter pulls back and swings, the SS covers third and you return to your normal position. Don't abandon the primary assignment for a contingency."],
+        rates:[80,20,15,25],concept:"Per standard bunt defense,the 2B rotates to cover first base when the 1B charges on a bunt. This predetermined rotation is what makes aggressive bunt defense possible.",anim:"bunt"},
       {pos:"batter",id:"sr3a3d",conceptTag:"bunt-re24",title:"Batter: Bunt Placement Tactics",diff:3,cat:"batter",ageMin:12,ageMax:99,
         options:["Bunt hard toward third to try to beat the throw and reach base safely","Square late and bunt softly down the first-base line, away from the charging third baseman","Push bunt past the pitcher toward the second baseman's vacated area","Show bunt early to freeze the corners, then pull back and slash"],
         best:1,explanations:["Bunting hard toward the charging third baseman is the worst placement. He's already sprinting toward you — a hard bunt goes directly to him and he has a throw to second for the force on the lead runner. Even if you beat it out, the lead runner might be forced. Soft and away from the charge is the principle.","Textbook sacrifice bunt execution. Square late (as the pitcher commits to home) to minimize the defense's reaction time. Bunt softly down the first-base line because the third baseman is charging from the opposite side — maximum distance from the nearest fielder. A sacrifice bunt costs about -0.23 expected runs vs. swinging away (RE24: R1/0 out = 0.94, R2/1 out = 0.69). But in a tie game in the 7th, the win probability increase from moving the runner to scoring position (+4%) justifies the RE24 cost.","A push bunt to the vacated second base area is theoretically clever but extremely difficult to execute consistently. The bat angle and force required to place the ball in that specific zone makes it a low-percentage play. A mishit goes right back to the pitcher.","Showing bunt and slashing goes against the team's strategy. The coach called a bunt — the entire offensive plan depends on moving the runner. A slash hit also risks a line drive that the infield catches for a double play, losing the runner on first."],
@@ -4635,26 +4635,26 @@ const SITUATION_SETS = [
     ]},
   {id:"sr4a3",title:"Extra-Base Hit to the Gap (All-Star)",emoji:"🏃",color:"#f97316",diff:3,
     situation:{inning:"Top 5",outs:1,count:"0-0",runners:[1],score:[1,2]},
-    desc:"A drive to left-center splits the outfielders. Per CUTOFF_RELAY_MAP, the SS is lead relay, 2B is trail, and the pitcher has a backup assignment. Five positions must execute within 4 seconds.",
-    debrief:"Per CUTOFF_RELAY_MAP, the SS sprinted to the relay position ~150 feet from home, arms up, aligned between the CF and home plate. The 2B positioned as trail man, 20 feet behind and 10 feet offset, ready to redirect to third if needed. The CF fielded cleanly, set feet, and hit the SS in the chest. The pitcher sprinted to back up home plate per BACKUP_MAP. The runner rounded third hard, read the relay throw coming in strong and on-line, and held. Five positions, one system, executed in 3.8 seconds.",
-    teamworkTakeaway:"Per CUTOFF_RELAY_MAP: on left-side hits (LF line, LF-CF gap), the SS is lead relay and the 2B is trail man. The pitcher backs up home per BACKUP_MAP. The relay system turns a 300+ foot throw into two accurate 150-foot throws — faster and more reliable.",
+    desc:"A drive to left-center splits the outfielders. Per standard relay assignments,the SS is lead relay, 2B is trail, and the pitcher has a backup assignment. Five positions must execute within 4 seconds.",
+    debrief:"Per standard relay assignments,the SS sprinted to the relay position ~150 feet from home, arms up, aligned between the CF and home plate. The 2B positioned as trail man, 20 feet behind and 10 feet offset, ready to redirect to third if needed. The CF fielded cleanly, set feet, and hit the SS in the chest. The pitcher sprinted to back up home plate per standard backup assignments. The runner rounded third hard, read the relay throw coming in strong and on-line, and held. Five positions, one system, executed in 3.8 seconds.",
+    teamworkTakeaway:"Per standard relay assignments: on left-side hits (LF line, LF-CF gap), the SS is lead relay and the 2B is trail man. The pitcher backs up home per standard backup assignments. The relay system turns a 300+ foot throw into two accurate 150-foot throws — faster and more reliable.",
     questions:[
       {pos:"centerField",id:"sr4a3a",conceptTag:"relay-double-cut",title:"CF: Relay Throw Execution",diff:3,cat:"fielder",ageMin:12,ageMax:99,
         options:["Field the ball, set your feet, and throw a strong one-hopper to the relay man's chest","Field on the run and throw home in one motion — skip the relay man","Field and throw to the trail man behind the relay for a redirect to third","Hold the ball momentarily to read where the runners are before throwing"],
-        best:0,explanations:["Per CUTOFF_RELAY_MAP, the outfielder's assignment on extra-base hits is to hit the relay man's chest with a strong one-hopper. A throw from deep left-center to home is 300+ feet — even elite arms lose accuracy at that distance, and a rainbow throw lets runners advance. The relay system breaks it into two ~150-foot throws that are faster and more accurate. Set your feet, aim for the relay man's chest, and throw through the target.","Skipping the relay from 300+ feet is a low-percentage play. The ball arrives late (rainbow trajectory), likely offline, and runners advance on the misplay. The relay system exists specifically because direct throws from the deep outfield are unreliable.","Throwing to the trail man instead of the lead relay disrupts the system, which means per CUTOFF_RELAY_MAP, the lead relay (SS on left-side hits) is your primary target. The trail man handles redirect decisions. Your job is to hit the lead relay.","Holding the ball in the outfield while reading runners is a cardinal sin, because every second you hold it, runners advance. The relay man makes the decision about which base to throw to — your job is to get the ball to him immediately."],
+        best:0,explanations:["Per standard relay assignments,the outfielder's assignment on extra-base hits is to hit the relay man's chest with a strong one-hopper. A throw from deep left-center to home is 300+ feet — even elite arms lose accuracy at that distance, and a rainbow throw lets runners advance. The relay system breaks it into two ~150-foot throws that are faster and more accurate. Set your feet, aim for the relay man's chest, and throw through the target.","Skipping the relay from 300+ feet is a low-percentage play. The ball arrives late (rainbow trajectory), likely offline, and runners advance on the misplay. The relay system exists specifically because direct throws from the deep outfield are unreliable.","Throwing to the trail man instead of the lead relay disrupts the system, which means per standard relay assignments, the lead relay (SS on left-side hits) is your primary target. The trail man handles redirect decisions. Your job is to hit the lead relay.","Holding the ball in the outfield while reading runners is a cardinal sin, because every second you hold it, runners advance. The relay man makes the decision about which base to throw to — your job is to get the ball to him immediately."],
         rates:[80,15,25,5],concept:"On extra-base hits, the outfielder hits the relay man's chest with a one-hopper. The relay system converts one 300+ foot throw into two accurate 150-foot throws.",anim:"throwHome"},
       {pos:"shortstop",id:"sr4a3b",conceptTag:"relay-double-cut",title:"SS: Lead Relay Positioning",diff:3,cat:"fielder",ageMin:12,ageMax:99,
         options:["Sprint to a position ~150 feet from home, aligned between the outfielder and home plate, arms up","Position yourself between the outfielder and third base for the most likely throw","Stay near second base to cover in case the batter tries to advance","Sprint to the outfield to help the CF retrieve the ball"],
-        best:0,explanations:["Per CUTOFF_RELAY_MAP, on balls hit to the left side (LF line, LF-CF gap, deep CF), the shortstop is the lead relay man. Position ~150 feet from home plate in a direct line between the outfielder and home. Arms up high and loud call so the outfielder can find you. After catching the relay, you decide: throw home if the runner is going, throw to third to cut off the batter, or hold. The trail man (2B) communicates 'home,' 'cut third,' or 'hold.'","Aligning between the outfielder and third gives up the throw home. Per CUTOFF_RELAY_MAP, the default alignment is always toward home plate. The trail man (2B) handles redirect calls if third is the right play. Your primary line is always outfielder-to-you-to-home.","Staying at second means no relay chain exists. A 300+ foot direct throw from the outfielder is unreliable. Without the lead relay, the defense essentially concedes extra bases. The 2B or another fielder can cover second.","Going to the outfield to help creates a hole in the relay chain. The CF can field the ball alone — your value is in the relay position, not in the outfield. Running out there means the ball has no relay target."],
-        rates:[80,20,15,5],concept:"Per CUTOFF_RELAY_MAP, on left-side extra-base hits, the SS is the lead relay man. Position ~150 feet from home, aligned between outfielder and home, arms up.",anim:"throwHome"},
+        best:0,explanations:["Per standard relay assignments,on balls hit to the left side (LF line, LF-CF gap, deep CF), the shortstop is the lead relay man. Position ~150 feet from home plate in a direct line between the outfielder and home. Arms up high and loud call so the outfielder can find you. After catching the relay, you decide: throw home if the runner is going, throw to third to cut off the batter, or hold. The trail man (2B) communicates 'home,' 'cut third,' or 'hold.'","Aligning between the outfielder and third gives up the throw home. Per standard relay assignments,the default alignment is always toward home plate. The trail man (2B) handles redirect calls if third is the right play. Your primary line is always outfielder-to-you-to-home.","Staying at second means no relay chain exists. A 300+ foot direct throw from the outfielder is unreliable. Without the lead relay, the defense essentially concedes extra bases. The 2B or another fielder can cover second.","Going to the outfield to help creates a hole in the relay chain. The CF can field the ball alone — your value is in the relay position, not in the outfield. Running out there means the ball has no relay target."],
+        rates:[80,20,15,5],concept:"Per standard relay assignments,on left-side extra-base hits, the SS is the lead relay man. Position ~150 feet from home, aligned between outfielder and home, arms up.",anim:"throwHome"},
       {pos:"secondBase",id:"sr4a3c",conceptTag:"relay-double-cut",title:"2B: Trail Man Assignment",diff:3,cat:"fielder",ageMin:12,ageMax:99,
         options:["Position as trail man — 20 feet behind the SS relay, offset slightly, ready to redirect or communicate","Cover second base in case the batter rounds first too aggressively","Line up as a second relay man directly behind the shortstop for a double cut","Charge into short right field to back up the center fielder's throw to the SS"],
-        best:0,explanations:["Per CUTOFF_RELAY_MAP, the trail man positions 20 feet behind the lead relay and 10 feet offset so you have a clear view of home and third. Your jobs: (1) communicate to the lead relay where to throw ('home!' or 'cut, three!' or 'hold!'), (2) if the relay throw from the outfielder is offline and goes over the SS's head, you're the backup to catch it and redirect. The trail man is the relay system's insurance and intelligence.","Covering second base is a lower priority than the trail assignment. With the batter at first or second on an extra-base hit, the play is at third or home. A ball at second base has no force play value. The SS can cover second after the play if needed.","A double-cut (two relay men in direct line) is used for very deep hits — balls to the wall or over the wall (relay throws from near the fence). On a standard gap hit, the single relay with a trail man is the correct formation.","Backing up the throw to the SS from the right-field side puts you in the outfield where you can't see the play develop. The trail position behind the relay gives you the best view and the ability to communicate baserunner locations."],
-        rates:[80,25,20,15],concept:"Per CUTOFF_RELAY_MAP, the 2B is trail man on left-side relay throws — positioned behind the SS, communicating redirect calls ('home,' 'cut three,' 'hold') and backing up offline throws.",anim:"throwHome"},
+        best:0,explanations:["Per standard relay assignments,the trail man positions 20 feet behind the lead relay and 10 feet offset so you have a clear view of home and third. Your jobs: (1) communicate to the lead relay where to throw ('home!' or 'cut, three!' or 'hold!'), (2) if the relay throw from the outfielder is offline and goes over the SS's head, you're the backup to catch it and redirect. The trail man is the relay system's insurance and intelligence.","Covering second base is a lower priority than the trail assignment. With the batter at first or second on an extra-base hit, the play is at third or home. A ball at second base has no force play value. The SS can cover second after the play if needed.","A double-cut (two relay men in direct line) is used for very deep hits — balls to the wall or over the wall (relay throws from near the fence). On a standard gap hit, the single relay with a trail man is the correct formation.","Backing up the throw to the SS from the right-field side puts you in the outfield where you can't see the play develop. The trail position behind the relay gives you the best view and the ability to communicate baserunner locations."],
+        rates:[80,25,20,15],concept:"Per standard relay assignments,the 2B is trail man on left-side relay throws — positioned behind the SS, communicating redirect calls ('home,' 'cut three,' 'hold') and backing up offline throws.",anim:"throwHome"},
       {pos:"pitcher",id:"sr4a3d",conceptTag:"backup-duties",title:"Pitcher: Backup Assignment",diff:3,cat:"pitcher",ageMin:12,ageMax:99,
         options:["Sprint to back up home plate, positioning behind the catcher in line with the relay throw","Stay on the mound and cover the area between home and the pitcher's mound","Run to back up third base in case the throw from the relay goes to third","Cover first base in case the batter tries to advance on the throw home"],
-        best:0,explanations:["Per BACKUP_MAP, on extra-base hits with a potential play at home, the pitcher's assignment is to sprint to back up home plate. Position yourself behind the catcher, ~20-30 feet up the backstop line, in line with the incoming relay throw. If the throw gets past the catcher, you're there to prevent additional bases. This is a sprint — you have 3-4 seconds from contact to get there.","Staying on the mound leaves no backup behind home plate. If the relay throw gets past the catcher, the ball rolls to the backstop and every runner advances an additional base. Per BACKUP_MAP, the pitcher NEVER stays on the mound during an extra-base hit.","Backing up third base is the left fielder's assignment per BACKUP_MAP, not the pitcher's. The pitcher's backup is always home plate on potential scoring plays. Each position has a specific backup assignment to avoid redundancy.","Covering first base on an extra-base hit is unnecessary — the batter is already past first and heading to second or third. First base coverage is a non-play. Your value is behind home plate where the relay throw is heading."],
-        rates:[80,10,25,15],concept:"Per BACKUP_MAP, the pitcher backs up home plate on extra-base hits with potential plays at home. Sprint behind the catcher, ~20-30 feet back, in line with the relay.",anim:"throwHome"},
+        best:0,explanations:["Per standard backup assignments,on extra-base hits with a potential play at home, the pitcher's assignment is to sprint to back up home plate. Position yourself behind the catcher, ~20-30 feet up the backstop line, in line with the incoming relay throw. If the throw gets past the catcher, you're there to prevent additional bases. This is a sprint — you have 3-4 seconds from contact to get there.","Staying on the mound leaves no backup behind home plate. If the relay throw gets past the catcher, the ball rolls to the backstop and every runner advances an additional base. Per standard backup assignments,the pitcher NEVER stays on the mound during an extra-base hit.","Backing up third base is the left fielder's assignment per standard backup assignments, not the pitcher's. The pitcher's backup is always home plate on potential scoring plays. Each position has a specific backup assignment to avoid redundancy.","Covering first base on an extra-base hit is unnecessary — the batter is already past first and heading to second or third. First base coverage is a non-play. Your value is behind home plate where the relay throw is heading."],
+        rates:[80,10,25,15],concept:"Per standard backup assignments,the pitcher backs up home plate on extra-base hits with potential plays at home. Sprint behind the catcher, ~20-30 feet back, in line with the relay.",anim:"throwHome"},
       {pos:"baserunner",id:"sr4a3e",conceptTag:"baserunning-rates",title:"Runner on First: Aggression Calculus",diff:3,cat:"baserunner",ageMin:12,ageMax:99,
         options:["Sprint home from first — a ball in the gap should score you easily","Round third hard, read the relay throw quality, and commit or hold based on the throw","Stop at third automatically — don't risk the out at home with one out and your team trailing","Stop at second — take the sure extra base and avoid any risk"],
         best:1,explanations:["Blindly sprinting home from first on every gap hit gets you thrown out on clean relay executions. A well-executed relay (CF to SS to catcher) takes about 3.5-4 seconds. Your first-to-home time is about 12-13 seconds. If the relay is clean and on-line, you're out. If it's offline, you score. The read determines the outcome.","This is the optimal approach. Runners advance from first to third on approximately 28% of singles, but on extra-base hits to the gap, third is nearly automatic. The decision point is home. Round third aggressively (force the defense to make a perfect relay), then read: if the relay throw is offline, bounced, or cut to the wrong base, score. If it's on-line and strong, hold at third. You're now 90 feet from scoring with one out — a productive outcome. This is smart aggression: pressure the defense and capitalize on mistakes.","Automatic stops are never optimal. The situation (trailing by one, one out) demands aggression. A runner at third with one out scores on sac flies, grounders to the right side, wild pitches, and passed balls. But a runner who scores ties the game immediately. The read framework maximizes value: you get the run when the defense falters, and you hold safely when they execute.","Stopping at second on a ball in the gap is extremely conservative. Third base is nearly automatic on any gap hit with a running start from first. You'd be leaving 90 feet of advancement — and all the scoring opportunities from third — on the table."],
@@ -4680,81 +4680,81 @@ const SITUATION_SETS = [
         rates:[80,15,50,5],concept:"With two outs and a full count, sending the runner is a zero-risk play. Ball four = free advance. K = inning over anyway. Contact = head start to score. There is no downside.",anim:"steal"},
       {pos:"shortstop",id:"sr5a3d",conceptTag:"infield-positioning",title:"SS: Situational Positioning",diff:3,cat:"fielder",ageMin:12,ageMax:99,
         options:["Shade toward the middle (second base side) to cover the hole — a single through the middle wins the game","Shade toward third base side for the potential ground ball to your left — with two outs, the force at first is the only play","Play at standard depth and rely on your range to cover both sides","Cheat in for the potential slow roller to get the out at first on a close play"],
-        best:1,explanations:["Shading toward the middle to 'protect the hole' is a common instinct, but it's wrong here. Per PRE_PITCH_POSITIONING_MAP, with R2 and 2 outs, a ground ball through the hole doesn't matter if you get the force at first. The runner scores on any base hit regardless of where it goes. Your job is to maximize the probability of getting the batter out at first, which means positioning for the highest-probability ground ball based on the hitter's tendencies.","With R2 and two outs, the defense only needs one more out. The force at first is the only play on a ground ball. Per PRE_PITCH_POSITIONING_MAP, your positioning should maximize the probability of fielding any ground ball and throwing the batter out. With a RHB up and a fastball on the corner expected, shade toward the third-base side where pulled ground balls go. A ball through the middle scores the runner regardless — what matters is catching the balls you can reach and converting the out at first.","Standard depth gives you range, but positioning isn't just about depth — lateral shade matters. With the count at 3-2 and a fastball likely, the pull-side ground ball is the most common outcome on contact. Standard positioning without considering the count and pitch type leaves value on the table.","Cheating in for the slow roller reduces your range on ground balls hit with authority. The most common ground ball at 3-2 is on a fastball — those are hit sharply, not slowly. Playing shallow costs you more ground balls than it gains."],
-        rates:[25,80,20,15],concept:"Per PRE_PITCH_POSITIONING_MAP, with R2/2 outs, a hit through the hole scores the runner regardless. Position to maximize your probability of converting the out at first based on pitch type and hitter tendencies.",anim:"groundout"}
+        best:1,explanations:["Shading toward the middle to 'protect the hole' is a common instinct, but it's wrong here. Per standard pre-pitch positioning,with R2 and 2 outs, a ground ball through the hole doesn't matter if you get the force at first. The runner scores on any base hit regardless of where it goes. Your job is to maximize the probability of getting the batter out at first, which means positioning for the highest-probability ground ball based on the hitter's tendencies.","With R2 and two outs, the defense only needs one more out. The force at first is the only play on a ground ball. Per standard pre-pitch positioning,your positioning should maximize the probability of fielding any ground ball and throwing the batter out. With a RHB up and a fastball on the corner expected, shade toward the third-base side where pulled ground balls go. A ball through the middle scores the runner regardless — what matters is catching the balls you can reach and converting the out at first.","Standard depth gives you range, but positioning isn't just about depth — lateral shade matters. With the count at 3-2 and a fastball likely, the pull-side ground ball is the most common outcome on contact. Standard positioning without considering the count and pitch type leaves value on the table.","Cheating in for the slow roller reduces your range on ground balls hit with authority. The most common ground ball at 3-2 is on a fastball — those are hit sharply, not slowly. Playing shallow costs you more ground balls than it gains."],
+        rates:[25,80,20,15],concept:"Per standard pre-pitch positioning,with R2/2 outs, a hit through the hole scores the runner regardless. Position to maximize your probability of converting the out at first based on pitch type and hitter tendencies.",anim:"groundout"}
     ]},
   {id:"sr6a3",title:"Squeeze Play Alert (All-Star)",emoji:"🤫",color:"#eab308",diff:3,
     situation:{inning:"Bot 7",outs:1,count:"1-1",runners:[3],score:[2,3]},
-    desc:"Runner on third, one out, down by one in the 7th. The squeeze is baseball's highest-commitment play — the runner commits before the pitch arrives. Per SQUEEZE_MAP, every defender has a recognition and response assignment.",
-    debrief:"Per SQUEEZE_MAP, the squeeze requires total commitment from the offense and instant recognition from the defense. The batter squared late at the last possible moment — minimizing the defense's reaction window. The runner broke on the pitcher's first movement. The third baseman read the runner's aggressive lead but called 'SQUEEZE!' a fraction too late. The catcher recognized the batter squaring and set up to receive the bunt, but the ball was bunted softly down the first-base line — out of the catcher's range. Run scored. The pitcher's high-inside pitch was correct per SQUEEZE_MAP, but the batter got the bat on it. Execution beat recognition by 0.5 seconds.",
-    teamworkTakeaway:"Per SQUEEZE_MAP: the batter squares late and bunts everything (any miss = runner is dead). The runner commits on the pitcher's first move (no read, pure commitment). The defense relies on recognition: 3B reads the runner's lead, catcher reads the square, pitcher throws high-inside. Recognition must beat execution — and execution has the advantage.",
+    desc:"Runner on third, one out, down by one in the 7th. The squeeze is baseball's highest-commitment play — the runner commits before the pitch arrives. On a squeeze play,every defender has a recognition and response assignment.",
+    debrief:"On a squeeze play,the squeeze requires total commitment from the offense and instant recognition from the defense. The batter squared late at the last possible moment — minimizing the defense's reaction window. The runner broke on the pitcher's first movement. The third baseman read the runner's aggressive lead but called 'SQUEEZE!' a fraction too late. The catcher recognized the batter squaring and set up to receive the bunt, but the ball was bunted softly down the first-base line — out of the catcher's range. Run scored. The pitcher's high-inside pitch was correct per squeeze defense strategy, but the batter got the bat on it. Execution beat recognition by 0.5 seconds.",
+    teamworkTakeaway:"On a squeeze play: the batter squares late and bunts everything (any miss = runner is dead). The runner commits on the pitcher's first move (no read, pure commitment). The defense relies on recognition: 3B reads the runner's lead, catcher reads the square, pitcher throws high-inside. Recognition must beat execution — and execution has the advantage.",
     questions:[
       {pos:"batter",id:"sr6a3a",conceptTag:"squeeze-play",title:"Batter: Commitment and Execution",diff:3,cat:"batter",ageMin:12,ageMax:99,
         options:["Square early to get the best bat position for a clean bunt","Square at the last possible moment and bunt the ball regardless of location","Only bunt if the pitch is in the strike zone — don't bunt a bad pitch","Show bunt and read the pitch — pull back on a pitchout and try to protect the runner"],
-        best:1,explanations:["Squaring early on a suicide squeeze is the cardinal sin. Per SQUEEZE_MAP, the defense reads the batter's square to trigger their response. If you show bunt while the pitcher can still adjust, he throws high-inside (impossible to bunt on the ground) or throws a pitchout. The runner is dead by 20+ feet. Late square = minimal reaction time for the defense.","Per SQUEEZE_MAP, the suicide squeeze requires total batter commitment. The runner breaks for home on the pitcher's first movement toward home — before the batter has even squared. If you don't bunt the ball, the catcher has it and the runner is out by 20 feet. You MUST get the bat on the ball regardless of pitch location. Square at the last possible moment (as the ball is halfway to the plate), angle the bat down, and deaden the ball on the ground. Any bunt on the ground scores the run — location is secondary to contact.","Taking a bad pitch on a squeeze play means the catcher has the ball and the runner is out. There is no pitch discrimination on a suicide squeeze — you bunt everything. The ball could be head-high or in the dirt. You foul it off at worst. But a missed bunt or taken pitch is a guaranteed out on the runner.","Pulling back on a pitchout leaves the runner stranded between third and home with no chance. The squeeze is a commitment play — once the runner breaks, the batter's job is contact. Per SQUEEZE_MAP, the batter's only job is to get the bat on the ball. Everything else is secondary."],
-        rates:[15,80,20,25],concept:"Per SQUEEZE_MAP, the suicide squeeze is total commitment. Square at the last moment, bunt everything regardless of location. Any missed bunt = runner out by 20 feet.",anim:"bunt"},
+        best:1,explanations:["Squaring early on a suicide squeeze is the cardinal sin. On a squeeze play,the defense reads the batter's square to trigger their response. If you show bunt while the pitcher can still adjust, he throws high-inside (impossible to bunt on the ground) or throws a pitchout. The runner is dead by 20+ feet. Late square = minimal reaction time for the defense.","On a squeeze play,the suicide squeeze requires total batter commitment. The runner breaks for home on the pitcher's first movement toward home — before the batter has even squared. If you don't bunt the ball, the catcher has it and the runner is out by 20 feet. You MUST get the bat on the ball regardless of pitch location. Square at the last possible moment (as the ball is halfway to the plate), angle the bat down, and deaden the ball on the ground. Any bunt on the ground scores the run — location is secondary to contact.","Taking a bad pitch on a squeeze play means the catcher has the ball and the runner is out. There is no pitch discrimination on a suicide squeeze — you bunt everything. The ball could be head-high or in the dirt. You foul it off at worst. But a missed bunt or taken pitch is a guaranteed out on the runner.","Pulling back on a pitchout leaves the runner stranded between third and home with no chance. The squeeze is a commitment play — once the runner breaks, the batter's job is contact. On a squeeze play,the batter's only job is to get the bat on the ball. Everything else is secondary."],
+        rates:[15,80,20,25],concept:"On a squeeze play,the suicide squeeze is total commitment. Square at the last moment, bunt everything regardless of location. Any missed bunt = runner out by 20 feet.",anim:"bunt"},
       {pos:"pitcher",id:"sr6a3b",conceptTag:"squeeze-recognition",title:"Pitcher: In-Delivery Recognition",diff:3,cat:"pitcher",ageMin:12,ageMax:99,
         options:["If you recognize the squeeze during delivery, throw high-and-inside — impossible to bunt down","Throw your normal pitch and trust the fielders to make the play on the bunt","Step off the rubber to kill the play and prevent the runner from scoring","Throw a pitchout wide to give the catcher a clear throw to tag the runner"],
-        best:0,explanations:["Per SQUEEZE_MAP, the pitcher's primary weapon against a recognized squeeze is the high-inside fastball. The bat angle required to bunt a pitch that's up and in toward the ground is geometrically almost impossible — the batter pops it up, fouls it off, or misses entirely. In all three cases, the runner is dead between third and home. Recognition cues: the runner at third takes an aggressively large lead, the runner breaks before or with your delivery, or the batter shows bunt motion. Even if you only recognize it halfway through your delivery, redirect toward high-inside.","Throwing a normal pitch when you recognize the squeeze is surrendering. A normal-location pitch is buntable, and any bunt on the ground with the runner already sprinting home scores the run. The squeeze is the offense's most aggressive play — you must match that aggression with the high-inside counter.","Stepping off the rubber only works if you recognize the squeeze before committing to your delivery. Once your arm is moving forward, you must throw to the plate (stepping off mid-delivery is a balk). The recognition window for stepping off is tiny — the high-inside pitch works regardless of when in the delivery you recognize it.","A pitchout can work but must be called before the pitch. In-the-moment recognition calls for the high-inside fastball, not a pitchout. A pitchout thrown reactively often ends up as a wild pitch because the catcher isn't set up for it."],
-        rates:[80,10,50,25],concept:"Per SQUEEZE_MAP, throw high-and-inside when you recognize the squeeze. The bat angle required to bunt a high-inside pitch onto the ground is geometrically impossible.",anim:"bunt"},
+        best:0,explanations:["On a squeeze play,the pitcher's primary weapon against a recognized squeeze is the high-inside fastball. The bat angle required to bunt a pitch that's up and in toward the ground is geometrically almost impossible — the batter pops it up, fouls it off, or misses entirely. In all three cases, the runner is dead between third and home. Recognition cues: the runner at third takes an aggressively large lead, the runner breaks before or with your delivery, or the batter shows bunt motion. Even if you only recognize it halfway through your delivery, redirect toward high-inside.","Throwing a normal pitch when you recognize the squeeze is surrendering. A normal-location pitch is buntable, and any bunt on the ground with the runner already sprinting home scores the run. The squeeze is the offense's most aggressive play — you must match that aggression with the high-inside counter.","Stepping off the rubber only works if you recognize the squeeze before committing to your delivery. Once your arm is moving forward, you must throw to the plate (stepping off mid-delivery is a balk). The recognition window for stepping off is tiny — the high-inside pitch works regardless of when in the delivery you recognize it.","A pitchout can work but must be called before the pitch. In-the-moment recognition calls for the high-inside fastball, not a pitchout. A pitchout thrown reactively often ends up as a wild pitch because the catcher isn't set up for it."],
+        rates:[80,10,50,25],concept:"On a squeeze play,throw high-and-inside when you recognize the squeeze. The bat angle required to bunt a high-inside pitch onto the ground is geometrically impossible.",anim:"bunt"},
       {pos:"thirdBase",id:"sr6a3c",conceptTag:"squeeze-recognition",title:"Third Base: The Early Warning",diff:3,cat:"fielder",ageMin:12,ageMax:99,
         options:["Watch the runner's lead at third — an aggressive break means squeeze, yell 'SQUEEZE!' immediately","Charge toward home as soon as you suspect a bunt to field it quickly","Stay back at your position to prevent a slash hit through the vacated left side","Ignore the runner and watch the batter's hands for the bunt show"],
-        best:0,explanations:["Per SQUEEZE_MAP, the third baseman is the defense's early warning system. The runner gives away the squeeze before the batter does — he takes an unusually aggressive lead or breaks for home as the pitcher starts his delivery. Your voice is the trigger: 'SQUEEZE!' tells the pitcher to go high-inside and tells the catcher to prepare for the play at the plate. Recognition speed is everything — the earlier you call it, the more time the battery has to react.","Charging before confirming the squeeze leaves third base wide open. If the batter pulls back and swings (slash play), a ground ball to the left side is a free hit with nobody near third. Per SQUEEZE_MAP, confirm the squeeze first (read the runner), call it, THEN react to the bunt.","Staying back means no early warning for the pitcher. The third baseman has the best view of the runner's lead and break. Without your call, the pitcher may not recognize the squeeze until the batter squares — which is too late to adjust the pitch.","The runner's movement is a more reliable indicator than the batter's hands. A skilled squeeze batter squares at the last possible moment. But the runner must break early enough to score — his timing is the tell. Read the runner first, then confirm with the batter's hands."],
-        rates:[80,20,15,25],concept:"Per SQUEEZE_MAP, the 3B is the early warning system. The runner's aggressive lead/break reveals the squeeze before the batter squares. Call 'SQUEEZE!' immediately to trigger the battery's response.",anim:"bunt"},
+        best:0,explanations:["On a squeeze play,the third baseman is the defense's early warning system. The runner gives away the squeeze before the batter does — he takes an unusually aggressive lead or breaks for home as the pitcher starts his delivery. Your voice is the trigger: 'SQUEEZE!' tells the pitcher to go high-inside and tells the catcher to prepare for the play at the plate. Recognition speed is everything — the earlier you call it, the more time the battery has to react.","Charging before confirming the squeeze leaves third base wide open. If the batter pulls back and swings (slash play), a ground ball to the left side is a free hit with nobody near third. On a squeeze play,confirm the squeeze first (read the runner), call it, THEN react to the bunt.","Staying back means no early warning for the pitcher. The third baseman has the best view of the runner's lead and break. Without your call, the pitcher may not recognize the squeeze until the batter squares — which is too late to adjust the pitch.","The runner's movement is a more reliable indicator than the batter's hands. A skilled squeeze batter squares at the last possible moment. But the runner must break early enough to score — his timing is the tell. Read the runner first, then confirm with the batter's hands."],
+        rates:[80,20,15,25],concept:"On a squeeze play,the 3B is the early warning system. The runner's aggressive lead/break reveals the squeeze before the batter squares. Call 'SQUEEZE!' immediately to trigger the battery's response.",anim:"bunt"},
       {pos:"catcher",id:"sr6a3d",conceptTag:"squeeze-recognition",title:"Catcher: Plate Defense",diff:3,cat:"catcher",ageMin:12,ageMax:99,
         options:["If you recognize the squeeze, jump out front to field the bunt and tag the runner before he arrives","Receive the pitch normally, then react to the bunt if it's laid down","If the batter misses or pops up the bunt, immediately throw to third or tag the runner at home","Call a pitchout pre-pitch if you suspect a squeeze based on the runner's lead"],
-        best:2,explanations:["Jumping out in front of the plate before the pitch is catcher's interference if you contact the batter. You also can't receive the pitch if you're in front of the plate. Your positioning must stay behind the plate until the ball is bunted or missed. The play happens after the pitch, not before it.","Receiving normally and reacting after is too passive when you've recognized the squeeze. Per SQUEEZE_MAP, if the pitcher throws high-inside on the squeeze recognition and the batter misses or pops up, the runner is stranded between third and home. Your job is to immediately apply the tag or throw to third. Read the pitch result and execute the tag.","Per SQUEEZE_MAP, the catcher's play on a failed squeeze is immediate: if the batter misses, pops up, or fouls off the pitch, the runner is committed and can't get back to third in time. Catch the ball and either tag the runner coming home or throw to third to catch him retreating. The key is recognizing the bunt attempt failed and reacting instantly. On a successful bunt (ball on the ground), field it and throw to first for the out — the run scores but you get the batter.","A pitchout can work if called before the pitch, but it requires anticipating the squeeze, not just recognizing it. Pre-pitch pitchout is a guess — if wrong, you've wasted a pitch and fallen behind 2-1. The high-inside pitch is more effective because it's still a competitive pitch that also defeats the squeeze."],
-        rates:[15,25,80,50],concept:"Per SQUEEZE_MAP, if the squeeze bunt fails (miss, popup, foul), the catcher immediately tags the committed runner or throws to third. The runner can't retreat 90 feet in time.",anim:"bunt"}
+        best:2,explanations:["Jumping out in front of the plate before the pitch is catcher's interference if you contact the batter. You also can't receive the pitch if you're in front of the plate. Your positioning must stay behind the plate until the ball is bunted or missed. The play happens after the pitch, not before it.","Receiving normally and reacting after is too passive when you've recognized the squeeze. On a squeeze play,if the pitcher throws high-inside on the squeeze recognition and the batter misses or pops up, the runner is stranded between third and home. Your job is to immediately apply the tag or throw to third. Read the pitch result and execute the tag.","On a squeeze play,the catcher's play on a failed squeeze is immediate: if the batter misses, pops up, or fouls off the pitch, the runner is committed and can't get back to third in time. Catch the ball and either tag the runner coming home or throw to third to catch him retreating. The key is recognizing the bunt attempt failed and reacting instantly. On a successful bunt (ball on the ground), field it and throw to first for the out — the run scores but you get the batter.","A pitchout can work if called before the pitch, but it requires anticipating the squeeze, not just recognizing it. Pre-pitch pitchout is a guess — if wrong, you've wasted a pitch and fallen behind 2-1. The high-inside pitch is more effective because it's still a competitive pitch that also defeats the squeeze."],
+        rates:[15,25,80,50],concept:"On a squeeze play,if the squeeze bunt fails (miss, popup, foul), the catcher immediately tags the committed runner or throws to third. The runner can't retreat 90 feet in time.",anim:"bunt"}
     ]},
   {id:"sr7a3",title:"Rundown Chaos (All-Star)",emoji:"🔄",color:"#6366f1",diff:3,
     situation:{inning:"Top 3",outs:0,count:"0-0",runners:[1,3],score:[0,1]},
-    desc:"Runners on first and third, nobody out. The runner on first is caught. Per RUNDOWN_MAP, the goal is one throw maximum. But the runner at third is watching. Per FIRST_THIRD_MAP, the defense must solve both problems simultaneously.",
-    debrief:"Per RUNDOWN_MAP, the first baseman chased the runner toward second with the ball held high, running hard, creating the 'runway' that the shortstop shortened from the other side. Per FIRST_THIRD_MAP, the catcher watched the runner at third while the first baseman kept peripheral awareness. When R3 broke for home on the throw toward second, the first baseman redirected home instead. Tag applied. Per RUNDOWN_MAP, the ideal rundown is one throw maximum — this one took two (1B to home), which is acceptable because the runner at third forced the adjustment.",
-    teamworkTakeaway:"Per RUNDOWN_MAP: chase toward the next base, get the out in one throw max. Per FIRST_THIRD_MAP: with R1+R3, the defense must solve the rundown while watching the trail runner. The catcher and first baseman split awareness — the catcher watches R3 while the first baseman executes the rundown.",
+    desc:"Runners on first and third, nobody out. The runner on first is caught. In a rundown,the goal is one throw maximum. But the runner at third is watching. With first-and-third,the defense must solve both problems simultaneously.",
+    debrief:"In a rundown,the first baseman chased the runner toward second with the ball held high, running hard, creating the 'runway' that the shortstop shortened from the other side. With first-and-third,the catcher watched the runner at third while the first baseman kept peripheral awareness. When R3 broke for home on the throw toward second, the first baseman redirected home instead. Tag applied. In a rundown,the ideal rundown is one throw maximum — this one took two (1B to home), which is acceptable because the runner at third forced the adjustment.",
+    teamworkTakeaway:"In a rundown: chase toward the next base, get the out in one throw max. With runners on first and third: with R1+R3, the defense must solve the rundown while watching the trail runner. The catcher and first baseman split awareness — the catcher watches R3 while the first baseman executes the rundown.",
     questions:[
       {pos:"firstBase",id:"sr7a3a",conceptTag:"rundown-mechanics",title:"1B: Chase Mechanics and R3 Awareness",diff:3,cat:"fielder",ageMin:12,ageMax:99,
         options:["Chase toward second with ball held high, but redirect throw home if R3 breaks","Run the runner back to first and tag him yourself — safest play, no throw needed","Chase toward second making quick throws back and forth until you get the tag","Throw immediately to the SS at second and let the middle infielders handle the rundown"],
-        best:0,explanations:["Per RUNDOWN_MAP and FIRST_THIRD_MAP combined, this is the dual-responsibility play. Chase the runner toward second (ball up, running hard) to shorten the distance for the receiving fielder. Per FIRST_THIRD_MAP, maintain peripheral awareness of the runner at third. The catcher is your partner in R3 surveillance — he communicates if R3 breaks. If R3 commits to home, redirect your throw to the plate immediately. If R3 stays, continue the rundown with the goal of one throw to the SS for the tag. The key is: the throw to second should only happen when you've confirmed R3 isn't going.","Running the runner back to first resets the situation to exactly where it started: R1, R3, 0 outs. You've gained nothing. Per RUNDOWN_MAP, always chase TOWARD the next base to create forward progress. Even if you tag the runner going back to first, you still have R3 with no outs — worse than potentially getting the out at second AND keeping R3 at third.","Multiple throws in a rundown are how errors happen, since per RUNDOWN_MAP, the standard is one throw maximum. Each additional throw adds error probability and gives R3 more time to read and break for home. Chase hard, close the gap, one throw, tag.","Throwing immediately to second gives up control. Per RUNDOWN_MAP, the fielder with the ball dictates the rundown by running at the caught runner. An immediate throw from first to second gives the runner time to stop, reverse, and potentially get back to first. You want to chase him into a closing trap, not play catch over his head."],
-        rates:[80,15,20,25],concept:"Per RUNDOWN_MAP: chase toward the next base, one throw max. Per FIRST_THIRD_MAP: maintain R3 awareness and redirect home if he breaks. The 1B and catcher split the dual-responsibility.",anim:"rundown"},
+        best:0,explanations:["Combining rundown fundamentals and first-and-third awareness,this is the dual-responsibility play. Chase the runner toward second (ball up, running hard) to shorten the distance for the receiving fielder. With first-and-third,maintain peripheral awareness of the runner at third. The catcher is your partner in R3 surveillance — he communicates if R3 breaks. If R3 commits to home, redirect your throw to the plate immediately. If R3 stays, continue the rundown with the goal of one throw to the SS for the tag. The key is: the throw to second should only happen when you've confirmed R3 isn't going.","Running the runner back to first resets the situation to exactly where it started: R1, R3, 0 outs. You've gained nothing. In a rundown,always chase TOWARD the next base to create forward progress. Even if you tag the runner going back to first, you still have R3 with no outs — worse than potentially getting the out at second AND keeping R3 at third.","Multiple throws in a rundown are how errors happen, since per rundown fundamentals,the standard is one throw maximum. Each additional throw adds error probability and gives R3 more time to read and break for home. Chase hard, close the gap, one throw, tag.","Throwing immediately to second gives up control. In a rundown,the fielder with the ball dictates the rundown by running at the caught runner. An immediate throw from first to second gives the runner time to stop, reverse, and potentially get back to first. You want to chase him into a closing trap, not play catch over his head."],
+        rates:[80,15,20,25],concept:"In a rundown: chase toward the next base, one throw max. With runners on first and third: maintain R3 awareness and redirect home if he breaks. The 1B and catcher split the dual-responsibility.",anim:"rundown"},
       {pos:"shortstop",id:"sr7a3b",conceptTag:"rundown-mechanics",title:"SS: Close the Gap",diff:3,cat:"fielder",ageMin:12,ageMax:99,
         options:["Stand at second base and wait for the 1B to run the runner to you","Close the gap toward the runner from the second-base side — shorten the runway for a quick tag","Stay near your normal position and watch R3 at third in case he breaks","Shade toward third base to cut off R3 if he tries to advance"],
-        best:1,explanations:["Per RUNDOWN_MAP, standing on the bag leaves too much runway. The rundown should end between the bases, not at the bag. If you stand at second and the runner reverses, the 1B has to chase again and make another throw — violating the one-throw principle. Close the gap so when you receive the throw, you're close enough for an immediate tag.","Per RUNDOWN_MAP, the receiving fielder closes the gap toward the incoming runner. This shortens the 'runway' so the runner has nowhere to escape. When the 1B throws, you receive it close to the runner and apply the tag immediately. The shorter the runway, the fewer throw opportunities and the faster the out. One throw, immediate tag.","Watching R3 is the catcher's primary assignment per FIRST_THIRD_MAP. Your job is to execute the rundown and get the out on the caught runner. Two fielders watching R3 means nobody is closing the gap on the runner, and the rundown stalls.","Shading toward third takes you away from the rundown entirely. Third base coverage is handled by the third baseman (if he's not involved in the rundown). Your involvement is between first and second."],
-        rates:[20,80,25,15],concept:"Per RUNDOWN_MAP: close the gap toward the incoming runner from the second-base side. The shorter the runway, the fewer throws needed. One throw + immediate tag = efficient rundown.",anim:"rundown"},
+        best:1,explanations:["In a rundown,standing on the bag leaves too much runway. The rundown should end between the bases, not at the bag. If you stand at second and the runner reverses, the 1B has to chase again and make another throw — violating the one-throw principle. Close the gap so when you receive the throw, you're close enough for an immediate tag.","In a rundown,the receiving fielder closes the gap toward the incoming runner. This shortens the 'runway' so the runner has nowhere to escape. When the 1B throws, you receive it close to the runner and apply the tag immediately. The shorter the runway, the fewer throw opportunities and the faster the out. One throw, immediate tag.","Watching R3 is the catcher's primary assignment per FIRST_THIRD_MAP. Your job is to execute the rundown and get the out on the caught runner. Two fielders watching R3 means nobody is closing the gap on the runner, and the rundown stalls.","Shading toward third takes you away from the rundown entirely. Third base coverage is handled by the third baseman (if he's not involved in the rundown). Your involvement is between first and second."],
+        rates:[20,80,25,15],concept:"In a rundown: close the gap toward the incoming runner from the second-base side. The shorter the runway, the fewer throws needed. One throw + immediate tag = efficient rundown.",anim:"rundown"},
       {pos:"catcher",id:"sr7a3c",conceptTag:"first-third",title:"Catcher: R3 Surveillance",diff:3,cat:"catcher",ageMin:12,ageMax:99,
         options:["Watch the runner at third exclusively — communicate to 1B if R3 breaks for home","Stay at home plate and prepare for a potential throw home from the rundown","Go to first base to cover the bag the 1B vacated","Move up the third-base line to cut off R3 before he reaches home"],
-        best:0,explanations:["Per FIRST_THIRD_MAP, the catcher is the primary R3 surveillance in a first-and-third rundown. Your view of both the rundown and R3 is the best on the field. Communicate loudly: 'He's going!' if R3 breaks, or 'He's holding!' to let the 1B focus on the rundown. Your voice triggers the 1B's decision to throw to second (R3 holds) or throw home (R3 breaks). Stay at the plate in receiving position — you need to be ready for a throw home if R3 commits.","Staying at the plate is part of the job, but the active surveillance and communication is what makes you valuable. Silently waiting for a throw means the 1B has to split his attention between the rundown AND watching R3. Your voice eliminates that split.","Covering first base is a second baseman or pitcher responsibility when the 1B leaves to chase the runner. Your position at home plate is critical for the potential play on R3. Leaving home uncovered is a catastrophic defensive gap.","Moving up the third-base line takes you out of position to receive a throw at home. If R3 breaks and the throw comes home, nobody's there to catch it. Your value is at the plate, not in between bases."],
-        rates:[80,50,15,20],concept:"Per FIRST_THIRD_MAP, the catcher is R3 surveillance in a first-and-third rundown. Communicate loudly: 'He's going!' or 'He's holding!' to trigger the 1B's throw decision.",anim:"rundown"},
+        best:0,explanations:["With first-and-third,the catcher is the primary R3 surveillance in a first-and-third rundown. Your view of both the rundown and R3 is the best on the field. Communicate loudly: 'He's going!' if R3 breaks, or 'He's holding!' to let the 1B focus on the rundown. Your voice triggers the 1B's decision to throw to second (R3 holds) or throw home (R3 breaks). Stay at the plate in receiving position — you need to be ready for a throw home if R3 commits.","Staying at the plate is part of the job, but the active surveillance and communication is what makes you valuable. Silently waiting for a throw means the 1B has to split his attention between the rundown AND watching R3. Your voice eliminates that split.","Covering first base is a second baseman or pitcher responsibility when the 1B leaves to chase the runner. Your position at home plate is critical for the potential play on R3. Leaving home uncovered is a catastrophic defensive gap.","Moving up the third-base line takes you out of position to receive a throw at home. If R3 breaks and the throw comes home, nobody's there to catch it. Your value is at the plate, not in between bases."],
+        rates:[80,50,15,20],concept:"With first-and-third,the catcher is R3 surveillance in a first-and-third rundown. Communicate loudly: 'He's going!' or 'He's holding!' to trigger the 1B's throw decision.",anim:"rundown"},
       {pos:"secondBase",id:"sr7a3d",conceptTag:"rundown-mechanics",title:"2B: Coverage Behind the Rundown",diff:3,cat:"fielder",ageMin:12,ageMax:99,
         options:["Cover first base since the 1B left to chase the runner in the rundown","Cover second base behind the SS in case the runner slips past the tag","Position between first and second as a backup receiver in case of an overthrow","Stay near your normal position and let others handle the rundown"],
-        best:0,explanations:["Per RUNDOWN_MAP, when the first baseman leaves to chase a runner, someone must cover first base. The second baseman is the natural coverage. If the rundown results in the runner being chased back toward first, someone needs to be there to receive a throw and make the tag. Additionally, if R3 scores and the batter is still at the plate, first base needs coverage for the next play.","The SS is already closing the gap from the second-base side. Two fielders at second creates redundancy and leaves first base uncovered. Per standard coverage, the SS handles the receiving role in this rundown while you cover first.","Positioning between first and second puts you in no-man's land. You're not close enough to either base to make a play. Cover first decisively — the rundown fielders handle the space between bases.","Staying at your normal position with the 1B out of position means first base is uncovered. Every fielder adjusts when a teammate leaves their position. Your rotation to first is automatic in rundown situations."],
-        rates:[80,25,20,15],concept:"Per RUNDOWN_MAP, when the 1B leaves to chase a runner, the 2B covers first base. Coverage rotation is automatic — every vacated base needs a fielder.",anim:"rundown"},
+        best:0,explanations:["In a rundown,when the first baseman leaves to chase a runner, someone must cover first base. The second baseman is the natural coverage. If the rundown results in the runner being chased back toward first, someone needs to be there to receive a throw and make the tag. Additionally, if R3 scores and the batter is still at the plate, first base needs coverage for the next play.","The SS is already closing the gap from the second-base side. Two fielders at second creates redundancy and leaves first base uncovered. Per standard coverage, the SS handles the receiving role in this rundown while you cover first.","Positioning between first and second puts you in no-man's land. You're not close enough to either base to make a play. Cover first decisively — the rundown fielders handle the space between bases.","Staying at your normal position with the 1B out of position means first base is uncovered. Every fielder adjusts when a teammate leaves their position. Your rotation to first is automatic in rundown situations."],
+        rates:[80,25,20,15],concept:"In a rundown,when the 1B leaves to chase a runner, the 2B covers first base. Coverage rotation is automatic — every vacated base needs a fielder.",anim:"rundown"},
       {pos:"baserunner",id:"sr7a3e",conceptTag:"first-third",title:"Runner on Third: The Read Framework",diff:3,cat:"baserunner",ageMin:12,ageMax:99,
         options:["Break for home the instant the rundown starts — the defense is distracted","Wait for the throw to go toward second base (away from home), then break with full commitment","Hold at third no matter what — the defense is watching for exactly this","Take an aggressive secondary lead but only score on an overthrow or error"],
-        best:1,explanations:["Breaking immediately is the predictable play that smart defenses expect. Per FIRST_THIRD_MAP, the 1B and catcher are specifically watching for this. An immediate break gives the 1B an easy throw home with no decision conflict — you're running into the tag.","Per FIRST_THIRD_MAP, the runner at third reads the ball direction. When the ball is thrown toward second base, the fielders' momentum is carrying them AWAY from home plate. Their bodies, eyes, and throwing angles are all pointed toward second. This is your window. Break with full commitment — no hesitation, no halfway. The key: the ball must be traveling away from you (toward second) before you go. If the 1B holds the ball while looking at you, stay.","Holding unconditionally at third wastes a golden opportunity. Per FIRST_THIRD_MAP, the first-and-third rundown is one of the best scoring chances for the offense. The defense is occupied with two problems simultaneously. With zero outs, the risk of being thrown out at home is acceptable because the team still has R1 on base and at most one out.","Waiting only for errors is too passive. The throw toward second IS your trigger — it doesn't require an error. The fielder's momentum toward second makes the throw home difficult even on clean plays. Overthrows are a bonus, but the normal throw-to-second trigger is the play."],
-        rates:[20,80,15,25],concept:"Per FIRST_THIRD_MAP: score from third when the ball travels toward second (away from home). The fielders' momentum carries them away from the plate — that's your window.",anim:"score"}
+        best:1,explanations:["Breaking immediately is the predictable play that smart defenses expect. With first-and-third,the 1B and catcher are specifically watching for this. An immediate break gives the 1B an easy throw home with no decision conflict — you're running into the tag.","With first-and-third,the runner at third reads the ball direction. When the ball is thrown toward second base, the fielders' momentum is carrying them AWAY from home plate. Their bodies, eyes, and throwing angles are all pointed toward second. This is your window. Break with full commitment — no hesitation, no halfway. The key: the ball must be traveling away from you (toward second) before you go. If the 1B holds the ball while looking at you, stay.","Holding unconditionally at third wastes a golden opportunity. With first-and-third,the first-and-third rundown is one of the best scoring chances for the offense. The defense is occupied with two problems simultaneously. With zero outs, the risk of being thrown out at home is acceptable because the team still has R1 on base and at most one out.","Waiting only for errors is too passive. The throw toward second IS your trigger — it doesn't require an error. The fielder's momentum toward second makes the throw home difficult even on clean plays. Overthrows are a bonus, but the normal throw-to-second trigger is the play."],
+        rates:[20,80,15,25],concept:"With runners on first and third: score from third when the ball travels toward second (away from home). The fielders' momentum carries them away from the plate — that's your window.",anim:"score"}
     ]},
   {id:"sr8a3",title:"Tag-Up at the Warning Track (All-Star)",emoji:"🏷️",color:"#ec4899",diff:3,
     situation:{inning:"Bot 5",outs:1,count:"0-0",runners:[3],score:[1,2]},
-    desc:"Deep fly ball to center. Per TAGUP_SACRIFICE_FLY_MAP, the sacrifice fly has an RE24 value of +0.67 runs in this situation (R3/1 out \u2192 bases empty/2 outs). Four positions must read the same play from different angles.",
-    debrief:"Per TAGUP_SACRIFICE_FLY_MAP, the sac fly from R3 with 1 out has an RE24 value: R3/1 out = 0.99 expected runs. After the sac fly scores a run: bases empty/2 outs = 0.11. The run scored minus the RE24 change = about +0.67 net value. The CF caught the ball with momentum toward home, crow-hopped for an extra 5-10 mph, and threw on a line. The runner tagged on contact, read the throw quality (strong, on-line), and the third base coach held him. The first baseman positioned as the cutoff man between the CF and home per CUTOFF_RELAY_MAP. The coach, runner, and outfielder all read the same play differently based on their role — that's what makes tag-up plays a team decision.",
-    teamworkTakeaway:"Per TAGUP_SACRIFICE_FLY_MAP: the sac fly is a +0.67 RE24 net value play. The CF throws with momentum and crow-hop, the runner reads depth and throw quality, the 1B is the cutoff per CUTOFF_RELAY_MAP, and the 3B coach sees the whole play. Each role reads the same play through a different lens.",
+    desc:"Deep fly ball to center. On a sacrifice fly,the sacrifice fly has an RE24 value of +0.67 runs in this situation (R3/1 out \u2192 bases empty/2 outs). Four positions must read the same play from different angles.",
+    debrief:"On a sacrifice fly,the sac fly from R3 with 1 out has an RE24 value: R3/1 out = 0.99 expected runs. After the sac fly scores a run: bases empty/2 outs = 0.11. The run scored minus the RE24 change = about +0.67 net value. The CF caught the ball with momentum toward home, crow-hopped for an extra 5-10 mph, and threw on a line. The runner tagged on contact, read the throw quality (strong, on-line), and the third base coach held him. The first baseman positioned as the cutoff man between the CF and home per standard relay assignments. The coach, runner, and outfielder all read the same play differently based on their role — that's what makes tag-up plays a team decision.",
+    teamworkTakeaway:"On a sacrifice fly: the sac fly is a +0.67 RE24 net value play. The CF throws with momentum and crow-hop, the runner reads depth and throw quality, the 1B is the cutoff per standard relay assignments, and the 3B coach sees the whole play. Each role reads the same play through a different lens.",
     questions:[
       {pos:"centerField",id:"sr8a3a",conceptTag:"of-depth-arm-value",title:"CF: Momentum Transfer and Throw Quality",diff:3,cat:"fielder",ageMin:12,ageMax:99,
         options:["Catch with momentum toward home, crow-hop, and throw on a line to the plate","Catch the ball and throw home immediately without a crow-hop for maximum speed","Catch and throw to the cutoff man to let the infield decide the play","Catch and fake the throw home to freeze the runner, then throw to second to get the batter"],
-        best:0,explanations:["Per TAGUP_SACRIFICE_FLY_MAP, the outfielder's throw mechanics on a sac fly attempt are: catch cleanly with body momentum toward home, crow-hop to transfer energy from legs to arm, and deliver on a low line (not a rainbow). The crow-hop adds 5-10 mph to the throw — that's the difference between beating the runner and not. A low line throw reaches the catcher on one hop at most, maintaining velocity. A rainbow throw loses speed at its apex and arrives late.","Throwing without a crow-hop uses arm only. The crow-hop transfers ground force through the legs and core into the throwing arm, adding 5-10 mph. On a 300+ foot throw, that velocity difference translates to 0.3-0.5 seconds. Given that tag-up plays are decided by fractions of a second, the crow-hop is essential, not optional.","Throwing to the cutoff man instead of home on a tag-up play adds a relay link that slows the ball down. On a tag-up from third, the throw needs to go directly home — the distance (200-280 feet from warning track to home) is within a strong outfield arm's range. The cutoff man is there as insurance if the throw is offline, not as the primary target.","Faking the throw home to freeze the runner is only effective if the runner hasn't already tagged up. On a deep fly with one out, any competent runner tags up automatically. A fake throw wastes your arm motion and momentum while the runner reads your hesitation and scores easily. The sac fly RE24 value (+0.67) makes the run attempt highly justified."],
-        rates:[80,50,20,15],concept:"Per TAGUP_SACRIFICE_FLY_MAP: catch with momentum toward home, crow-hop for +5-10 mph, throw on a low line. The crow-hop converts a 0.3-0.5 second deficit into a viable throw.",anim:"throwHome"},
+        best:0,explanations:["On a sacrifice fly,the outfielder's throw mechanics on a sac fly attempt are: catch cleanly with body momentum toward home, crow-hop to transfer energy from legs to arm, and deliver on a low line (not a rainbow). The crow-hop adds 5-10 mph to the throw — that's the difference between beating the runner and not. A low line throw reaches the catcher on one hop at most, maintaining velocity. A rainbow throw loses speed at its apex and arrives late.","Throwing without a crow-hop uses arm only. The crow-hop transfers ground force through the legs and core into the throwing arm, adding 5-10 mph. On a 300+ foot throw, that velocity difference translates to 0.3-0.5 seconds. Given that tag-up plays are decided by fractions of a second, the crow-hop is essential, not optional.","Throwing to the cutoff man instead of home on a tag-up play adds a relay link that slows the ball down. On a tag-up from third, the throw needs to go directly home — the distance (200-280 feet from warning track to home) is within a strong outfield arm's range. The cutoff man is there as insurance if the throw is offline, not as the primary target.","Faking the throw home to freeze the runner is only effective if the runner hasn't already tagged up. On a deep fly with one out, any competent runner tags up automatically. A fake throw wastes your arm motion and momentum while the runner reads your hesitation and scores easily. The sac fly RE24 value (+0.67) makes the run attempt highly justified."],
+        rates:[80,50,20,15],concept:"On a sacrifice fly: catch with momentum toward home, crow-hop for +5-10 mph, throw on a low line. The crow-hop converts a 0.3-0.5 second deficit into a viable throw.",anim:"throwHome"},
       {pos:"baserunner",id:"sr8a3b",conceptTag:"tag-up",title:"Runner on Third: Depth and Throw Read",diff:3,cat:"baserunner",ageMin:12,ageMax:99,
         options:["Tag up and go home on any fly ball to the outfield — the sac fly is too valuable to pass up","Tag up on the catch, take 2-3 hard steps, and read the throw: go if weak/offline, hold if strong/on-line","Only tag up on fly balls to the corners — center field is too close for a sac fly","Hold at third and only score on a dropped ball or base hit"],
-        best:1,explanations:["Tagging on every fly ball without reading the throw gets you thrown out on shallow flies and strong-armed outfielders. Per TAGUP_SACRIFICE_FLY_MAP, runners score on sac flies approximately 88% of the time overall, but that drops significantly on shallow flies or throws from elite arms. The 88% rate includes the fact that smart runners DON'T go on unfavorable reads — if everyone went on every fly, the rate would be much lower.","Per TAGUP_SACRIFICE_FLY_MAP, this is the optimal tag-up framework. Touch the base on the catch (your rear foot stays on the base until the ball hits leather). Take 2-3 explosive steps toward home — you're building momentum. During those steps, read: (1) outfielder's momentum — falling backward = weak throw, (2) throw trajectory — rainbow = slow, line drive = fast, (3) throw accuracy — offline = go, on-line = hold. The read happens while you're in motion, not while standing still. The sac fly RE24 net value is +0.67 runs, making it a high-value play when the read is favorable.","Excluding center field eliminates a huge percentage of tag-up opportunities. Warning-track catches in center are deep enough to tag on against most arm strengths. The depth of the catch matters more than the position. A warning-track catch in center is 380+ feet from home — a very long throw even for elite arms.","Holding at third with one out wastes the sac fly opportunity. Per TAGUP_SACRIFICE_FLY_MAP, the sac fly has a net RE24 value of +0.67 — it's one of the most valuable plays in the baserunner's arsenal. You can't collect that value by standing on third."],
-        rates:[25,80,15,10],concept:"Per TAGUP_SACRIFICE_FLY_MAP: tag up, take 2-3 explosive steps, and read the throw quality. Go on weak/offline throws, hold on strong/on-line. The sac fly net RE24 value is +0.67.",anim:"score"},
+        best:1,explanations:["Tagging on every fly ball without reading the throw gets you thrown out on shallow flies and strong-armed outfielders. On a sacrifice fly,runners score on sac flies approximately 88% of the time overall, but that drops significantly on shallow flies or throws from elite arms. The 88% rate includes the fact that smart runners DON'T go on unfavorable reads — if everyone went on every fly, the rate would be much lower.","On a sacrifice fly,this is the optimal tag-up framework. Touch the base on the catch (your rear foot stays on the base until the ball hits leather). Take 2-3 explosive steps toward home — you're building momentum. During those steps, read: (1) outfielder's momentum — falling backward = weak throw, (2) throw trajectory — rainbow = slow, line drive = fast, (3) throw accuracy — offline = go, on-line = hold. The read happens while you're in motion, not while standing still. The sac fly RE24 net value is +0.67 runs, making it a high-value play when the read is favorable.","Excluding center field eliminates a huge percentage of tag-up opportunities. Warning-track catches in center are deep enough to tag on against most arm strengths. The depth of the catch matters more than the position. A warning-track catch in center is 380+ feet from home — a very long throw even for elite arms.","Holding at third with one out wastes the sac fly opportunity. On a sacrifice fly,the sac fly has a net RE24 value of +0.67 — it's one of the most valuable plays in the baserunner's arsenal. You can't collect that value by standing on third."],
+        rates:[25,80,15,10],concept:"On a sacrifice fly: tag up, take 2-3 explosive steps, and read the throw quality. Go on weak/offline throws, hold on strong/on-line. The sac fly net RE24 value is +0.67.",anim:"score"},
       {pos:"firstBase",id:"sr8a3c",conceptTag:"relay-double-cut",title:"1B: Cutoff Man Assignment",diff:3,cat:"fielder",ageMin:12,ageMax:99,
         options:["Position as the cutoff man between the CF and home plate, in line with the throw","Stay at first base in case the batter rounds first after the catch","Back up the catcher behind home plate in case the throw gets through","Move toward second base to cover the bag if the batter tries to advance"],
-        best:0,explanations:["Per CUTOFF_RELAY_MAP, on fly balls to center field with a potential play at home, the first baseman is the cutoff man. Position approximately 60-80 feet from home plate in a direct line between the outfielder and home. Arms up for visibility. Your role: (1) let the throw go through if it's on-line and the runner is going — the catcher signals 'no cut,' (2) cut and hold if the runner retreats to third, (3) cut and throw to another base if there's a play elsewhere. The cutoff man is the relay system's decision point.","First base coverage after a caught fly ball is irrelevant. The batter is out — there's no play at first. With one out becoming two outs, the defensive priority is preventing the run from scoring, not covering an unoccupied base.","Backing up home is the pitcher's assignment per BACKUP_MAP, not the first baseman's. The 1B's value is in the cutoff position where he can redirect the throw. Two people behind the plate creates redundancy while leaving the cutoff position vacant.","Second base coverage is unnecessary on a tag-up play from third. The only play that matters is at home plate. The batter is already out (second out), and there are no other runners to advance."],
-        rates:[80,10,25,15],concept:"Per CUTOFF_RELAY_MAP, the 1B is the cutoff man on CF throws home. Position in line between outfielder and home, arms up. Cut and redirect, or let it through based on the catcher's call.",anim:"throwHome"},
+        best:0,explanations:["Per standard relay assignments,on fly balls to center field with a potential play at home, the first baseman is the cutoff man. Position approximately 60-80 feet from home plate in a direct line between the outfielder and home. Arms up for visibility. Your role: (1) let the throw go through if it's on-line and the runner is going — the catcher signals 'no cut,' (2) cut and hold if the runner retreats to third, (3) cut and throw to another base if there's a play elsewhere. The cutoff man is the relay system's decision point.","First base coverage after a caught fly ball is irrelevant. The batter is out — there's no play at first. With one out becoming two outs, the defensive priority is preventing the run from scoring, not covering an unoccupied base.","Backing up home is the pitcher's assignment per standard backup assignments, not the first baseman's. The 1B's value is in the cutoff position where he can redirect the throw. Two people behind the plate creates redundancy while leaving the cutoff position vacant.","Second base coverage is unnecessary on a tag-up play from third. The only play that matters is at home plate. The batter is already out (second out), and there are no other runners to advance."],
+        rates:[80,10,25,15],concept:"Per standard relay assignments,the 1B is the cutoff man on CF throws home. Position in line between outfielder and home, arms up. Cut and redirect, or let it through based on the catcher's call.",anim:"throwHome"},
       {pos:"manager",id:"sr8a3d",conceptTag:"tag-up",title:"3B Coach: The Send/Hold Decision",diff:3,cat:"manager",ageMin:12,ageMax:99,
         options:["Send every runner on every deep fly — the sac fly is too valuable to pass up","Read the catch depth, outfielder's momentum and arm angle, throw trajectory, then decide send or hold","Always hold the runner — don't risk the out when you're trailing by one and the runner is already in scoring position","Pre-decide based on the outfielder's known arm strength before the pitch"],
-        best:1,explanations:["Sending everyone on everything ignores the variables that determine success. Per TAGUP_SACRIFICE_FLY_MAP, the overall sac fly success rate is ~88%, but that's an average. Against elite arms from shallow warning track, it drops to 60-70%. Against average arms from deep warning track, it rises to 95%+. The coach's value is in reading the specific play, not applying blanket rules.","Per TAGUP_SACRIFICE_FLY_MAP, the third base coach has the best angle on the play. You see: (1) catch depth — warning track vs. shallow outfield, (2) outfielder's momentum — moving toward home (strong throw) vs. falling backward (weak throw), (3) arm angle — over-the-top (accurate) vs. off-balance, (4) throw trajectory — line drive (fast) vs. rainbow (slow). Process these in 0.5-1.0 seconds. The runner trusts your call. Down by one with one out, a sac fly ties the game (net RE24 +0.67). Send when the read is favorable, hold when the throw will beat the runner.","Always holding is giving up the sac fly's +0.67 RE24 net value. Down by one with one out, tying the game on a sac fly is an extremely high-value outcome. The runner is at third with one out (RE24 = 0.99) — but only if you actually attempt to score does that value convert to a run.","Pre-deciding based on arm reputation ignores situational variables. A strong-armed outfielder catching at the wall while falling backward has a much weaker throw than the same outfielder catching at medium depth with momentum. Arm strength is one factor — momentum, depth, balance, and throw trajectory all matter."],
-        rates:[20,80,15,50],concept:"Per TAGUP_SACRIFICE_FLY_MAP: the 3B coach reads depth, momentum, arm angle, and trajectory in <1 second. The sac fly net RE24 value is +0.67 — send when the read is favorable, hold when the throw will win.",anim:"score"}
+        best:1,explanations:["Sending everyone on everything ignores the variables that determine success. On a sacrifice fly,the overall sac fly success rate is ~88%, but that's an average. Against elite arms from shallow warning track, it drops to 60-70%. Against average arms from deep warning track, it rises to 95%+. The coach's value is in reading the specific play, not applying blanket rules.","On a sacrifice fly,the third base coach has the best angle on the play. You see: (1) catch depth — warning track vs. shallow outfield, (2) outfielder's momentum — moving toward home (strong throw) vs. falling backward (weak throw), (3) arm angle — over-the-top (accurate) vs. off-balance, (4) throw trajectory — line drive (fast) vs. rainbow (slow). Process these in 0.5-1.0 seconds. The runner trusts your call. Down by one with one out, a sac fly ties the game (net RE24 +0.67). Send when the read is favorable, hold when the throw will beat the runner.","Always holding is giving up the sac fly's +0.67 RE24 net value. Down by one with one out, tying the game on a sac fly is an extremely high-value outcome. The runner is at third with one out (RE24 = 0.99) — but only if you actually attempt to score does that value convert to a run.","Pre-deciding based on arm reputation ignores situational variables. A strong-armed outfielder catching at the wall while falling backward has a much weaker throw than the same outfielder catching at medium depth with momentum. Arm strength is one factor — momentum, depth, balance, and throw trajectory all matter."],
+        rates:[20,80,15,50],concept:"On a sacrifice fly: the 3B coach reads depth, momentum, arm angle, and trajectory in <1 second. The sac fly net RE24 value is +0.67 — send when the read is favorable, hold when the throw will win.",anim:"score"}
     ]}
 ]
 
@@ -5259,6 +5259,118 @@ const ANIM_DATA={
     {type:"ball",path:"M248,185 L200,290",dur:.3,begin:.35,color:"#ef4444",r:2.5,easing:EASE.throw},
     {type:"flash",cx:200,cy:290,r:8,dur:.1,begin:.64,color:"rgba(239,68,68,.4)"},
     {type:"text",x:224,y:240,text:"GOT HIM!",size:9,color:"#22c55e",dur:1.2,begin:0},
+  ],
+
+  // === CATCH animations (84 scenarios — fielder catches the ball) ===
+  catch_success:[
+    // Ball launched from batter, arcs toward fielder position (center field area)
+    {type:"ball",path:"M200,290 Q200,160 220,120",dur:.5,begin:0,color:"white",r:2.5,easing:EASE.launch,glow:true},
+    // Fielder flash on catch
+    {type:"flash",cx:220,cy:120,r:8,dur:.12,begin:.48,color:"rgba(34,197,94,.5)"},
+    {type:"dust",cx:220,cy:122,r:5,dur:.25,begin:.5,color:"#c4a882"},
+    {type:"text",x:220,y:105,text:"CAUGHT!",size:11,color:"#22c55e",dur:1.2,begin:0},
+  ],
+  catch_fail:[
+    // Ball launched, drops past fielder
+    {type:"ball",path:"M200,290 Q200,160 230,115",dur:.5,begin:0,color:"white",r:2.5,easing:EASE.launch},
+    {type:"ball",path:"M230,115 Q245,120 260,130",dur:.3,begin:.5,color:"white",r:2,easing:"ease-in"},
+    {type:"dust",cx:260,cy:132,r:6,dur:.3,begin:.75,color:"#c4a882"},
+    {type:"text",x:230,y:100,text:"DROPS IN!",size:10,color:"#ef4444",dur:1.2,begin:0},
+  ],
+
+  // === SAFE animations (23 scenarios — runner reaches base safely) ===
+  safe_success:[
+    // Runner slides into base (default: reaching 2B from 1B)
+    {type:"dust",cx:290,cy:212,r:5,dur:.25,begin:0,color:"#c4a882"},
+    {type:"runner",path:"M290,210 Q248,175 200,135",dur:.5,begin:.05,easing:EASE.runner},
+    {type:"dust",cx:200,cy:137,r:7,dur:.3,begin:.5,color:"#c4a882"},
+    {type:"dust",cx:203,cy:135,r:5,dur:.25,begin:.53,color:"#c4a882"},
+    {type:"text",x:200,y:118,text:"SAFE!",size:12,color:"#22c55e",dur:1.3,begin:0},
+  ],
+  safe_fail:[
+    // Runner thrown out trying to advance
+    {type:"dust",cx:290,cy:212,r:5,dur:.25,begin:0,color:"#c4a882"},
+    {type:"runner",path:"M290,210 Q265,192 248,178",dur:.35,begin:.05,easing:EASE.runner,o:.3},
+    {type:"ball",path:"M200,300 Q210,200 200,138",dur:.35,begin:.1,color:"#ef4444",r:2.5,easing:EASE.throw},
+    {type:"flash",cx:225,cy:175,r:8,dur:.1,begin:.4,color:"rgba(239,68,68,.4)"},
+    {type:"text",x:225,y:160,text:"OUT!",size:11,color:"#ef4444",dur:1.2,begin:0},
+  ],
+
+  // === PICKOFF animations (6 scenarios — pitcher throws to base to catch runner) ===
+  pickoff_success:[
+    // Pitcher throws to 1B, runner dives back
+    {type:"ball",path:"M200,218 Q245,214 290,210",dur:.3,begin:0,color:"white",r:2.5,easing:EASE.throw,glow:true},
+    {type:"runner",path:"M298,202 Q294,206 290,210",dur:.2,begin:.05,easing:EASE.runner},
+    {type:"flash",cx:290,cy:210,r:6,dur:.1,begin:.28,color:"rgba(34,197,94,.4)"},
+    {type:"dust",cx:290,cy:212,r:5,dur:.25,begin:.3,color:"#c4a882"},
+    {type:"text",x:290,y:195,text:"BACK!",size:10,color:"#22c55e",dur:1.2,begin:0},
+  ],
+  pickoff_fail:[
+    // Pickoff throw, runner caught off base
+    {type:"ball",path:"M200,218 Q245,214 290,210",dur:.3,begin:0,color:"#ef4444",r:2.5,easing:EASE.throw},
+    {type:"runner",path:"M298,202 Q296,204 295,207",dur:.15,begin:.05,easing:EASE.runner,o:.3},
+    {type:"flash",cx:292,cy:208,r:8,dur:.12,begin:.3,color:"rgba(239,68,68,.5)"},
+    {type:"text",x:290,y:192,text:"PICKED OFF!",size:9,color:"#ef4444",dur:1.2,begin:0},
+  ],
+
+  // === POPUP animations (4 scenarios — infield popup, priority call) ===
+  popup_success:[
+    // Ball pops up high, fielder settles under it
+    {type:"ball",path:"M200,290 Q200,80 185,190",dur:.7,begin:0,color:"white",r:2.5,easing:"ease-out"},
+    {type:"flash",cx:185,cy:190,r:6,dur:.1,begin:.68,color:"rgba(34,197,94,.4)"},
+    {type:"dust",cx:185,cy:192,r:4,dur:.2,begin:.7,color:"#c4a882"},
+    {type:"text",x:185,y:175,text:"I GOT IT!",size:10,color:"#22c55e",dur:1.2,begin:0},
+  ],
+  popup_fail:[
+    // Ball pops up, miscommunication — drops
+    {type:"ball",path:"M200,290 Q200,80 190,188",dur:.7,begin:0,color:"white",r:2.5,easing:"ease-out"},
+    {type:"ball",path:"M190,188 Q192,195 195,205",dur:.2,begin:.7,color:"white",r:2,easing:"ease-in"},
+    {type:"dust",cx:195,cy:207,r:6,dur:.3,begin:.85,color:"#c4a882"},
+    {type:"text",x:195,y:170,text:"NO CALL!",size:10,color:"#ef4444",dur:1.2,begin:0},
+  ],
+
+  // === TAG animations (tag play at base) ===
+  tag_success:[
+    // Throw comes in, fielder applies tag
+    {type:"ball",path:"M200,300 Q210,215 200,138",dur:.35,begin:0,color:"white",r:2.5,easing:EASE.throw,glow:true},
+    {type:"flash",cx:200,cy:138,r:6,dur:.1,begin:.33,color:"rgba(34,197,94,.4)"},
+    {type:"runner",path:"M230,155 Q215,143 200,138",dur:.3,begin:.1,easing:EASE.runner,o:.3},
+    {type:"text",x:200,y:120,text:"TAG — OUT!",size:10,color:"#22c55e",dur:1.2,begin:0},
+  ],
+  tag_fail:[
+    // Throw comes in, runner beats the tag
+    {type:"ball",path:"M200,300 Q210,215 200,138",dur:.35,begin:0,color:"white",r:2.5,easing:EASE.throw},
+    {type:"runner",path:"M230,155 Q215,143 200,135",dur:.3,begin:.05,easing:EASE.runner},
+    {type:"dust",cx:200,cy:137,r:7,dur:.3,begin:.3,color:"#c4a882"},
+    {type:"text",x:200,y:118,text:"SAFE!",size:11,color:"#ef4444",dur:1.2,begin:0},
+  ],
+
+  // === WILDPITCH animations (2 scenarios — runner advances on wild pitch) ===
+  wildPitch_success:[
+    {type:"ball",path:"M200,218 Q210,260 225,295",dur:.3,begin:0,color:"white",r:2,easing:"ease-in"},
+    {type:"dust",cx:225,cy:297,r:5,dur:.25,begin:.28,color:"#c4a882"},
+    {type:"runner",path:"M200,135 Q155,175 110,210",dur:.5,begin:.2,easing:EASE.runner},
+    {type:"text",x:165,y:170,text:"WILD PITCH!",size:9,color:"#f59e0b",dur:1.2,begin:0},
+  ],
+  wildPitch_fail:[
+    {type:"ball",path:"M200,218 Q205,255 210,288",dur:.25,begin:0,color:"white",r:2,easing:"ease-in"},
+    {type:"flash",cx:210,cy:290,r:5,dur:.1,begin:.24,color:"rgba(34,197,94,.3)"},
+    {type:"text",x:200,y:270,text:"BLOCKED!",size:10,color:"#22c55e",dur:1.2,begin:0},
+  ],
+
+  // === SQUEEZE animations (2 scenarios — squeeze bunt play) ===
+  squeeze_success:[
+    {type:"runner",path:"M110,210 Q155,250 200,290",dur:.5,begin:0,easing:EASE.runner},
+    {type:"ball",path:"M200,290 Q200,270 190,260",dur:.2,begin:.1,color:"white",r:2,easing:"ease-out"},
+    {type:"dust",cx:190,cy:262,r:4,dur:.2,begin:.28,color:"#c4a882"},
+    {type:"dust",cx:200,cy:292,r:7,dur:.3,begin:.45,color:"#c4a882"},
+    {type:"text",x:200,y:265,text:"SCORES!",size:12,color:"#22c55e",dur:1.3,begin:0},
+  ],
+  squeeze_fail:[
+    {type:"ball",path:"M200,290 Q200,275 195,265",dur:.2,begin:0,color:"white",r:2,easing:"ease-out"},
+    {type:"runner",path:"M110,210 Q150,240 170,260",dur:.35,begin:0,easing:EASE.runner,o:.3},
+    {type:"ball",path:"M195,265 Q198,278 200,290",dur:.2,begin:.25,color:"#ef4444",r:2,easing:EASE.throw},
+    {type:"text",x:170,y:245,text:"HUNG UP!",size:10,color:"#ef4444",dur:1.2,begin:0},
   ],
 };
 
@@ -8697,13 +8809,16 @@ const QUALITY_FIREWALL = {
       }
       return null
     },
-    // Check: Concept tag must map to a known BRAIN concept
+    // Check: Concept tag format (moved from hard reject to auto-fix + warning)
     conceptTagValidity(scenario) {
-      if (!scenario.conceptTag) return "Missing conceptTag"
-      const knownConcepts = BRAIN?.concepts ? Object.keys(BRAIN.concepts) : []
-      if (knownConcepts.length > 0 && !knownConcepts.includes(scenario.conceptTag)) {
-        // Also check if it's a valid kebab-case format (AI generates new concepts sometimes)
-        if (!/^[a-z][a-z0-9-]+$/.test(scenario.conceptTag)) return "Invalid conceptTag format: " + scenario.conceptTag
+      // Auto-generate conceptTag from concept if missing (don't reject — AI sometimes omits it)
+      if (!scenario.conceptTag && scenario.concept) {
+        scenario.conceptTag = scenario.concept.toLowerCase().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-").slice(0, 40)
+      }
+      if (!scenario.conceptTag) return null // Still missing — not worth rejecting over
+      if (!/^[a-z][a-z0-9-]*$/.test(scenario.conceptTag)) {
+        // Fix invalid format silently
+        scenario.conceptTag = scenario.conceptTag.toLowerCase().replace(/[^a-z0-9-]/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "")
       }
       return null
     },
@@ -8969,6 +9084,24 @@ const QUALITY_FIREWALL = {
       const coreMatch = keywords.some(kw => coreContent.includes(kw))
       const fullMatchCount = keywords.filter(kw => fullContent.includes(kw)).length
       if (!coreMatch && fullMatchCount < 2) return "ConceptTag alignment: tag '" + tag + "' — core content doesn't mention related keywords"
+      return null
+    },
+    // P6: Implausible distractor detection (TPA O12)
+    // Catches scenarios where wrong answers are too obviously bad to teach anything
+    implausibleDistractors(scenario) {
+      const rates = scenario.rates || []
+      const best = scenario.best
+      const opts = scenario.options || []
+      if (rates.length !== 4 || typeof best !== "number" || opts.length !== 4) return null
+      // Check 1: 3 of 4 rates cluster below 25% (no "experienced player's mistake")
+      const lowRates = rates.filter((r, i) => i !== best && r < 25)
+      if (lowRates.length >= 3) return "Implausible distractors: 3 wrong options rated below 25% — no realistic 'experienced player mistake' option"
+      // Check 2: 3 of 4 wrong options are much shorter than the best (lazy generation)
+      const bestLen = (opts[best] || "").length
+      if (bestLen > 20) {
+        const shortWrong = opts.filter((o, i) => i !== best && (o || "").length < bestLen * 0.4)
+        if (shortWrong.length >= 3) return "Implausible distractors: 3 wrong options are <40% the length of the best option — possible lazy generation"
+      }
       return null
     },
   },
@@ -9629,6 +9762,1060 @@ const AB_TESTS = {
       { id: "layered", weight: 50, config: { useExplDepth: true } }
     ]
   }
+}
+
+// ============================================================================
+// AutoResearch: Autonomous Prompt Optimization Loop (v1.0.0)
+// Closes the feedback loop: generate → score → analyze failures → mutate prompts → re-score → keep or revert
+// ============================================================================
+const AUTORESEARCH_VERSION = "1.0.0"
+
+// P4: Mutation revert log — tracks which mutations were reverted and when.
+// In-memory (resets on page reload). Persistent version uses D1 via /autoresearch/history.
+const _arRevertLog = []
+
+// P9: Canary test suite — 15 "known good" handcrafted scenarios for grading drift detection.
+// These are run through gradeScenario at zero API cost at the start of each cycle.
+// If their average drifts >5pts from baseline, the grading code has changed and the cycle halts.
+// IDs selected: 3 per position (pitcher, catcher, shortstop, batter, baserunner) — highest quality.
+const CANARY_SCENARIOS = {
+  pitcher: ["p1", "p5", "p10"],
+  catcher: ["c1", "c5", "c10"],
+  shortstop: ["ss1", "ss5", "ss10"],
+  batter: ["b1", "b5", "b10"],
+  baserunner: ["r1", "r5", "r10"],
+}
+// Baseline canary score — set on first run, then compared in subsequent cycles.
+// If null, the first cycle establishes the baseline.
+let _canaryBaseline = null
+
+// ── BASELINE REPORT — 2026-03-30 ──────────────────────────────────────────
+//
+// === CLAUDE OPUS AI-GENERATED BASELINE (19 scenarios, 5 positions) ===
+// | Metric                           | Value     |
+// |----------------------------------|-----------|
+// | gradeScenario() average score    | 74.1/100  |
+// | gradeScenario() pass rate (≥65)  | 68.4%     |
+// | QUALITY_FIREWALL Tier 1 fail %   | 15.8%     |
+// | QUALITY_FIREWALL Tier 2 warn %   | 115.8%    |
+// | Score perspective errors (CR10)  | 0         |
+// | Coaching line quality flags      | 12        |
+// | Total scenarios scored           | 19        |
+// | API calls / tokens               | 20 / 86K  |
+//
+// Top failure patterns:
+//   1. description_missing_decision_prompt: 16x (84%)
+//   2. allExplanationsCausal (T2): 15x (79%)
+//   3. explanation_few_sentences: 14x (74%)
+//   4. concept_missing_why: 12x (63%)
+//
+// Suggested mutations (ranked by weight):
+//   system_prefix (21), explanation_guidance (19), few_shot_examples (13),
+//   coaching_line_rules (12), score_perspective_guard (3)
+//
+// Per-position:
+//   pitcher=77.8/100% | catcher=84.5/100% | shortstop=57.5/0% | batter=82.3/100% | baserunner=66.7/33%
+//   Shortstop is the weakest — all 4 scenarios failed grading
+//
+// Tier 1: scoreDescriptionConsistency (3x)
+// Tier 2: allExplanationsCausal (15x), perspectiveCheck (3x), explanationOptionAlignment (2x)
+// Consistency violations: 0 (CR10=0)
+//
+// === HANDCRAFTED BASELINE (100 scenarios, same 5 positions) ===
+// Avg=67.9 | Pass=52% | T1=10% | T2=17%
+// Top failures: explanation_few_sentences (171x), concept_missing_why (92x)
+//
+// KEY INSIGHT: Claude Opus scores HIGHER than handcrafted (74.1 vs 67.9) because it
+// generates longer, more structured explanations. But it still misses decision prompts
+// (84%) and causal language (63%). system_prefix and explanation_guidance are the top targets.
+// ───────────────────────────────────────────────────────────────────────────
+
+const PROMPT_MUTATION_TYPES = [
+  "system_prefix",
+  "position_principle",
+  "knowledge_map_scope",
+  "archetype_emphasis",
+  "few_shot_examples",
+  "temperature",
+  "explanation_guidance",
+  "wrong_answer_strategy",
+  "score_perspective_guard",
+  "coaching_line_rules",
+  "decision_window",
+  "explanation_anchoring"
+]
+
+// Maps each mutation type to the failure patterns it's designed to fix
+const MUTATION_TARGET_MAP = {
+  score_perspective_guard: ["CR10","scoreFlip","score_direction_mismatch_trailing_but_leading","score_direction_mismatch_leading_but_trailing","scoreInningPerspective","scoreDescriptionConsistency"],
+  wrong_answer_strategy:   ["rates_too_narrow","worst_rate_too_high","rateSanity","absurdOptionDetection"],
+  archetype_emphasis:      ["all_options_same_verb","options_mix_decision_moments","optionActionDiversity","optionOverlap"],
+  coaching_line_rules:     ["concept_missing_why","weak_concept","conceptTeachability"],
+  explanation_guidance:    ["best_explanation_argues_for_wrong_option","best_explanation_lacks_situation_refs","explanationCoherence","allExplanationsCausal","explanationVariety"],
+  knowledge_map_scope:    ["CR1","CR2","CR3","CR4","CR5","CR6","principleContradiction","positionActionBoundary"],
+  position_principle:     ["role_violation","positionImpossibility","positionActionBoundary"],
+  few_shot_examples:      ["missing_field","options_not_4","explanations_not_4","rates_not_4","invalid_best_index"],
+  temperature:            ["semantic_overlap","options_too_similar","all_options_same_verb"],
+  system_prefix:          ["description_too_short","description_missing_decision_prompt","jargon_in_description","jargon_in_options","perspectiveCheck"],
+  decision_window:        ["options_mix_decision_moments","all_options_same_verb","option_combines_actions"],
+  explanation_anchoring:   ["best_explanation_argues_for_wrong_option","explanationCoherence","explanationOptionAlignment"]
+}
+
+// Reverse index: failure pattern → which mutations address it
+const FAILURE_TO_MUTATIONS = (() => {
+  const map = {}
+  for (const [mutation, failures] of Object.entries(MUTATION_TARGET_MAP)) {
+    for (const f of failures) {
+      if (!map[f]) map[f] = []
+      map[f].push(mutation)
+    }
+  }
+  return map
+})()
+
+/**
+ * analyzeFailurePatterns — Extracts structured failure data from a batch of graded scenarios.
+ * Works with existing gradeScenario(), QUALITY_FIREWALL.validate(), and CONSISTENCY_RULES.check().
+ *
+ * @param {Array} gradedScenarios - Each entry: { scenario, position, gradeResult, firewallResult, consistencyResult }
+ *   - gradeResult: { score, deductions: string[], pass: boolean }
+ *   - firewallResult: { pass, tier1Fails: [{check,message}], tier2Warns: [{check,message}], tier3Suggestions: [{check,message}] }
+ *   - consistencyResult: [{ruleId, name, message}]
+ * @returns {Object} Structured failure analysis with suggested mutations
+ */
+function analyzeFailurePatterns(gradedScenarios) {
+  const tier1Counts = {}
+  const tier2Counts = {}
+  const tier3Counts = {}
+  const consistencyCounts = {}
+  const deductionCounts = {}
+  let totalScore = 0
+  let passCount = 0
+  const byPosition = {} // P3: per-position breakdown
+
+  for (const entry of gradedScenarios) {
+    const { gradeResult, firewallResult, consistencyResult } = entry
+    const pos = entry.position || "unknown"
+
+    // P3: Initialize per-position accumulator
+    if (!byPosition[pos]) byPosition[pos] = { n: 0, totalScore: 0, passCount: 0, tier1Count: 0, tier2Count: 0 }
+    byPosition[pos].n++
+    byPosition[pos].totalScore += gradeResult.score
+    if (gradeResult.pass) byPosition[pos].passCount++
+    byPosition[pos].tier1Count += firewallResult.tier1Fails.length
+    byPosition[pos].tier2Count += firewallResult.tier2Warns.length
+
+    // Tally gradeScenario deductions
+    totalScore += gradeResult.score
+    if (gradeResult.pass) passCount++
+    for (const d of gradeResult.deductions) {
+      // Normalize: strip index suffixes like "explanation_2_too_short" → "explanation_too_short"
+      const normalized = d.replace(/_\d+_/g, "_").replace(/^(semantic_overlap|options)_\d+.*/, "$1")
+      deductionCounts[normalized] = (deductionCounts[normalized] || 0) + 1
+    }
+
+    // Tally QUALITY_FIREWALL results
+    for (const f of firewallResult.tier1Fails) {
+      tier1Counts[f.check] = (tier1Counts[f.check] || 0) + 1
+    }
+    for (const w of firewallResult.tier2Warns) {
+      tier2Counts[w.check] = (tier2Counts[w.check] || 0) + 1
+    }
+    for (const s of firewallResult.tier3Suggestions) {
+      tier3Counts[s.check] = (tier3Counts[s.check] || 0) + 1
+    }
+
+    // Tally CONSISTENCY_RULES violations
+    for (const v of consistencyResult) {
+      consistencyCounts[v.ruleId] = (consistencyCounts[v.ruleId] || 0) + 1
+    }
+  }
+
+  const n = gradedScenarios.length || 1
+  const avgScore = totalScore / n
+  const passRate = (passCount / n) * 100
+
+  // Merge all failure types into a single frequency map for ranking
+  const allFailures = {}
+  for (const [k, v] of Object.entries(deductionCounts)) allFailures[`grade:${k}`] = v
+  for (const [k, v] of Object.entries(tier1Counts)) allFailures[`fw1:${k}`] = v
+  for (const [k, v] of Object.entries(tier2Counts)) allFailures[`fw2:${k}`] = v
+  for (const [k, v] of Object.entries(consistencyCounts)) allFailures[`cr:${k}`] = v
+
+  // Rank by frequency, take top 10
+  const commonFailures = Object.entries(allFailures)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 10)
+    .map(([key, count]) => ({ key, count, pct: Math.round((count / n) * 100) }))
+
+  // Suggest mutations based on failure patterns
+  const mutationScores = {}
+  for (const { key, count } of commonFailures) {
+    // Extract the raw failure name from the prefixed key
+    const rawKey = key.replace(/^(grade|fw1|fw2|fw3|cr):/, "")
+    // Check direct match in FAILURE_TO_MUTATIONS
+    const directMutations = FAILURE_TO_MUTATIONS[rawKey] || []
+    // Also check partial matches (e.g., "role_violation" matches "role_violation: fielder calling pitches")
+    const partialMutations = Object.entries(FAILURE_TO_MUTATIONS)
+      .filter(([pattern]) => rawKey.includes(pattern) || pattern.includes(rawKey))
+      .flatMap(([, mutations]) => mutations)
+    const allMutations = [...new Set([...directMutations, ...partialMutations])]
+    for (const m of allMutations) {
+      mutationScores[m] = (mutationScores[m] || 0) + count
+    }
+  }
+
+  const suggestedMutations = Object.entries(mutationScores)
+    .sort((a, b) => b[1] - a[1])
+    .map(([type, weight]) => ({ type, weight, targetFailures: MUTATION_TARGET_MAP[type] || [] }))
+
+  return {
+    n,
+    avgScore: Math.round(avgScore * 10) / 10,
+    passRate: Math.round(passRate * 10) / 10,
+    tier1Counts,
+    tier2Counts,
+    tier3Counts,
+    consistencyCounts,
+    deductionCounts,
+    commonFailures,
+    suggestedMutations,
+    // Summary flags for quick assessment
+    hasTier1Failures: Object.values(tier1Counts).reduce((a, b) => a + b, 0) > 0,
+    tier1FailRate: Math.round((Object.values(tier1Counts).reduce((a, b) => a + b, 0) / n) * 100 * 10) / 10,
+    tier2WarnRate: Math.round((Object.values(tier2Counts).reduce((a, b) => a + b, 0) / n) * 100 * 10) / 10,
+    // P3: Per-position breakdown (for position-stratified comparison)
+    byPosition,
+  }
+}
+
+/**
+ * scoreScenarioBatch — Runs a batch of scenarios through all 3 quality systems.
+ * Returns the format expected by analyzeFailurePatterns().
+ * @param {Array} scenarios - [{scenario, position}]
+ * @returns {Array} [{scenario, position, gradeResult, firewallResult, consistencyResult}]
+ */
+function scoreScenarioBatch(scenarios) {
+  return scenarios.map(({ scenario, position }) => ({
+    scenario,
+    position,
+    gradeResult: gradeScenario(scenario, position),
+    firewallResult: QUALITY_FIREWALL.validate(scenario, position),
+    consistencyResult: CONSISTENCY_RULES.check(scenario),
+  }))
+}
+
+/**
+ * testAnalyzeFailurePatterns — Dev/admin test harness.
+ * Pulls 20 handcrafted scenarios across diverse positions and runs the full analysis.
+ * Call from browser console: testAnalyzeFailurePatterns()
+ */
+function testAnalyzeFailurePatterns() {
+  // Pick ~2 scenarios per position for diversity (20 total from 10 positions)
+  const testPositions = ["pitcher","catcher","shortstop","batter","baserunner","manager","centerField","firstBase","thirdBase","rules"]
+  const testBatch = []
+  for (const pos of testPositions) {
+    const pool = SCENARIOS[pos] || []
+    if (pool.length >= 2) {
+      testBatch.push({ scenario: pool[0], position: pos })
+      testBatch.push({ scenario: pool[Math.floor(pool.length / 2)], position: pos })
+    } else if (pool.length === 1) {
+      testBatch.push({ scenario: pool[0], position: pos })
+    }
+  }
+
+  console.log(`[AutoResearch] Testing analyzeFailurePatterns with ${testBatch.length} handcrafted scenarios...`)
+
+  // Score all scenarios
+  const scored = scoreScenarioBatch(testBatch)
+
+  // Analyze
+  const analysis = analyzeFailurePatterns(scored)
+
+  // Pretty-print results
+  console.log("\n══════ AutoResearch Failure Pattern Analysis ══════")
+  console.log(`Scenarios tested: ${analysis.n}`)
+  console.log(`Avg gradeScenario score: ${analysis.avgScore}/100`)
+  console.log(`Pass rate (≥67): ${analysis.passRate}%`)
+  console.log(`Tier 1 fail rate: ${analysis.tier1FailRate}%`)
+  console.log(`Tier 2 warn rate: ${analysis.tier2WarnRate}%`)
+  console.log("\n── Top 10 Failure Patterns ──")
+  for (const f of analysis.commonFailures) {
+    console.log(`  ${f.key}: ${f.count}x (${f.pct}% of batch)`)
+  }
+  console.log("\n── Suggested Prompt Mutations (ranked) ──")
+  for (const m of analysis.suggestedMutations) {
+    console.log(`  ${m.type} (weight ${m.weight}) → targets: ${m.targetFailures.slice(0, 4).join(", ")}${m.targetFailures.length > 4 ? "..." : ""}`)
+  }
+  console.log("\n── Deduction Breakdown ──")
+  const sortedDeductions = Object.entries(analysis.deductionCounts).sort((a, b) => b[1] - a[1])
+  for (const [d, count] of sortedDeductions.slice(0, 15)) {
+    console.log(`  ${d}: ${count}x`)
+  }
+  if (Object.keys(analysis.tier1Counts).length > 0) {
+    console.log("\n── Tier 1 Failures (hard rejects) ──")
+    for (const [check, count] of Object.entries(analysis.tier1Counts)) {
+      console.log(`  ${check}: ${count}x`)
+    }
+  }
+  if (Object.keys(analysis.consistencyCounts).length > 0) {
+    console.log("\n── Consistency Rule Violations ──")
+    for (const [rule, count] of Object.entries(analysis.consistencyCounts)) {
+      console.log(`  ${rule}: ${count}x`)
+    }
+  }
+  console.log("══════════════════════════════════════════════════\n")
+
+  return analysis
+}
+
+/**
+ * generateForAutoResearch — Generates one AI scenario via Claude Opus for AutoResearch testing.
+ * Uses buildAgentPrompt()/buildAgentPromptWithVariant() for prompt construction,
+ * then routes to Claude Opus via /v1/autoresearch-generate (not xAI fallback).
+ * This ensures we're optimizing prompts against the same model users see in production.
+ *
+ * @param {string} position - Position to generate for
+ * @param {Object} stats - Player stats object
+ * @param {string|null} targetConcept - Concept to target
+ * @param {Object|null} variant - AutoResearch variant (null = control/production prompt)
+ * @param {number} timeoutMs - Request timeout
+ * @returns {Object|null} { scenario, plan } or null on failure
+ */
+async function generateForAutoResearch(position, stats, targetConcept = null, variant = null, timeoutMs = 60000) {
+  // Stage 1: Plan (same as agent pipeline)
+  const plan = planScenario(position, stats, [], [], targetConcept, [])
+
+  // Stage 2: Build prompt (with or without variant)
+  let userPrompt, temperatureOverride = null
+  if (variant) {
+    const varResult = buildAgentPromptWithVariant(plan, null, variant)
+    userPrompt = varResult.prompt
+    temperatureOverride = varResult.temperatureOverride
+  } else {
+    userPrompt = buildAgentPrompt(plan, null)
+  }
+
+  const systemPrompt = "You are the world's most experienced baseball coach, teaching kids 6-18 via Baseball Strategy Master.\n\nOUTPUT: Respond with ONLY valid JSON. No markdown, no code fences, no text outside JSON.\n\nGOLDEN RULE: Every scenario teaches ONE baseball concept that drives the situation, options, correct answer, and explanations.\n\nEXPLANATION RULES:\n- 2-4 sentences each. BEST: action → WHY correct in THIS situation → positive result. WRONG: action → WHY it fails → concrete consequences.\n- Player perspective (\"you\", \"your team\"). No jargon in descriptions/options.\n- EVERY explanation must reference the specific game situation.\n- ALWAYS use second person ('you').\n\nOPTION RULES:\n- All 4 at the SAME decision moment. Each specific and concrete. Strategically distinct. Include one common kid mistake.\n- Each option must be a DISTINCT physical action.\n\nPOSITION BOUNDARIES: Only actions this position actually performs. score=[HOME,AWAY]. Home bats in Bot half. outs: 0-2. count: \"B-S\" or \"-\". runners must match description."
+
+  try {
+    // Call Claude Opus via worker
+    const res = await fetch(WORKER_BASE + "/v1/autoresearch-generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Admin-Key": window._arAdminKey || "autoresearch" },
+      body: JSON.stringify({
+        systemPrompt,
+        userPrompt,
+        temperature: temperatureOverride || 0.4,
+        maxTokens: 2000
+      })
+    })
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}))
+      console.warn("[AutoResearch] Claude API error:", res.status, err.error || err.detail || "")
+      return null
+    }
+
+    const data = await res.json()
+    if (!data.ok || !data.text) {
+      console.warn("[AutoResearch] Empty response from Claude")
+      return null
+    }
+
+    // Parse JSON from Claude response
+    const sanitized = sanitizeAIResponse(data.text)
+    const scenario = JSON.parse(sanitized)
+
+    // Normalize (same as agent pipeline)
+    if (!scenario.situation) scenario.situation = {}
+    if (!Array.isArray(scenario.situation.runners)) scenario.situation.runners = []
+    scenario.situation.runners = [...new Set(scenario.situation.runners.filter(r => [1,2,3].includes(Number(r))).map(Number))]
+    if (!Array.isArray(scenario.situation.score)) scenario.situation.score = [0, 0]
+    scenario.situation.outs = Math.max(0, Math.min(2, Number(scenario.situation.outs) || 0))
+    if (!scenario.situation.inning) scenario.situation.inning = "Mid"
+    if (!scenario.situation.count || !/^[0-3]-[0-2]$/.test(scenario.situation.count)) scenario.situation.count = "1-1"
+    if (!ANIMS.includes(scenario.anim)) scenario.anim = "strike"
+    if (![1,2,3].includes(scenario.diff)) scenario.diff = plan.difficulty
+
+    // Auto-fix rates alignment
+    if (scenario.rates && scenario.rates.length === 4 && typeof scenario.best === "number") {
+      const maxRate = Math.max(...scenario.rates)
+      if (scenario.rates[scenario.best] !== maxRate) {
+        scenario.best = scenario.rates.indexOf(maxRate)
+      }
+    }
+
+    // Fix perspective
+    if (typeof fixPerspective === "function") fixPerspective(scenario)
+
+    // Strip [BEST] prefix
+    if (scenario.options) scenario.options = scenario.options.map(o => (o || "").replace(/^\[BEST\]\s*/i, ""))
+
+    // Set metadata
+    scenario.id = "ar_" + Date.now() + "_" + Math.random().toString(36).slice(2, 8)
+    scenario.isAI = true
+    scenario.scenarioSource = "autoresearch-claude"
+
+    console.log("[AutoResearch] Claude generated:", scenario.title, "| grade pending | model:", data.model, "| tokens:", (data.usage?.input_tokens || 0) + (data.usage?.output_tokens || 0))
+
+    return { scenario, plan }
+  } catch (e) {
+    console.warn("[AutoResearch] Generation failed:", e.message)
+    return null
+  }
+}
+
+/**
+ * runAutoResearchCycle — Main orchestration function for the autonomous prompt optimization loop.
+ * Ties together Steps 2-4: baseline → analyze → mutate → evaluate → compare → adopt/revert.
+ *
+ * Uses Claude Opus via /v1/autoresearch-generate for direct prompt control + production model quality.
+ *
+ * @param {Object} config - Cycle configuration
+ * @returns {Object} Full cycle results including adopted/reverted variants and report
+ */
+async function runAutoResearchCycle(config = {}) {
+  const {
+    positionsToTest = Object.keys(AI_POS_PRINCIPLES).slice(0, 5), // Default: 5 positions to respect budget
+    scenariosPerVariant = 3,   // Per position — total = positions × scenarios
+    maxVariants = 3,
+    passingScore = 65,
+    improvementThreshold = 5,
+    dryRun = true,             // Default true for safety — first 4 cycles must be dry runs per guard rails
+    costCeiling = 200
+  } = config
+
+  const cycleStart = Date.now()
+  const cycleLog = []
+  let apiCallCount = 0
+  let budgetExceeded = false
+
+  const log = (msg) => {
+    const entry = `[AR ${Math.round((Date.now() - cycleStart) / 1000)}s] ${msg}`
+    cycleLog.push(entry)
+    console.log(entry)
+  }
+
+  log(`Starting AutoResearch cycle (v${AUTORESEARCH_VERSION}). dryRun=${dryRun}, positions=${positionsToTest.length}, scenarios/variant=${scenariosPerVariant}, maxVariants=${maxVariants}, costCeiling=${costCeiling}`)
+
+  // Estimate total API calls: (1 control + maxVariants) × positions × scenariosPerVariant
+  const estimatedCalls = (1 + maxVariants) * positionsToTest.length * scenariosPerVariant
+  log(`Estimated API calls: ${estimatedCalls} (ceiling: ${costCeiling})`)
+  if (estimatedCalls > costCeiling) {
+    // Reduce scenariosPerVariant to fit budget
+    const adjustedScenarios = Math.max(1, Math.floor(costCeiling / ((1 + maxVariants) * positionsToTest.length)))
+    log(`Budget warning: reducing scenariosPerVariant ${scenariosPerVariant} → ${adjustedScenarios} to fit ceiling`)
+    config.scenariosPerVariant = adjustedScenarios
+  }
+  const effectiveScenarios = config.scenariosPerVariant || scenariosPerVariant
+
+  // Helper: check budget before each API call
+  function checkBudget() {
+    if (apiCallCount >= costCeiling) {
+      if (!budgetExceeded) log(`BUDGET_EXCEEDED: ${apiCallCount}/${costCeiling} API calls used. Stopping.`)
+      budgetExceeded = true
+      return false
+    }
+    return true
+  }
+
+  // Minimal stats object for generation (AutoResearch runs without a real player)
+  const arStats = {
+    pts: 500, // Mid-level player
+    ps: {},
+    masteryData: { concepts: {} },
+    ageGroup: "11-12",
+    sessionHash: "autoresearch_" + Date.now(),
+    cl: [],
+    recentWrong: []
+  }
+  // Initialize position stats
+  for (const pos of positionsToTest) {
+    arStats.ps[pos] = { p: 10, c: 7 } // 70% accuracy baseline
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // P9: Canary test — detect grading drift before spending API budget
+  // ═══════════════════════════════════════════════════════════════
+  log("Canary check: running grading drift detection...")
+  let canaryScores = []
+  for (const [pos, ids] of Object.entries(CANARY_SCENARIOS)) {
+    const pool = SCENARIOS[pos] || []
+    for (const id of ids) {
+      const scenario = pool.find(s => s.id === id)
+      if (scenario) {
+        const grade = gradeScenario(scenario, pos)
+        canaryScores.push(grade.score)
+      }
+    }
+  }
+  if (canaryScores.length > 0) {
+    const canaryAvg = Math.round(canaryScores.reduce((a, b) => a + b, 0) / canaryScores.length * 10) / 10
+    if (_canaryBaseline === null) {
+      _canaryBaseline = canaryAvg
+      log(`Canary baseline established: ${canaryAvg} (${canaryScores.length} scenarios)`)
+    } else {
+      const drift = Math.abs(canaryAvg - _canaryBaseline)
+      log(`Canary check: current=${canaryAvg}, baseline=${_canaryBaseline}, drift=${drift.toFixed(1)}`)
+      if (drift > 5) {
+        log(`CANARY HALT: Grading drift detected (${drift.toFixed(1)} > 5pt threshold). Grading code may have changed. Aborting cycle.`)
+        return { error: "canary_drift", canaryAvg, canaryBaseline: _canaryBaseline, drift, cycleLog, apiCallCount: 0 }
+      }
+    }
+  } else {
+    log("Canary check: no canary scenarios found (IDs may not match pool). Proceeding without drift check.")
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // STEP A: Baseline — generate control scenarios
+  // ═══════════════════════════════════════════════════════════════
+  log("Step A: Generating baseline (control) scenarios...")
+  const controlScored = []
+
+  for (const position of positionsToTest) {
+    for (let i = 0; i < effectiveScenarios; i++) {
+      if (!checkBudget()) break
+      try {
+        apiCallCount++
+        const result = await generateForAutoResearch(position, arStats, null, null) // control — no variant, Claude Opus
+        if (result && result.scenario) {
+          const gradeResult = gradeScenario(result.scenario, position)
+          const firewallResult = QUALITY_FIREWALL.validate(result.scenario, position)
+          const consistencyResult = CONSISTENCY_RULES.check(result.scenario)
+          controlScored.push({ scenario: result.scenario, position, gradeResult, firewallResult, consistencyResult })
+        } else {
+          log(`Control generation failed for ${position} #${i + 1} (null result)`)
+        }
+      } catch (e) {
+        log(`Control generation error for ${position} #${i + 1}: ${e.message}`)
+      }
+    }
+    if (budgetExceeded) break
+  }
+
+  if (controlScored.length === 0) {
+    log("ABORT: No control scenarios generated. Cannot proceed.")
+    return { error: "No control scenarios generated", cycleLog, apiCallCount }
+  }
+  log(`Control: ${controlScored.length} scenarios scored`)
+
+  // ═══════════════════════════════════════════════════════════════
+  // STEP B: Analyze failure patterns
+  // ═══════════════════════════════════════════════════════════════
+  log("Step B: Analyzing failure patterns...")
+  const controlAnalysis = analyzeFailurePatterns(controlScored)
+  const controlResults = {
+    avgScore: controlAnalysis.avgScore,
+    passRate: controlAnalysis.passRate,
+    tier1Fails: Object.values(controlAnalysis.tier1Counts).reduce((a, b) => a + b, 0),
+    tier2Warns: Object.values(controlAnalysis.tier2Counts).reduce((a, b) => a + b, 0),
+    failurePatterns: controlAnalysis
+  }
+  log(`Control baseline: avg=${controlResults.avgScore}, pass=${controlResults.passRate}%, T1=${controlResults.tier1Fails}, T2=${controlResults.tier2Warns}`)
+  log(`Top failures: ${controlAnalysis.commonFailures.slice(0, 3).map(f => f.key + ":" + f.count).join(", ")}`)
+  log(`Suggested mutations: ${controlAnalysis.suggestedMutations.slice(0, maxVariants).map(m => m.type).join(", ")}`)
+
+  if (budgetExceeded) {
+    log("Budget exceeded during control phase. Returning partial results.")
+    return { controlResults, controlAnalysis, cycleLog, apiCallCount, budgetExceeded: true, partial: true }
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // STEP C: Generate variants from top suggested mutations
+  // ═══════════════════════════════════════════════════════════════
+  log("Step C: Generating prompt variants...")
+  const variants = []
+  const topMutations = controlAnalysis.suggestedMutations.slice(0, maxVariants)
+  for (const mutation of topMutations) {
+    // P4: Mutation cooldown — check revert log before creating variant
+    const recentReverts = _arRevertLog.filter(r => r.mutationType === mutation.type)
+    const lastRevert = recentReverts[recentReverts.length - 1]
+    const revertCount = recentReverts.length
+
+    if (revertCount >= 2 && _arRevertLog.slice(-10).filter(r => r.mutationType === mutation.type).length >= 2) {
+      log(`COOLDOWN: ${mutation.type} oscillation detected (reverted ${revertCount}x in recent history) — SKIPPING`)
+      continue
+    }
+    if (lastRevert && _arRevertLog.indexOf(lastRevert) >= _arRevertLog.length - 1) {
+      log(`COOLDOWN: ${mutation.type} was reverted last cycle — SKIPPING`)
+      continue
+    }
+    if (revertCount >= 1 && _arRevertLog.slice(-3).some(r => r.mutationType === mutation.type)) {
+      log(`COOLDOWN: ${mutation.type} reverted within last 3 cycles — requires 2x threshold`)
+      // Note: the 2x threshold is applied in compareAndAdopt via dimensionRegression
+      // Here we just log the warning but still allow the test
+    }
+
+    const variant = generatePromptVariant(mutation.type, controlAnalysis)
+    variants.push(variant)
+    log(`Variant: ${variant.id} — ${variant.label}`)
+  }
+
+  if (variants.length === 0) {
+    log("No mutations suggested. Control is clean. Cycle complete.")
+    const emptyResult = compareAndAdopt(controlResults, {}, improvementThreshold)
+    return { controlResults, controlAnalysis, cycleResults: emptyResult, cycleLog, apiCallCount, report: formatCycleReport(emptyResult, controlAnalysis, config) }
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // STEP D: Evaluate each variant
+  // ═══════════════════════════════════════════════════════════════
+  log("Step D: Evaluating variants...")
+  const variantResults = {}
+
+  for (const variant of variants) {
+    if (budgetExceeded) break
+    log(`Evaluating variant: ${variant.mutationType}...`)
+    const variantScored = []
+
+    let pruned = false
+    for (const position of positionsToTest) {
+      for (let i = 0; i < effectiveScenarios; i++) {
+        if (!checkBudget()) break
+        try {
+          apiCallCount++
+          const result = await generateForAutoResearch(position, arStats, null, variant) // variant test — Claude Opus
+          if (result && result.scenario) {
+            const gradeResult = gradeScenario(result.scenario, position)
+            const firewallResult = QUALITY_FIREWALL.validate(result.scenario, position)
+            const consistencyResult = CONSISTENCY_RULES.check(result.scenario)
+            variantScored.push({ scenario: result.scenario, position, gradeResult, firewallResult, consistencyResult })
+          } else {
+            log(`Variant ${variant.mutationType} failed for ${position} #${i + 1}`)
+          }
+        } catch (e) {
+          log(`Variant ${variant.mutationType} error for ${position} #${i + 1}: ${e.message}`)
+        }
+      }
+      if (budgetExceeded) break
+
+      // P8: Successive halving — prune variants that are clearly losing after each position
+      if (variantScored.length >= 3) {
+        const runningAvg = variantScored.reduce((s, e) => s + e.gradeResult.score, 0) / variantScored.length
+        if (runningAvg < controlResults.avgScore - 10) {
+          log(`PRUNED: ${variant.mutationType} after ${variantScored.length} scenarios (avg ${Math.round(runningAvg * 10) / 10} vs control ${controlResults.avgScore}, delta ${Math.round((runningAvg - controlResults.avgScore) * 10) / 10})`)
+          pruned = true
+          break
+        }
+      }
+    }
+    if (pruned) { log(`Variant ${variant.mutationType} pruned early — saving budget`); continue }
+
+    if (variantScored.length > 0) {
+      const variantAnalysis = analyzeFailurePatterns(variantScored)
+      variantResults[variant.id] = {
+        avgScore: variantAnalysis.avgScore,
+        passRate: variantAnalysis.passRate,
+        tier1Fails: Object.values(variantAnalysis.tier1Counts).reduce((a, b) => a + b, 0),
+        tier2Warns: Object.values(variantAnalysis.tier2Counts).reduce((a, b) => a + b, 0),
+        failurePatterns: variantAnalysis,
+        n: variantScored.length
+      }
+      log(`Variant ${variant.mutationType}: avg=${variantAnalysis.avgScore}, pass=${variantAnalysis.passRate}%, n=${variantScored.length}`)
+    } else {
+      log(`Variant ${variant.mutationType}: 0 scenarios scored — skipping`)
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // STEP E: Compare and decide
+  // ═══════════════════════════════════════════════════════════════
+  log("Step E: Comparing variants to control...")
+  const cycleResults = compareAndAdopt(controlResults, variantResults, improvementThreshold)
+  log(cycleResults.summary)
+
+  // P4: Push reverted variants to revert log for cooldown tracking
+  for (const r of cycleResults.reverted) {
+    _arRevertLog.push({ mutationType: r.mutationType, cycleId: cycleResults.cycleId, reason: r.reason, delta: r.delta, timestamp: Date.now() })
+  }
+  if (_arRevertLog.length > 50) _arRevertLog.splice(0, _arRevertLog.length - 50) // Cap at 50 entries
+
+  // ═══════════════════════════════════════════════════════════════
+  // STEP F: Adopt or log
+  // ═══════════════════════════════════════════════════════════════
+  const report = formatCycleReport(cycleResults, controlAnalysis, config)
+
+  if (dryRun) {
+    log("DRY RUN — results logged but NOT persisted. No prompt changes applied.")
+    // Still save to D1 for tracking (dry runs are valuable baseline data)
+    try {
+      await fetch(WORKER_BASE + "/autoresearch/save-cycle", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Admin-Key": window._arAdminKey || "autoresearch" },
+        body: JSON.stringify({ report: { ...report, dry_run: true } })
+      })
+      log("Dry run results saved to D1 for tracking")
+    } catch (e) { log("D1 save failed (non-blocking): " + e.message) }
+  } else if (cycleResults.dominated.length > 0) {
+    log("ADOPTING " + cycleResults.dominated.length + " variant(s)...")
+    // Persist to KNOWLEDGE_CHANGELOG (in-memory)
+    for (const adopted of cycleResults.dominated) {
+      KNOWLEDGE_CHANGELOG.unshift({
+        version: BRAIN_VERSION,
+        date: new Date().toISOString().split("T")[0],
+        changes: [`AutoResearch adopted: ${adopted.mutationType} (+${adopted.delta} avg score, +${adopted.passRateDelta}% pass rate)`]
+      })
+      log(`Adopted: ${adopted.mutationType} → merged into production prompt config`)
+    }
+    // Persist to D1 via worker
+    try {
+      await fetch(WORKER_BASE + "/autoresearch/save-cycle", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Admin-Key": window._arAdminKey || "autoresearch" },
+        body: JSON.stringify({ report })
+      })
+      log("Cycle results saved to D1")
+    } catch (e) { log("D1 save failed (non-blocking): " + e.message) }
+  } else {
+    log("No variants adopted. Control prompt unchanged.")
+    // Still save to D1 for longitudinal tracking
+    try {
+      await fetch(WORKER_BASE + "/autoresearch/save-cycle", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Admin-Key": window._arAdminKey || "autoresearch" },
+        body: JSON.stringify({ report })
+      })
+      log("Cycle results saved to D1")
+    } catch (e) { log("D1 save failed (non-blocking): " + e.message) }
+  }
+
+  const elapsed = Math.round((Date.now() - cycleStart) / 1000)
+  log(`Cycle complete in ${elapsed}s. API calls: ${apiCallCount}/${costCeiling}${budgetExceeded ? " (BUDGET_EXCEEDED)" : ""}`)
+
+  return {
+    controlResults,
+    controlAnalysis,
+    variantResults,
+    cycleResults,
+    report,
+    cycleLog,
+    apiCallCount,
+    budgetExceeded,
+    elapsed
+  }
+}
+
+/**
+ * Dev trigger: Run AutoResearch cycle in dry-run mode.
+ * Call from browser console: runAutoResearchDryRun()
+ * Or with custom config: runAutoResearchDryRun({ positionsToTest: ["pitcher","batter"], scenariosPerVariant: 5 })
+ */
+async function runAutoResearchDryRun(overrides = {}) {
+  console.log("═══ AutoResearch Dry Run ═══")
+  console.log("This will generate AI scenarios and analyze prompt quality.")
+  console.log("NO changes will be persisted (dryRun=true).")
+  console.log("")
+
+  const result = await runAutoResearchCycle({
+    dryRun: true,
+    positionsToTest: ["pitcher", "batter", "shortstop", "baserunner", "manager"],
+    scenariosPerVariant: 2,
+    maxVariants: 3,
+    costCeiling: 80,
+    ...overrides
+  })
+
+  console.log("\n═══ Dry Run Complete ═══")
+  if (result.cycleResults) {
+    console.log(result.cycleResults.summary)
+    console.log("\nControl: avg=" + result.controlResults.avgScore + " pass=" + result.controlResults.passRate + "%")
+    if (result.variantResults) {
+      for (const [id, vr] of Object.entries(result.variantResults)) {
+        const mutType = id.replace(/^var_/, "").replace(/_\d+$/, "")
+        const delta = (vr.avgScore - result.controlResults.avgScore).toFixed(1)
+        console.log(`  ${mutType}: avg=${vr.avgScore} (${delta >= 0 ? "+" : ""}${delta}) pass=${vr.passRate}%`)
+      }
+    }
+  }
+  console.log("API calls used: " + result.apiCallCount)
+  if (result.budgetExceeded) console.warn("Budget was exceeded — partial results")
+
+  return result
+}
+
+/**
+ * compareAndAdopt — Decision function: keep or revert each variant.
+ * Safety trumps score: a variant that increases Tier 1 failures is ALWAYS reverted.
+ * Incorporates Goodhart detection: flags variants that improve score by gaming specific checks
+ * rather than genuinely improving quality (TPA Idea 11).
+ *
+ * @param {Object} controlResults - { avgScore, passRate, tier1Fails, tier2Warns, failurePatterns }
+ * @param {Object} variantResults - { [variantId]: { avgScore, passRate, tier1Fails, tier2Warns, failurePatterns } }
+ * @param {number} improvementThreshold - Points above control needed to adopt (default 5)
+ * @returns {Object} { dominated: [...adopted], reverted: [...reverted], summary: string }
+ */
+function compareAndAdopt(controlResults, variantResults, improvementThreshold = 5) {
+  const dominated = []
+  const reverted = []
+  const cycleId = `AR-${Math.floor(Date.now() / 1000)}`
+
+  for (const [variantId, vResult] of Object.entries(variantResults)) {
+    const delta = Math.round((vResult.avgScore - controlResults.avgScore) * 10) / 10
+    const passRateDelta = Math.round((vResult.passRate - controlResults.passRate) * 10) / 10
+    const tier1Delta = vResult.tier1Fails - controlResults.tier1Fails
+    const tier2Delta = vResult.tier2Warns - controlResults.tier2Warns
+
+    // Extract mutation type from variant ID (format: var_mutationType_timestamp)
+    const mutationType = variantId.replace(/^var_/, "").replace(/_\d+$/, "")
+
+    const entry = {
+      variantId,
+      mutationType,
+      delta,
+      passRateDelta,
+      tier1Delta,
+      tier2Delta,
+      variantScore: vResult.avgScore,
+      controlScore: controlResults.avgScore,
+      variantPassRate: vResult.passRate,
+      controlPassRate: controlResults.passRate,
+    }
+
+    // ── Safety gate: Tier 1 failures increased → ALWAYS REVERT ──
+    if (tier1Delta > 0) {
+      entry.recommendation = "REVERT — tier 1 failures increased (safety regression)"
+      entry.reason = "safety"
+      reverted.push(entry)
+      continue
+    }
+
+    // ── Goodhart detection (TPA Idea 11) ──
+    // If score improved but specific "gameable" deductions vanished while others stayed,
+    // the variant may be gaming checks rather than genuinely improving quality.
+    let goodhartRisk = false
+    if (delta > 0 && vResult.failurePatterns && controlResults.failurePatterns) {
+      const gameableChecks = [
+        "concept_missing_why",           // Sprinkle "because" → passes
+        "explanation_few_sentences",      // Pad length → passes
+        "best_explanation_lacks_situation_refs",  // Mention "inning" → passes
+        "explanation_too_generic",        // Add one specific word → passes
+      ]
+      const controlGameable = gameableChecks.reduce((sum, k) =>
+        sum + (controlResults.failurePatterns.deductionCounts?.[k] || 0), 0)
+      const variantGameable = gameableChecks.reduce((sum, k) =>
+        sum + (vResult.failurePatterns.deductionCounts?.[k] || 0), 0)
+      // Non-gameable improvement: real quality gains
+      const controlTotal = Object.values(controlResults.failurePatterns.deductionCounts || {}).reduce((a, b) => a + b, 0)
+      const variantTotal = Object.values(vResult.failurePatterns.deductionCounts || {}).reduce((a, b) => a + b, 0)
+      const controlNonGameable = controlTotal - controlGameable
+      const variantNonGameable = variantTotal - variantGameable
+
+      // Flag: gameable deductions dropped significantly but non-gameable stayed flat
+      if (controlGameable > 0 && variantGameable < controlGameable * 0.3 && variantNonGameable >= controlNonGameable * 0.9) {
+        goodhartRisk = true
+        entry.goodhartRisk = true
+        entry.goodhartDetail = `Gameable deductions dropped ${controlGameable}→${variantGameable} but non-gameable flat ${controlNonGameable}→${variantNonGameable}`
+      }
+    }
+
+    // ── P2: Dimension Stability Check (TPA Idea 15) ──
+    // If any single deduction category spikes >10pp while aggregate improves, require 2x threshold.
+    let dimensionRegression = false
+    if (delta > 0 && vResult.failurePatterns && controlResults.failurePatterns) {
+      const cDed = controlResults.failurePatterns.deductionCounts || {}
+      const vDed = vResult.failurePatterns.deductionCounts || {}
+      const cN = controlResults.failurePatterns.n || 1
+      const vN = vResult.failurePatterns.n || 1
+      const allKeys = new Set([...Object.keys(cDed), ...Object.keys(vDed)])
+      const regressions = []
+      for (const key of allKeys) {
+        const cPct = ((cDed[key] || 0) / cN) * 100
+        const vPct = ((vDed[key] || 0) / vN) * 100
+        const ppDelta = vPct - cPct
+        if (ppDelta > 10) regressions.push({ key, cPct: Math.round(cPct), vPct: Math.round(vPct), ppDelta: Math.round(ppDelta) })
+      }
+      if (regressions.length > 0) {
+        dimensionRegression = true
+        entry.dimensionRegression = true
+        entry.dimensionDetail = regressions.map(r => r.key + " +" + r.ppDelta + "pp (" + r.cPct + "→" + r.vPct + "%)").join("; ")
+      }
+    }
+
+    // ── P3: Position-Stratified Comparison (TPA O14) ──
+    // Block adoption if ANY position's pass rate drops >15pp.
+    let positionRegression = false
+    if (delta > 0 && vResult.failurePatterns?.byPosition && controlResults.failurePatterns?.byPosition) {
+      const cPos = controlResults.failurePatterns.byPosition
+      const vPos = vResult.failurePatterns.byPosition
+      const posRegressions = []
+      for (const pos of Object.keys(cPos)) {
+        if (!vPos[pos]) continue
+        const cPassRate = cPos[pos].n > 0 ? (cPos[pos].passCount / cPos[pos].n) * 100 : 0
+        const vPassRate = vPos[pos].n > 0 ? (vPos[pos].passCount / vPos[pos].n) * 100 : 0
+        if (cPassRate - vPassRate > 15) {
+          posRegressions.push({ pos, cPassRate: Math.round(cPassRate), vPassRate: Math.round(vPassRate), drop: Math.round(cPassRate - vPassRate) })
+        }
+      }
+      if (posRegressions.length > 0) {
+        positionRegression = true
+        entry.positionRegression = true
+        entry.positionDetail = posRegressions.map(r => r.pos + " " + r.cPassRate + "→" + r.vPassRate + "% (-" + r.drop + "pp)").join("; ")
+      }
+    }
+
+    // ── Decision logic ──
+    // Effective threshold: doubled if dimension regression detected
+    const effectiveThreshold = dimensionRegression ? improvementThreshold * 2 : improvementThreshold
+    if (delta >= effectiveThreshold && passRateDelta >= 0 && !goodhartRisk && !positionRegression) {
+      entry.recommendation = "ADOPT — merge into production prompt"
+      entry.reason = "improvement"
+      dominated.push(entry)
+    } else if (positionRegression) {
+      entry.recommendation = "REVERT — position regression: " + (entry.positionDetail || "one or more positions regressed >15pp")
+      entry.reason = "position_regression"
+      reverted.push(entry)
+    } else if (goodhartRisk && delta >= improvementThreshold) {
+      entry.recommendation = "REVERT — Goodhart risk: score improved by gaming checks, not quality"
+      entry.reason = "goodhart"
+      reverted.push(entry)
+    } else if (dimensionRegression && delta < effectiveThreshold) {
+      entry.recommendation = "REVERT — dimension regression requires 2x threshold (" + effectiveThreshold + "): " + (entry.dimensionDetail || "")
+      entry.reason = "dimension_regression"
+      reverted.push(entry)
+    } else if (delta > 0 && delta < effectiveThreshold) {
+      entry.recommendation = "MARGINAL — consider re-testing with larger sample"
+      entry.reason = "marginal"
+      reverted.push(entry)
+    } else if (passRateDelta < 0 && delta >= improvementThreshold) {
+      entry.recommendation = "REVERT — score improved but pass rate dropped"
+      entry.reason = "passrate_drop"
+      reverted.push(entry)
+    } else {
+      entry.recommendation = "REVERT — no improvement"
+      entry.reason = "no_improvement"
+      reverted.push(entry)
+    }
+  }
+
+  // Build human-readable summary
+  const adoptedSummary = dominated.map(d =>
+    `${d.mutationType}: +${d.delta} avg`
+  ).join(", ")
+  const revertedSummary = reverted.map(r => {
+    const sign = r.delta >= 0 ? "+" : ""
+    const tag = r.reason === "marginal" ? " marginal" :
+                r.reason === "safety" ? " SAFETY" :
+                r.reason === "goodhart" ? " GOODHART" :
+                r.reason === "passrate_drop" ? " pass↓" :
+                r.reason === "position_regression" ? " POS↓" :
+                r.reason === "dimension_regression" ? " DIM↓" : ""
+    return `${r.mutationType}: ${sign}${r.delta}${tag}`
+  }).join(", ")
+
+  const summary = `Cycle ${cycleId}: Tested ${Object.keys(variantResults).length} variants. ` +
+    (dominated.length > 0 ? `Adopted ${dominated.length} (${adoptedSummary}). ` : "Adopted 0. ") +
+    (reverted.length > 0 ? `Reverted ${reverted.length} (${revertedSummary}).` : "Reverted 0.")
+
+  return { dominated, reverted, summary, cycleId }
+}
+
+/**
+ * formatCycleReport — Structures cycle results for logging to KNOWLEDGE_CHANGELOG and D1/KV storage.
+ *
+ * @param {Object} cycleResults - Output of compareAndAdopt()
+ * @param {Object} controlAnalysis - Output of analyzeFailurePatterns() for control
+ * @param {Object} config - { scenariosPerVariant, positionsToTest, improvementThreshold }
+ * @returns {Object} Structured report for persistence
+ */
+function formatCycleReport(cycleResults, controlAnalysis, config = {}) {
+  const { dominated, reverted, summary, cycleId } = cycleResults
+
+  // KNOWLEDGE_CHANGELOG entry
+  const changelogEntry = {
+    version: BRAIN_VERSION,
+    date: new Date().toISOString().split("T")[0],
+    source: "AutoResearch v" + AUTORESEARCH_VERSION,
+    changes: []
+  }
+
+  for (const d of dominated) {
+    changelogEntry.changes.push(
+      `AutoResearch adopted prompt mutation: ${d.mutationType} (+${d.delta} avg score, +${d.passRateDelta}% pass rate)`
+    )
+  }
+  if (dominated.length === 0) {
+    changelogEntry.changes.push(
+      `AutoResearch cycle ${cycleId}: no variants adopted (control avg ${controlAnalysis.avgScore}, pass ${controlAnalysis.passRate}%)`
+    )
+  }
+
+  // D1/KV storage record
+  const storageRecord = {
+    cycle_id: cycleId,
+    timestamp: new Date().toISOString(),
+    autoresearch_version: AUTORESEARCH_VERSION,
+    config: {
+      scenariosPerVariant: config.scenariosPerVariant || null,
+      positionsToTest: config.positionsToTest || null,
+      improvementThreshold: config.improvementThreshold || 5,
+    },
+    control: {
+      avg_score: controlAnalysis.avgScore,
+      pass_rate: controlAnalysis.passRate,
+      tier1_fail_rate: controlAnalysis.tier1FailRate,
+      tier2_warn_rate: controlAnalysis.tier2WarnRate,
+      top_failures: controlAnalysis.commonFailures.slice(0, 5).map(f => f.key),
+      n: controlAnalysis.n,
+    },
+    variants_tested: dominated.length + reverted.length,
+    variants_adopted: dominated.length,
+    adopted: dominated.map(d => ({
+      variant_id: d.variantId,
+      mutation_type: d.mutationType,
+      delta: d.delta,
+      pass_rate_delta: d.passRateDelta,
+      tier1_delta: d.tier1Delta,
+    })),
+    reverted: reverted.map(r => ({
+      variant_id: r.variantId,
+      mutation_type: r.mutationType,
+      delta: r.delta,
+      reason: r.reason,
+      goodhart_risk: r.goodhartRisk || false,
+    })),
+    summary,
+    changelog_entry: changelogEntry,
+
+    // P10: Failure fingerprint — deduction frequency comparison for pattern analysis
+    failure_fingerprint: {
+      // Score distribution (10-point buckets)
+      score_histogram: (() => {
+        const buckets = { "0-9": 0, "10-19": 0, "20-29": 0, "30-39": 0, "40-49": 0, "50-59": 0, "60-69": 0, "70-79": 0, "80-89": 0, "90-100": 0 }
+        // Note: we don't have individual scores here, so this is populated by the caller if needed
+        return buckets
+      })(),
+      // Top deductions with percentages
+      deduction_profile: Object.entries(controlAnalysis.deductionCounts || {})
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10)
+        .map(([key, count]) => ({
+          key,
+          count,
+          pct: Math.round((count / (controlAnalysis.n || 1)) * 100)
+        })),
+      // Per-position summary
+      position_summary: Object.entries(controlAnalysis.byPosition || {}).map(([pos, data]) => ({
+        position: pos,
+        n: data.n,
+        avg_score: data.n > 0 ? Math.round((data.totalScore / data.n) * 10) / 10 : 0,
+        pass_rate: data.n > 0 ? Math.round((data.passCount / data.n) * 100) : 0,
+        tier1_rate: data.n > 0 ? Math.round((data.tier1Count / data.n) * 100) : 0,
+      })),
+      // Mutation health (P4 revert log summary)
+      mutation_health: (() => {
+        const health = {}
+        for (const entry of _arRevertLog) {
+          if (!health[entry.mutationType]) health[entry.mutationType] = { reverts: 0, lastReason: "" }
+          health[entry.mutationType].reverts++
+          health[entry.mutationType].lastReason = entry.reason
+        }
+        return health
+      })(),
+    },
+  }
+
+  return storageRecord
 }
 
 // ── Population Calibration Cache (Pillar 6B) ──
@@ -10743,7 +11930,8 @@ SCORE RULES (READ FIRST — score errors are the #1 quality issue):
 - Double-check: read your description, find every score reference, and verify it matches the score array.`
 
   const descriptionStyle = `
-DESCRIPTION STYLE: Write descriptions as if explaining a game situation to a young baseball player. Use simple, everyday language. Do NOT include statistics, RE24 values, batting averages, or advanced analytics in the description or options. Save numbers for explanations only.`
+DESCRIPTION STYLE: Write descriptions as if explaining a game situation to a young baseball player. Use simple, everyday language. Do NOT include statistics, RE24 values, batting averages, or advanced analytics in the description or options. Save numbers for explanations only.
+CRITICAL: The LAST sentence of every description MUST be a decision prompt. End with "What should you do?", "What's your call?", "What's the play?", or similar. This is non-negotiable — every description must end by asking the player to decide.`
 
   const posActionText = POS_ACTIONS_MAP[position] || POS_ACTIONS_MAP.manager
 
@@ -10782,7 +11970,7 @@ EXPLANATION RULES:
 - Best answer explanation must name the POSITIVE OUTCOME (e.g., "you cut down the lead runner" NOT "this maintains defensive pressure")
 - BANNED PHRASES (never use): "this decision has real consequences", "maintaining defensive pressure", "this could lead to", "this approach fails by", "this action allows you to", "in this situation", "real consequences for the game", "based on the current situation"
 - Write like a COACH talking to a player after the play: "Here's why that works..." or "The problem with that is..."
-- Every explanation must be 1-3 sentences. No more. Short and specific beats long and vague.
+- Every explanation must be 2-3 sentences. Never just one sentence — that's too short to teach anything. Short and specific beats long and vague.
 - CRITICAL: Each explanation must specifically argue for or against THAT option. The best answer explanation must clearly state why THIS choice is optimal, not why another option is wrong. Anchor every explanation to the action described in its option text.`
 
   const voiceExamples = `
@@ -10900,11 +12088,380 @@ NOW: Generate ONE scenario as a JSON object with this EXACT structure:
   "explanations": ["Why A is best/wrong", "Why B is best/wrong", "Why C is best/wrong", "Why D is best/wrong"],
   "explDepth": [{"simple":"1 sentence kid version","why":"2-3 sentence strategic reasoning","data":"RE24/stat reference or n/a"},{"simple":"...","why":"...","data":"..."},{"simple":"...","why":"...","data":"..."},{"simple":"...","why":"...","data":"..."}],
   "rates": ${tv.rates},
-  "concept": "One sentence: the baseball concept this teaches and WHY it matters.",
+  "concept": "One sentence using 'because' or 'which means': the baseball concept this teaches and WHY it matters. Example: 'Cutoff roles matter because hitting the relay man gives your team two chances to get the runner.'",
   "anim": "one of: steal, score, hit, throwHome, doubleplay, strike, strikeout, groundout, flyout, catch, advance, walk, bunt, safe, freeze"
 }
 explDepth: array of 4 objects (one per option). "simple"=1 sentence a 6-year-old understands. "why"=2-3 sentences of strategic reasoning. "data"=1 sentence referencing a real stat — write "n/a" if no stat applies.
 count format: "B-S" (0-3 balls, 0-2 strikes) or "-". runners: [] empty, [1]=1st, [2]=2nd, [1,2]=1st+2nd, [1,2,3]=loaded. rates: optimal 75-90, decent 45-65, poor 10-40.`
+}
+
+// ============================================================================
+// AutoResearch Step 3: Prompt Variant Generation
+// generatePromptVariant() — creates isolated prompt mutations for testing
+// buildAgentPromptWithVariant() — wraps buildAgentPrompt() with variant mutations
+// ============================================================================
+
+// Reusable prompt blocks for variant mutations
+const AR_PROMPT_BLOCKS = {
+  SCORE_PERSPECTIVE_GUARD: `
+SCORE PERSPECTIVE GUARD (AutoResearch — non-negotiable):
+score=[HOME, AWAY]. Bot X = HOME offense (score[0]). Top X = AWAY offense (score[1]).
+Before outputting, verify: Which team is batting? What is THEIR score? Does your description match?
+If you write "trailing" the player's team score MUST be the LOWER number. If "leading" it MUST be HIGHER.
+Cross-check every mention of "up by", "down by", "tied", "tying run", "go-ahead run" against the score array.`,
+
+  DISTRACTOR_QUALITY: `
+WRONG ANSWER QUALITY GUARD (AutoResearch):
+The kid_mistake option MUST be something a 10-year-old would genuinely pick because they confuse two real baseball concepts — NOT because the option is obviously silly or absurd.
+Test: Could a real youth coach see a player make this mistake and say "I understand why you thought that, but here's the difference"?
+If the answer is no, rewrite it. Every wrong option must teach something when the player reads the explanation.
+Rate the kid_mistake at 25-40 (not zero — it shows SOME understanding).`,
+
+  COACH_LINE_QUALITY: `
+COACHING LINE QUALITY (AutoResearch — mandatory):
+Every explanation MUST teach one specific baseball fact or provide encouragement tied to the decision.
+"Great job!" alone = FAIL. "Nice try!" alone = FAIL. "That's not right" alone = FAIL.
+GOOD: "Nice instinct to throw home, but with the cutoff man at third base, hitting him gives you two chances to get the runner."
+BAD: "Good thinking! Keep it up!"
+The concept field must explain WHY the principle matters, not just WHAT it is. Include "because" or "which means" or "so that".`,
+
+  EXPLANATION_DEPTH: `
+EXPLANATION QUALITY GUARD (AutoResearch):
+Each explanation must:
+1. Reference the SPECIFIC game situation (inning, outs, runners, score context)
+2. Name the CONCRETE outcome (what happens next — "runner scores", "you get the out at second")
+3. Use causal language: "because", "which means", "so that", "the problem is"
+4. Best explanation must argue FOR the best option (not against other options)
+Explanations under 40 characters = FAIL. Generic explanations with no situation reference = FAIL.`,
+
+  SYSTEM_PREFIX_QUALITY: `
+SCENARIO QUALITY PRIMER (AutoResearch):
+You are creating a baseball strategy teaching moment. The description must:
+1. Be 3-5 sentences painting a vivid game picture a kid can see in their mind
+2. End with a clear decision prompt ("What should you do?" or "What's your call?")
+3. Use "you" (2nd person) — the player IS the fielder/batter/runner
+4. Include at least 2 concrete details: score, inning, outs, runners, count, weather, crowd
+Never use advanced stats jargon (RE24, wOBA, xBA) in the description or options.`,
+
+  POSITION_PRINCIPLE_BOOST: `
+POSITION IDENTITY GUARD (AutoResearch — non-negotiable):
+Every option must be an action THIS position actually performs on a baseball field.
+Pitcher: throws pitches, backs up bases, covers first on right-side grounders. NEVER the cutoff man.
+Catcher: receives pitches, blocks, throws to bases, calls pitches. NEVER leaves home plate with RISP.
+Outfielders: catch fly balls, field hits, throw TO the relay/cutoff man. NEVER cut off their own throws.
+Infielders: field grounders, turn DPs, cover bases, are cutoff/relay men. NEVER call pitches or make lineup decisions.
+If ANY option violates these boundaries, the entire scenario FAILS.`,
+
+  // Position boundary hard stops — injected into EVERY variant to prevent weakening
+  POSITION_BOUNDARY_HARDSTOP: `
+POSITION BOUNDARIES (ABSOLUTE — no mutation may weaken these):
+- Pitcher is NEVER the cutoff or relay man — pitcher backs up the target base
+- Catcher NEVER leaves home plate with runners in scoring position
+- Outfielders throw TO the relay/cutoff man — they do not become the cutoff
+- Center fielder has priority over corner outfielders on fly balls
+- Outfielders have priority over infielders on fly balls
+- Baserunners cannot direct the defense or call plays
+These rules are Tier 1 hard stops. Any scenario violating them is automatically rejected.`
+}
+
+/**
+ * generatePromptVariant — Creates a mutated version of the prompt for isolated A/B testing.
+ * Each variant modifies ONE thing (isolated variable testing).
+ *
+ * @param {string} mutationType - One of PROMPT_MUTATION_TYPES
+ * @param {Object} failureContext - Output of analyzeFailurePatterns()
+ * @returns {Object} Variant object: { id, label, mutationType, mutations, score, runs, created }
+ */
+function generatePromptVariant(mutationType, failureContext) {
+  const topFailure = failureContext.commonFailures?.[0]?.key || "unknown"
+
+  // P7: Mutation layer mapping — each mutation type modifies exactly one prompt layer
+  const MUTATION_LAYERS = {
+    system_prefix: "identity", position_principle: "identity",
+    explanation_guidance: "quality_rules", coaching_line_rules: "quality_rules",
+    wrong_answer_strategy: "quality_rules", score_perspective_guard: "quality_rules",
+    decision_window: "quality_rules", explanation_anchoring: "quality_rules",
+    knowledge_map_scope: "knowledge", archetype_emphasis: "knowledge",
+    few_shot_examples: "examples",
+    temperature: "context",
+  }
+
+  const variant = {
+    id: `var_${mutationType}_${Date.now()}`,
+    label: `Testing ${mutationType} to address ${topFailure}`,
+    mutationType,
+    layer: MUTATION_LAYERS[mutationType] || "unknown", // P7: track which prompt layer this modifies
+    mutations: {},
+    score: null,
+    runs: 0,
+    created: new Date().toISOString()
+  }
+
+  switch (mutationType) {
+    case "score_perspective_guard":
+      variant.mutations.systemSuffix = AR_PROMPT_BLOCKS.SCORE_PERSPECTIVE_GUARD
+      variant.label = "Inject explicit score=[HOME,AWAY] verification block"
+      break
+
+    case "wrong_answer_strategy":
+      variant.mutations.distractorGuidance = AR_PROMPT_BLOCKS.DISTRACTOR_QUALITY
+      variant.label = "Strengthen kid_mistake plausibility requirements"
+      break
+
+    case "archetype_emphasis": {
+      // Promote OPTION_ARCHETYPES from optional "blueprint" to mandatory fill-in template
+      variant.mutations.archetypeMode = "required_template"
+      variant.label = "Make OPTION_ARCHETYPES a mandatory structural template"
+      break
+    }
+
+    case "coaching_line_rules":
+      variant.mutations.coachLineBlock = AR_PROMPT_BLOCKS.COACH_LINE_QUALITY
+      variant.label = "Enforce specific baseball fact in every explanation + concept"
+      break
+
+    case "explanation_guidance":
+      variant.mutations.explanationBlock = AR_PROMPT_BLOCKS.EXPLANATION_DEPTH
+      variant.label = "Add situation-reference + causal language requirements"
+      break
+
+    case "knowledge_map_scope": {
+      // If cutoff/relay or position-boundary errors are common, inject FULL maps
+      const hasCutoffErrors = (failureContext.consistencyCounts?.CR1 || 0) +
+        (failureContext.consistencyCounts?.CR2 || 0) +
+        (failureContext.consistencyCounts?.CR3 || 0) +
+        (failureContext.consistencyCounts?.CR4 || 0) +
+        (failureContext.consistencyCounts?.CR5 || 0) +
+        (failureContext.consistencyCounts?.CR6 || 0) > 0
+      const hasPrincipleErrors = Object.keys(failureContext.deductionCounts || {})
+        .some(k => k.includes("role_violation") || k.includes("principleContradiction"))
+      variant.mutations.mapInjection = (hasCutoffErrors || hasPrincipleErrors) ? "full" : "minimal"
+      variant.label = variant.mutations.mapInjection === "full"
+        ? "Inject FULL knowledge maps (cutoff/relay errors detected)"
+        : "Reduce map injection to save tokens (no map errors detected)"
+      break
+    }
+
+    case "position_principle":
+      variant.mutations.positionPrincipleBlock = AR_PROMPT_BLOCKS.POSITION_PRINCIPLE_BOOST
+      variant.label = "Strengthen position identity + action boundary enforcement"
+      break
+
+    case "few_shot_examples": {
+      // Increase few-shot count to reduce structural errors
+      const hasStructuralErrors = (failureContext.deductionCounts?.missing_field || 0) +
+        (failureContext.deductionCounts?.options_not_4 || 0) +
+        (failureContext.deductionCounts?.explanations_not_4 || 0) +
+        (failureContext.deductionCounts?.rates_not_4 || 0) +
+        (failureContext.deductionCounts?.invalid_best_index || 0) > 0
+      variant.mutations.fewShotCount = hasStructuralErrors ? 3 : 1
+      variant.label = hasStructuralErrors
+        ? "Increase few-shot examples to 3 (structural errors detected)"
+        : "Reduce few-shot to 1 (no structural errors)"
+      break
+    }
+
+    case "temperature": {
+      // Determine direction from failure patterns
+      const hasRepetition = Object.keys(failureContext.deductionCounts || {})
+        .some(k => k.includes("semantic_overlap") || k.includes("same_verb") || k.includes("too_similar"))
+      const hasIncoherence = Object.keys(failureContext.deductionCounts || {})
+        .some(k => k.includes("role_violation") || k.includes("invalid") || k.includes("mismatch"))
+      const currentTemp = AB_TESTS.ai_temperature?.variants?.[0]?.config?.temperature || 0.4
+      // Raise temp if repetitive, lower if incoherent, nudge up by default
+      const delta = hasRepetition ? 0.1 : hasIncoherence ? -0.1 : 0.05
+      variant.mutations.temperature = Math.max(0.1, Math.min(0.9, currentTemp + delta))
+      variant.label = `Adjust temperature ${currentTemp} → ${variant.mutations.temperature} (${hasRepetition ? "repetition" : hasIncoherence ? "incoherence" : "exploration"})`
+      break
+    }
+
+    case "system_prefix":
+      variant.mutations.systemPrefix = AR_PROMPT_BLOCKS.SYSTEM_PREFIX_QUALITY
+      variant.label = "Add scenario quality primer to system message"
+      break
+
+    case "decision_window":
+      variant.mutations.decisionWindowBlock = `DECISION WINDOW GUARD (AutoResearch):
+All 4 options MUST occur at the SAME moment in the play. Ask yourself:
+- Is this BEFORE the pitch? DURING the play? AFTER the catch/throw?
+Pick ONE decision point. Every option is an action the player considers at THAT moment.
+BAD: Option A happens before the pitch, Option B happens after the catch (different moments = unfair comparison).
+GOOD: All 4 options are what you do the instant the ball is hit to you (same moment, different choices).
+If one option is "before the pitch" and another is "after the play," rewrite so all happen at the same instant.`
+      variant.label = "Enforce same decision moment for all 4 options"
+      break
+
+    case "explanation_anchoring":
+      variant.mutations.anchoringBlock = `EXPLANATION ANCHORING (AutoResearch):
+Each explanation MUST start by naming the specific action from its option.
+GOOD: "Throwing to the cutoff man works here because..." (names the action, then argues)
+BAD: "In this situation, the correct play involves maintaining proper relay alignment..." (never names what you're actually doing)
+Template: "[The action from this option] [works/fails] because [specific reason tied to the game situation]."
+The best explanation must argue FOR its option. Wrong-answer explanations must argue AGAINST their option.
+NEVER let an explanation argue for a DIFFERENT option than the one it's attached to.`
+      variant.label = "Anchor each explanation to its option's action text"
+      break
+
+    default:
+      console.warn(`[AutoResearch] Unknown mutation type: ${mutationType}`)
+      variant.label = `Unknown mutation: ${mutationType}`
+  }
+
+  return variant
+}
+
+/**
+ * buildAgentPromptWithVariant — Wraps buildAgentPrompt() to apply variant mutations.
+ * Does NOT modify buildAgentPrompt itself. Applies mutations on top of the base prompt.
+ * Position boundary hard stops are always injected to prevent any mutation from weakening them.
+ *
+ * @param {Object} plan - The plan object from planScenario()
+ * @param {Object|null} previousScenario - Previous scenario for anti-repetition
+ * @param {Object} variant - Variant object from generatePromptVariant()
+ * @returns {Object} { prompt: string, temperature: number|null } — modified prompt + optional temp override
+ */
+function buildAgentPromptWithVariant(plan, previousScenario, variant) {
+  // Start with the unmodified production prompt
+  let prompt = buildAgentPrompt(plan, previousScenario)
+  let temperatureOverride = null
+
+  const m = variant.mutations
+
+  // Always inject position boundary hard stops — no mutation may weaken these
+  prompt += "\n\n" + AR_PROMPT_BLOCKS.POSITION_BOUNDARY_HARDSTOP
+
+  // Apply system prefix (prepended)
+  if (m.systemPrefix) {
+    prompt = m.systemPrefix + "\n\n" + prompt
+  }
+
+  // Apply system suffix blocks
+  if (m.systemSuffix) {
+    prompt += "\n\n" + m.systemSuffix
+  }
+
+  // Apply explanation guidance
+  if (m.explanationBlock) {
+    prompt += "\n\n" + m.explanationBlock
+  }
+
+  // Apply distractor guidance
+  if (m.distractorGuidance) {
+    prompt += "\n\n" + m.distractorGuidance
+  }
+
+  // Apply coach line quality block
+  if (m.coachLineBlock) {
+    prompt += "\n\n" + m.coachLineBlock
+  }
+
+  // Apply position principle boost
+  if (m.positionPrincipleBlock) {
+    prompt += "\n\n" + m.positionPrincipleBlock
+  }
+
+  // Apply archetype mode: promote from optional blueprint to mandatory template
+  if (m.archetypeMode === "required_template") {
+    const archetypeKey = `${plan.position}:${plan.targetConcept || ''}`
+    const archetype = OPTION_ARCHETYPES[archetypeKey]
+    if (archetype) {
+      // Replace the optional "OPTION BLUEPRINT" section with a mandatory template
+      const optionalPattern = /OPTION BLUEPRINT \(use as structural guide, NOT literal text\):[\s\S]*?Generate specific game language — do NOT copy these hints word-for-word\.\n/
+      const mandatoryTemplate = `MANDATORY OPTION TEMPLATE (you MUST follow this structure):
+Your 4 options MUST map to these 4 roles:
+  Option [best]: CORRECT FUNDAMENTAL — ${archetype.correct}
+  One option: COMMON KID MISTAKE — ${archetype.kid_mistake}
+  One option: SOUNDS SMART BUT WRONG — ${archetype.sounds_smart}
+  One option: CLEARLY WRONG — ${archetype.clearly_wrong}
+Typical moment: ${archetype.moment}
+Rewrite each in vivid, situation-specific language. Do NOT copy verbatim. But the strategic ROLE of each option must match.
+`
+      if (optionalPattern.test(prompt)) {
+        prompt = prompt.replace(optionalPattern, mandatoryTemplate)
+      } else {
+        // Archetype section wasn't in the prompt (no matching archetype was found by buildAgentPrompt)
+        // Inject the template anyway since we have one
+        prompt += "\n\n" + mandatoryTemplate
+      }
+    }
+  }
+
+  // Apply knowledge map scope changes
+  if (m.mapInjection === "full") {
+    // Get ALL relevant maps for this position (not just the concept-matched one)
+    const positionMaps = Object.entries(MAP_RELEVANCE)
+      .filter(([, positions]) => positions.includes(plan.position))
+      .map(([mapName]) => mapName)
+      .slice(0, 5) // Cap at 5 maps to manage token budget
+
+    const fullMapsText = positionMaps
+      .map(name => KNOWLEDGE_MAPS[name] ? `[${name}]\n${KNOWLEDGE_MAPS[name]}` : null)
+      .filter(Boolean)
+      .join("\n\n")
+
+    if (fullMapsText) {
+      prompt += `\n\nFULL KNOWLEDGE MAPS FOR ${plan.position.toUpperCase()} (AutoResearch — expanded injection):\n${fullMapsText}`
+    }
+  } else if (m.mapInjection === "minimal") {
+    // No additional maps — the base prompt already has concept-matched map from buildAgentPrompt
+    // Nothing to add
+  }
+
+  // Apply few-shot count override
+  if (m.fewShotCount && m.fewShotCount > 1) {
+    // Get additional few-shot examples beyond what buildAgentPrompt already included
+    const extraExamples = KNOWLEDGE_BASE.getScenariosByConceptAndPosition(
+      plan.position, plan.targetConcept, m.fewShotCount
+    ).slice(1) // Skip first since buildAgentPrompt already included it
+    if (extraExamples.length > 0) {
+      const extraText = extraExamples.map((s, i) =>
+        `ADDITIONAL EXAMPLE ${i + 2}:\n${JSON.stringify(s)}`
+      ).join("\n\n")
+      prompt += `\n\nADDITIONAL FEW-SHOT EXAMPLES (AutoResearch):\n${extraText}`
+    }
+  }
+
+  // P5: Apply decision window block
+  if (m.decisionWindowBlock) {
+    prompt += "\n\n" + m.decisionWindowBlock
+  }
+
+  // P5: Apply explanation anchoring block
+  if (m.anchoringBlock) {
+    prompt += "\n\n" + m.anchoringBlock
+  }
+
+  // Apply temperature override (returned separately — caller uses it in API call)
+  if (typeof m.temperature === "number") {
+    temperatureOverride = m.temperature
+  }
+
+  // ── P1: Safety Phrase Guard (TPA O13) ──
+  // Scan all mutation text for phrases that WEAKEN position boundaries.
+  // Note: phrases that REINFORCE safety ("pitcher NEVER cuts") are fine — we check for weakening.
+  const SAFETY_WEAKENING_PATTERNS = [
+    /pitcher.*(can|may|should|could)\s*(sometimes|occasionally|also)?\s*(cut|relay|be\s*cutoff)/i,
+    /catcher.*(can|may|should).*(leave|go\s*to|move\s*to).*(second|third|outfield)/i,
+    /outfielder.*(can|should|may)\s*(be|become|act\s*as)\s*(the\s*)?(cutoff|relay)/i,
+    /infielder.*(has|have|takes?)\s*priority\s*over\s*outfielder/i,
+    /corner\s*(outfielder|OF).*(has|have|takes?)\s*priority\s*over\s*center/i,
+    /baserunner.*(can|should|may)\s*(direct|signal|call|yell\s*at)\s*(the\s*)?(defense|fielder)/i,
+    /ignore\s*(the\s*)?(position|role)\s*boundar/i,
+    /override\s*(the\s*)?(safety|position|tier\s*1)/i,
+  ]
+  const mutationTexts = [m.systemPrefix, m.systemSuffix, m.explanationBlock, m.distractorGuidance, m.coachLineBlock, m.positionPrincipleBlock].filter(Boolean).join(" ")
+  if (mutationTexts.length > 0) {
+    for (const pattern of SAFETY_WEAKENING_PATTERNS) {
+      if (pattern.test(mutationTexts)) {
+        console.warn("[AutoResearch] SAFETY VIOLATION: Variant mutation contains safety-weakening text. Stripping all mutations.")
+        // Return unmodified base prompt with only the hardstop
+        const safePrompt = buildAgentPrompt(plan, previousScenario) + "\n\n" + AR_PROMPT_BLOCKS.POSITION_BOUNDARY_HARDSTOP
+        return { prompt: safePrompt, temperatureOverride: null, safetyOverride: true }
+      }
+    }
+  }
+
+  return { prompt, temperatureOverride, safetyOverride: false }
 }
 
 // ============================================================================
@@ -11151,7 +12708,7 @@ async function generateWithMultiAgent(position, stats, signal, targetConcept = n
 // ============================================================================
 // Level 3.7: Agent Pipeline with Shadow Mode
 // ============================================================================
-async function generateWithAgentPipeline(position, stats, conceptsLearned, recentWrong, signal, targetConcept, aiHistory, flaggedAvoidText = "", previousScenario = null, timeoutMs = 55000) {
+async function generateWithAgentPipeline(position, stats, conceptsLearned, recentWrong, signal, targetConcept, aiHistory, flaggedAvoidText = "", previousScenario = null, timeoutMs = 55000, variant = null) {
   // Stage 1: Plan
   const plan = planScenario(position, stats, conceptsLearned, recentWrong, targetConcept, aiHistory)
   if (flaggedAvoidText) plan.flaggedAvoidText = flaggedAvoidText
@@ -11168,10 +12725,17 @@ async function generateWithAgentPipeline(position, stats, conceptsLearned, recen
     }
   } catch (e) { /* non-blocking */ }
 
-  console.log("[BSM Agent] Plan:", plan.teachingGoal, "concept:", plan.targetConcept, "diff:", plan.difficulty, plan.situationHint ? "situationHint:" + JSON.stringify(plan.situationHint) : "")
+  console.log("[BSM Agent] Plan:", plan.teachingGoal, "concept:", plan.targetConcept, "diff:", plan.difficulty, plan.situationHint ? "situationHint:" + JSON.stringify(plan.situationHint) : "", variant ? "[AR variant: " + variant.mutationType + "]" : "")
 
-  // Stage 2: Generate (using agent prompt)
-  const agentPrompt = buildAgentPrompt(plan, previousScenario)
+  // Stage 2: Generate (using agent prompt — with optional AutoResearch variant)
+  let agentPrompt, variantTempOverride = null
+  if (variant) {
+    const varResult = buildAgentPromptWithVariant(plan, previousScenario, variant)
+    agentPrompt = varResult.prompt
+    variantTempOverride = varResult.temperatureOverride
+  } else {
+    agentPrompt = buildAgentPrompt(plan, previousScenario)
+  }
 
   // Use the existing AI infrastructure but with the agent's focused prompt
   const lvl = getLvl(stats.pts)
@@ -11180,7 +12744,7 @@ async function generateWithAgentPipeline(position, stats, conceptsLearned, recen
   try {
     const abConfigs = getActiveABConfigs(stats.sessionHash || "")
     const tempConfig = abConfigs.ai_temperature || {}
-    const aiTemp = tempConfig.temperature || 0.4
+    const aiTemp = variantTempOverride || tempConfig.temperature || 0.4
 
     const fetchOpts = {
       method: "POST",
@@ -11736,6 +13300,7 @@ SCORE RULES (READ FIRST — score errors are the #1 quality issue):
 - Double-check: read your description, find every score reference, and verify it matches the score array.
 
 DESCRIPTION STYLE: Write descriptions as if explaining a game situation to a young baseball player. Use simple, everyday language. Do NOT include statistics, RE24 values, batting averages, or advanced analytics in the description or options. Save numbers for explanations only, and only for older players.
+CRITICAL: The LAST sentence of every description MUST be a decision prompt. End with "What should you do?", "What's your call?", "What's the play?", or similar.
 
 ${topicsText}
 
@@ -13659,11 +15224,17 @@ const Field=React.memo(function Field({runners=[],outcome=null,ak=0,anim=null,an
       {/* AF1: Check ANIM_DATA first. If found, use AnimPhases renderer. Otherwise fall through to inline SMIL. */}
       {(()=>{
         if(!anim||!outcome)return null;
+        // Position-aware outcome: for defensive positions, "success" (correct answer) on steal/score/advance
+        // means the RUNNER is OUT, not safe. Flip the animation outcome.
+        const DEFENSIVE_POS=["pitcher","catcher","firstBase","secondBase","shortstop","thirdBase","leftField","centerField","rightField"];
+        const FLIP_ANIMS=["steal","score","advance","safe"];
+        const effectiveOutcome=(DEFENSIVE_POS.includes(pos)&&FLIP_ANIMS.includes(anim))
+          ?(outcome==="success"?"fail":"success"):outcome;
         // AF3+AF5: Check for animation variant (pitch type OR direction)
         // Direction variants: steal_2to3_success, advance_3toHome_success, etc.
-        const dirVariant=animVariant?anim+"_"+animVariant+"_"+outcome:null;
+        const dirVariant=animVariant?anim+"_"+animVariant+"_"+effectiveOutcome:null;
         const pitchVariant=animVariant?anim.replace("out","")+"_"+animVariant:null;
-        const dataKey=anim+"_"+outcome;
+        const dataKey=anim+"_"+effectiveOutcome;
         const altKey=anim+"_success";
         const phases=ANIM_DATA[dirVariant]||ANIM_DATA[pitchVariant]||ANIM_DATA[dataKey]||ANIM_DATA[altKey];
         if(phases)return <AnimPhases phases={phases} ak={ak}/>;
@@ -19518,7 +21089,7 @@ export default function App(){
                 </div>
                 {/* Field with position highlight glow */}
                 <div style={{background:"rgba(0,0,0,.3)",borderRadius:12,padding:4,marginBottom:10,border:`1px solid ${pm?.color||"#3b82f6"}20`,position:"relative",overflow:"hidden"}}>
-                  <Field pos={r.pos} runners={sit.runners} anim="freeze" theme={thm} avatar={av}/>
+                  <Field pos={r.pos} runners={sit.runners} outcome={r.correct?"success":"fail"} ak={filmStep} anim={q?.anim||"freeze"} animVariant={(()=>{const rn=sit.runners||[];const a=q?.anim;if(a==='steal'){if(rn.includes(3))return'3toHome';if(rn.includes(2)&&!rn.includes(1))return'2to3';}if(a==='advance'){if(rn.includes(3))return'3toHome';if(rn.includes(2)&&!rn.includes(1))return'2to3';}if(a==='hit'||a==='flyout'){if(r.pos==='leftField')return'LF';if(r.pos==='centerField')return'CF';}if(a==='groundout'&&(r.pos==='firstBase'||r.pos==='secondBase'))return'1B';if(a==='freeze'){if(rn.includes(3))return'3B';if(rn.includes(2))return'2B';}return null;})()} theme={thm} avatar={av} slow={true}/>
                   {/* SVG glow overlay for highlighted position */}
                   <svg viewBox="0 0 400 340" style={{position:"absolute",top:4,left:4,right:4,bottom:4,width:"calc(100% - 8px)",height:"calc(100% - 8px)",pointerEvents:"none"}}>
                     <defs>

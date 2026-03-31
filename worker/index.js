@@ -172,6 +172,11 @@ const PBKDF2_ITERATIONS = 100_000;
 // CREATE INDEX IF NOT EXISTS idx_pool_quality ON scenario_pool(quality_score);
 // CREATE INDEX IF NOT EXISTS idx_pool_retired ON scenario_pool(retired);
 
+// AutoResearch: Prompt optimization cycle tracking
+// See worker/migrations/autoresearch_tables.sql
+// CREATE TABLE IF NOT EXISTS prompt_optimization_cycles (cycle_id TEXT PRIMARY KEY, timestamp TEXT NOT NULL, control_avg_score REAL, control_pass_rate REAL, control_tier1_fails INTEGER, variants_tested INTEGER, variants_adopted INTEGER, results_json TEXT, changelog_entry TEXT);
+// CREATE TABLE IF NOT EXISTS prompt_variants_log (variant_id TEXT PRIMARY KEY, cycle_id TEXT REFERENCES prompt_optimization_cycles(cycle_id), mutation_type TEXT NOT NULL, mutations_json TEXT NOT NULL, avg_score REAL, pass_rate REAL, delta_vs_control REAL, adopted BOOLEAN DEFAULT FALSE, created_at TEXT NOT NULL);
+
 const rateCounts = new Map();
 const loginAttempts = new Map();
 
@@ -4186,6 +4191,330 @@ export default {
       } catch (err) {
         console.error("[BSM Worker] Team error:", err);
         return jsonResponse({ ok: false, error: "Server error" }, 500, cors);
+      }
+    }
+
+    // ════════════════════════════════════════════════════════════════
+    // AutoResearch: Claude Opus Generation Endpoint
+    // Accepts a full prompt and routes to Claude Opus (not xAI).
+    // Gives AutoResearch direct prompt control + Claude model quality.
+    // ════════════════════════════════════════════════════════════════
+
+    if (path === "/v1/autoresearch-generate" && request.method === "POST") {
+      const adminKey = request.headers.get("X-Admin-Key");
+      if (!adminKey || adminKey !== env.ADMIN_KEY) {
+        return jsonResponse({ error: "Unauthorized" }, 401, cors);
+      }
+      if (!checkRateLimit(`ar:${ip}`, RATE_LIMIT_AI)) {
+        return jsonResponse({ error: "Rate limited" }, 429, cors);
+      }
+      try {
+        const body = await request.json();
+        const { systemPrompt, userPrompt, temperature, maxTokens } = body;
+        if (!userPrompt) return jsonResponse({ error: "Missing userPrompt" }, 400, cors);
+
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 60000); // 60s timeout
+
+        const res = await fetch(ANTHROPIC_API_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-api-key": env.ANTHROPIC_API_KEY,
+            "anthropic-version": "2023-06-01"
+          },
+          body: JSON.stringify({
+            model: ANTHROPIC_MODEL,
+            max_tokens: maxTokens || 2000,
+            temperature: temperature || 0.4,
+            system: systemPrompt || "You are the world's most experienced baseball coach. Respond with ONLY valid JSON.",
+            messages: [{ role: "user", content: userPrompt }]
+          }),
+          signal: controller.signal
+        });
+        clearTimeout(timer);
+
+        if (!res.ok) {
+          const errBody = await res.json().catch(() => ({}));
+          return jsonResponse({ error: "Claude API error", status: res.status, detail: errBody.error?.message || "" }, res.status, cors);
+        }
+
+        const data = await res.json();
+        const text = data.content?.[0]?.text || "";
+        const usage = data.usage || {};
+
+        return jsonResponse({
+          ok: true,
+          text,
+          model: ANTHROPIC_MODEL,
+          usage: { input_tokens: usage.input_tokens || 0, output_tokens: usage.output_tokens || 0 },
+          stop_reason: data.stop_reason || "unknown"
+        }, 200, cors);
+      } catch (e) {
+        if (e.name === "AbortError") return jsonResponse({ error: "Claude timeout (60s)" }, 504, cors);
+        return jsonResponse({ error: e.message }, 500, cors);
+      }
+    }
+
+    // ════════════════════════════════════════════════════════════════
+    // AutoResearch: Prompt Optimization Persistence
+    // ════════════════════════════════════════════════════════════════
+
+    if (path === "/autoresearch/save-cycle" && request.method === "POST") {
+      const adminKey = request.headers.get("X-Admin-Key");
+      if (!adminKey || adminKey !== env.ADMIN_KEY) {
+        return jsonResponse({ error: "Unauthorized" }, 401, cors);
+      }
+      try {
+        const body = await request.json();
+        const { report } = body;
+        if (!report || !report.cycle_id) return jsonResponse({ error: "Missing report.cycle_id" }, 400, cors);
+
+        // Write to prompt_optimization_cycles
+        await env.DB.prepare(`
+          INSERT OR REPLACE INTO prompt_optimization_cycles
+          (cycle_id, timestamp, control_avg_score, control_pass_rate, control_tier1_fails,
+           variants_tested, variants_adopted, results_json, changelog_entry)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `).bind(
+          report.cycle_id,
+          report.timestamp || new Date().toISOString(),
+          report.control?.avg_score || 0,
+          report.control?.pass_rate || 0,
+          Math.round((report.control?.tier1_fail_rate || 0) * (report.control?.n || 1) / 100),
+          report.variants_tested || 0,
+          report.variants_adopted || 0,
+          JSON.stringify(report),
+          JSON.stringify(report.changelog_entry || {})
+        ).run();
+
+        // Write each variant to prompt_variants_log
+        const allVariants = [...(report.adopted || []), ...(report.reverted || [])];
+        for (const v of allVariants) {
+          await env.DB.prepare(`
+            INSERT OR REPLACE INTO prompt_variants_log
+            (variant_id, cycle_id, mutation_type, mutations_json, avg_score, pass_rate,
+             delta_vs_control, adopted, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+          `).bind(
+            v.variant_id,
+            report.cycle_id,
+            v.mutation_type,
+            JSON.stringify(v),
+            v.delta ? (report.control?.avg_score || 0) + v.delta : 0,
+            v.pass_rate_delta ? (report.control?.pass_rate || 0) + v.pass_rate_delta : 0,
+            v.delta || 0,
+            v.reason === "improvement" ? 1 : 0,
+            report.timestamp || new Date().toISOString()
+          ).run();
+        }
+
+        return jsonResponse({ ok: true, cycle_id: report.cycle_id, variants_saved: allVariants.length }, 200, cors);
+      } catch (e) {
+        return jsonResponse({ error: e.message }, 500, cors);
+      }
+    }
+
+    if (path === "/autoresearch/history" && request.method === "GET") {
+      const adminKey = request.headers.get("X-Admin-Key") || url.searchParams.get("key");
+      if (!adminKey || adminKey !== env.ADMIN_KEY) {
+        return jsonResponse({ error: "Unauthorized" }, 401, cors);
+      }
+      try {
+        const cycles = await env.DB.prepare(`
+          SELECT cycle_id, timestamp, control_avg_score, control_pass_rate, control_tier1_fails,
+                 variants_tested, variants_adopted, changelog_entry
+          FROM prompt_optimization_cycles
+          ORDER BY timestamp DESC
+          LIMIT 20
+        `).all();
+
+        const adopted = await env.DB.prepare(`
+          SELECT variant_id, cycle_id, mutation_type, delta_vs_control, avg_score, pass_rate, created_at
+          FROM prompt_variants_log
+          WHERE adopted = 1
+          ORDER BY created_at DESC
+          LIMIT 50
+        `).all();
+
+        return jsonResponse({
+          ok: true,
+          cycles: cycles.results || [],
+          adopted_mutations: adopted.results || [],
+          total_cycles: (cycles.results || []).length,
+          total_adopted: (adopted.results || []).length
+        }, 200, cors);
+      } catch (e) {
+        return jsonResponse({ error: e.message }, 500, cors);
+      }
+    }
+
+    if (path === "/autoresearch/dashboard" && request.method === "GET") {
+      const adminKey = url.searchParams.get("key");
+      if (!adminKey || adminKey !== env.ADMIN_KEY) {
+        return new Response("Unauthorized. Pass ?key=YOUR_ADMIN_KEY", { status: 401, headers: cors });
+      }
+      try {
+        const cycles = await env.DB.prepare(`
+          SELECT cycle_id, timestamp, control_avg_score, control_pass_rate, control_tier1_fails,
+                 variants_tested, variants_adopted, results_json
+          FROM prompt_optimization_cycles
+          ORDER BY timestamp DESC
+          LIMIT 50
+        `).all();
+
+        const adopted = await env.DB.prepare(`
+          SELECT variant_id, cycle_id, mutation_type, delta_vs_control, avg_score, pass_rate, created_at
+          FROM prompt_variants_log
+          WHERE adopted = 1
+          ORDER BY created_at DESC
+        `).all();
+
+        const allVariants = await env.DB.prepare(`
+          SELECT mutation_type, adopted, delta_vs_control, COUNT(*) as count
+          FROM prompt_variants_log
+          GROUP BY mutation_type, adopted
+          ORDER BY mutation_type
+        `).all();
+
+        const cycleData = (cycles.results || []).reverse();
+        const adoptedData = adopted.results || [];
+        const variantStats = allVariants.results || [];
+
+        // Build mutation effectiveness leaderboard
+        const mutationMap = {};
+        for (const v of variantStats) {
+          if (!mutationMap[v.mutation_type]) mutationMap[v.mutation_type] = { tested: 0, adopted: 0, totalDelta: 0 };
+          mutationMap[v.mutation_type].tested += v.count;
+          if (v.adopted) { mutationMap[v.mutation_type].adopted += v.count; mutationMap[v.mutation_type].totalDelta += (v.delta_vs_control || 0) * v.count; }
+        }
+
+        const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BSM AutoResearch Dashboard</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,system-ui,sans-serif;background:#0f172a;color:#e2e8f0;padding:24px;max-width:1200px;margin:0 auto}
+h1{font-size:24px;margin-bottom:4px;color:#38bdf8}
+.sub{color:#94a3b8;margin-bottom:24px;font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:32px}
+.card{background:#1e293b;border-radius:12px;padding:20px;border:1px solid #334155}
+.card .val{font-size:32px;font-weight:700;color:#38bdf8}
+.card .label{font-size:13px;color:#94a3b8;margin-top:4px}
+h2{font-size:18px;margin-bottom:12px;color:#f1f5f9}
+table{width:100%;border-collapse:collapse;margin-bottom:32px;font-size:14px}
+th{text-align:left;padding:8px 12px;background:#1e293b;color:#94a3b8;border-bottom:2px solid #334155}
+td{padding:8px 12px;border-bottom:1px solid #1e293b}
+tr:hover td{background:#1e293b}
+.adopted{color:#4ade80;font-weight:600}
+.reverted{color:#f87171}
+.marginal{color:#fbbf24}
+.chart-container{background:#1e293b;border-radius:12px;padding:20px;border:1px solid #334155;margin-bottom:32px;height:300px;position:relative}
+canvas{width:100%!important;height:100%!important}
+.empty{color:#64748b;text-align:center;padding:40px;font-style:italic}
+</style>
+</head>
+<body>
+<h1>AutoResearch Dashboard</h1>
+<p class="sub">Autonomous Prompt Optimization — BSM AI Pipeline</p>
+
+<div class="grid">
+  <div class="card"><div class="val">${cycleData.length}</div><div class="label">Total Cycles</div></div>
+  <div class="card"><div class="val">${adoptedData.length}</div><div class="label">Mutations Adopted</div></div>
+  <div class="card"><div class="val">${cycleData.length > 0 ? cycleData[cycleData.length - 1].control_avg_score?.toFixed(1) || '—' : '—'}</div><div class="label">Latest Avg Score</div></div>
+  <div class="card"><div class="val">${cycleData.length > 0 ? (cycleData[cycleData.length - 1].control_pass_rate?.toFixed(0) || '—') + '%' : '—'}</div><div class="label">Latest Pass Rate</div></div>
+</div>
+
+<h2>Score Over Time</h2>
+${cycleData.length > 0 ? `
+<div class="chart-container">
+  <canvas id="scoreChart"></canvas>
+</div>
+<script>
+const ctx = document.getElementById('scoreChart').getContext('2d');
+const data = ${JSON.stringify(cycleData.map(c => ({ t: c.timestamp?.split('T')[0] || '', s: c.control_avg_score || 0, p: c.control_pass_rate || 0 })))};
+const W = ctx.canvas.width = ctx.canvas.parentElement.clientWidth - 40;
+const H = ctx.canvas.height = 260;
+const pad = {t:20,r:20,b:30,l:50};
+const gw = W-pad.l-pad.r, gh = H-pad.t-pad.b;
+const minS = Math.min(...data.map(d=>d.s))-5, maxS = Math.max(...data.map(d=>d.s))+5;
+ctx.fillStyle='#94a3b8';ctx.font='12px sans-serif';
+// Y axis
+for(let i=0;i<=4;i++){
+  const v=minS+(maxS-minS)*i/4; const y=pad.t+gh-gh*i/4;
+  ctx.fillText(v.toFixed(0),pad.l-35,y+4);
+  ctx.strokeStyle='#334155';ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(pad.l+gw,y);ctx.stroke();
+}
+// Line
+if(data.length>1){
+  ctx.strokeStyle='#38bdf8';ctx.lineWidth=2.5;ctx.beginPath();
+  data.forEach((d,i)=>{
+    const x=pad.l+gw*i/(data.length-1); const y=pad.t+gh-(d.s-minS)/(maxS-minS)*gh;
+    i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  });ctx.stroke();
+  // Dots
+  data.forEach((d,i)=>{
+    const x=pad.l+gw*i/(data.length-1); const y=pad.t+gh-(d.s-minS)/(maxS-minS)*gh;
+    ctx.fillStyle='#38bdf8';ctx.beginPath();ctx.arc(x,y,4,0,Math.PI*2);ctx.fill();
+  });
+}
+// X labels
+ctx.fillStyle='#94a3b8';
+data.forEach((d,i)=>{
+  if(i%(Math.ceil(data.length/6))===0||i===data.length-1){
+    const x=pad.l+gw*i/Math.max(1,data.length-1);
+    ctx.fillText(d.t,x-20,H-5);
+  }
+});
+</script>` : '<div class="empty">No cycles recorded yet. Run runAutoResearchDryRun() to generate data.</div>'}
+
+<h2>Adopted Mutations</h2>
+${adoptedData.length > 0 ? `<table>
+<tr><th>Date</th><th>Cycle</th><th>Mutation Type</th><th>Delta</th><th>Score</th><th>Pass Rate</th></tr>
+${adoptedData.map(a => `<tr>
+  <td>${(a.created_at || '').split('T')[0]}</td>
+  <td>${a.cycle_id}</td>
+  <td class="adopted">${a.mutation_type}</td>
+  <td class="adopted">+${(a.delta_vs_control || 0).toFixed(1)}</td>
+  <td>${(a.avg_score || 0).toFixed(1)}</td>
+  <td>${(a.pass_rate || 0).toFixed(0)}%</td>
+</tr>`).join('')}
+</table>` : '<div class="empty">No mutations adopted yet.</div>'}
+
+<h2>Mutation Effectiveness</h2>
+${Object.keys(mutationMap).length > 0 ? `<table>
+<tr><th>Mutation Type</th><th>Times Tested</th><th>Times Adopted</th><th>Adopt Rate</th><th>Avg Delta When Adopted</th></tr>
+${Object.entries(mutationMap).sort((a,b)=>b[1].adopted-a[1].adopted).map(([type, stats]) => `<tr>
+  <td>${type}</td>
+  <td>${stats.tested}</td>
+  <td>${stats.adopted}</td>
+  <td>${stats.tested > 0 ? Math.round(stats.adopted / stats.tested * 100) : 0}%</td>
+  <td>${stats.adopted > 0 ? '+' + (stats.totalDelta / stats.adopted).toFixed(1) : '—'}</td>
+</tr>`).join('')}
+</table>` : '<div class="empty">No variant data yet.</div>'}
+
+<h2>Recent Cycles</h2>
+${cycleData.length > 0 ? `<table>
+<tr><th>Date</th><th>Cycle ID</th><th>Avg Score</th><th>Pass Rate</th><th>T1 Fails</th><th>Tested</th><th>Adopted</th></tr>
+${[...cycleData].reverse().map(c => `<tr>
+  <td>${(c.timestamp || '').split('T')[0]}</td>
+  <td>${c.cycle_id}</td>
+  <td>${(c.control_avg_score || 0).toFixed(1)}</td>
+  <td>${(c.control_pass_rate || 0).toFixed(0)}%</td>
+  <td>${c.control_tier1_fails || 0}</td>
+  <td>${c.variants_tested || 0}</td>
+  <td class="${c.variants_adopted > 0 ? 'adopted' : ''}">${c.variants_adopted || 0}</td>
+</tr>`).join('')}
+</table>` : ''}
+
+<p class="sub" style="margin-top:32px;text-align:center">AutoResearch v1.0.0 — BSM AI Pipeline</p>
+</body></html>`;
+
+        return new Response(html, { status: 200, headers: { ...cors, "Content-Type": "text/html;charset=utf-8" } });
+      } catch (e) {
+        return new Response("Error: " + e.message, { status: 500, headers: cors });
       }
     }
 

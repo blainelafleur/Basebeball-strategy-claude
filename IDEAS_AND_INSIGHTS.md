@@ -1,7 +1,7 @@
 # BSM Ideas & Insights Log
 ## A living document of ideas, patterns, and future directions
 
-**Started:** 2026-03-19 | **Last updated:** 2026-03-26
+**Started:** 2026-03-19 | **Last updated:** 2026-03-27
 
 ---
 
@@ -377,6 +377,286 @@ From thought partner analysis of 14 total detectable patterns (6 shipped):
 - Position × pressure interaction (great under pressure at batter, terrible at pitcher)
 - Improvement under pressure over time (tracking growth)
 - RE24 illiteracy (consistently wrong about run expectancy)
+
+---
+
+## Defensive Animation Gap Analysis (TPA)
+
+**Date:** 2026-03-27 | **Reviewer:** Thought Partner Agent | **Scope:** Animation coverage audit, new animation designs for defensive scenarios
+
+---
+
+### The Problem: 44 Scenarios Show a Static Field
+
+44 scenarios (6.8% of 644) use `anim:"freeze"`. But "freeze" is not always wrong -- many freeze scenarios deliberately teach "don't move." The real gap is scenarios using `anim:"catch"` (84), `anim:"safe"` (23), and several other types that only have inline SMIL fallbacks with no ANIM_DATA entries, meaning they lack ghost/fail variants, direction variants, and the full phase-based animation quality.
+
+**Current animation coverage audit:**
+
+| Animation | Scenario Count | Has ANIM_DATA? | Has Inline SMIL? | Has Fail Variant? | Needs Work? |
+|-----------|---------------|----------------|-------------------|-------------------|-------------|
+| hit | 98 | Yes (+ CF, LF variants) | Yes (fallback) | Yes | Low -- well covered |
+| strike | 86 | Yes (+ curveball, slider, changeup) | Yes | Yes | Low |
+| catch | 84 | **No** | Yes (inline only) | **No** | **HIGH** |
+| groundout | 73 | Yes (+ 1B variant) | Yes | Yes | Low |
+| throwHome | 47 | Yes (+ OF variant) | N/A | No | Medium |
+| freeze | 44 | Yes (2B, 3B variants) | Yes | N/A | Medium (see below) |
+| advance | 39 | Yes (+ 2to3, 3toHome) | Yes | No | Medium |
+| steal | 37 | Yes (+ 2to3, 3toHome) | Yes | Yes | Low |
+| strikeout | 27 | Yes | Yes | Yes | Low |
+| score | 23 | Yes | Yes | Yes | Low |
+| safe | 23 | **No** | Yes (inline only) | **No** | **HIGH** |
+| bunt | 21 | Yes | Yes | Yes | Low |
+| doubleplay | 20 | Yes | N/A | No | Medium |
+| walk | 14 | Yes | Yes | No | Low |
+| flyout | 13 | Yes (+ CF, LF variants) | Yes | Yes | Low |
+| relay | 6 | Yes | Yes (inline) | No | Medium |
+| pickoff | 6 | **No** | Yes (inline only) | **No** | **HIGH** |
+| popup | 4 | **No** | Yes (inline only) | **No** | Medium |
+| wildPitch | 2 | **No** | Yes (inline only) | **No** | Low (only 2) |
+| squeeze | 2 | **No** | Yes (inline only) | **No** | Low (only 2) |
+| tag | 1 | **No** | Yes (inline only) | **No** | Low (only 1) |
+| hitByPitch | 1 | **No** | Yes (inline only) | **No** | Low (only 1) |
+
+---
+
+### The 6 Most-Needed New ANIM_DATA Entries
+
+Prioritized by: (1) scenario count, (2) educational value, (3) visual distinctiveness from existing animations.
+
+#### 1. `catch_success` / `catch_fail` -- 84 scenarios, NO ANIM_DATA
+
+The most common animation without ANIM_DATA. Current inline SMIL shows a generic ball dropping from upper-left to a fielder. No fail variant exists at all.
+
+**Proposed `catch_success` phases:**
+```
+catch_success: [
+  // Ball arcs to fielder position (SS/2B area)
+  {type:"ball", path:"M200,290 Q220,180 235,165", dur:.4, begin:0, color:"white", r:2.5, easing:EASE.flyArc, glow:true},
+  // Trail following ball
+  {type:"trail", path:"M200,290 Q220,180 235,165", dur:.4, begin:.03, color:"white", r:1.5, easing:EASE.flyArc},
+  // Glove pop flash at catch point
+  {type:"flash", cx:235, cy:165, r:10, dur:.12, begin:.39, color:"rgba(34,197,94,.5)"},
+  // Dust from slide-step
+  {type:"dust", cx:237, cy:167, r:5, dur:.25, begin:.38, color:"#c4a882"},
+  // GOT IT text
+  {type:"text", x:235, y:150, text:"GOT IT!", size:10, color:"#22c55e", dur:1.2, begin:0},
+]
+```
+
+**Proposed `catch_fail` phases (ball drops in):**
+```
+catch_fail: [
+  // Ball arcs toward fielder but drops through
+  {type:"ball", path:"M200,290 Q220,180 245,155 Q260,145 280,110", dur:.5, begin:0, color:"white", r:2.5, easing:EASE.flyArc},
+  // Fielder reaches but misses -- flash shows "near miss"
+  {type:"flash", cx:245, cy:155, r:6, dur:.1, begin:.35, color:"rgba(239,68,68,.3)"},
+  // Ball continues past
+  {type:"text", x:260, y:140, text:"BASE HIT!", size:10, color:"#ef4444", dur:1.2, begin:0},
+]
+```
+
+**Direction variants to add:** `catch_LF`, `catch_CF`, `catch_RF` -- change the ball path endpoint. Most catch scenarios specify position context (e.g., "shortstop dives") but the animation is generic.
+
+#### 2. `safe_success` / `safe_fail` -- 23 scenarios, NO ANIM_DATA
+
+Currently uses inline SMIL with expanding green rings. Good visual but lacks runner movement and fail variant.
+
+**Proposed `safe_success` phases (runner beats throw to 2B):**
+```
+safe_success: [
+  // Runner sprinting 1B to 2B
+  {type:"runner", path:"M290,210 Q248,170 200,135", dur:.5, begin:0, easing:EASE.runner},
+  // Ball arrives at base (slightly late)
+  {type:"ball", path:"M200,300 Q210,215 200,138", dur:.45, begin:.12, color:"white", r:2, easing:EASE.throw},
+  // Slide dust
+  {type:"dust", cx:200, cy:137, r:7, dur:.3, begin:.48, color:"#c4a882"},
+  {type:"dust", cx:203, cy:135, r:5, dur:.25, begin:.50, color:"#c4a882"},
+  // Flash at arrival
+  {type:"flash", cx:200, cy:135, r:12, dur:.15, begin:.49, color:"rgba(34,197,94,.4)"},
+  // SAFE text
+  {type:"text", x:200, y:120, text:"SAFE!", size:13, color:"#22c55e", dur:1.3, begin:0},
+]
+```
+
+**Proposed `safe_fail` phases (runner is tagged out):**
+```
+safe_fail: [
+  // Runner sprinting but ball arrives first
+  {type:"runner", path:"M290,210 Q265,190 248,178", dur:.45, begin:0, easing:EASE.runner, o:0.5},
+  // Ball beats runner
+  {type:"ball", path:"M200,300 Q210,215 200,138", dur:.35, begin:.05, color:"#ef4444", r:2.5, easing:EASE.throw},
+  // Tag flash
+  {type:"flash", cx:230, cy:170, r:10, dur:.12, begin:.42, color:"rgba(239,68,68,.4)"},
+  // OUT text
+  {type:"text", x:230, y:160, text:"OUT!", size:11, color:"#ef4444", dur:1.2, begin:0},
+]
+```
+
+#### 3. `pickoff_success` / `pickoff_fail` -- 6 scenarios, but conceptually important
+
+Pickoff is a signature defensive play that teaches reading the pitcher. Current inline SMIL is minimal (ball to 1B + dust). ANIM_DATA would enable: pitcher wind-up fake, snap throw, runner dive-back.
+
+**Proposed `pickoff_success` phases (runner picked off at 1B):**
+```
+pickoff_success: [
+  // Quick snap throw from mound to 1B
+  {type:"ball", path:"M200,218 Q245,214 290,210", dur:.2, begin:0, color:"white", r:2.5, easing:EASE.throw, glow:true},
+  // Runner starts to dive back (too late)
+  {type:"runner", path:"M300,210 Q295,208 292,210", dur:.3, begin:.05, easing:EASE.runner, o:0.6},
+  // Tag flash at 1B
+  {type:"flash", cx:290, cy:210, r:10, dur:.12, begin:.19, color:"rgba(239,68,68,.5)"},
+  // Dust from dive
+  {type:"dust", cx:292, cy:212, r:6, dur:.25, begin:.18, color:"#c4a882"},
+  // OUT text
+  {type:"text", x:290, y:196, text:"PICKED OFF!", size:10, color:"#22c55e", dur:1.2, begin:0},
+]
+```
+
+**Proposed `pickoff_fail` phases (runner safe on dive-back):**
+```
+pickoff_fail: [
+  // Snap throw
+  {type:"ball", path:"M200,218 Q245,214 290,210", dur:.2, begin:0, color:"white", r:2.5, easing:EASE.throw},
+  // Runner dives back safely
+  {type:"runner", path:"M300,210 Q295,209 290,210", dur:.25, begin:.02, easing:EASE.runner},
+  // Dust from dive
+  {type:"dust", cx:291, cy:212, r:5, dur:.25, begin:.2, color:"#c4a882"},
+  // SAFE flash
+  {type:"flash", cx:290, cy:210, r:8, dur:.12, begin:.22, color:"rgba(34,197,94,.4)"},
+  // SAFE text
+  {type:"text", x:290, y:196, text:"SAFE!", size:10, color:"#ef4444", dur:1.2, begin:0},
+]
+```
+
+**Variants:** `pickoff_2B` (throw to 2B, more dramatic -- pitcher spin move), `pickoff_3B` (rare but exists in scenarios).
+
+#### 4. `doubleplay_fail` -- 20 scenarios, success exists but no fail
+
+Double play already has `doubleplay_success` in ANIM_DATA showing ball 2B->1B with flashes. Missing: the failure case where the DP turn is botched.
+
+**Proposed `doubleplay_fail` phases:**
+```
+doubleplay_fail: [
+  // Ball to 2B (first out made)
+  {type:"ball", path:"M240,258 Q240,200 200,135", dur:.25, begin:0, color:"#22c55e", r:3, easing:EASE.throw},
+  {type:"flash", cx:200, cy:135, r:6, dur:.1, begin:.24, color:"rgba(34,197,94,.3)"},
+  // Relay throw to 1B (late or wild)
+  {type:"ball", path:"M200,135 Q248,170 290,210", dur:.3, begin:.3, color:"#ef4444", r:2.5, easing:EASE.throw},
+  // Runner beats it
+  {type:"runner", path:"M200,290 Q248,252 290,210", dur:.55, begin:.05, easing:EASE.runner},
+  // SAFE at 1B
+  {type:"flash", cx:290, cy:210, r:8, dur:.12, begin:.58, color:"rgba(239,68,68,.4)"},
+  {type:"text", x:245, y:175, text:"SAFE AT FIRST!", size:9, color:"#ef4444", dur:1.2, begin:0},
+]
+```
+
+#### 5. `popup_success` -- 4 scenarios, important for infield-fly rule teaching
+
+Current inline SMIL shows a ball going up and coming down. Needs the full treatment: ball pops HIGH (emphasize height), hangs, drops into glove. The infield fly rule is one of the hardest concepts for young players.
+
+**Proposed `popup_success` phases:**
+```
+popup_success: [
+  // Contact flash
+  {type:"flash", cx:200, cy:288, r:5, dur:.08, begin:0, color:"rgba(255,255,255,.6)"},
+  // Ball pops WAY up (emphasis on height via slow arc)
+  {type:"ball", path:"M200,290 Q200,60 210,200", dur:.7, begin:.02, color:"white", r:2.5, easing:EASE.flyArc},
+  // Trail showing height
+  {type:"trail", path:"M200,290 Q200,60 210,200", dur:.7, begin:.05, color:"white", r:1.5, easing:EASE.flyArc},
+  // Catch flash
+  {type:"flash", cx:210, cy:200, r:10, dur:.12, begin:.71, color:"rgba(34,197,94,.5)"},
+  // Dust at catch point
+  {type:"dust", cx:212, cy:202, r:4, dur:.2, begin:.70, color:"#c4a882"},
+  // INFIELD FLY text
+  {type:"text", x:210, y:185, text:"INFIELD FLY!", size:10, color:"#22c55e", dur:1.2, begin:0},
+]
+```
+
+#### 6. Freeze Sub-Animations -- Reclassify 44 freeze scenarios
+
+The 44 freeze scenarios fall into distinct categories. Not all should stay as `anim:"freeze"`. Some could use existing animations with `animVariant`:
+
+| Freeze Category | Count (approx) | Recommendation |
+|----------------|-----------------|----------------|
+| Line-drive freeze (baserunner) | ~8 | Keep as freeze, but add `animVariant:"lineDrive"` showing a line drive caught and ghost runner doubled off |
+| Shallow fly hold (baserunner) | ~4 | Could reuse `flyout` with `animVariant:"shallow"` |
+| Pitcher fake/deception (baserunner) | ~4 | Add new `freeze_fake` showing pitcher's deceptive move + ball staying at mound |
+| Fielder proximity hold (baserunner) | ~5 | Keep as freeze -- the stillness IS the lesson |
+| Infield fly situations | ~3 | Remap to `anim:"popup"` |
+| Defensive positioning holds (fielders) | ~12 | Keep as freeze -- these are about where to stand, not about ball movement |
+| Manager/strategic decisions | ~8 | Keep as freeze -- the animation is secondary to the decision |
+
+**Net result:** ~15 scenarios could be remapped to better animations. The remaining ~29 are correctly using freeze because the POINT is "don't move" or the scenario is about decision-making rather than physical play.
+
+---
+
+### Reuse Strategy: Existing Animations with Variants
+
+Before building new animations from scratch, consider which existing ANIM_DATA entries can serve double duty with direction/context variants:
+
+| New Need | Reuse Base | Variant Key | What Changes |
+|----------|-----------|-------------|--------------|
+| Tag play at 2B | `steal_fail` | Already exists | Runner tagged at 2B -- this IS a tag play |
+| Tag play at 3B | `steal_2to3` + fail logic | `steal_2to3_fail` | Need new entry but follows existing pattern |
+| Tag play at home | `score_fail` | Already exists | Throw beats runner to plate |
+| Cutoff relay from LF | `relay_success` | `relay_LF_success` | Change ball origin from (300,80) to (100,80) |
+| Cutoff relay from CF | `relay_success` | `relay_CF_success` | Change ball origin from (300,80) to (200,50) |
+| Bunt fielding (catcher) | `bunt_success` | Add ball-to-1B throw after bunt dribble | Extend existing bunt with fielding phase |
+| Force play at 2B | `groundout_success` | `groundout_2B_success` | Change throw target from 1B to 2B |
+| Rundown | **New** | N/A | Cannot reuse -- unique multi-throw pattern (see below) |
+
+---
+
+### Stretch Goal: Rundown Animation
+
+A rundown is the most visually complex play in baseball and would be the "wow" animation. It requires a new phase type or creative use of multiple ball phases.
+
+**Proposed `rundown_success` phases (runner caught between 2B and 3B):**
+```
+rundown_success: [
+  // Runner breaks for 3B
+  {type:"runner", path:"M200,135 Q165,160 140,185", dur:.3, begin:0, easing:EASE.runner},
+  // Ball thrown from SS toward 3B
+  {type:"ball", path:"M200,140 Q160,175 120,205", dur:.25, begin:.05, color:"white", r:2, easing:EASE.throw},
+  // Runner reverses toward 2B
+  {type:"runner", path:"M140,185 Q165,165 185,148", dur:.3, begin:.32, easing:EASE.runner},
+  // Ball thrown back from 3B to SS
+  {type:"ball", path:"M120,205 Q155,175 185,150", dur:.2, begin:.35, color:"white", r:2, easing:EASE.throw},
+  // Tag flash -- caught!
+  {type:"flash", cx:175, cy:155, r:12, dur:.15, begin:.55, color:"rgba(239,68,68,.5)"},
+  // Dust at tag point
+  {type:"dust", cx:177, cy:157, r:6, dur:.25, begin:.54, color:"#c4a882"},
+  // RUNDOWN text
+  {type:"text", x:170, y:140, text:"TAGGED OUT!", size:10, color:"#22c55e", dur:1.3, begin:0},
+]
+```
+
+**Challenge:** The runner and two ball throws create visual overlap. The timing must be precise so the ball "chases" the runner convincingly. Consider using 2 runner phases (forward + reverse) and 2 ball phases (throw + return throw). The existing AnimPhases renderer handles this fine since phases are independent SVG elements.
+
+**Variant:** `rundown_1B2B` (between 1B and 2B) -- just shift all coordinates.
+
+---
+
+### Build Priority Recommendation
+
+**Tier 1 (Biggest Impact, Build First):**
+1. `catch_success` + `catch_fail` -- covers 84 scenarios
+2. `safe_success` + `safe_fail` -- covers 23 scenarios
+3. Reclassify ~15 freeze scenarios to existing animation types
+
+**Tier 2 (Educational Value):**
+4. `pickoff_success` + `pickoff_fail` + 2B variant
+5. `doubleplay_fail`
+6. `popup_success` (infield fly teaching)
+
+**Tier 3 (Stretch):**
+7. Rundown animation (visually impressive, complex)
+8. Additional relay variants (LF, CF origins)
+9. Bunt fielding extension (catcher fields + throws)
+
+**Estimated effort:** Tier 1 = ~45 min (6 ANIM_DATA entries + scenario remapping). Tier 2 = ~30 min (4 entries). Tier 3 = ~45 min (complex multi-phase animations).
+
+**Total potential scenario coverage improvement:** From ~38 scenarios with no proper animation data to ~6, covering 95%+ of all plays with full ANIM_DATA phase-based animations.
 
 ---
 
@@ -2839,3 +3119,964 @@ Missing checks a coach would catch:
 ### OBSERVATION: Guy() component scale factor creates sizing inconsistency
 
 Guy uses `scale(0.6)` (line 550 of `03_config.js`) for all poses. The ring highlight uses `r="16"` before the scale transform, so the ring is in the parent coordinate space (actual size 16). But the player body is in the 0.6-scaled child space. This means the player body is about 60% the size of what the ring suggests. The shadow ellipse (`rx=11, ry=3.5`) is also in scaled space, making it appear proportionally correct to the body but small relative to the ring. This is cosmetic but a coach might notice players look slightly small for their highlight rings.
+
+---
+
+## IDEA: Film Room Multi-Position Play Animation — Full Design (2026-03-27)
+
+### The Problem
+The Film Room currently shows a static field with a pulsing radial glow on each position, stepping through one position at a time (4s auto-advance). The field uses `anim="freeze"` — nothing moves. For a feature called "Film Room," this is underwhelming. The whole point of the Situation Room is that 5 positions work together on ONE play. The Film Room should show that play unfolding.
+
+### The Vision
+A single continuous animation showing the ENTIRE play — all 5 positions moving simultaneously — played as a slow-motion replay before stepping through each position's decision. Think broadcast replay: ball off the bat, everyone reacts, the play develops over 8-10 seconds.
+
+### Reference Play: "Extra-Base Hit to the Gap" (sr4)
+
+**The action sequence in real baseball (4 seconds):**
+- t=0.0s: Ball hit to left-center gap (line drive off bat)
+- t=0.3s: CF and LF both break toward the gap
+- t=0.5s: Runner on 1B takes off running toward 2B
+- t=1.0s: SS sprints to relay position between gap and home
+- t=1.2s: 2B moves to cover second base
+- t=1.5s: Pitcher moves to back up potential throw to home/3B
+- t=2.0s: CF reaches ball in gap
+- t=2.5s: CF throws to relay man (SS)
+- t=3.0s: SS catches relay, redirects toward home
+- t=3.2s: Runner rounds 2B heading to 3B
+- t=3.5s: Runner rounds 3B, reads the throw
+- t=4.0s: Runner holds at 3B (throw is on-line)
+
+### Key Coordinates (SVG viewBox 0 0 400 340)
+
+| Position | Start | End | Notes |
+|----------|-------|-----|-------|
+| Ball | Home (200,290) | LC gap (150,55) then to SS relay (168,150) | Two-phase: launch arc then relay throw |
+| CF | CF position (200,60) | Gap area (150,55) | Sprint left to field ball |
+| SS | SS position (160,180) | Relay spot (168,150) | Sprint out to relay position |
+| 2B fielder | 2B position (240,180) | Cover 2B bag (200,135) | Drift to cover vacated bag |
+| Pitcher | Mound (200,218) | Backup (145,240) | Move toward 3B/home backup |
+| Runner | 1B (290,210) | Round 3B (110,210) then hold | Full baserunning path 1B-2B-3B |
+
+### ANIM_DATA Design: `situationRoom_sr4`
+
+**Slow-motion scale: 2x real time (4s play becomes 8s animation)**
+
+```javascript
+situationRoom_sr4: [
+  // === PHASE 1: Contact (t=0.0-0.5s) ===
+  // Bat contact flash
+  {type:"flash", cx:200, cy:288, r:10, dur:0.12, begin:0, color:"rgba(255,255,255,.9)"},
+
+  // Ball launches to LC gap — high arc line drive
+  {type:"trail", path:"M200,290 Q170,140 150,55", dur:1.0, begin:0.05, color:"#f59e0b", r:2, easing:EASE.launch},
+  {type:"ball", path:"M200,290 Q170,140 150,55", dur:1.0, begin:0, color:"#f59e0b", r:3, easing:EASE.launch, glow:true},
+
+  // Bat contact dust
+  {type:"dust", cx:202, cy:292, r:5, dur:0.3, begin:0.08, color:"#c4a882"},
+  {type:"dust", cx:197, cy:290, r:4, dur:0.25, begin:0.12, color:"#c4a882"},
+
+  // === PHASE 2: Everyone reacts (t=0.3-2.0s) ===
+  // Runner takes off from 1B toward 2B
+  {type:"runner", path:"M290,210 Q248,170 200,135", dur:1.2, begin:0.6, easing:EASE.runner},
+  {type:"dust", cx:290, cy:212, r:4, dur:0.25, begin:0.6, color:"#c4a882"},
+
+  // CF sprints left to the gap
+  {type:"runner", path:"M200,60 Q175,55 150,55", dur:1.0, begin:0.3, easing:EASE.runner, jersey:"#1e40af", cap:"#1e3a8a", pants:"#e5e7eb"},
+
+  // SS sprints to relay position (arms up will be a label, see below)
+  {type:"runner", path:"M160,180 Q164,165 168,150", dur:0.8, begin:0.5, easing:EASE.runner, jersey:"#1e40af", cap:"#1e3a8a", pants:"#e5e7eb"},
+
+  // 2B fielder drifts to cover 2B bag
+  {type:"runner", path:"M240,180 Q220,158 200,135", dur:1.2, begin:0.6, easing:EASE.float, jersey:"#1e40af", cap:"#1e3a8a", pants:"#e5e7eb"},
+
+  // Pitcher moves toward 3B-line backup
+  {type:"runner", path:"M200,218 Q172,228 145,240", dur:1.5, begin:0.8, easing:EASE.float, jersey:"#1e40af", cap:"#1e3a8a", pants:"#e5e7eb"},
+
+  // === PHASE 3: CF fields and throws relay (t=2.0-3.0s) ===
+  // CF arrival dust at ball
+  {type:"dust", cx:150, cy:57, r:5, dur:0.3, begin:1.3, color:"#c4a882"},
+  {type:"flash", cx:150, cy:55, r:6, dur:0.1, begin:1.3, color:"rgba(255,255,255,.4)"},
+
+  // Relay throw: CF to SS
+  {type:"ball", path:"M150,55 Q160,100 168,150", dur:0.5, begin:1.8, color:"white", r:2.5, easing:EASE.throw, glow:true},
+  {type:"trail", path:"M150,55 Q160,100 168,150", dur:0.5, begin:1.83, color:"white", r:1.5, easing:EASE.throw},
+
+  // SS catches relay — flash
+  {type:"flash", cx:168, cy:150, r:7, dur:0.1, begin:2.28, color:"rgba(34,197,94,.4)"},
+
+  // === PHASE 4: Runner rounds bases, SS redirects (t=3.0-4.0s) ===
+  // Runner continues 2B to rounding 3B
+  {type:"runner", path:"M200,135 Q152,170 110,210", dur:1.2, begin:1.8, easing:EASE.runner},
+  {type:"dust", cx:200, cy:137, r:4, dur:0.25, begin:1.8, color:"#c4a882"},
+  {type:"dust", cx:112, cy:212, r:5, dur:0.3, begin:3.0, color:"#c4a882"},
+
+  // SS redirect throw toward home (strong relay)
+  {type:"ball", path:"M168,150 Q184,220 200,290", dur:0.6, begin:2.5, color:"#ef4444", r:2.5, easing:EASE.throw},
+  {type:"line", x1:168, y1:150, x2:200, y2:290, color:"#ef4444", width:1.5, dash:"4,3", dur:1.5, begin:2.5},
+
+  // === PHASE 5: Runner holds at 3B (t=3.5-4.0s) ===
+  // Runner rounds and holds — small step past 3B then back
+  {type:"runner", path:"M110,210 Q115,220 118,228", dur:0.5, begin:3.2, easing:EASE.float, o:0.6},
+
+  // Ball arrives at home — catcher catches
+  {type:"flash", cx:200, cy:290, r:8, dur:0.12, begin:3.1, color:"rgba(239,68,68,.4)"},
+
+  // === LABELS: Position callouts (appear as play unfolds) ===
+  {type:"text", x:200, y:42, text:"CF", size:8, color:"#3b82f6", dur:6, begin:0.3},
+  {type:"text", x:168, y:140, text:"SS RELAY", size:7, color:"#3b82f6", dur:5, begin:0.8},
+  {type:"text", x:200, y:126, text:"2B COVERS", size:6, color:"#64748b", dur:4, begin:1.0},
+  {type:"text", x:145, y:252, text:"P BACKUP", size:6, color:"#64748b", dur:4, begin:1.2},
+  {type:"text", x:115, y:200, text:"HOLDS!", size:10, color:"#f59e0b", dur:2, begin:3.5},
+],
+```
+
+**Total duration: ~5.5s of active animation, ~8s with text fadeouts.**
+
+### New Phase Type Needed: `spotlight`
+
+The Film Room step-through already uses a radial glow SVG overlay (lines 5264-5280 of 08_app.js). But for the full-play animation, we need a way to highlight which position is "active" as the play unfolds. Proposal:
+
+```javascript
+// New phase type for AnimPhases renderer:
+if(p.type==="spotlight") return (
+  <circle key={k} cx={p.cx} cy={p.cy} r="0" fill="none"
+    stroke={p.color||"#3b82f6"} strokeWidth={p.width||2} opacity="0">
+    <animate attributeName="r" from="0" to={p.r||25} dur={p.dur+"s"}
+      begin={(p.begin||0)+"s"} fill="freeze"/>
+    <animate attributeName="opacity" values="0;.6;.6;0" dur={p.dur+"s"}
+      begin={(p.begin||0)+"s"} fill="freeze"/>
+  </circle>
+);
+```
+
+This would let the phases array include:
+```javascript
+{type:"spotlight", cx:200, cy:60, r:25, dur:2, begin:0.3, color:"#3b82f6"},  // CF
+{type:"spotlight", cx:168, cy:150, r:20, dur:2, begin:0.8, color:"#22c55e"},  // SS
+```
+
+### Film Room Integration: Two-Phase Viewing
+
+**Phase A: Full Play Replay (new)**
+- Before stepping through individual positions, show "Watch the Play" button
+- Plays the full `situationRoom_sr4` animation once on the field
+- Ball, runners, fielders all moving simultaneously
+- Position labels appear as each actor enters the play
+- 8-10 seconds total, then transitions to Phase B
+- "Replay" button available
+
+**Phase B: Position Step-Through (existing, enhanced)**
+- Current behavior: step through each position with radial glow
+- Enhancement: instead of `anim="freeze"`, play a SUBSET of the full animation showing only that position's action
+- CF step: show just the CF sprint and the ball arriving in the gap
+- SS step: show just the SS sprinting to relay and catching/throwing
+- Runner step: show just the baserunning path 1B-2B-3B with the hold decision
+- This means we need per-position phase slices — tag each phase with a `pos` field
+
+### Per-Position Phase Tagging
+
+Add an optional `pos` field to each ANIM_DATA phase:
+```javascript
+{type:"runner", path:"M200,60 Q175,55 150,55", dur:1.0, begin:0.3,
+  easing:EASE.runner, jersey:"#1e40af", pos:"centerField"},
+```
+
+The renderer can filter: `phases.filter(p => !p.pos || p.pos === currentPosition)` to show only the relevant subset during step-through. During the full replay, show all phases.
+
+### Reusable Patterns Across Situation Sets
+
+Many Situation Room plays share sub-animations:
+
+| Sub-animation | Used in |
+|---------------|---------|
+| Ball to gap (LC or RC) | sr4, any gap-hit play |
+| Runner 1B-2B-3B path | sr4, sr7, any baserunning play |
+| Relay chain (OF to SS to home) | sr4, any cutoff play |
+| Bunt roll to baseline | sr3, sr6 |
+| Steal break (runner to 2B) | sr2 |
+| Rundown oscillation | sr7 |
+| Pitcher mound-to-backup drift | sr3, sr4, sr6 |
+
+These could be extracted as composable phase arrays:
+```javascript
+const RELAY_CHAIN = (ofX, ofY, relayX, relayY) => [
+  {type:"ball", path:`M${ofX},${ofY} Q${(ofX+relayX)/2},${(ofY+relayY)/2-20} ${relayX},${relayY}`, dur:0.5, begin:0, ...},
+  {type:"flash", cx:relayX, cy:relayY, r:7, dur:0.1, begin:0.49, ...},
+];
+```
+
+This avoids duplicating ~15 lines per situation set and makes new plays quick to author.
+
+### Timing Coordination Rules
+
+Key constraint: SMIL `begin` attributes are absolute from SVG insertion. All 5 positions' animations share the same time origin. This is actually perfect for simultaneous action — we don't need to coordinate between separate timelines. Everything is one flat array of phases with absolute `begin` times.
+
+**Timing guidelines for realistic feel:**
+- Ball off bat: begin=0
+- Fielder reactions: begin=0.3-0.6 (human reaction time ~0.3s, scaled 2x)
+- Runner first move: begin=0.5-0.7 (reads ball off bat, then commits)
+- Relay throw: begin when CF would realistically field it (~1.8s in slow-mo)
+- Runner arrival at bases: stagger ~1.2s per base in slow-mo
+- Text labels: appear when the position becomes relevant, persist 4-6s
+- Total play: 5-6s of action, 2s of text fadeout = ~8s total
+
+### Concerns and Edge Cases
+
+1. **Too many Guy() sprites on screen simultaneously**: The sr4 play has 5 runners + existing Field() sprites. May need to hide default field positions during the film animation, or use lower-opacity versions. The `o` (opacity) parameter on runner phases helps — background positions at `o:0.3`.
+
+2. **Runner jersey collision**: Offense is red (`#dc2626`), defense is blue (`#1e40af`). The runner phases default to red. Defense phases must explicitly set `jersey:"#1e40af"`. This is already supported by the AnimPhases renderer.
+
+3. **Looping vs. one-shot**: The full-play animation should be one-shot with a "Replay" button, not looping. SMIL `fill="freeze"` on the last phase keeps everything visible at final positions. Current AnimPhases already uses `fill="freeze"`.
+
+4. **Mobile performance**: 20+ simultaneous SMIL animations could be choppy on older phones. Could add a "reduced motion" check (`prefers-reduced-motion`) that shows a simplified version — just the ball path and final positions, no fielder movements.
+
+5. **Animation key reset**: When transitioning from full-play to step-through, the AnimPhases `ak` (animation key) prop must change to force SVG re-render. Otherwise SMIL animations won't restart. The existing system handles this via `ak={ak}` tied to state changes.
+
+6. **Coordinate accuracy**: The paths above are estimates. The ball's arc to the gap should feel like a line drive — low Q control point. CF sprint should be short (he's already near the gap). SS sprint is longer — 30 units outward. These may need visual tuning.
+
+### Priority and Effort Estimate
+
+- **New `spotlight` phase type**: 5 lines in AnimPhases renderer. Trivial.
+- **Per-position `pos` tag filtering**: 1 line in AnimPhases. Trivial.
+- **sr4 full-play phases array**: ~30 phases, authored manually. Medium (2-3 hours with visual tuning).
+- **Film Room UI changes**: Add "Watch Play" button, render full animation, then transition to step-through. Medium (1-2 hours).
+- **Composable sub-animation helpers**: Nice-to-have for scaling to all 12+ situation sets. Low priority for first implementation.
+- **All 12 situation sets**: Each needs a custom phases array. At ~2h per set, that is 24 hours total. Could be batched — do sr4 as reference, then template the rest.
+
+### Bottom Line
+
+The existing ANIM_DATA + AnimPhases system is already built for exactly this. Every phase type (dust, ball, trail, runner, flash, text, line) supports absolute `begin` timing, which means simultaneous multi-position action works out of the box. The only new code needed is a `spotlight` phase type (~5 lines) and a `pos` filter (~1 line). The real work is authoring the phase arrays for each situation set and tuning the visual timing.
+
+---
+
+## AutoResearch: analyzeFailurePatterns() Blind Spots (TPA)
+
+**Date:** 2026-03-30 | **Reviewer:** Thought Partner Agent | **Scope:** Quality infrastructure analysis for the AutoResearch prompt optimization loop — blind spots in grading, unmapped failure modes, feedback loop corruption risks
+
+---
+
+### Observation O12: Grading Infrastructure Has Correlated Blind Spots That Would Corrupt the Optimization Loop
+
+The three quality systems (gradeScenario, QUALITY_FIREWALL, CONSISTENCY_RULES) share a structural assumption that text-matching is a reliable proxy for correctness. This creates a blind spot category that `analyzeFailurePatterns()` cannot detect because all three graders would score the scenario as passing.
+
+**The specific gap:** A scenario can have a baseball-correct best answer, proper rates, good explanation length, causal language, situation references, distinct options, no role violations, no consistency rule triggers — and still be a BAD scenario if the *wrong answers are unrealistically bad*. The "absurd option" check in Tier 2 only catches explicit phrases like "give up" or "yell at." It misses the far more common AI failure: options that no real player would ever consider but don't contain banned phrases.
+
+Example: A shortstop scenario where option C is "Run to the outfield to catch the ball yourself." This passes every firewall check (no role violation regex matches, it's about the shortstop, no banned phrases, sufficient length, distinct from other options). But a real kid would never think this. The scenario teaches nothing because the wrong answers don't represent real misconceptions.
+
+**Why this matters for analyzeFailurePatterns():** If the grading infrastructure gives a scenario 85/100 and QUALITY_FIREWALL passes it, the optimization loop will never flag it for mutation. The loop optimizes for what it can measure, and "wrong answer plausibility" is unmeasured. Over hundreds of iterations, the AI will learn to generate scenarios that ace the grading rubric while producing trivially easy multiple choice.
+
+**Recommended addition to MUTATION_TARGET_MAP:** A new failure category `implausible_distractors` that measures the semantic gap between options. If 3 of 4 options are obviously wrong to anyone with basic baseball knowledge (approximated by: option text length < 60% of best option length, or option rates cluster below 20%), flag for the `option_archetype_injection` mutation. The OPTION_ARCHETYPES system already has `kid_mistake` and `sounds_smart` categories — the mutation should verify the generated scenario actually uses these patterns rather than falling back to straw-man distractors.
+
+---
+
+### Idea 11: The Grader-Optimizer Goodhart's Law Problem (Cross-Domain)
+
+**Cross-domain connection:** This is a textbook Goodhart's Law situation — "when a measure becomes a target, it ceases to be a good measure." The `gradeScenario()` function awards points for explanation length, causal language, situation references, rate spread, and option distinctness. An optimization loop that mutates prompts to maximize `gradeScenario()` scores will produce scenarios that are *long*, *use "because" frequently*, *mention outs and innings*, *have wide rate spreads*, and *use different first words* — without necessarily being good baseball teaching content.
+
+**Specific dimensions vulnerable to Goodhart drift:**
+1. **Explanation length** — gradeScenario penalizes explanations under 40 chars and under 2 sentences. An optimizer will push explanations toward verbosity, not clarity.
+2. **Causal language** — The `allExplanationsCausal` Tier 2 check uses a regex for ~35 causal phrases. An optimizer will learn to sprinkle "because" and "which means" into every explanation regardless of whether the reasoning is sound.
+3. **Rate spread** — The 30-point minimum spread between best and worst rates means the optimizer will learn to generate extreme rate arrays (e.g., 85/55/30/15) that mechanically pass but don't reflect genuine difficulty calibration.
+4. **Situation references** — Section 2b of gradeScenario counts how many of 5 situation categories the best explanation mentions. The optimizer will learn to shoehorn unnecessary situation mentions into explanations.
+
+**Mitigation for analyzeFailurePatterns():** Track not just whether scenarios pass/fail, but the *distribution* of gradeScenario deduction types over time. If the same deduction (e.g., `explanation_too_short`) drops to 0% across 100 scenarios while overall human-perceived quality stays flat, that's a Goodhart signal — the AI learned to game that specific check. The function should emit a `goodhart_risk` flag when any previously-common deduction type disappears without a corresponding improvement in the Critic's rubric score (from the multi-agent pipeline). The Critic operates on a different evaluation axis (6-dimension rubric) and is harder to game via text patterns alone.
+
+**Blaine parallel (Vested/business thinking):** This is the same dynamic as optimizing for a business KPI that stops reflecting actual customer value. The fix is the same: use a lagging indicator (human review of a random 5% sample) as a check against the leading indicators (automated scores). Even 5 manually-reviewed scenarios per batch would catch Goodhart drift early.
+
+---
+
+### Idea 12: Position-Specific Failure Fingerprints Enable Targeted Prompt Mutations
+
+The quality infrastructure already reveals that failures cluster by position (from audit data: batter 66%, pitcher 66%, manager 70%, baserunner 71% pass rates). But `analyzeFailurePatterns()` should go deeper — each position has a *characteristic failure mode* that maps to a specific prompt mutation.
+
+**Position failure fingerprints (derived from QUALITY_FIREWALL check distributions):**
+
+| Position | Dominant Failure Mode | Root Cause | Targeted Mutation |
+|----------|----------------------|------------|-------------------|
+| pitcher | `principleContradiction` — best answer has pitcher doing cutoff/relay | AI confuses pitcher's backup role with active relay role | Inject `KNOWLEDGE_MAPS.cutoffRelay` + explicit "pitcher NEVER cuts" line |
+| batter | `positionActionBoundary` — 3+ batting options are swing variants | AI generates "swing at fastball" / "swing at curve" / "swing at slider" / "take the pitch" | Inject OPTION_ARCHETYPES with distinct strategic choices (approach, timing, contact type) |
+| manager | `options_mix_decision_moments` — options span pre-game and in-game decisions | AI mixes "set the lineup" with "call for the steal" in one scenario | Add temporal constraint to prompt: "all options must be available at the SAME moment" |
+| baserunner | `score_direction_mismatch` — trailing/leading confusion when runner is away team | Score convention [HOME, AWAY] consistently trips AI for baserunner in Top innings | Inject explicit "YOU are the [home/away] team" with score perspective in prompt |
+| catcher | `brainBuntStealCheck` — recommends steal defense when bunt delta is favorable | AI defaults to "throw to second" instead of analyzing the run expectancy cost | Inject BRAIN.stats.buntDelta for the specific runner/out state into prompt |
+
+**For analyzeFailurePatterns():** Instead of treating all failures equally, bucket them by position and firewall check name. Compute `failureRate[position][checkName]` across the batch. The highest-rate position-check combinations become the mutation targets. This is far more actionable than "12% of scenarios fail Tier 1" — it tells you *which prompt section to rewrite for which position*.
+
+**Implementation detail:** The QUALITY_FIREWALL.validate() return already includes `check: name` in each failure object. gradeScenario returns `deductions` as an array of strings. Both are structured enough to aggregate. The key is that `analyzeFailurePatterns()` should return something like:
+```js
+{ topFailures: [
+    { position: "pitcher", check: "principleContradiction", rate: 0.18, mutation: "inject_knowledge_map", mapKey: "cutoffRelay" },
+    { position: "batter", check: "positionActionBoundary", rate: 0.14, mutation: "inject_option_archetypes", archetypeKey: "batter:*" },
+  ],
+  goodhartRisk: ["explanation_too_short"], // deductions that disappeared without quality improvement
+  overallPassRate: 0.82,
+  batchSize: 50
+}
+```
+
+This structured output is what the prompt mutator needs to make surgical changes rather than shotgun-rewriting the entire system prompt.
+
+---
+
+## AutoResearch: generatePromptVariant() & buildAgentPromptWithVariant() — Blind Spots, Risks, and Missing Mutations (TPA)
+
+**Date:** 2026-03-30 | **Reviewer:** Thought Partner Agent | **Scope:** Mutation isolation risks, position boundary safety, missing mutation types, cross-domain A/B testing insights for the prompt optimization loop
+
+---
+
+### Observation O13: Prompt Mutations Can Silently Weaken Position Boundary Hard Stops
+
+The current `buildAgentPrompt()` has position safety distributed across THREE non-contiguous prompt sections: (1) `POSITION RULES` in Tier 1 (line 11069-11070, injected from `plan.principles`), (2) `POSITION-ACTION BOUNDARIES` in `qualityRules` (line 11104-11107, with `POS_ACTIONS_MAP` and `analyticsRules`), and (3) `principleContradiction` in QUALITY_FIREWALL Tier 1 (line 8716-8725, post-generation validation).
+
+The risk: `generatePromptVariant()` must treat these three sections as a **frozen core** that no mutation can modify. But the current PROMPT_MUTATION_TYPES include `position_principle` and `knowledge_map_scope`, both of which map to `principleContradiction` and `positionActionBoundary` failures. If the mutator interprets "fix position_principle failures" as "relax the position_principle constraint in the prompt," it could weaken the very guard rails that prevent pitcher-doing-cutoff and catcher-leaving-home scenarios.
+
+**Specific danger scenario:** `analyzeFailurePatterns()` reports that `principleContradiction` fires at 18% for pitcher. The mutator's intended fix is to inject `KNOWLEDGE_MAPS.cutoffRelay` to teach the AI the correct role. But an alternative (wrong) fix would be to soften the "pitcher NEVER cuts" language — maybe rewording it to "pitcher usually doesn't cut" — which reduces Tier 1 failures by making the firewall's regex less likely to match, while actually making scenarios worse.
+
+**Recommended guard rail for `buildAgentPromptWithVariant()`:** Hard-code an immutable block containing: (a) all ROLE_VIOLATIONS regex source text as-is, (b) the `principleContradiction` check descriptions (pitcher never cutoff, catcher stays home, CF has priority, baserunner can't direct defense), (c) the `positionActionBoundary` structural rules. Wrap these in a `// FROZEN — mutations MUST NOT modify below this line` comment. The variant function should accept mutations as *additions* to the prompt (inject more knowledge, add emphasis, extend examples) but never as *substitutions* for the position safety sections. Think of it as an append-only mutation model for safety-critical prompt regions.
+
+---
+
+### Idea 13: Missing Mutation Types — "Decision Window Narrowing" and "Explanation Anchoring"
+
+Two failure patterns in the current quality infrastructure have no corresponding mutation type in PROMPT_MUTATION_TYPES:
+
+**A. Decision Window Narrowing (missing mutation).** The `options_mix_decision_moments` failure (Tier 2 — detected by `optionDecisionMoment`) fires when options span different moments in the play. Example: option A is a pre-pitch positioning choice while option B is a reaction-to-contact choice. The current MUTATION_TARGET_MAP routes this to `archetype_emphasis`, which injects OPTION_ARCHETYPES structural templates. But the root cause is not missing structure — it's that the AI doesn't understand *temporal framing*. A dedicated `decision_window` mutation type should inject: "All 4 options must be available to the player at the EXACT SAME MOMENT in the play. If the description says 'the ball is hit to you,' every option must be about what to do WITH the ball, not about where you should have been standing before the pitch." This is a constraint the archetype system cannot express because archetypes define roles (correct/kid_mistake/sounds_smart/clearly_wrong), not timing.
+
+**B. Explanation Anchoring (missing mutation).** The `best_explanation_argues_for_wrong_option` deduction in `gradeScenario()` catches when the best answer's explanation discusses why another option is bad instead of why THIS option is good. But there's no mutation type that specifically teaches the AI to anchor explanations. The `explanation_guidance` mutation targets causal language and situation references — structural quality. What's missing is a `explanation_anchoring` mutation that injects: "Each explanation must START by naming the action in its option, then explain why that specific action succeeds or fails. The best answer explanation must contain the words from the best option text. Never write an explanation that could be swapped to a different option without anyone noticing." This directly attacks the AI's tendency to write generic explanations that aren't option-specific.
+
+**Why these matter for the optimization loop:** Without `decision_window`, the loop will keep routing temporal confusion failures to archetype injection, which won't fix them. Without `explanation_anchoring`, explanation quality improvements will be structural (longer, more causal words) rather than semantic (actually about the right option). Both are cases where the failure-to-mutation mapping has a resolution mismatch — the suggested fix doesn't address the root cause.
+
+---
+
+### Idea 14: Mutation Isolation — Lessons from Multi-Armed Bandit A/B Testing (Cross-Domain)
+
+**Cross-domain connection (A/B testing / experimentation platforms):** The "mutation isolation" problem in the AutoResearch loop is identical to the interaction effect problem in factorial experiment design. When Optimizely, LaunchDarkly, or Google's internal Vizier system run multiple experiments simultaneously, they face the same question: if you change two things at once and quality improves, which change caused it?
+
+The standard solution in experimentation platforms is **layered experiments with holdbacks**: (1) each mutation operates on a different "layer" of the prompt (prefix, position rules, examples, explanation guidance, temperature), (2) only ONE mutation per layer changes at a time, (3) a holdback group runs the unmodified prompt as a control. The BSM prompt already has natural layers (Tier 1 identity, Tier 1.5 quality rules, Tier 2 baseball knowledge, Tier 3 examples, anti-repetition, player context, coach voice, prompt patch). `generatePromptVariant()` should enforce that each variant changes content in exactly ONE tier. Cross-tier mutations (e.g., changing both the system prefix AND the few-shot examples) make it impossible to attribute quality changes.
+
+**Practical implementation for BSM:** The variant object should have a `layer` field:
+```
+{ mutationType: "explanation_guidance", layer: "quality_rules", delta: "...", parentVariant: "baseline" }
+```
+The optimization loop should maintain a variant tree: baseline -> variant_A (changed layer 1) -> variant_B (changed layer 2). When variant_A wins, it becomes the new baseline, and the next round tests a mutation on a DIFFERENT layer. This is a sequential one-at-a-time exploration strategy — slower than testing all mutations in parallel, but it produces interpretable results. At BSM's scale (not millions of scenarios per day), interpretability matters more than speed.
+
+**The Thompson Sampling connection:** Google's Vizier uses Thompson Sampling (a multi-armed bandit algorithm) to allocate more traffic to winning variants without waiting for statistical significance. For BSM, this means: after generating 5 scenarios with variant A and 5 with baseline, if variant A's average grade is higher, allocate 7 of the next 10 generations to variant A. This converges faster than fixed 50/50 splits while still maintaining exploration. The key insight from the bandit literature is: you don't need to "finish" testing one mutation before starting the next — you just need to track which mutations are active in each generation and attribute quality scores back to the specific mutations that were present.
+
+**Blaine parallel (Vested / business thinking):** This is the same principle as isolating variables in a sales process optimization. If you change the pitch deck AND the follow-up cadence simultaneously and close rates improve, you don't know which to keep. The discipline of changing one thing at a time feels slower but produces knowledge that compounds. Each prompt mutation that's validated in isolation becomes a permanent upgrade — you KNOW it works. Shotgun changes produce results you can never decompose.
+
+---
+
+### Idea 15: compareAndAdopt() Needs a "Dimension Stability" Check to Detect Goodhart Gaming (Cross-Domain)
+
+**Date:** 2026-03-30 | **Source:** TPA research for compareAndAdopt() + formatCycleReport()
+
+**The problem:** A naive `compareAndAdopt()` that compares `variant.avgScore > baseline.avgScore && variant.passRate >= baseline.passRate && variant.tier1FailRate === 0` will be gamed. The optimizer can produce a variant that scores higher by inflating easy-to-pass dimensions while silently degrading hard-to-measure ones. For example: a `wrong_answer_strategy` mutation could push all rate arrays to 90/60/30/10 (mechanically passing the 30-point spread check with headroom) while making the actual rate calibration less realistic.
+
+**The fix — Dimension Stability Envelope:** `compareAndAdopt()` should compute a per-dimension delta between baseline and variant, not just the aggregate score. For each of the ~15 gradeScenario deduction categories, compute: `dimensionDelta[d] = variant.deductionRate[d] - baseline.deductionRate[d]`. If ANY dimension degrades by more than 10 percentage points (even if the aggregate improves), flag it as a `goodhart_suspect` and require a higher overall delta threshold to adopt (e.g., +5 instead of +2). This is directly from Idea 11's insight: track the distribution, not just the mean.
+
+**Concrete implementation shape:**
+```
+compareAndAdopt(baselineAnalysis, variantAnalysis, mutation) {
+  const delta = variantAnalysis.avgScore - baselineAnalysis.avgScore;
+  const passRateDelta = variantAnalysis.passRate - baselineAnalysis.passRate;
+  // Dimension stability: no single deduction category should spike
+  const dimensionRegression = findDimensionRegressions(baselineAnalysis, variantAnalysis, threshold=10);
+  const goodhartSuspect = dimensionRegression.length > 0;
+  const adoptionThreshold = goodhartSuspect ? 5 : 2; // require higher delta if Goodhart suspected
+  const adopt = delta >= adoptionThreshold
+    && passRateDelta >= 0
+    && variantAnalysis.tier1FailRate === 0
+    && !hasNewTier1Failures(baselineAnalysis, variantAnalysis);
+  return { adopt, delta, goodhartSuspect, dimensionRegression, reason: ... };
+}
+```
+
+**Cross-domain connection (ML experiment frameworks):** Google Vizier and Meta's Ax both implement "guardrail metrics" — metrics that must NOT degrade even if the primary objective improves. In Vizier, you define `objective_metrics` (what to optimize) and `safety_metrics` (what must stay flat). `compareAndAdopt()` should treat Tier 1 fail rate, consistency rule violations, and position-specific pass rates as safety metrics. The variant only gets adopted if ALL safety metrics hold AND the objective metric (avgScore) improves. This is a direct port of Vizier's `SafetyChecker` concept to the BSM domain.
+
+**Blaine parallel (Vested):** Same as monitoring churn alongside revenue growth. Revenue can go up while churn silently climbs — you feel great until the cohort data catches up. Dimension stability is the prompt optimization equivalent of watching retention alongside acquisition.
+
+---
+
+### Idea 16: Mutation Cooldown and Revert Memory — Preventing Oscillation Loops
+
+**Date:** 2026-03-30 | **Source:** TPA research for compareAndAdopt() + formatCycleReport()
+
+**The problem:** Without cooldown logic, the optimization loop can oscillate: Cycle 1 adopts `explanation_guidance` variant → Cycle 2's new failure patterns suggest `wrong_answer_strategy` → Cycle 3's failures point back to `explanation_guidance` → infinite loop where two mutation types trade off making each other's problems worse.
+
+**The fix — Revert Memory with Exponential Cooldown:** Maintain a `revertLog` array: `[{mutationType, revertedAt: cycleN, reason, delta}]`. When `compareAndAdopt()` rejects a variant (delta < threshold or safety metric regression), log it. Before `analyzeFailurePatterns()` suggests the same mutation type again, check the revert log:
+
+- If reverted in the last 1 cycle: BLOCK completely (cooldown)
+- If reverted in the last 3 cycles: require 2x the normal adoption threshold
+- If reverted 2+ times in the last 10 cycles: escalate to `oscillation_detected` flag in the cycle report — this mutation type needs a fundamentally different approach (probably a new mutation type, per Idea 13's missing mutations insight)
+
+**Why exponential:** The first revert might be noise (small batch, unlucky scenario mix). The second revert of the same type within 10 cycles is a signal that this mutation axis is fighting against the grading function's structure. The third is proof that you need to change the mutation definition, not retry it.
+
+**For formatCycleReport():** The report should include a "Mutation Health" section showing each mutation type's adoption history: `explanation_guidance: 3 tested / 1 adopted / 2 reverted (last revert: cycle 7, reason: tier1 regression)`. This makes oscillation patterns visible at a glance. Also include a `blockedMutations` list showing what's currently in cooldown and when it becomes eligible again.
+
+**Cross-domain connection (reinforcement learning):** This is analogous to the "exploration penalty" in contextual bandits. After pulling an arm and getting a bad reward, you don't immediately re-pull the same arm — you reduce its selection probability proportional to recency and frequency of bad outcomes. The cooldown implements a deterministic version of this: hard block for 1 cycle, soft penalty for 3, structural re-evaluation after repeated failures.
+
+---
+
+### Observation O14: compareAndAdopt() Should Use Position-Stratified Comparison, Not Just Aggregate Scores
+
+**Date:** 2026-03-30 | **Source:** TPA research for compareAndAdopt() + formatCycleReport()
+
+**The blind spot:** If the test batch is 20 scenarios across 10 positions, and a variant improves pitcher scenarios by +15 points while degrading batter scenarios by -10 points, the aggregate avgScore goes up but the variant is actually harmful for batters. The current `analyzeFailurePatterns()` already groups by tier1/tier2/consistency but does NOT group by position. `compareAndAdopt()` inherits this blind spot.
+
+**What compareAndAdopt() should require:** Before adopting, compute `positionPassRate[pos]` for both baseline and variant. If ANY position's pass rate drops by more than 15 percentage points, block adoption regardless of aggregate improvement. This catches the scenario where a mutation is great for its target position but toxic for others — which is exactly what will happen with `position_principle` and `knowledge_map_scope` mutations that inject position-specific content that might confuse the AI when generating for other positions.
+
+**For formatCycleReport():** Include a position-level comparison table:
+```
+Position    | Baseline Pass% | Variant Pass% | Delta | Status
+pitcher     |  72%           |  85%          | +13   | IMPROVED
+batter      |  66%           |  58%          | -8    | REGRESSED (below threshold, but warning)
+manager     |  70%           |  71%          | +1    | STABLE
+baserunner  |  71%           |  74%          | +3    | IMPROVED
+```
+This makes position-level regressions impossible to miss in the report. It also connects to Idea 12's position-specific failure fingerprints — the report should show which position's fingerprint changed and in what direction.
+
+**Why this matters for the loop's long-term health:** Prompt mutations are inherently position-biased. An `explanation_guidance` mutation that says "reference the specific game situation in every explanation" helps fielding scenarios (where the situation is concrete: runner on 2nd, ground ball hit) but hurts manager scenarios (where the situation is abstract: 6th inning decision about bullpen). Without position stratification, the loop will unconsciously optimize for whichever positions dominate the test batch, slowly degrading the minority positions until someone notices in manual review.
+
+---
+
+### Idea 17: Successive Halving for Budget-Efficient Variant Evaluation (Cross-Domain)
+
+**Date:** 2026-03-30 | **Source:** TPA research for runAutoResearchCycle() cost analysis
+
+**The problem:** The default config of 10 scenarios x 12 positions x 4 groups = 480 API calls per cycle is expensive. Using the multi-agent Claude Opus pipeline (~$0.15/scenario) costs ~$72/cycle, blowing a $200 budget in under 3 cycles. Even the xAI fallback at ~$0.019/scenario costs ~$9/cycle — manageable but wasteful when most variants are duds.
+
+**The fix — Successive Halving (Hyperband):** Borrow from Optuna/Ray Tune's ASHA scheduler. Instead of evaluating every variant with the full 10-scenarios-per-position budget:
+- **Round 1 (Triage):** Generate 3 scenarios per position for ALL variants (~144 calls). Score each variant. Kill any variant scoring below baseline - 5 points (clearly bad). Cost: ~30% of full budget.
+- **Round 2 (Confirm):** Generate 7 more scenarios per position for surviving variants only (~168 calls for 2 survivors). Now you have 10 total per position for winners. Cost: ~35% of full budget.
+- **Savings:** If 2 of 3 variants are duds (common), Round 1 kills them early. Total cost: ~312 calls instead of 480 (35% savings). If ALL 3 variants survive (rare), cost is the same as exhaustive.
+
+**Why 3 scenarios is enough for triage:** With 3 scenarios per position across 12 positions = 36 graded scenarios per variant. At n=36, you can detect a 10-point avgScore difference with >80% confidence. You can't confirm a 3-point improvement, but you CAN confidently reject a variant that's 15 points worse — and those are the ones you're trying to kill early.
+
+**Realistic default config recommendation:** 5 scenarios x 6 positions (weakest: pitcher, batter, manager, baserunner, catcher, shortstop) x 3 groups = 90 calls for triage round. Promotes 1-2 survivors to full 10-scenario evaluation on all 12 positions. Total: 90 + ~120 = ~210 calls. At xAI rates: ~$4/cycle. At Claude Opus rates: ~$31.50/cycle. Both comfortably under $200 for multiple cycles.
+
+**Cross-domain connection (Optuna):** Optuna's `SuccessiveHalvingPruner` does exactly this for hyperparameter sweeps. It allocates a "rung" of resources (here: scenarios) and prunes the bottom performer at each rung. The mathematical insight is that relative ranking is stable even at low sample sizes — you don't need precise scores to identify the worst candidate, just enough signal to rank. BSM's grading function (35 QUALITY_FIREWALL checks + 15 CONSISTENCY_RULES) produces a rich enough signal that 3 scenarios per position gives meaningful separation.
+
+**For runAutoResearchCycle():** The function should accept a `pruningStrategy: "exhaustive" | "successive_halving"` config. Default to successive_halving. The cycle report should show which variants were pruned at which round and their scores at pruning time, so you can verify the pruner isn't killing promising variants too early.
+
+---
+
+### Idea 18: Pin AutoResearch to a Single Pipeline — Treat Pipeline Choice as a Controlled Variable
+
+**Date:** 2026-03-30 | **Source:** TPA research for runAutoResearchCycle() pipeline analysis
+
+**The problem:** `generateAIScenario()` has a 3-tier fallback chain: Claude Opus multi-agent -> xAI agent pipeline -> xAI standard pipeline. If AutoResearch tests a prompt variant and the first scenario hits Claude Opus while the second falls through to xAI due to a transient timeout, the grading signal is contaminated. You're measuring prompt quality + pipeline noise simultaneously. The multi-agent pipeline applies server-side RAG, Vectorize lookups, and a 4-stage Planner->Generator->Critic->Rewriter flow that transforms the prompt in ways the client can't observe. A prompt mutation that improves the xAI agent pipeline might be irrelevant or harmful to the multi-agent pipeline because the Planner rewrites the user's prompt anyway.
+
+**The fix:** `runAutoResearchCycle()` should pin all generation to a single pipeline by passing a `pipelineOverride` parameter. The cleanest approach: call `generateWithAgentPipeline()` directly (bypassing the fallback chain in `generateAIScenario()`), since that's the pipeline where prompt mutations have the most direct effect — the user prompt goes straight to grok-4 without server-side rewriting. If the call fails, log the failure and skip that scenario (don't fall through to another pipeline). This means some scenarios will fail to generate, which is fine — the analysis just uses a smaller n for that position.
+
+**Why NOT test against multi-agent:** The multi-agent pipeline's Planner stage rewrites the user prompt based on Vectorize RAG results. A prompt mutation changing "always reference the game situation" gets absorbed and potentially overwritten by the Planner. You'd be measuring Planner behavior, not prompt quality. Save multi-agent testing for a separate evaluation: once a mutation is adopted into the xAI pipeline, run a one-time comparison against multi-agent to see if it also helps there.
+
+**For the code:** `generateWithAgentPipeline()` already accepts all the needed parameters (line 11988). AutoResearch can call it directly, injecting the variant's mutated prompt text via the `flaggedAvoidText` parameter (which is already a string concatenated into the agent prompt). The function returns `null` on failure, making error handling trivial.
+
+**Rate limit handling:** If a 429 hits mid-cycle, the function should: (1) log the partial results collected so far, (2) compute a `partialConfidence` score based on n/target_n, (3) if partialConfidence > 0.6 (got at least 60% of planned scenarios), run the analysis on what you have, (4) if < 0.6, save the partial state to a checkpoint object and return a `INCOMPLETE` status so the caller can resume later. The checkpoint should include: `{cycleId, completedPositions: [], partialPositions: {pos: scenarios[]}, remainingVariants: [], elapsedBudget}`.
+
+---
+
+### Observation O15: The 480-Call Default Is Based on Statistical Overkill — 90 Calls Gives Equivalent Signal for Variant Ranking
+
+**Date:** 2026-03-30 | **Source:** TPA research for runAutoResearchCycle() budget math
+
+**The math:** The AutoResearch loop doesn't need to estimate each variant's exact avgScore — it needs to RANK variants relative to baseline. Ranking requires less data than estimation. With a grading function that scores 0-100 and typical standard deviation of ~15 points across scenarios, detecting a meaningful difference (delta > 5 points) between two groups requires n >= (2 * 15^2 * 7.85) / 5^2 = ~28 scenarios per group (alpha=0.05, power=0.8, two-sided t-test). That's 28 per variant, not 28 per position per variant.
+
+**Implication:** You need ~28 scored scenarios per variant to make a statistically meaningful comparison. With 12 positions, that's ~2.3 scenarios per position — round up to 3. The "10 scenarios per position" config (120 per variant) is 4x more than needed for ranking decisions. It's appropriate for detailed position-level analysis (per Observation O14) but overkill for the adopt/reject decision.
+
+**Recommendation for config defaults:**
+- `scenariosPerVariant: 36` (3 per position x 12 positions) for triage/ranking
+- `scenariosPerVariant: 120` (10 per position x 12 positions) for deep analysis of the winning variant only
+- Total calls per cycle with successive halving: ~108 (triage) + ~120 (deep analysis of winner) = ~228
+- At xAI rates: ~$4.30/cycle. At Claude Opus rates: ~$34/cycle. Budget supports 5-46 cycles at $200.
+
+**Why this matters:** The difference between "good enough to rank" and "good enough to characterize" is a 4x cost multiplier. The loop should use cheap ranking to pick winners, then invest in expensive characterization only for the winner. This is exactly how tournament selection works in genetic algorithms — cheap comparisons to narrow the field, expensive evaluation only for finalists.
+
+**Blaine parallel (Vested):** Same principle as lead qualification. Don't run a full discovery call (expensive) on every inbound lead. Run a 2-minute qualification screen (cheap) to filter, then invest the full hour only in qualified leads. The qualification screen doesn't need to be perfect — it just needs to reliably identify the bottom 50% for rejection.
+
+---
+
+## AutoResearch: D1 Persistence & Dashboard Analytics — TPA Analysis (2026-03-30)
+
+**Date:** 2026-03-30 | **Reviewer:** Thought Partner Agent | **Scope:** What analytics the dashboard needs, mutation effectiveness tracking, data retention policy, cross-domain lessons from ML experiment dashboards (W&B, MLflow)
+
+---
+
+### Idea 19: Mutation Effectiveness Leaderboard — The Single Most Valuable Dashboard View
+
+**The question:** Should the dashboard show which mutation types have been most/least effective historically?
+
+**Answer: Yes, and it should be the PRIMARY view.** Every ML experiment dashboard (Weights & Biases, MLflow, Optuna) centers on a "runs table" that shows each experiment's configuration alongside its outcome metrics. For AutoResearch, the equivalent is a mutation leaderboard ranked by cumulative impact.
+
+**Schema design for the `autoresearch_mutations` D1 table:**
+```sql
+CREATE TABLE autoresearch_mutations (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  cycle_id TEXT NOT NULL,
+  mutation_type TEXT NOT NULL,      -- e.g. "explanation_guidance", "wrong_answer_strategy"
+  layer TEXT,                        -- prompt layer that was modified
+  parent_variant TEXT DEFAULT 'baseline',
+  delta_avg_score REAL,             -- variant avgScore - baseline avgScore
+  delta_pass_rate REAL,             -- variant passRate - baseline passRate
+  adopted INTEGER DEFAULT 0,        -- 1 if compareAndAdopt() said yes
+  reverted INTEGER DEFAULT 0,       -- 1 if later reverted
+  goodhart_suspect INTEGER DEFAULT 0,
+  dimension_regressions TEXT,       -- JSON array of regressed dimensions
+  scenarios_evaluated INTEGER,
+  position_deltas TEXT,             -- JSON: {pitcher: +5, batter: -3, ...}
+  created_at TEXT DEFAULT (datetime('now'))
+);
+CREATE INDEX idx_mutations_type ON autoresearch_mutations(mutation_type);
+CREATE INDEX idx_mutations_cycle ON autoresearch_mutations(cycle_id);
+```
+
+**The leaderboard query:**
+```sql
+SELECT mutation_type,
+  COUNT(*) as times_tested,
+  SUM(adopted) as times_adopted,
+  SUM(reverted) as times_reverted,
+  AVG(delta_avg_score) as avg_impact,
+  MAX(delta_avg_score) as best_impact,
+  MIN(delta_avg_score) as worst_impact,
+  AVG(CASE WHEN adopted=1 THEN delta_avg_score END) as avg_when_adopted
+FROM autoresearch_mutations
+GROUP BY mutation_type
+ORDER BY avg_impact DESC;
+```
+
+**What this tells you at a glance:** "explanation_guidance has been tested 8 times, adopted 3 times, reverted once, with average impact of +4.2 points. wrong_answer_strategy has been tested 5 times, adopted 0 times, average impact of -1.8 points — stop testing it." This is the single highest-leverage view for deciding where to invest optimization effort.
+
+**Cross-domain connection (Weights & Biases):** W&B's "Parallel Coordinates" plot shows every hyperparameter on a vertical axis with lines connecting each run's configuration to its outcome. The BSM equivalent: each mutation type is an axis, each cycle is a line, the rightmost axis is avgScore. Lines that trend upward from a specific mutation type visually confirm that mutation's positive impact. This could be rendered as a simple multi-line chart in the dashboard: X-axis = cycle number, Y-axis = avgScore, one line per active mutation type. Lines that diverge upward from baseline are winners. Lines that dip below are losers. You can build this with a `<canvas>` or even SVG in ~40 lines.
+
+---
+
+### Idea 20: Dashboard Minimum Viable Display — Steal from MLflow's Run Comparison Page
+
+**The question:** What is the minimum viable dashboard display for prompt optimization decisions?
+
+**Cross-domain analysis (MLflow, W&B, Optuna):** All three converge on the same 4-panel layout for experiment monitoring:
+
+1. **Objective Curve** (top-left): A time-series line chart showing the primary metric (avgScore) over cycles. MLflow calls this "Metric History." Overlays baseline as a horizontal reference line. This answers: "Is the system improving over time?"
+
+2. **Configuration Diff** (top-right): For the most recent cycle, a side-by-side comparison of baseline vs. variant prompt text (like a git diff). This answers: "What exactly changed?" W&B's "Diff" tab does this for model configs. For BSM, this is the mutated prompt section with additions highlighted.
+
+3. **Leaderboard Table** (bottom-left): The mutation effectiveness table from Idea 19. This answers: "Which levers are working?" MLflow's "Compare Runs" table with sortable columns.
+
+4. **Position Breakdown** (bottom-right): A heatmap or bar chart showing per-position pass rates for the current cycle. Green = improved, yellow = stable, red = regressed. This answers: "Is the improvement broad or narrow?" Directly implements Observation O14's recommendation.
+
+**What you do NOT need (common dashboard bloat):** Loss curves (irrelevant — this is not gradient descent), epoch/step tracking (cycles are atomic), GPU utilization (N/A), model checkpoints (the "model" is a prompt string). Strip these and the dashboard is remarkably simple: 1 line chart, 1 diff view, 1 table, 1 heatmap. Could be a single HTML page served from the worker with D1 queries.
+
+**Schema for the `autoresearch_cycles` D1 table (stores each cycle's summary):**
+```sql
+CREATE TABLE autoresearch_cycles (
+  id TEXT PRIMARY KEY,              -- e.g. "cycle_2026-03-30_001"
+  baseline_avg_score REAL,
+  baseline_pass_rate REAL,
+  variant_avg_score REAL,
+  variant_pass_rate REAL,
+  variant_mutation_type TEXT,
+  adopted INTEGER DEFAULT 0,
+  position_breakdown TEXT,          -- JSON: {pitcher: {baseline: 72, variant: 85}, ...}
+  dimension_breakdown TEXT,         -- JSON: per-deduction-category rates
+  config_json TEXT,                 -- full cycle config (scenarios_per_pos, positions, etc.)
+  cost_usd REAL,                   -- estimated API cost for the cycle
+  duration_seconds INTEGER,
+  report_text TEXT,                 -- formatCycleReport() output for human reading
+  created_at TEXT DEFAULT (datetime('now'))
+);
+```
+
+**Endpoint design:** A single `GET /admin/autoresearch/dashboard` route (admin-key protected) that returns the last 20 cycles, the mutation leaderboard, and the current active prompt variant. The frontend can be a static HTML page with inline JS that fetches this JSON and renders the 4 panels. No React needed — this is an admin tool, not a user-facing feature.
+
+---
+
+### Observation O16: Data Retention Policy — 90-Day Rolling Window with Milestone Snapshots
+
+**The question:** Should old cycles be purged after N months?
+
+**Analysis:** D1 free tier allows 5GB storage. Each cycle row is ~2-4KB (mostly JSON blobs for position/dimension breakdowns). At 1 cycle/day, that is ~120KB/month or ~1.4MB/year. Storage is not the constraint. The constraint is **query performance and dashboard noise** — a dashboard showing 365 data points on the objective curve is cluttered and makes recent trends hard to see.
+
+**Recommended policy:**
+- **Last 90 days:** Keep full detail (every cycle, every mutation test, every position breakdown). This is the active optimization window.
+- **90-365 days:** Compress to weekly summaries. A scheduled cron (Cloudflare Cron Trigger, already available in Workers) aggregates each week's cycles into a single `autoresearch_weekly_summary` row: best score that week, adopted mutations, position highlights. Delete the individual cycle rows.
+- **365+ days:** Compress to monthly summaries. Same pattern.
+- **Milestone snapshots:** NEVER delete a cycle where a mutation was adopted (it changed the baseline). These are the "inflection points" in the optimization history. Tag them with `milestone=1` and exclude from purging. This lets you reconstruct the full evolution of the prompt: baseline -> adopted mutation 1 -> adopted mutation 2 -> ... -> current state.
+
+**Implementation:** A weekly cron trigger (`"triggers": {"crons": ["0 6 * * 1"]}` in wrangler.toml — already supported) runs a D1 query:
+```sql
+-- Aggregate cycles older than 90 days into weekly summaries
+INSERT INTO autoresearch_weekly_summary (week_start, ...)
+SELECT strftime('%Y-%W', created_at), AVG(variant_avg_score), ...
+FROM autoresearch_cycles
+WHERE created_at < datetime('now', '-90 days') AND milestone = 0
+GROUP BY strftime('%Y-%W', created_at);
+
+-- Then purge the originals
+DELETE FROM autoresearch_cycles
+WHERE created_at < datetime('now', '-90 days') AND milestone = 0;
+```
+
+**Cross-domain connection (Weights & Biases):** W&B keeps runs forever (they charge for storage). MLflow community edition has no automatic cleanup. Optuna's RDB storage grows unbounded. All three suffer from "experiment graveyard" syndrome — thousands of old runs that nobody looks at but slow down the UI. BSM should learn from this and build retention into the schema from day one. The 90-day window is borrowed from observability platforms (Datadog, Grafana) that have solved the "infinite time series" problem: keep recent data at full resolution, compress old data into summaries, never delete inflection points.
+
+**Blaine parallel (Vested/business):** Same as CRM data hygiene. Keep the last 90 days of activity detail for active pipeline management. Compress older data into quarterly summaries for trend analysis. Never delete closed-won records (milestones). The CRM that keeps every email ever sent becomes unusable; the CRM that purges everything loses institutional memory. The middle path is time-bucketed compression with milestone preservation.
+
+---
+
+## AutoResearch Baseline: Expected Differences, Statistical Caveats, and Drift Alarms (TPA)
+
+**Date:** 2026-03-30 | **Reviewer:** Thought Partner Agent | **Scope:** First AutoResearch baseline run — what to expect, statistical traps, canary test design, baseline drift detection
+
+---
+
+### Idea 21: Handcrafted vs. AI Baseline Gap — Expected Direction and Why
+
+**The prediction:** Handcrafted scenarios will score HIGHER on the grading rubric than AI-generated scenarios, but by a SMALLER margin than most people assume.
+
+**Why handcrafted scores higher:**
+1. **Survivorship bias.** The 644 handcrafted scenarios have been through 4 audit rounds (72.6% -> 80.3% -> 88.4% -> 94.6% projected) with 1,268 quality fixes applied during the Gold Standard push. They have been human-reviewed, FIREWALL-validated, and refined. They represent the output of a polishing process, not a first draft. AI scenarios are first drafts that pass a quality gate — they have never been manually reviewed by a domain expert.
+2. **Explanation specificity.** The audit insights doc identifies `explanationQuality` as the critical dimension (6.95 avg, 2x weight). Handcrafted explanations were individually written to teach specific concepts with specific references to the game situation. AI explanations tend toward generic causal reasoning ("because the runner is fast" vs. "because with a 1.35s delivery time and 2.00s pop time, the catcher's 3.35s total gives the runner a 0.20s window").
+3. **Rate calibration.** Handcrafted rates (success percentages for each option) were tuned during audits to reflect real baseball outcomes. AI rates tend toward mechanical patterns: best=85, acceptable=55, bad=25, worst=10 (the OPTION_ARCHETYPES push this structure). The gradeScenario deduction for "rates don't reflect realistic baseball" hits AI scenarios harder.
+
+**Why the gap is smaller than expected:**
+1. **The grading function was built FOR AI.** The 35 QUALITY_FIREWALL checks, 15 CONSISTENCY_RULES, and gradeScenario deductions were designed to catch AI failure patterns. They are optimized to detect AI's specific weaknesses. Running handcrafted scenarios through this same grading function will surface issues in the HANDCRAFTED corpus that human review overlooked — particularly structural checks like "count format matches X-Y pattern" or "score-inning perspective consistency" that humans are bad at verifying manually.
+2. **Some handcrafted scenarios are pre-audit quality.** Not all 644 scenarios were touched by all 4 audit rounds. Scenarios added in early phases may have stale explanations, missing explSimple fields, or inconsistent rate spreads. The grading function will penalize these just as harshly as AI scenarios.
+3. **Multi-agent scenarios (Claude Opus) pass a 9.5/10 server-side critique with a 31-item checklist.** These are not naive AI outputs — they have been through their own audit pipeline. The gap between "4-round human-audited handcrafted" and "9.5/10 multi-agent critiqued AI" is narrower than the gap between "handcrafted" and "raw LLM output."
+
+**Expected scores (prediction for the baseline run):**
+- Handcrafted corpus avgScore: 78-85 / 100 (gradeScenario scale)
+- AI corpus (multi-agent) avgScore: 70-78 / 100
+- AI corpus (xAI agent) avgScore: 62-72 / 100
+- AI corpus (xAI standard) avgScore: 55-68 / 100
+- Gap: 8-15 points between handcrafted and best AI pipeline
+
+**The key insight for Blaine:** The baseline establishes WHERE each pipeline sits, not whether AI is "good enough." A 10-point gap that narrows to 5 over 10 optimization cycles is a clear signal that the AutoResearch loop is working. A gap that stays at 10 after 10 cycles means the mutation types are wrong or the grading function has a ceiling effect.
+
+---
+
+### Observation O17: Statistical Caveats for the First Baseline — The "Control" Is Not What You Think
+
+**Caveat 1: The grading function IS the metric, not an oracle.**
+gradeScenario() applies ~35 deductions based on structural rules (rate spread, count format, score perspective, causal language regex, etc.). It does NOT measure educational effectiveness, kid engagement, or actual learning outcomes. A scenario scoring 90/100 on gradeScenario might bore a 10-year-old. A scenario scoring 65/100 (penalized for short explanations and mechanical rates) might be the one that teaches the concept most effectively. The baseline measures "conformance to the quality rubric," which is a proxy for quality, not quality itself. Be careful about optimizing the proxy so hard that you lose sight of the actual goal (kids learning baseball strategy). This is literally Goodhart's Law applied to educational content.
+
+**Caveat 2: Small sample sizes per position make per-position comparisons unreliable.**
+With 644 handcrafted scenarios across 15 categories, some positions have only 21 scenarios (famous) or 27 (secondBase, shortstop). Running gradeScenario on 21 scenarios produces a confidence interval of roughly +/- 8 points (at 95% CI, assuming sigma=15). That means a "famous" avgScore of 75 is really "somewhere between 67 and 83." Comparing that to an AI batch of 10 famous scenarios (CI +/- 12 points) is comparing two wide distributions. You cannot reliably say "AI is worse at famous scenarios" with n=10 vs n=21. You CAN reliably compare the aggregate across all positions (n=644 vs n=whatever the AI batch is), but position-level claims need at least 30 scenarios per position per group.
+
+**Caveat 3: Pipeline confounding in the AI corpus.**
+If the AI corpus includes scenarios from multi-agent, agent, AND standard pipelines mixed together, the baseline is actually a BLEND of three quality levels. The "AI baseline" would be pulled upward by multi-agent and dragged down by standard. Future cycles that happen to hit more multi-agent scenarios (due to Claude availability) will appear to improve even if the prompts are identical. Fix: tag every AI scenario with its pipeline source and compute separate baselines per pipeline. This is analogous to the problem identified in Idea 18 — pipeline choice is a confounding variable.
+
+**Caveat 4: Temporal confounding in the handcrafted corpus.**
+The 644 handcrafted scenarios were not all written at the same time or by the same process. Early scenarios (from the original 623) may have different quality characteristics than the 21 added later. The grading function applies uniformly, but the corpus is not uniform. If the first baseline shows a bimodal distribution (cluster at 85 and another at 65), that is likely an artifact of pre-audit vs post-audit scenarios, not a meaningful quality signal.
+
+**Caveat 5: The "pass rate" metric hides distribution information.**
+If 80% of handcrafted scenarios pass and 65% of AI scenarios pass, the tempting conclusion is "handcrafted is better." But what if handcrafted has a tight distribution (most at 75-80) while AI has a bimodal one (40% at 85+ and 25% at 50-)? The AI corpus might have MORE top-tier scenarios AND more failures. The mean and pass rate hide this. Always look at the histogram, not just the summary stats. This connects directly to Idea 15's "dimension stability" concept — aggregate metrics mask important distributional information.
+
+---
+
+### Idea 22: Baseline Drift Alarm — A "Canary Test Suite" for Prompt Regression Detection
+
+**The problem:** Once the baseline is established and optimization cycles begin, the control (unmodified prompt) needs to be re-measured periodically. Without this, you cannot distinguish "the variant improved" from "the grading function drifted" or "the LLM model updated silently." OpenAI and Anthropic both update model behavior between versions (sometimes even within a version via RLHF updates). xAI does the same with Grok. A prompt that scored 75/100 in March might score 70/100 in April with zero prompt changes because the model shifted.
+
+**The canary test concept (from ML/SRE):** Google's ML infrastructure uses "canary models" — a frozen model that processes a fixed test set every deployment. If the canary's accuracy drops below threshold, the deployment is halted. The equivalent for BSM: a fixed set of 15-20 "canary scenarios" (one per position category + a few extras for weak positions) with known expected scores.
+
+**Design:**
+1. **Select 15-20 canary scenarios** from the handcrafted corpus. Choose scenarios that scored 80+ on gradeScenario in the baseline run. These are "known good" — any future score drop is a signal, not noise.
+2. **Run the canary set through gradeScenario every cycle** (zero cost — no API calls, just local grading). If the handcrafted canary avgScore drops by more than 5 points from the original baseline, something changed in the grading function. Investigate before interpreting any variant results. This takes <1 second to compute.
+3. **Run the canary PROMPTS through the AI pipeline once per week** (moderate cost — 15-20 API calls). Use the same positions, same target concepts, same difficulty. Compare the AI canary output scores to the original AI baseline. If they drop by more than 8 points with zero prompt changes, the LLM model behavior shifted. Log this as `model_drift_detected` and adjust the baseline accordingly.
+
+**Threshold recommendations:**
+- Handcrafted canary drift > 5 points: HALT — grading function changed (code bug or intentional rubric update)
+- AI canary drift > 8 points: WARNING — model behavior may have shifted, re-run full baseline before next optimization cycle
+- AI canary drift > 15 points: HALT — model has fundamentally changed, old baseline is invalid, start a new baseline run
+- Variant delta < canary drift: INVALID — the "improvement" is within the noise floor of model drift
+
+**Why 5/8/15 thresholds:** The handcrafted canary should be near-zero drift (same inputs, same grading code, deterministic). A 5-point drift means a code change or scoring bug. The AI canary has inherent variance from LLM non-determinism (temperature, sampling). At temperature=0.6 (typical for generation), repeated generations of the same prompt produce scores with sigma ~5-8 points. An 8-point drift is ~1 sigma — could be noise, worth investigating. A 15-point drift is ~2 sigma — almost certainly a real shift.
+
+**Cross-domain parallel (SRE/DevOps):** This is identical to "golden signal monitoring" in production systems. You don't wait for users to report that the site is slow — you run synthetic transactions (canary requests) every minute and alert when latency exceeds the baseline. The canary doesn't need to be representative of all traffic; it needs to be STABLE so that any change in its signal is a meaningful alert.
+
+**Cross-domain parallel (ML teams):** Every serious ML team maintains a "regression test set" — a frozen dataset with known correct labels. After every model retrain, the regression set is scored. If accuracy drops on the regression set, the retrain is suspect even if the overall validation accuracy improved. The regression set catches overfitting to the validation distribution and underfitting to edge cases. BSM's canary scenarios serve the same purpose: they catch prompt mutations that improve average quality while breaking specific known-good scenarios.
+
+**Blaine parallel (Vested):** This is the same principle as checking your best client's renewal rate separately from overall retention. If your top 10 clients are all renewing, overall churn can fluctuate without panic. If a top client churns, that is a red alert regardless of what the aggregate says. The canary scenarios are your top clients — monitor them separately.
+
+---
+
+### Observation O18: The Baseline Must Capture BOTH Score Distribution AND Failure Mode Distribution
+
+**What most baselines miss:** The typical ML baseline captures mean/median/percentile of a single metric. But for AutoResearch, the PATTERN of failures matters as much as the aggregate score. Two corpora with identical avgScore=75 and passRate=80% can have completely different failure profiles:
+
+- Corpus A: fails on `explanationCausal` (40% of failures), `rateSpreadRealistic` (30%), everything else clean
+- Corpus B: fails on `positionActionBoundary` (50% of failures), `scoreInningPerspective` (25%), with scattered other failures
+
+Corpus A has a writing quality problem. Corpus B has a structural/factual problem. The optimization strategy is completely different. If the baseline only records avgScore=75, this distinction is lost.
+
+**What the baseline report must include:**
+1. avgScore and passRate (the headline metrics)
+2. Score histogram (10-point buckets: 0-10, 10-20, ..., 90-100) — shows distribution shape
+3. Per-position avgScore and passRate — identifies weak positions
+4. Failure mode frequency table: for each gradeScenario deduction and FIREWALL check, how often it fires — identifies the dominant quality problems
+5. Tier 1 vs Tier 2 vs Consistency failure breakdown — distinguishes "hard fail" from "quality warning"
+6. Top 5 most common deduction strings (verbatim) — gives concrete examples for prompt mutation targeting
+
+This is the "failure fingerprint" that the optimization loop compares against. If a variant changes the fingerprint (shifts failures from explanationCausal to positionActionBoundary), that is a regression even if avgScore holds steady. The fingerprint should be the PRIMARY comparison metric, with avgScore as a summary statistic.
+
+**Implementation for `formatCycleReport()`:** The report should have a "Failure Fingerprint" section that visualizes the deduction frequency as a horizontal bar chart (ASCII is fine for a text report):
+```
+explanationCausal:      ████████████████████ 22%
+rateSpreadRealistic:    █████████████ 14%
+scoreInningPerspective: █████████ 9%
+positionActionBoundary: ██████ 6%
+...
+```
+Compare baseline fingerprint to variant fingerprint side-by-side. Highlight any deduction that moved more than 5 percentage points. This is the most actionable section of the report — it tells you exactly what the mutation fixed and what it might have broken.
+
+---
+
+## AutoResearch Cycle 1: Mutation Selection, Sample Size, and Position Strategy — TPA Analysis (2026-03-30)
+
+**Date:** 2026-03-30 | **Reviewer:** Thought Partner Agent | **Scope:** First real optimization cycle planning based on Step 7 baseline results (avgScore 67.9, passRate 52%, top failures: explanation_few_sentences 171x, concept_missing_why 92x, description_missing_decision_prompt 81x)
+
+---
+
+### Idea 23: The Top 3 Mutations Should Target the Three Failure Modes Independently, Not Use the Weighted Suggestion Ranking
+
+**Date:** 2026-03-30 | **Source:** TPA analysis of Step 7 baseline failure distribution
+
+**The baseline tells a clear story:** 67.9 avg score with 52% pass rate means roughly half of AI-generated scenarios fail quality checks. The top 3 failures are:
+- `explanation_few_sentences` (171x) — each scenario has 4 explanations, so this fires on ~43% of all explanations. The gradeScenario check at line 743 of `src/06_ai_pipeline.js` deducts 5 points per explanation with fewer than 2 sentences. This is the single biggest score drag.
+- `concept_missing_why` (92x) — the concept field lacks causal language (no "because", "so that", "to prevent", etc.). 92% of scenarios hit this. 5-point deduction each.
+- `description_missing_decision_prompt` (81x) — the description's last sentence does not contain a decision prompt phrase ("what should you do?", "your call", etc.). 81% of scenarios. 5-point deduction each.
+
+**The 3 highest-probability mutations, in order:**
+
+**1. `few_shot_examples` (NOT coaching_line_rules as the automated suggestion recommends).** The few-shot example is the single most powerful lever for structural compliance because the AI mimics the example's format. If the few-shot example has 2-3 sentence explanations, a causal concept, and a decision-prompt description ending, the AI will reproduce all three patterns. One mutation fixes all three top failures simultaneously. The current few-shot may have short explanations or missing decision prompts — updating it to be a "golden example" that passes every gradeScenario check would propagate formatting compliance across all generated scenarios. Weight this highest because it has the widest blast radius with the lowest token cost increase.
+
+**2. `explanation_guidance` (targeted at the specific sentence-count and anchoring rules).** This adds explicit instructions about explanation length and structure. The current agent prompt at line 2376 says "Every explanation must be 1-3 sentences" and the standard prompt at line 3404 says "2-4 sentences." The grader penalizes at <2 sentences. The mismatch between the instruction ("1-3") and the grader threshold (">=2") means the AI sometimes writes 1-sentence explanations believing it is compliant. The mutation should change the prompt to say "Every explanation must be 2-3 sentences. One sentence is NEVER enough." This is a surgical fix: change one number, fix 171 deductions.
+
+**3. `system_prefix` (add a formatting preamble that establishes the concept-why and decision-prompt patterns).** A system prefix line like "Your concept field must explain WHY using causal language. Your description must end with a question asking the player what to do." primes the model before it sees the full prompt. This targets concept_missing_why and description_missing_decision_prompt specifically. Token cost: ~30 tokens. Risk: near zero.
+
+**Why NOT coaching_line_rules first (the #1 automated suggestion at weight 92):** coaching_line_rules adds coaching voice guidance, banned phrases, and explanation style rules. It is a LARGE injection (~200-400 tokens). It addresses explanation quality (voice, specificity) but does NOT directly address the top 3 structural failures. A scenario can have perfect coaching voice and still fail for 1-sentence explanations, missing causal concept, and no decision prompt. coaching_line_rules optimizes for quality AFTER the structural floor is met. The structural floor is where 48% of scenarios currently fail. Fix the floor first.
+
+**Cross-domain parallel (Vested/business):** This is triage. When 48% of your pipeline is failing at a structural checkpoint, you do not invest in improving the quality of the 52% that passes. You fix the checkpoint failure first, then raise the quality bar. Same as Blaine's principle: "fix the leak before you optimize the funnel."
+
+---
+
+### Idea 24: coaching_line_rules Token Budget Risk — The "Prompt Bloat Timeout" Problem
+
+**Date:** 2026-03-30 | **Source:** TPA risk analysis for Cycle 1 mutation selection
+
+**The risk is real but quantifiable.** The current agent prompt (built by `buildAgentPrompt()`) is already long — it includes position rules, knowledge maps, OPTION_ARCHETYPES, few-shot examples, quality rules, coaching voice, real game feel injection, and error reinforcement. Adding coaching_line_rules injects banned phrases, voice examples, and structural rules. Estimated additional tokens: 200-400.
+
+**Current token budget math:**
+- xAI grok-4 context window: 131,072 tokens
+- Typical agent prompt: ~3,000-4,000 tokens (estimated from the concatenated sections)
+- max_tokens for response: 1,800 tokens
+- Headroom: ~125,000 tokens — no risk of context overflow
+
+**But the timeout risk is not about context length — it is about generation latency.** Longer prompts increase time-to-first-token (TTFT) because the model must process more input. For grok-4 at the xAI API, TTFT scales roughly linearly with prompt length. A 400-token prompt increase (~10% of current prompt) adds ~1-2 seconds to TTFT. With the worker timeout at 55s and AI_BUDGET at 120s, this is within margin.
+
+**The REAL risk:** coaching_line_rules adds complexity to the generation task (more constraints = more reasoning = more output tokens = longer generation). If the AI tries harder to satisfy coaching voice rules, it may generate longer explanations (good for sentence count, bad for token budget). At 1,800 max_tokens, a scenario with 4 verbose explanations can hit the token ceiling and get truncated, producing invalid JSON. This is the failure mode to watch.
+
+**Mitigation:** If coaching_line_rules is tested in a later cycle, monitor the `parse_error` rate alongside quality scores. If parse errors spike above 5%, the prompt is pushing the model past its max_tokens budget. The fix would be to increase max_tokens to 2,200 or to trim elsewhere in the prompt.
+
+**Bottom line:** coaching_line_rules is safe from a timeout perspective but carries moderate risk of JSON truncation. Test it in Cycle 2 after the structural floor is fixed, not in Cycle 1.
+
+---
+
+### Observation O19: Run Cycle 1 Against the 3 Weakest Positions Only — Full-Position Testing Is Wasteful at This Stage
+
+**Date:** 2026-03-30 | **Source:** TPA analysis of position-level baseline results and Idea 17 (successive halving)
+
+**The baseline per-position data:** pitcher=76.8 (best), shortstop=63.0 (worst). The spread is 13.8 points. Positions above 70 (pitcher, presumably a few others) are already passing at acceptable rates. The optimization signal is strongest where scores are lowest — shortstop (63.0), and based on historical audit data, batter (~66%), baserunner (~71%), and catcher (~mid-60s).
+
+**Why 3 positions, not 5 or 12:**
+
+1. **Statistical power per dollar.** Per Observation O15, you need ~28 scenarios per variant to rank variants reliably. With 3 positions at 10 scenarios each = 30 per variant. With 3 variants + 1 control = 120 calls. At xAI rates (~$0.019/call): ~$2.28 per cycle. This leaves budget for 80+ cycles at $200. With 5 positions at 10 each = 50 per variant = 200 calls = ~$3.80/cycle. The marginal value of positions 4 and 5 (which are closer to passing) is low — they contribute less failure signal and dilute the per-position sample size.
+
+2. **Failure mode concentration.** The top 3 failures (explanation_few_sentences, concept_missing_why, description_missing_decision_prompt) are structural and position-agnostic — they fire at similar rates across all positions. But position-SPECIFIC failures (principleContradiction for pitcher, positionActionBoundary for batter, score_direction_mismatch for baserunner) only appear in those positions. Testing shortstop + baserunner + catcher gives you the weakest structural scores AND captures the position-specific failure modes that matter most.
+
+3. **Faster iteration.** 120 calls complete in ~10 minutes. 480 calls take ~40 minutes. At the early stage of the optimization loop, iteration speed matters more than coverage breadth. Run 4 fast cycles against weak positions before running 1 comprehensive cycle against all 12.
+
+**Recommended Cycle 1 configuration:**
+- Positions: shortstop, baserunner, catcher (weakest 3)
+- Scenarios per position per variant: 10
+- Variants: 3 (few_shot_golden, explanation_sentence_fix, system_prefix_structural) + 1 control
+- Total calls: 120
+- Estimated cost: ~$2.28 (xAI) or ~$18 (Claude Opus)
+- Use successive halving (Idea 17): 3 scenarios/position in Round 1 (36 calls), kill worst variant, 7 more scenarios/position for survivors in Round 2 (42-84 calls). Total: 78-120 calls.
+
+**Minimum sample size for +5 point detection:** Per the power analysis in Observation O15, detecting a 5-point improvement over baseline (67.9 → 72.9) with 80% power and alpha=0.05 requires n=28 per group (assuming sigma=15). With 3 positions x 10 scenarios = 30 per variant, you are just above the threshold. For a +3 point improvement, you would need n=78 — meaning you would need to expand to 8 positions or 26 scenarios per position. **Recommendation: target +5 as the minimum detectable effect for Cycle 1 and accept that smaller improvements will not be statistically significant.** This is fine — a mutation that only improves scores by 3 points is not worth adopting anyway. The structural fixes (few-shot, sentence count, decision prompt) should each contribute 5-15 points if they work, making them easily detectable at n=30.
+
+---
+
+## TPA Implementation Roadmap — Consolidated Priority Ranking
+
+**Date:** 2026-03-30 | **Scope:** All TPA findings from Ideas 11-24, Observations O12-O19, ranked by implementation priority and grouped into action windows.
+
+---
+
+### Build Status: What Was ALREADY Addressed
+
+| Finding | Status | Details |
+|---------|--------|---------|
+| Idea 11 (Goodhart's Law) | IMPLEMENTED | `compareAndAdopt()` at line 10461 has Goodhart detection using gameable vs non-gameable deduction tracking. Flags and reverts suspicious score improvements. |
+| Idea 12 (Position-Specific Failure Fingerprints) | PARTIALLY IMPLEMENTED | `analyzeFailurePatterns()` at line 9845 computes per-position and per-deduction breakdowns. The structured `topFailures` output format was adopted. Missing: explicit `mutation` field in failure objects mapping to specific prompt sections. |
+| Idea 18 (Pin to Single Pipeline) | IMPLEMENTED | `runAutoResearchCycle()` calls `generateWithAgentPipeline()` directly, bypassing the multi-tier fallback chain. Pipeline choice is a controlled variable. |
+| Idea 23 (Top 3 Mutations for Cycle 1) | IMPLEMENTED | The three mutations (few_shot_examples, explanation_guidance, system_prefix) are available in `PROMPT_MUTATION_TYPES` and `generatePromptVariant()`. The baseline failure analysis confirmed these as the highest-leverage targets. |
+| O15 (90-Call Efficient Config) | IMPLEMENTED | `runAutoResearchCycle()` defaults reflect the efficient config (small position set, controlled scenarios per variant). |
+| O19 (Weak Positions Only) | IMPLEMENTED | Cycle 1 config targets weakest positions rather than all 12. |
+
+---
+
+### Category 1: INCORPORATE NOW (During or Immediately After This Build)
+
+**Estimated total effort: 3-5 hours**
+
+| Priority | Finding | Implementation Spec |
+|----------|---------|-------------------|
+| **P1** | **O13: Frozen Core for Position Safety** | In `buildAgentPromptWithVariant()`, wrap ROLE_VIOLATIONS source text, `principleContradiction` check descriptions, and `positionActionBoundary` rules in a clearly-delimited block that the variant injection logic skips entirely. Add a guard: if any `variant.delta` string contains substrings from the frozen block's key phrases ("pitcher NEVER cuts", "catcher stays home", "CF has priority"), reject the variant and log a safety violation. ~30 minutes. |
+| **P2** | **Idea 15: Dimension Stability Check** | In `compareAndAdopt()`, after the existing Goodhart check, add a per-deduction-category delta computation: for each deduction key present in either control or variant `failurePatterns.deductionCounts`, compute the percentage-point change. If ANY single deduction category increases by more than 10pp (even if aggregate improves), set `dimensionRegression=true` and require `improvementThreshold * 2` for adoption instead of the standard threshold. ~45 minutes. |
+| **P3** | **O14: Position-Stratified Comparison** | In `compareAndAdopt()`, compute per-position pass rates from `failurePatterns.positionBreakdown` (already computed by `analyzeFailurePatterns`). Block adoption if any position's pass rate drops by more than 15pp. Add a position-level comparison table to `formatCycleReport()` output. ~1 hour. |
+| **P4** | **Idea 16: Mutation Cooldown / Revert Memory** | Add a `_revertLog` module-level array. After `compareAndAdopt()` reverts a variant, push `{mutationType, cycleId, reason, delta}`. Before `analyzeFailurePatterns()` suggests a mutation type, check the revert log: block if reverted in last 1 cycle, require 2x threshold if reverted in last 3 cycles, flag `oscillation_detected` if reverted 2+ times in last 10 cycles. ~1 hour. |
+| **P5** | **Idea 13: Missing Mutation Types** | Add two entries to `PROMPT_MUTATION_TYPES`: `"decision_window"` and `"explanation_anchoring"`. Add corresponding entries in `MUTATION_TARGET_MAP` mapping `decision_window` to `["optionDecisionMoment"]` failures and `explanation_anchoring` to `["best_explanation_argues_for_wrong_option"]` failures. In `generatePromptVariant()`, add cases for both: `decision_window` injects the temporal constraint text from Idea 13; `explanation_anchoring` injects the "start by naming the action" guidance. ~45 minutes. |
+
+---
+
+### Category 2: NEXT SPRINT (Next Development Session)
+
+**Estimated total effort: 4-6 hours**
+
+| Priority | Finding | What to Build |
+|----------|---------|--------------|
+| **P6** | **O12: Implausible Distractor Detection** | Add a new `implausible_distractors` check to QUALITY_FIREWALL Tier 2. Heuristic: if 3 of 4 option texts are <60% the length of the best option, or if 3 of 4 rates cluster below 25%, flag the scenario. Route to `option_archetype_injection` mutation. Requires updating FIREWALL validate() and `MUTATION_TARGET_MAP`. |
+| **P7** | **Idea 14: Mutation Layer Isolation** | Add a `layer` field to each variant object in `generatePromptVariant()`. Define 5 layers: `identity` (system prefix), `quality_rules` (explanation/coaching), `knowledge` (maps/archetypes), `examples` (few-shot), `context` (player/coach/anti-repetition). Enforce single-layer mutations: reject or split any variant that touches content in 2+ layers. |
+| **P8** | **Idea 17: Successive Halving** | Add `pruningStrategy: "successive_halving"` to `runAutoResearchCycle()` config. Round 1: 3 scenarios/position for all variants, kill any variant scoring >5 below baseline. Round 2: remaining 7 scenarios/position for survivors only. Log pruning decisions in cycle report. |
+| **P9** | **Idea 22: Canary Test Suite** | Select 15-20 handcrafted scenarios that scored 80+ on gradeScenario. Store their IDs in a `CANARY_SCENARIOS` constant. At the start of each cycle, run `gradeScenario` on canary set (zero API cost). If canary avgScore drifts >5 from baseline, halt the cycle and log `grading_drift_detected`. Weekly: generate 15 scenarios with the unmodified prompt and compare to AI baseline for model drift detection. |
+| **P10** | **O18: Failure Mode Distribution in Baseline** | Extend `formatCycleReport()` to include: score histogram (10-point buckets), per-position avgScore table, failure mode frequency ASCII bar chart, top 5 most common deduction strings verbatim. Compare baseline vs variant fingerprints side-by-side with highlights for >5pp deltas. |
+
+---
+
+### Category 3: FUTURE (Nice-to-Have, Build When Scale Justifies)
+
+**Estimated total effort: 8-12 hours (if ever needed)**
+
+| Priority | Finding | Why Deferred |
+|----------|---------|-------------|
+| **P11** | **Idea 19: Mutation Effectiveness Leaderboard** | Requires D1 `autoresearch_mutations` table and dashboard endpoint. High value but only useful after 10+ cycles of data accumulate. Build the D1 schema now (low effort), defer the dashboard UI until there is data to display. |
+| **P12** | **Idea 20: Dashboard MVP (4-Panel MLflow-Style)** | Depends on Idea 19's D1 tables. Single HTML page with objective curve, config diff, leaderboard, position heatmap. Build after 5+ cycles run successfully. The `formatCycleReport()` text output covers decision-making needs until then. |
+| **P13** | **O16: Data Retention Policy** | D1 storage is not a constraint at current scale (~1.4MB/year). The 90-day rolling window with milestone snapshots is good hygiene but unnecessary until running daily cycles. Add the cron trigger and purge logic when daily automation is in place. |
+| **P14** | **Idea 21: Handcrafted vs AI Baseline Gap Prediction** | The predictions (handcrafted 78-85, multi-agent 70-78, xAI agent 62-72) serve as sanity-check anchors for baseline results. No code to write — these are reference values for interpreting the first baseline run. Already serving their purpose as documented context. |
+| **P15** | **O17: Statistical Caveats** | These are interpretation guidelines, not code changes. The five caveats (grading-is-proxy, small-n per position, pipeline confounding, temporal confounding, pass-rate-hides-distribution) should inform how baseline and cycle results are read. No implementation needed — this observation is a permanent reference document. |
+| **P16** | **Idea 24: coaching_line_rules Token Budget Risk** | The risk analysis concluded coaching_line_rules is safe from timeout but carries moderate JSON truncation risk. Mitigation: monitor `parse_error` rate when coaching_line_rules is eventually tested. No preemptive code needed — just awareness for Cycle 2+. |
+| **P17** | **Idea 14 (Thompson Sampling Extension)** | The multi-armed bandit allocation strategy (allocate more traffic to winning variants dynamically) is theoretically optimal but adds complexity. At BSM's scale (single-digit cycles per week), fixed allocation with successive halving (Idea 17) is sufficient. Revisit if running 10+ cycles/day. |
+
+---
+
+### Effort Summary
+
+| Category | Items | Effort | When |
+|----------|-------|--------|------|
+| **Incorporate Now** | P1-P5 (O13, I15, O14, I16, I13) | 3-5 hours | This build or immediately after |
+| **Next Sprint** | P6-P10 (O12, I14, I17, I22, O18) | 4-6 hours | Next development session |
+| **Future** | P11-P17 (I19, I20, O16, I21, O17, I24, I14-ext) | 8-12 hours | When scale justifies |
+| **Already Done** | I11, I12 (partial), I18, I23, O15, O19 | 0 hours | Shipped in this build |
+
+### Key Sequencing Dependencies
+
+1. **P1 (Frozen Core) before P5 (New Mutation Types)** — New mutations must respect the frozen safety block before being added.
+2. **P2 (Dimension Stability) before P8 (Successive Halving)** — Halving's triage round needs the stability check to avoid promoting a Goodhart-gaming variant.
+3. **P3 (Position Stratification) before P10 (Failure Fingerprint Display)** — The report needs position-level data to render the fingerprint comparison.
+4. **P4 (Revert Memory) before running multiple optimization cycles** — Without cooldown, Cycles 2-3 may oscillate on the same mutation types.
+5. **P9 (Canary Suite) before running Cycle 2** — Model drift between cycles is undetectable without the canary baseline.
+
+### Cross-Domain Insights Worth Preserving
+
+The TPA findings surfaced several reusable patterns that apply beyond AutoResearch:
+
+- **Goodhart's Law** (I11, I15): When a measure becomes a target, it ceases to be a good measure. Applied everywhere BSM uses automated scoring to drive automated decisions. Mitigation: always track the distribution, not just the mean; use lagging indicators (human review) as a check on leading indicators (automated scores).
+- **Successive Halving / Tournament Selection** (I17, O15): Cheap comparisons to narrow the field, expensive evaluation only for finalists. Applies to any resource-constrained search: scenario selection, A/B testing, even candidate screening.
+- **Frozen Core / Append-Only Safety** (O13): Safety-critical constraints must be immutable under optimization. Mutations add knowledge, not substitute guardrails. Same principle as Vested's "non-negotiable client commitments" that sales cannot override.
+- **Experiment Layering** (I14): Change one variable per layer to maintain attribution. Slower but produces compounding knowledge. Same principle in sales process optimization and coaching methodology development.
+
+---
+
+## TPA Research Notes — P1-P5 Implementation Design (2026-03-31)
+
+### Idea 25: P1 Safety Guard Needs Semantic Polarity, Not Substring Matching
+
+**Context:** P1 spec says to check if a variant's injected text contains substrings from the frozen POSITION_BOUNDARY_HARDSTOP block (e.g., "pitcher NEVER cuts"). A naive substring check would flag BOTH weakening phrases ("pitcher sometimes cuts off throws") AND reinforcing phrases ("pitcher should NOT cut off throws — back up instead"). These are semantically opposite.
+
+**The distinction matters:** The real danger is not the AI mentioning cutoffs — it is the AI stating the rule WITHOUT the negation. "Pitcher handles the cutoff" weakens safety. "Pitcher is NEVER the cutoff" reinforces it. A substring match on "pitcher" + "cut" catches both, creating false positives that would reject good variants.
+
+**Recommended approach:** Extract the core safety predicates as (subject, NEGATION, action) triples: `[("pitcher", "NEVER", "cutoff/relay"), ("catcher", "NEVER", "leaves home plate"), ...]`. The guard should flag variant text that contains the subject+action pair WITHOUT a negation word within N tokens. Specifically: (1) scan variant mutation text for each safety predicate's subject+action keywords; (2) if found, check whether a negation word (NEVER, NOT, don't, cannot, must not) appears within 5 tokens; (3) if no negation is present, flag as a safety weakening and reject the variant. This is a ~20-line regex implementation, not an LLM call.
+
+**Bonus insight:** This same polarity-aware pattern applies to the ROLE_VIOLATIONS regex system. Several of the 30 ROLE_VIOLATIONS patterns could benefit from distinguishing "pitcher cuts off the throw" (violation) from "pitcher does NOT cut off the throw" (correct teaching).
+
+**Tags:** `#autoresearch` `#safety` `#implementation-design`
+
+---
+
+### Observation O20: Position Regression Blocking Needs Sample-Size Weighting (P3)
+
+**Context:** P3 spec says to block adoption if any position's pass rate drops by more than 15pp. But `analyzeFailurePatterns()` does NOT currently compute per-position breakdowns — it aggregates all positions into a single `passRate`. More critically, the 90-call budget (O15) means each cycle tests ~2-4 scenarios per position. A 15pp pass rate drop at n=2 means one scenario flipped from pass to fail — that is noise, not signal.
+
+**The math:** With 5 positions tested and 4 scenarios each (20 total), a single position going from 2/4 pass (50%) to 1/4 pass (25%) is a 25pp drop. That triggers the block. But the 95% confidence interval for a binomial at n=4, p=0.5 is [7%, 93%]. The observed 25pp drop is well within random variation.
+
+**Recommended approach:** Use a weighted hybrid: (1) If n >= 8 for a position, apply the 15pp hard block (sample is meaningful). (2) If 4 <= n < 8, apply a softer gate: require `improvementThreshold * 1.5` for adoption if any position drops >20pp. (3) If n < 4, log the position drop as a warning in the cycle report but do NOT block adoption — flag it for the next cycle to retest with a larger sample at that position. This prevents a single unlucky scenario from vetoing a genuinely good mutation.
+
+**Cross-domain parallel:** This is the same "minimum credible sample" problem Vested faces with NPS scores — a single detractor in a 5-response survey can tank the score. The solution there is also tiered: flag at small n, act at large n.
+
+**Tags:** `#autoresearch` `#statistics` `#implementation-design`
+
+---
+
+### Idea 26: Revert Log Should Persist in localStorage with TTL-Based Decay
+
+**Context:** P4 adds a `_revertLog` to prevent mutation oscillation. The question is whether this should be module-level (in-memory, lost on refresh) or persisted in localStorage.
+
+**Why localStorage wins:** AR cycles are expensive (90 API calls, ~$2-4 each). A user will not run multiple cycles in a single browser session — they will run one, review results, close the tab, come back tomorrow, and run another. An in-memory revert log would be empty for Cycle 2, defeating the entire purpose of oscillation detection. The log MUST persist across sessions.
+
+**Recommended design:** Store under `bsm_ar_revert_log` in localStorage. Each entry: `{mutationType, cycleId, reason, delta, timestamp}`. Apply TTL-based decay rather than cycle-count-based: entries older than 7 days are ignored (model drift makes older reverts irrelevant). Cap at 50 entries (FIFO eviction). The cooldown rules become: (1) mutation reverted in last 24 hours — hard block; (2) mutation reverted in last 7 days — require 2x improvement threshold; (3) same mutation reverted 3+ times in 7 days — flag `oscillation_detected`, skip entirely and log. This is ~15 lines of code plus 5 lines of localStorage read/write.
+
+**Why NOT D1/KV:** The revert log is a client-side optimization loop. It does not need server persistence — each browser instance runs its own AR cycles independently. Putting it in D1 adds latency and complexity for zero benefit at current scale. If/when AR moves server-side (Phase 3+), migrate the log to D1 at that point.
+
+**Tags:** `#autoresearch` `#persistence` `#implementation-design`
+- **Experiment Layering** (I14): Change one variable per layer to maintain attribution. Slower but produces compounding knowledge. Same principle in sales process optimization and coaching methodology development.
+
+---
+
+## TPA Research Notes — Cycle 3 Pre-Flight Analysis (2026-03-31)
+
+### Idea 27: Decision Prompt Rule Is Already Present but Ignored — Fix Prompt Architecture, Not Content
+
+**Context:** The 84% `description_missing_decision_prompt` failure rate suggests we need to add a rule. But line 11932-11934 of buildAgentPrompt already contains: "CRITICAL: The LAST sentence of every description MUST be a decision prompt... This is non-negotiable." The rule exists. The AI ignores it.
+
+**Root cause:** The `qualityRules` block is ~60 lines of dense instructions (scoreRules + descriptionStyle + positionBoundaries + auditInstruction + yellowOptionRule + explanationRules + voiceExamples). LLMs satisfice — they attend to the first rules and drop later ones. The decision-prompt rule is buried at line 11934 inside descriptionStyle, which is the second block concatenated into qualityRules. By the time the model processes the JSON schema format requirements and generates the description, this instruction has decayed from working memory.
+
+**Proposed fix (not a duplicate rule — a structural change):** Move the decision-prompt requirement out of the prose rules block and into one of three structural positions where LLMs reliably attend: (1) The LAST line of the entire prompt (recency bias), (2) Inside the JSON schema format block as a field-level constraint ("description: string, MUST end with a question asking the player to decide"), or (3) As a post-generation check in the grading step that rejects and retries. Option 2 is the strongest because it ties the rule to the exact field being generated, not to a separate instruction block the model may discard. Adding a second copy of the same prose rule will not overcome the attention decay that caused the first copy to fail.
+
+**Implication for Cycle 3:** If we add a one-liner to buildAgentPrompt as planned, control baseline should barely shift (the existing rule already fails to stick). This means Cycles 1-2 data IS comparable. But it also means the fix will have minimal effect. The real experiment should be: move the rule to a structural position and test THAT as the mutation.
+
+**Tags:** `#autoresearch` `#prompt-engineering` `#cycle-3`
+
+---
+
+### Idea 28: allExplanationsCausal Is a Universal Quality Gap, Not a Grading Bug — But the Floor Should Be 2 Sentences
+
+**Context:** allExplanationsCausal fires at 79% for AI scenarios. Investigation shows the handcrafted baseline has a similar weakness: `explanation_few_sentences` fires 171x out of 100 handcrafted scenarios. The causal word list (35+ patterns including "since", "so the", "otherwise") is generous — any explanation that fails this check is genuinely weak.
+
+**The grading is honest.** An explanation under 50 words with zero causal language is a bad explanation for teaching. The 79% failure rate reflects a real pattern: both AI and human authors write terse explanations that state the outcome without explaining WHY. "You throw to the cutoff man" is an instruction, not an explanation. "You throw to the cutoff man because he's lined up with home and cutting the distance means the ball arrives on a line instead of bouncing" is teaching.
+
+**The fixable gap:** The current `explanationRules` (line 11967-11974) says "1-3 sentences." This permits 1-sentence explanations that trivially fail the causal check. Changing the floor to "2-3 sentences" would force the AI to write enough text that causal reasoning almost inevitably appears. This is a simpler, more reliable fix than trying to teach the AI what "causal reasoning" means. The `explanation_anchoring` mutation in Cycle 3 partially addresses this by requiring explanations to name the action first, then argue — which naturally produces 2+ sentences. Watch whether explanation_anchoring's pass rate on allExplanationsCausal improves as a side effect.
+
+**Tags:** `#autoresearch` `#grading` `#cycle-3`
+
+---
+
+### Observation O21: Worker Multi-Agent Pipeline Has Zero Decision-Prompt Guidance
+
+**Context:** The Claude Opus multi-agent pipeline in `worker/index.js` has no mention of "decision prompt", "What should you do", "End with", or any instruction to close descriptions with a player decision question. This means the primary AI pipeline (which handles most production AI scenarios) is generating descriptions that almost certainly fail the `description_missing_decision_prompt` check at the same 84% rate as the xAI fallback.
+
+**Why this matters:** Any fix to buildAgentPrompt (client-side) only affects the xAI agent and standard pipelines — it does NOT touch the Claude Opus multi-agent pipeline, which runs server-side in the worker. To fix the 84% failure rate across ALL pipelines, the rule must be added to BOTH the worker's Planner/Generator prompts AND the client-side buildAgentPrompt. Currently, fixing only the client side leaves the primary pipeline untouched.
+
+**Recommended approach:** Add the decision-prompt requirement to the worker's Generator agent prompt (the agent that actually writes the scenario JSON). Place it as a field-level constraint in the JSON schema or as the final instruction before the generation call. Then separately fix the client-side prompt per Idea 27. This ensures both the primary path (Claude Opus) and the fallback path (xAI Grok) receive the instruction.
+
+**Tags:** `#autoresearch` `#worker` `#multi-agent` `#cycle-3`
